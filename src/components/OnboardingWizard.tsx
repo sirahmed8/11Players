@@ -221,20 +221,20 @@ export default function OnboardingWizard() {
   /* ── Number Input Component ── */
   const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
     <div className="space-y-1.5">
-      <label className="text-sm font-semibold text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${error ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
+      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label} *</label>
+      <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${error ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-          className="w-full bg-transparent px-4 py-3 text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <div className={`absolute flex flex-col border-slate-700/50 h-full ${isRTL ? 'left-0 border-r' : 'right-0 border-l'}`}>
-          <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-700/50 text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
+        <div className={`absolute flex flex-col border-slate-300 dark:border-slate-700/50 h-full ${isRTL ? 'left-0 border-r' : 'right-0 border-l'}`}>
+          <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
             <ChevronUp className="w-4 h-4" />
           </button>
           <div className="w-full h-px bg-slate-700/50" />
-          <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="flex-1 px-2 hover:bg-slate-700/50 text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
+          <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="flex-1 px-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
             <ChevronDown className="w-4 h-4" />
           </button>
         </div>
@@ -403,32 +403,32 @@ export default function OnboardingWizard() {
             {currentStep === 1 && (
               <div className="space-y-6">
                 <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-white">📋 {txt.step1}</h2>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📋 {txt.step1}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-300">{txt.fullName} *</label>
-                    <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.fullName} *</label>
+                    <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
-                        className="w-full bg-transparent px-4 py-3 text-white placeholder-slate-500 focus:outline-none"
+                        className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
                       />
                     </div>
                     {errors.fullName && <p className="text-xs text-red-400">{errors.fullName}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-300">{txt.cardName} *</label>
-                    <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.cardName ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
+                    <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.cardName ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
-                        className="w-full bg-transparent px-4 py-3 text-white placeholder-slate-500 focus:outline-none uppercase"
+                        className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
                       />
                     </div>
                     {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-300">{txt.dateOfBirth} *</label>
-                    <div className={`flex gap-2 rounded-xl bg-slate-800/60 border transition-all ${errors.dateOfBirth ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'} p-1`}>
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>
+                    <div className={`flex gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border transition-all ${errors.dateOfBirth ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'} p-1`}>
                       <select
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
                         onChange={(e) => {
@@ -437,9 +437,9 @@ export default function OnboardingWizard() {
                         }}
                         className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
-                        <option value="" disabled className="bg-slate-800">DD</option>
+                        <option value="" disabled className="bg-white dark:bg-slate-800">DD</option>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                          <option key={d} value={d} className="bg-slate-800">{d}</option>
+                          <option key={d} value={d} className="bg-white dark:bg-slate-800">{d}</option>
                         ))}
                       </select>
                       <div className="w-px bg-slate-700/50 my-2" />
@@ -451,9 +451,9 @@ export default function OnboardingWizard() {
                         }}
                         className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
-                        <option value="" disabled className="bg-slate-800">MM</option>
+                        <option value="" disabled className="bg-white dark:bg-slate-800">MM</option>
                         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                          <option key={m} value={m} className="bg-slate-800">{m}</option>
+                          <option key={m} value={m} className="bg-white dark:bg-slate-800">{m}</option>
                         ))}
                       </select>
                       <div className="w-px bg-slate-700/50 my-2" />
@@ -465,9 +465,9 @@ export default function OnboardingWizard() {
                         }}
                         className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
-                        <option value="" disabled className="bg-slate-800">YYYY</option>
+                        <option value="" disabled className="bg-white dark:bg-slate-800">YYYY</option>
                         {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => (
-                          <option key={y} value={y} className="bg-slate-800">{y}</option>
+                          <option key={y} value={y} className="bg-white dark:bg-slate-800">{y}</option>
                         ))}
                       </select>
                     </div>
@@ -479,7 +479,7 @@ export default function OnboardingWizard() {
                   <NumberInput value={state.weight} onChange={(v: number) => handleFieldChange('weight', v)} min={30} max={200} label={txt.weight} error={errors.weight} />
 
                   <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-300">{txt.preferredFoot} *</label>
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.preferredFoot} *</label>
                     <div className="flex gap-2">
                       {(['Right', 'Left', 'Ambidextrous'] as const).map((foot) => {
                         const isSelected = state.preferredFoot === foot;
@@ -487,7 +487,7 @@ export default function OnboardingWizard() {
                         return (
                           <motion.button
                             key={foot} whileTap={{ scale: 0.95 }} onClick={() => handleFieldChange('preferredFoot', foot)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all ${isSelected ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500/50 shadow-lg shadow-emerald-900/20' : 'bg-slate-800/40 text-slate-400 border-slate-700/40 hover:border-slate-600'}`}
+                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all ${isSelected ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500/50 shadow-lg shadow-emerald-900/20' : 'bg-white dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700/40 hover:border-slate-600'}`}
                           >
                             {foot === 'Right' ? '🦶' : foot === 'Left' ? '🦶' : '🦶🦶'} {label}
                           </motion.button>
@@ -518,8 +518,8 @@ export default function OnboardingWizard() {
             {currentStep === 3 && (
               <div className="space-y-8">
                 <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-white">⚡ {txt.attrSkillsTitle}</h2>
-                  <p className="text-sm text-slate-400 mt-1">{txt.attrSkillsSubtitle}</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">⚡ {txt.attrSkillsTitle}</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.attrSkillsSubtitle}</p>
                 </div>
 
                 <div className="space-y-4">
@@ -532,7 +532,7 @@ export default function OnboardingWizard() {
                   {errors.playStyle && <p className="text-sm text-red-400">{errors.playStyle}</p>}
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-slate-700/50 pt-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-slate-300 dark:border-slate-700/50 pt-8">
                   <AttributeSliders attributes={state.attributes} onChange={(a) => setState(prev => ({...prev, attributes: a}))} locale={(locale as 'en' | 'ar') ?? 'ar'} />
                   <SkillsChecklist selectedSkills={state.specialSkills} onSkillsChange={(s) => setState(prev => ({...prev, specialSkills: s}))} locale={(locale as 'en' | 'ar') ?? 'ar'} />
                 </div>
@@ -543,13 +543,13 @@ export default function OnboardingWizard() {
             {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-white">📸 {txt.photoTitle}</h2>
-                  <p className="text-sm text-slate-400 mt-1">{txt.photoSubtitle}</p>
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📸 {txt.photoTitle}</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.photoSubtitle}</p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                   <BackgroundRemover onImageReady={(url) => handleFieldChange('photoUrl', url)} locale={(locale as 'en' | 'ar') ?? 'ar'} />
                   <div className="flex flex-col items-center gap-4">
-                    <h3 className="text-lg font-bold text-slate-300">{txt.previewCard}</h3>
+                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">{txt.previewCard}</h3>
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
                       <PlayerCard player={previewProfile} />
                     </motion.div>
@@ -564,7 +564,7 @@ export default function OnboardingWizard() {
                 </AnimatePresence>
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting}
-                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-2xl transition-all ${isSubmitting ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white shadow-emerald-900/40'}`}
+                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-2xl transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white shadow-emerald-900/40'}`}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-3">
@@ -580,9 +580,9 @@ export default function OnboardingWizard() {
       </div>
 
       {/* ─── Navigation Buttons ─── */}
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-800/60">
+      <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-300 dark:border-slate-800/60">
         {currentStep > 1 ? (
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goPrev} className="flex items-center gap-2 px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl border border-slate-700/50 transition-all">
+          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goPrev} className="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border border-slate-300 dark:border-slate-700/50 transition-all">
             <span className={isRTL ? '' : 'rotate-180 inline-block'}>→</span>
             {txt.previous}
           </motion.button>
