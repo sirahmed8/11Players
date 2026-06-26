@@ -408,18 +408,22 @@ export default function OnboardingWizard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-300">{txt.fullName} *</label>
-                    <input
-                      type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
-                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-700/50 focus:border-emerald-500'}`}
-                    />
+                    <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
+                      <input
+                        type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
+                        className="w-full bg-transparent px-4 py-3 text-white placeholder-slate-500 focus:outline-none"
+                      />
+                    </div>
                     {errors.fullName && <p className="text-xs text-red-400">{errors.fullName}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-300">{txt.cardName} *</label>
-                    <input
-                      type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
-                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none border transition-all uppercase ${errors.cardName ? 'border-red-500/60' : 'border-slate-700/50 focus:border-emerald-500'}`}
-                    />
+                    <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.cardName ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
+                      <input
+                        type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
+                        className="w-full bg-transparent px-4 py-3 text-white placeholder-slate-500 focus:outline-none uppercase"
+                      />
+                    </div>
                     {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}
                   </div>
                   <div className="space-y-1.5">
