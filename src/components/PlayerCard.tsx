@@ -1,0 +1,185 @@
+'use client';
+
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { PlayerProfile } from '@/types';
+
+interface PlayerCardProps {
+  player: PlayerProfile;
+}
+
+const ATTRIBUTE_LABELS: { key: keyof PlayerProfile['attributes']; label: string }[] = [
+  { key: 'attackingProwess', label: 'ATT' },
+  { key: 'defensiveProwess', label: 'DEF' },
+  { key: 'speed', label: 'SPD' },
+  { key: 'acceleration', label: 'ACC' },
+  { key: 'stamina', label: 'STA' },
+  { key: 'dribbling', label: 'DRI' },
+  { key: 'passing', label: 'PAS' },
+  { key: 'physicalContact', label: 'PHY' },
+  { key: 'shotPower', label: 'SHT' },
+  { key: 'goalkeeping', label: 'GKP' },
+];
+
+function getAttributeColor(value: number): string {
+  if (value >= 90) return 'text-emerald-300';
+  if (value >= 75) return 'text-green-400';
+  if (value >= 60) return 'text-yellow-300';
+  if (value >= 45) return 'text-orange-400';
+  return 'text-red-400';
+}
+
+function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
+  switch (foot) {
+    case 'Right':
+      return '🦶R';
+    case 'Left':
+      return '🦶L';
+    case 'Ambidextrous':
+      return '🦶A';
+  }
+}
+
+function calculateOverall(attributes: PlayerProfile['attributes']): number {
+  const sum =
+    attributes.attackingProwess +
+    attributes.defensiveProwess +
+    attributes.speed +
+    attributes.acceleration +
+    attributes.stamina +
+    attributes.dribbling +
+    attributes.passing +
+    attributes.physicalContact +
+    attributes.shotPower +
+    attributes.goalkeeping;
+  return Math.round(sum / 10);
+}
+
+export default function PlayerCard({ player }: PlayerCardProps) {
+  const overall = calculateOverall(player.attributes);
+
+  return (
+    <Link href={`/profile?uid=${player.uid}`} className="block">
+      <motion.div
+        whileHover={{
+          scale: 1.03,
+          boxShadow: '0 0 24px 6px rgba(16, 185, 129, 0.45)',
+        }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className="w-72 h-auto rounded-2xl bg-gradient-to-b from-amber-500 to-amber-700 shadow-lg overflow-hidden cursor-pointer relative"
+      >
+        {/* --- Warning Indicator --- */}
+        {player.hasWarning && (
+          <div className="absolute top-2 left-2 z-20 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
+            <span>⚠</span> Warning
+          </div>
+        )}
+
+        {/* --- Verified / Pending Badge --- */}
+        <div
+          className={`absolute top-2 right-2 z-20 text-[10px] font-bold px-2 py-0.5 rounded-full shadow ${
+            player.isVerifiedByAdmin
+              ? 'bg-emerald-500 text-white'
+              : 'bg-zinc-600 text-zinc-200'
+          }`}
+        >
+          {player.isVerifiedByAdmin ? '✓ Verified' : '⏳ Pending'}
+        </div>
+
+        {/* --- Header: Photo + Overall --- */}
+        <div className="relative flex flex-col items-center pt-8 pb-3 px-4">
+          {/* Overall Rating */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-amber-900/70 tracking-wider uppercase">
+            Overall
+          </div>
+
+          {/* Player Photo */}
+          <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3">
+            <img
+              src={player.photoUrl}
+              alt={player.cardName}
+              className="w-full h-full object-cover"
+            />
+          </div>
+
+          {/* Overall Number */}
+          <div className="mt-1 text-4xl font-extrabold text-white drop-shadow-md leading-none">
+            {overall}
+          </div>
+
+          {/* Card Name */}
+          <h3 className="mt-1 text-base font-bold text-white tracking-wide text-center truncate w-full">
+            {player.cardName}
+          </h3>
+
+          {/* Preferred Foot */}
+          <span className="text-[11px] text-amber-100/80 mt-0.5">
+            {getFootIndicator(player.preferredFoot)}
+          </span>
+        </div>
+
+        {/* --- Position Badges --- */}
+        <div className="flex flex-col items-center gap-1 pb-2">
+          {/* Primary Position */}
+          <span className="bg-amber-900/60 text-amber-100 text-sm font-bold px-3 py-0.5 rounded-md tracking-wider shadow">
+            {player.primaryPosition}
+          </span>
+
+          {/* Secondary + Tertiary */}
+          <div className="flex items-center gap-1.5">
+            {player.secondaryPosition && (
+              <span className="bg-amber-800/40 text-amber-200/90 text-[10px] font-semibold px-2 py-0.5 rounded tracking-wide">
+                {player.secondaryPosition}
+              </span>
+            )}
+            {player.tertiaryPosition && (
+              <span className="bg-amber-800/40 text-amber-200/90 text-[10px] font-semibold px-2 py-0.5 rounded tracking-wide">
+                {player.tertiaryPosition}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* --- Attributes Grid (2 columns × 5 rows) --- */}
+        <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+            {ATTRIBUTE_LABELS.map(({ key, label }) => {
+              const value = player.attributes[key];
+              return (
+                <div key={key} className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider">
+                    {label}
+                  </span>
+                  <span
+                    className={`text-[13px] font-bold tabular-nums ${getAttributeColor(value)}`}
+                  >
+                    {value}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* --- Stats Footer --- */}
+        <div className="grid grid-cols-4 border-t border-amber-400/30 text-center py-2 px-1">
+          {[
+            { label: 'G', value: player.stats.goals },
+            { label: 'A', value: player.stats.assists },
+            { label: 'MVP', value: player.stats.mvp },
+            { label: 'MP', value: player.stats.matchesPlayed },
+          ].map((stat) => (
+            <div key={stat.label} className="flex flex-col items-center">
+              <span className="text-[10px] text-amber-300/60 font-medium uppercase">
+                {stat.label}
+              </span>
+              <span className="text-sm font-bold text-white leading-tight">
+                {stat.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </Link>
+  );
+}

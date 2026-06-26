@@ -1,0 +1,7 @@
+node_modules/
+.next/
+.firebase/
+out/
+.env*
+*.log
+.DS_Store
