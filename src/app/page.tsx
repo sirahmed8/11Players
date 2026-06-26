@@ -16,6 +16,7 @@ export default function Home() {
   const router = useRouter();
   const [cookieConsent, setCookieConsent] = useState(true);
   const [loginInProgress, setLoginInProgress] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const { scrollYProgress } = useScroll();
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
@@ -30,6 +31,7 @@ export default function Home() {
   // If already logged in, redirect immediately
   useEffect(() => {
     if (!authLoading && user) {
+      setIsRedirecting(true);
       checkProfileAndRedirect(user.uid);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,6 +85,19 @@ export default function Home() {
       desc: isAr ? "استخدام خوارزميات ذكية لتقسيم اللاعبين إلى فرق متوازنة بناءً على طاقاتهم ومراكزهم لضمان التنافسية." : "Use smart algorithms to divide players into balanced teams based on their stats and positions to ensure competitiveness."
     }
   ];
+
+  if (authLoading || isRedirecting) {
+    return (
+      <main className="min-h-screen flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark">
+        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
+          <Loader2 className="w-12 h-12 text-emerald-500" />
+        </motion.div>
+        <p className="mt-4 font-bold text-slate-500 dark:text-slate-400 animate-pulse">
+          {isAr ? "جاري تحميل 11Players..." : "Loading 11Players..."}
+        </p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen flex flex-col items-center relative bg-bg-light dark:bg-bg-dark text-slate-800 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
