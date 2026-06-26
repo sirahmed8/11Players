@@ -23,7 +23,7 @@ if (getApps().length > 0) {
 } else {
   app = initializeApp(firebaseConfig);
   // Optimize Firestore connections for Next.js to prevent "client is offline" and slow loading
-  dbInstance = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
+  dbInstance = initializeFirestore(app, { experimentalForceLongPolling: true });
 }
 
 // Initialize Firebase services
