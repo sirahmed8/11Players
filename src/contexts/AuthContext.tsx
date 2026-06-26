@@ -42,15 +42,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
+      
+      // Stop the global loading spinner instantly so the UI can render
+      setLoading(false);
 
       if (firebaseUser) {
-        const adminStatus = await checkAdminStatus(firebaseUser.uid);
-        setIsAdmin(adminStatus || firebaseUser.email === 'a7medorabe7@gmail.com');
+        // Run admin check asynchronously so it doesn't block the initial load
+        checkAdminStatus(firebaseUser.uid).then(adminStatus => {
+          setIsAdmin(adminStatus || firebaseUser.email === 'a7medorabe7@gmail.com');
+        });
       } else {
         setIsAdmin(false);
       }
-
-      setLoading(false);
     });
 
     return () => unsubscribe();
