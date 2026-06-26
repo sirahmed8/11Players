@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import type { PlayerAttributes } from '@/types';
+import { useLocale } from '@/components/ThemeProvider';
 
 /* ──────────────────────────────────────────────
    Translations
@@ -37,6 +38,33 @@ const translations = {
     physicalContact: 'القوة البدنية',
     shotPower: 'قوة التسديد',
     goalkeeping: 'حراسة المرمى',
+  },
+} as const;
+
+const descriptions = {
+  en: {
+    attackingProwess: 'Offensive awareness and positioning.',
+    defensiveProwess: 'Defensive awareness and tackling.',
+    speed: 'Top running speed.',
+    acceleration: 'How fast the player reaches top speed.',
+    stamina: 'Endurance over the match.',
+    dribbling: 'Ball control and agility.',
+    passing: 'Accuracy of short and long passes.',
+    physicalContact: 'Strength and balance against opponents.',
+    shotPower: 'Power of shots and clearances.',
+    goalkeeping: 'Reflexes and handling (GK only).',
+  },
+  ar: {
+    attackingProwess: 'التمركز الهجومي ورد الفعل أمام المرمى.',
+    defensiveProwess: 'الوعي الدفاعي وقطع الكرات.',
+    speed: 'السرعة القصوى للركض.',
+    acceleration: 'مدى سرعة الوصول للسرعة القصوى.',
+    stamina: 'القدرة على التحمل طوال المباراة.',
+    dribbling: 'التحكم بالكرة والرشاقة.',
+    passing: 'دقة التمريرات القصيرة والطويلة.',
+    physicalContact: 'القوة البدنية والتوازن أمام الخصوم.',
+    shotPower: 'قوة التسديدات وتشتيت الكرة.',
+    goalkeeping: 'ردود الفعل والتعامل مع الكرة (للحراس فقط).',
   },
 } as const;
 
@@ -108,6 +136,7 @@ export default function AttributeSliders({
   locale = 'ar',
 }: AttributeSlidersProps) {
   const txt = translations[locale];
+  const desc = descriptions[locale];
 
   const overallAvg = useMemo(() => {
     const vals = Object.values(attributes);
@@ -161,6 +190,7 @@ export default function AttributeSliders({
           const value = attributes[key];
           const color = getRatingColor(value);
           const label = txt[key];
+          const description = desc[key];
 
           return (
             <motion.div
@@ -169,23 +199,28 @@ export default function AttributeSliders({
               whileHover={{ scale: 1.005 }}
             >
               <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{ATTRIBUTE_ICONS[key]}</span>
-                  <span className="text-sm font-semibold text-slate-200">{label}</span>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{ATTRIBUTE_ICONS[key]}</span>
+                    <span className="text-sm font-semibold text-slate-200">{label}</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-0.5 max-w-[200px] sm:max-w-[300px]">
+                    {description}
+                  </span>
                 </div>
                 <motion.span
                   key={value}
                   initial={{ scale: 1.3 }}
                   animate={{ scale: 1 }}
-                  className="text-lg font-black min-w-[2.5rem] text-center rounded-lg px-2 py-0.5"
+                  className="text-lg font-black min-w-[2.5rem] text-center rounded-lg px-2 py-0.5 h-min"
                   style={{ color, backgroundColor: `${color}15` }}
                 >
                   {value}
                 </motion.span>
               </div>
 
-              {/* Slider */}
-              <div className="relative">
+              {/* Slider - Forced LTR to fix rendering issues across languages */}
+              <div className="relative mt-2">
                 <input
                   type="range"
                   min={1}
@@ -193,6 +228,7 @@ export default function AttributeSliders({
                   value={value}
                   onChange={(e) => handleChange(key, parseInt(e.target.value, 10))}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer slider-thumb"
+                  dir="ltr"
                   style={{
                     background: `linear-gradient(to right, ${color} 0%, ${color} ${((value - 1) / 98) * 100}%, rgba(71,85,105,0.4) ${((value - 1) / 98) * 100}%, rgba(71,85,105,0.4) 100%)`,
                   }}

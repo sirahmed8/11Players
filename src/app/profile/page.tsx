@@ -80,19 +80,24 @@ export default function PlayerProfilePage() {
 
 function PlayerProfileContent() {
   const searchParams = useSearchParams();
-  const uid = searchParams.get("uid") as string;
-  const { user, isAdmin } = useAuth();
+  const uid = searchParams.get("uid");
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const effectiveUid = uid || user?.uid;
+
   useEffect(() => {
-    if (!uid) return;
+    if (!effectiveUid) {
+      if (!authLoading) setLoading(false);
+      return;
+    }
 
     // Initial fetch
-    getDoc(doc(db, "players", uid)).then((snap) => {
+    getDoc(doc(db, "players", effectiveUid)).then((snap) => {
       if (snap.exists()) {
         setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
       }
@@ -100,16 +105,16 @@ function PlayerProfileContent() {
     });
 
     // Live updates
-    const unsub = onSnapshot(doc(db, "players", uid), (snap) => {
+    const unsub = onSnapshot(doc(db, "players", effectiveUid), (snap) => {
       if (snap.exists()) {
         setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
       }
     });
 
     return () => unsub();
-  }, [uid]);
+  }, [effectiveUid, authLoading]);
 
-  const canExport = user?.uid === uid || isAdmin;
+  const canExport = user?.uid === effectiveUid || isAdmin;
 
   const attrMap = [
     { key: "attackingProwess", label: "ATT" },

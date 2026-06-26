@@ -6,8 +6,8 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { motion } from "framer-motion";
-import { Sun, Moon, Globe, LogIn, Loader2 } from "lucide-react";
+import { motion, useScroll, useTransform } from "framer-motion";
+import { Sun, Moon, Globe, LogIn, Loader2, Users, TrendingUp, ShieldCheck } from "lucide-react";
 
 export default function Home() {
   const { locale, toggleLocale, t } = useLocale();
@@ -16,6 +16,9 @@ export default function Home() {
   const router = useRouter();
   const [cookieConsent, setCookieConsent] = useState(true);
   const [loginInProgress, setLoginInProgress] = useState(false);
+
+  const { scrollYProgress } = useScroll();
+  const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
 
   useEffect(() => {
     const consent = localStorage.getItem("cookieConsent");
@@ -42,7 +45,6 @@ export default function Home() {
       }
     } catch (error) {
       console.error("Error checking player profile:", error);
-      // Default to onboarding if Firestore check fails
       router.push("/onboarding");
     }
   };
@@ -56,32 +58,49 @@ export default function Home() {
     try {
       setLoginInProgress(true);
       await login();
-      // Redirect is handled by the useEffect that watches user state
     } catch (error) {
       console.error("Google login failed:", error);
       setLoginInProgress(false);
     }
   };
 
+  const isAr = locale === "ar";
+
+  const features = [
+    {
+      icon: <Users className="w-8 h-8 text-emerald-500" />,
+      title: isAr ? "تنظيم اللاعبين" : "Player Management",
+      desc: isAr ? "إدارة مجتمع اللاعبين بسهولة، وإنشاء بطاقات احترافية لكل لاعب تحتوي على مهاراته وإحصائياته." : "Easily manage your player community, and create professional cards for each player with their skills and stats."
+    },
+    {
+      icon: <TrendingUp className="w-8 h-8 text-amber-500" />,
+      title: isAr ? "تتبع الإحصائيات" : "Stat Tracking",
+      desc: isAr ? "تتبع الأهداف والتمريرات الحاسمة والمباريات التي تم لعبها. كل لاعب يحصل على تقييم دقيق يتحدث باستمرار." : "Track goals, assists, and matches played. Every player gets an accurate rating that updates constantly."
+    },
+    {
+      icon: <ShieldCheck className="w-8 h-8 text-blue-500" />,
+      title: isAr ? "موازنة الفرق" : "Team Balancing",
+      desc: isAr ? "استخدام خوارزميات ذكية لتقسيم اللاعبين إلى فرق متوازنة بناءً على طاقاتهم ومراكزهم لضمان التنافسية." : "Use smart algorithms to divide players into balanced teams based on their stats and positions to ensure competitiveness."
+    }
+  ];
+
   return (
-    <main className="min-h-screen flex flex-col justify-between items-center p-6 relative overflow-hidden bg-bg-light dark:bg-bg-dark text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    <main className="min-h-screen flex flex-col items-center relative bg-bg-light dark:bg-bg-dark text-slate-800 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
       
       {/* Header Controls */}
-      <header className="w-full max-w-6xl flex justify-between items-center py-4 z-10">
+      <header className="w-full max-w-6xl flex justify-between items-center py-4 px-6 z-50 sticky top-0 bg-bg-light/80 dark:bg-bg-dark/80 backdrop-blur-md border-b border-transparent transition-all">
         <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
           ⚽ 11Players
         </h1>
         <div className="flex gap-2 items-center">
-          {/* Language Switcher */}
           <button
             onClick={toggleLocale}
             className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            title={locale === "ar" ? "Switch to English" : "تغيير إلى العربية"}
+            title={isAr ? "Switch to English" : "تغيير إلى العربية"}
           >
             <Globe className="w-5 h-5" />
           </button>
           
-          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
             className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
@@ -92,51 +111,102 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Main Landing Info */}
-      <section className="flex-1 flex flex-col items-center justify-center text-center max-w-3xl z-10">
+      {/* Hero Section */}
+      <section className="w-full flex-1 flex flex-col items-center justify-center text-center px-6 py-20 z-10 min-h-[80vh]">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="space-y-6"
+          className="space-y-8 max-w-4xl"
         >
-          <span className="px-4 py-1.5 rounded-full text-xs font-semibold uppercase bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-            {t("onboarding")}
-          </span>
-          <h2 className="text-4xl md:text-6xl font-black leading-tight">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <span className="px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:border dark:border-emerald-800/50 dark:text-emerald-300">
+              {t("onboarding")}
+            </span>
+          </motion.div>
+
+          <h2 className="text-5xl md:text-7xl font-black leading-tight bg-gradient-to-br from-emerald-600 to-teal-800 dark:from-emerald-400 dark:to-teal-600 bg-clip-text text-transparent pb-2">
             {t("welcome")}
           </h2>
-          <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+          
+          <p className="text-lg md:text-2xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
             {t("tagline")}
           </p>
 
-          <div className="pt-4">
+          <motion.div 
+            className="pt-8"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             <button
               onClick={handleGoogleLogin}
               disabled={loginInProgress || authLoading}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg transition-all transform hover:scale-105 active:scale-95 disabled:hover:scale-100"
+              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-900/20 transition-all"
             >
               {loginInProgress || authLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                <LogIn className="w-5 h-5" />
+                <LogIn className="w-6 h-6" />
               )}
               <span>{t("cta_login")}</span>
             </button>
-          </div>
+          </motion.div>
+        </motion.div>
+
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 1 }}
+          className="absolute bottom-10 animate-bounce text-emerald-500"
+        >
+          ⬇
         </motion.div>
       </section>
 
-      {/* Footer / Links */}
-      <footer className="w-full max-w-6xl text-center py-6 text-xs text-slate-500 dark:text-slate-400 z-10 border-t border-slate-200 dark:border-slate-800">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="flex gap-4">
-            <a href="#tos" className="hover:underline">{t("tos")}</a>
-            <a href="#privacy" className="hover:underline">{t("privacy")}</a>
-          </div>
-          <p>© {new Date().getFullYear()} 11Players. All rights reserved.</p>
+      {/* Features / Explanation Section */}
+      <section className="w-full max-w-6xl px-6 py-24 z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7 }}
+          className="text-center mb-16"
+        >
+          <h3 className="text-3xl md:text-5xl font-black mb-6">
+            {isAr ? "لماذا تستخدم 11Players؟" : "Why use 11Players?"}
+          </h3>
+          <p className="text-lg text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+            {isAr 
+              ? "نظامنا يوفر كل ما تحتاجه لتنظيم مبارياتك الأسبوعية، تتبع أداء اللاعبين، وضمان التنافسية العادلة في كل مباراة."
+              : "Our system provides everything you need to organize your weekly matches, track player performance, and ensure fair competitiveness."}
+          </p>
+        </motion.div>
+
+        <div className="grid md:grid-cols-3 gap-8">
+          {features.map((feat, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ duration: 0.5, delay: idx * 0.2 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <div className="bg-slate-100 dark:bg-slate-800 w-16 h-16 rounded-2xl flex items-center justify-center mb-6">
+                {feat.icon}
+              </div>
+              <h4 className="text-xl font-bold mb-3">{feat.title}</h4>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                {feat.desc}
+              </p>
+            </motion.div>
+          ))}
         </div>
-      </footer>
+      </section>
 
       {/* Cookie Consent Banner */}
       {!cookieConsent && (
@@ -157,4 +227,3 @@ export default function Home() {
     </main>
   );
 }
-

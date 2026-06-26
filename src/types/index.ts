@@ -27,6 +27,7 @@ export interface PlayerProfile {
   tertiaryPosition: PESPosition;
   attributes: PlayerAttributes;
   specialSkills: string[];
+  playStyle?: string;
   photoUrl: string;
   isVerifiedByAdmin: boolean;
   hasWarning: boolean;

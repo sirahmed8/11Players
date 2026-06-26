@@ -3,7 +3,7 @@ import "./globals.css";
 import { ThemeProvider, LocaleProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import React from "react";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "11Players - Football Matchmaking & Community",
@@ -39,7 +39,12 @@ export default function RootLayout({
           <ThemeProvider>
             <ErrorBoundary>
               <AuthProvider>
-                {children}
+                <div className="flex flex-col min-h-screen">
+                  <div className="flex-1">
+                    {children}
+                  </div>
+                  <Footer />
+                </div>
               </AuthProvider>
             </ErrorBoundary>
           </ThemeProvider>

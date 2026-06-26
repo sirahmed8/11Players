@@ -15,6 +15,7 @@ interface ThemeContextProps {
 interface LocaleContextProps {
   locale: Locale;
   direction: Direction;
+  isRTL: boolean;
   toggleLocale: () => void;
   t: (key: string) => string;
 }
@@ -31,9 +32,10 @@ const translations: Record<Locale, Record<string, string>> = {
     onboarding: "Player Onboarding",
     tos: "Terms of Service",
     privacy: "Privacy Policy",
+    cookiePolicy: "Cookie Policy",
   },
   ar: {
-    welcome: "مرحباً بك في حجزات إيليت",
+    welcome: "مرحباً بك في 11Players",
     tagline: "تنظيم مجتمعي متكامل وتشكيل متوازن ومحسّن لفرق كرة القدم",
     cta_login: "تسجيل الدخول بواسطة جوجل",
     privacy_banner: "نحن نستخدم ملفات تعريف الارتباط لتحسين دقة موازنة تشكيل الفرق.",
@@ -43,6 +45,7 @@ const translations: Record<Locale, Record<string, string>> = {
     onboarding: "تسجيل اللاعب وتحديد البيانات",
     tos: "شروط الخدمة",
     privacy: "سياسة الخصوصية",
+    cookiePolicy: "سياسة ملفات تعريف الارتباط",
   },
 };
 
@@ -108,8 +111,10 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return translations[locale][key] || key;
   };
 
+  const isRTL = direction === "rtl";
+
   return (
-    <LocaleContext.Provider value={{ locale, direction, toggleLocale, t }}>
+    <LocaleContext.Provider value={{ locale, direction, isRTL, toggleLocale, t }}>
       {children}
     </LocaleContext.Provider>
   );
