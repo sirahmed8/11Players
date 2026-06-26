@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -173,6 +173,31 @@ export default function OnboardingWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  /* ── Local Storage Persistence ── */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('11players_wizard_draft');
+      if (saved) {
+        setState(JSON.parse(saved));
+      }
+    } catch (e) {
+      console.error('Failed to load draft', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('11players_wizard_draft', JSON.stringify(state));
+    } catch (e) {
+      console.error('Failed to save draft', e);
+    }
+  }, [state]);
+
+  /* ── Clear errors on locale change ── */
+  useEffect(() => {
+    setErrors({});
+  }, [locale]);
+
   /* ── Field change ── */
   const handleFieldChange = useCallback((field: keyof WizardState, value: string | number) => {
     setState((prev) => {
@@ -197,7 +222,7 @@ export default function OnboardingWizard() {
   const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden ring-1 transition-all ${error ? 'ring-red-500/60' : 'ring-slate-700/50 focus-within:ring-emerald-500/50'}`}>
+      <div className={`relative flex items-center bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${error ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'}`}>
         <input
           type="number"
           value={value}
@@ -293,11 +318,14 @@ export default function OnboardingWizard() {
 
       await setDoc(doc(db, 'players', user.uid), profile);
 
+      localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
       setTimeout(() => router.push('/community'), 1500);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Submit error:', err);
-      setSubmitMessage({ type: 'error', text: txt.submitError });
+      // Try to extract a meaningful error message
+      const errorMessage = err.message || txt.submitError;
+      setSubmitMessage({ type: 'error', text: `${txt.submitError} (${errorMessage})` });
       setIsSubmitting(false);
     }
   }, [user, state, txt, router, validateStep]);
@@ -382,7 +410,7 @@ export default function OnboardingWizard() {
                     <label className="text-sm font-semibold text-slate-300">{txt.fullName} *</label>
                     <input
                       type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
-                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none ring-1 transition-all ${errors.fullName ? 'ring-red-500/60' : 'ring-slate-700/50 focus:ring-emerald-500/50'}`}
+                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-700/50 focus:border-emerald-500'}`}
                     />
                     {errors.fullName && <p className="text-xs text-red-400">{errors.fullName}</p>}
                   </div>
@@ -390,16 +418,55 @@ export default function OnboardingWizard() {
                     <label className="text-sm font-semibold text-slate-300">{txt.cardName} *</label>
                     <input
                       type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
-                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none ring-1 transition-all uppercase ${errors.cardName ? 'ring-red-500/60' : 'ring-slate-700/50 focus:ring-emerald-500/50'}`}
+                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white placeholder-slate-500 focus:outline-none border transition-all uppercase ${errors.cardName ? 'border-red-500/60' : 'border-slate-700/50 focus:border-emerald-500'}`}
                     />
                     {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-300">{txt.dateOfBirth} *</label>
-                    <input
-                      type="date" value={state.dateOfBirth} onChange={(e) => handleFieldChange('dateOfBirth', e.target.value)}
-                      className={`w-full px-4 py-3 bg-slate-800/60 rounded-xl text-white focus:outline-none ring-1 transition-all [color-scheme:dark] ${errors.dateOfBirth ? 'ring-red-500/60' : 'ring-slate-700/50 focus:ring-emerald-500/50'}`}
-                    />
+                    <div className={`flex gap-2 rounded-xl bg-slate-800/60 border transition-all ${errors.dateOfBirth ? 'border-red-500/60' : 'border-slate-700/50 focus-within:border-emerald-500'} p-1`}>
+                      <select
+                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
+                        onChange={(e) => {
+                          const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
+                          handleFieldChange('dateOfBirth', `${y}-${m}-${e.target.value.padStart(2, '0')}`);
+                        }}
+                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                      >
+                        <option value="" disabled className="bg-slate-800">DD</option>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
+                          <option key={d} value={d} className="bg-slate-800">{d}</option>
+                        ))}
+                      </select>
+                      <div className="w-px bg-slate-700/50 my-2" />
+                      <select
+                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[1] : ''}
+                        onChange={(e) => {
+                          const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
+                          handleFieldChange('dateOfBirth', `${y}-${e.target.value.padStart(2, '0')}-${d}`);
+                        }}
+                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                      >
+                        <option value="" disabled className="bg-slate-800">MM</option>
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
+                          <option key={m} value={m} className="bg-slate-800">{m}</option>
+                        ))}
+                      </select>
+                      <div className="w-px bg-slate-700/50 my-2" />
+                      <select
+                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[0] : ''}
+                        onChange={(e) => {
+                          const [, m, d] = state.dateOfBirth ? state.dateOfBirth.split('-') : ['', '01', '01'];
+                          handleFieldChange('dateOfBirth', `${e.target.value}-${m}-${d}`);
+                        }}
+                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                      >
+                        <option value="" disabled className="bg-slate-800">YYYY</option>
+                        {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => (
+                          <option key={y} value={y} className="bg-slate-800">{y}</option>
+                        ))}
+                      </select>
+                    </div>
                     {state.calculatedAge > 0 && <p className="text-xs text-emerald-400 font-medium">{txt.age}: {state.calculatedAge}</p>}
                     {errors.dateOfBirth && <p className="text-xs text-red-400">{errors.dateOfBirth}</p>}
                   </div>

@@ -29,6 +29,8 @@ function getAttributeColor(value: number): string {
   return 'text-red-400';
 }
 
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
+
 function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
   switch (foot) {
     case 'Right':
@@ -40,26 +42,14 @@ function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
   }
 }
 
-function calculateOverall(attributes: PlayerProfile['attributes']): number {
-  const sum =
-    attributes.attackingProwess +
-    attributes.defensiveProwess +
-    attributes.speed +
-    attributes.acceleration +
-    attributes.stamina +
-    attributes.dribbling +
-    attributes.passing +
-    attributes.physicalContact +
-    attributes.shotPower +
-    attributes.goalkeeping;
-  return Math.round(sum / 10);
-}
-
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const overall = calculateOverall(player.attributes);
+  const overall = calculateRealisticOverall(player.attributes, player.primaryPosition, player.playStyle || '');
+
+  const CardWrapper = player.uid === 'preview' ? 'div' : Link;
+  const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
 
   return (
-    <Link href={`/profile?uid=${player.uid}`} className="block">
+    <CardWrapper {...wrapperProps as any} className="block w-fit">
       <motion.div
         whileHover={{
           scale: 1.03,
@@ -94,12 +84,16 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           </div>
 
           {/* Player Photo */}
-          <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3">
-            <img
-              src={player.photoUrl}
-              alt={player.cardName}
-              className="w-full h-full object-cover"
-            />
+          <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
+            {player.photoUrl ? (
+              <img
+                src={player.photoUrl}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-amber-500 font-bold text-3xl opacity-50">?</span>
+            )}
           </div>
 
           {/* Overall Number */}
@@ -180,6 +174,6 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           ))}
         </div>
       </motion.div>
-    </Link>
+    </CardWrapper>
   );
 }
