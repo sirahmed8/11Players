@@ -26,8 +26,10 @@ const t = {
     step3: 'Attributes & Skills',
     step4: 'Photo & Submit',
     stepOf: 'of',
-    fullName: 'Full Name',
-    fullNamePlaceholder: 'Enter your full name',
+    firstName: 'First Name',
+    firstNamePlaceholder: 'Enter your first name',
+    lastName: 'Last Name',
+    lastNamePlaceholder: 'Enter your last name',
     cardName: 'Card Name',
     cardNamePlaceholder: 'Display name on card (e.g. MESSI)',
     dateOfBirth: 'Date of Birth',
@@ -66,8 +68,10 @@ const t = {
     step3: 'السمات والمهارات',
     step4: 'الصورة والإرسال',
     stepOf: 'من',
-    fullName: 'الاسم الكامل',
-    fullNamePlaceholder: 'أدخل اسمك الكامل',
+    firstName: 'الاسم الأول',
+    firstNamePlaceholder: 'أدخل اسمك الأول',
+    lastName: 'الاسم الأخير',
+    lastNamePlaceholder: 'أدخل اسم العائلة',
     cardName: 'اسم البطاقة',
     cardNamePlaceholder: 'الاسم المعروض على البطاقة (مثل: ميسي)',
     dateOfBirth: 'تاريخ الميلاد',
@@ -106,7 +110,8 @@ const t = {
    Wizard State
    ────────────────────────────────────────────── */
 interface WizardState {
-  fullName: string;
+  firstName: string;
+  lastName: string;
   cardName: string;
   dateOfBirth: string;
   calculatedAge: number;
@@ -129,7 +134,7 @@ const DEFAULT_ATTRIBUTES: PlayerAttributes = {
 };
 
 const INITIAL_STATE: WizardState = {
-  fullName: '', cardName: '', dateOfBirth: '', calculatedAge: 0,
+  firstName: '', lastName: '', cardName: '', dateOfBirth: '', calculatedAge: 0,
   height: 175, weight: 70, preferredFoot: 'Right',
   primaryPosition: null, secondaryPosition: null, tertiaryPosition: null,
   attributes: { ...DEFAULT_ATTRIBUTES }, specialSkills: [], playStyle: '',
@@ -310,8 +315,13 @@ export default function OnboardingWizard() {
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!state.fullName.trim()) newErrors['fullName'] = txt.required;
-      if (!state.cardName.trim()) newErrors['cardName'] = txt.required;
+      if (!state.firstName.trim()) newErrors['firstName'] = txt.required;
+      if (!state.lastName.trim()) newErrors['lastName'] = txt.required;
+      if (!state.cardName.trim()) {
+        newErrors['cardName'] = txt.required;
+      } else if (!/^[A-Za-z\s\-]+$/.test(state.cardName)) {
+        newErrors['cardName'] = isAr ? 'يجب أن يكون اسم البطاقة باللغة الإنجليزية' : 'Card name must be in English';
+      }
       if (!state.dateOfBirth) newErrors['dateOfBirth'] = txt.required;
       else {
         const age = calculateAge(state.dateOfBirth);
@@ -359,7 +369,7 @@ export default function OnboardingWizard() {
     try {
       const profile: PlayerProfile = {
         uid: user.uid,
-        fullName: state.fullName.trim(),
+        fullName: `${state.firstName.trim()} ${state.lastName.trim()}`,
         cardName: state.cardName.trim().toUpperCase(),
         dateOfBirth: state.dateOfBirth,
         calculatedAge: state.calculatedAge,
@@ -401,7 +411,7 @@ export default function OnboardingWizard() {
   const previewProfile = useMemo((): PlayerProfile => ({
     ...state,
     uid: 'preview',
-    fullName: state.fullName || 'Player Name',
+    fullName: state.firstName || state.lastName ? `${state.firstName} ${state.lastName}`.trim() : 'Player Name',
     cardName: (state.cardName || 'PLAYER').toUpperCase(),
     dateOfBirth: state.dateOfBirth || '2000-01-01',
     calculatedAge: state.calculatedAge || 25,
@@ -472,15 +482,27 @@ export default function OnboardingWizard() {
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📋 {txt.step1}</h2>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.fullName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.fullName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
-                      <input
-                        type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
-                        className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
-                      />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.firstName} *</label>
+                      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.firstName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
+                        <input
+                          type="text" value={state.firstName} onChange={(e) => handleFieldChange('firstName', e.target.value)} placeholder={txt.firstNamePlaceholder}
+                          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
+                        />
+                      </div>
+                      {errors.firstName && <p className="text-xs text-red-400">{errors.firstName}</p>}
                     </div>
-                    {errors.fullName && <p className="text-xs text-red-400">{errors.fullName}</p>}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.lastName} *</label>
+                      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.lastName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
+                        <input
+                          type="text" value={state.lastName} onChange={(e) => handleFieldChange('lastName', e.target.value)} placeholder={txt.lastNamePlaceholder}
+                          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
+                        />
+                      </div>
+                      {errors.lastName && <p className="text-xs text-red-400">{errors.lastName}</p>}
+                    </div>
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
@@ -488,6 +510,7 @@ export default function OnboardingWizard() {
                       <input
                         type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
+                        dir="ltr"
                       />
                     </div>
                     {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}

@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Firebase configuration for project '11Players'
@@ -22,12 +22,14 @@ if (getApps().length > 0) {
   dbInstance = getFirestore(app);
 } else {
   app = initializeApp(firebaseConfig);
-  dbInstance = getFirestore(app);
+  // Force long polling to bypass WebSocket blockages in strict networks (e.g., Egypt)
+  dbInstance = initializeFirestore(app, { experimentalForceLongPolling: true });
 }
 
 // Initialize Firebase services
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 export const db = dbInstance;
 export const storage = getStorage(app);
 
