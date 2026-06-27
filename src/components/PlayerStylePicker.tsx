@@ -32,8 +32,8 @@ export default function PlayerStylePicker({ selectedStyle, onStyleSelect, locale
   const isAr = locale === 'ar';
 
   return (
-    <div className="w-full overflow-hidden">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
+    <div className="w-full">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto overflow-x-hidden p-3 -mx-3 custom-scrollbar">
         {PLAYER_STYLES.map((style) => {
           const isSelected = selectedStyle === style.id;
 
