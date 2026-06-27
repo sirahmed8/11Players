@@ -32,7 +32,7 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isAr = locale === 'ar';
@@ -66,10 +66,25 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
     return () => unsubscribe();
   }, []);
 
-  // Auto-scroll on new messages
+  // Auto-scroll on new messages (scrolls the container only, avoiding page jump)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages]);
+
+  // Center input when virtual keyboard opens on mobile
+  const handleFocus = () => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    if (isMobile) {
+      setTimeout(() => {
+        inputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 300);
+    }
+  };
 
   // Send message
   const handleSend = async () => {
@@ -108,33 +123,30 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       dir={isAr ? 'rtl' : 'ltr'}
-      className="flex flex-col w-full max-w-2xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50"
-      style={{
-        background: 'linear-gradient(to bottom, #1e293b, #0f172a)',
-        height: '520px',
-      }}
+      className="flex flex-col w-full max-w-2xl mx-auto rounded-2xl overflow-hidden shadow-2xl border border-slate-200 dark:border-slate-700/50 bg-white dark:bg-slate-900 transition-colors"
+      style={{ height: '520px' }}
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 px-5 py-4 border-b border-slate-700/50"
-        style={{
-          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-        }}
+        className="flex items-center gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800 transition-colors"
       >
         <div className="relative">
           <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
           <div className="absolute inset-0 w-3 h-3 rounded-full bg-emerald-400/40 animate-ping" />
         </div>
-        <h2 className="text-lg font-bold text-white tracking-wide">
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-wide">
           {labels.title}
         </h2>
-        <span className="ml-auto text-xs text-slate-400 font-mono">
+        <span className="ml-auto text-xs text-slate-500 dark:text-slate-400 font-mono">
           {messages.length} {isAr ? 'رسالة' : 'msgs'}
         </span>
       </div>
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-3 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+      >
         {loading ? (
           <div className="flex flex-col items-center justify-center h-full gap-3">
             <div className="w-8 h-8 border-3 border-emerald-400 border-t-transparent rounded-full animate-spin" />
@@ -143,7 +155,7 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
         ) : messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full gap-2">
             <span className="text-4xl">💬</span>
-            <p className="text-slate-400 text-sm text-center">{labels.empty}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm text-center">{labels.empty}</p>
           </div>
         ) : (
           <AnimatePresence initial={false}>
@@ -180,7 +192,7 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
                     className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                       isOwn
                         ? 'bg-emerald-600/90 text-white rounded-br-sm'
-                        : 'bg-slate-700/80 text-slate-100 rounded-bl-sm'
+                        : 'bg-slate-200 dark:bg-slate-700/80 text-slate-900 dark:text-slate-100 rounded-bl-sm'
                     }`}
                     style={{
                       boxShadow: isOwn
@@ -200,11 +212,10 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
             })}
           </AnimatePresence>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
-      <div className="px-4 py-3 border-t border-slate-700/50 bg-slate-900/80">
+      <div className="px-4 py-3 border-t border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/80 transition-colors">
         <div className="flex items-center gap-2">
           <input
             ref={inputRef}
@@ -212,8 +223,9 @@ export default function VirtualChat({ currentUser }: VirtualChatProps) {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={handleFocus}
             placeholder={labels.placeholder}
-            className="flex-1 bg-slate-800 text-white text-sm rounded-xl px-4 py-2.5 border border-slate-600/50 outline-none focus:border-emerald-500/70 focus:ring-1 focus:ring-emerald-500/30 placeholder-slate-500 transition-all duration-200"
+            className="flex-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm rounded-xl px-4 py-2.5 border border-slate-300 dark:border-slate-600/50 outline-none focus:border-emerald-500/70 focus:ring-1 focus:ring-emerald-500/30 placeholder-slate-400 dark:placeholder-slate-500 transition-all duration-200"
           />
           <motion.button
             whileHover={{ scale: 1.05 }}

@@ -44,13 +44,13 @@ d:/11Players/
 ## Milestones
 | # | Name | Scope | Dependencies | Status | Conversation ID |
 |---|------|-------|--------------|--------|-----------------|
-| 1 | M1: Project Baseline Setup | Next.js layout, Tailwind, TS config, linting, baseline page structures. | None | IN_PROGRESS | 104c39fb-8558-4b40-8143-33c286e908ba |
-| 2 | M2: Auth & Database Security | Firebase Auth (Google Provider), Firestore Schema, Rules. | M1 | PLANNED | |
-| 3 | M3: Onboarding & Player Card | 4-step wizard (Bio, Pitch picker, attributes, client-side BG removal, Cloudinary). | M2 | PLANNED | |
-| 4 | M4: Live Hub & virtualized Chat | Snapshot directory grid and optimized chat room. | M3 | PLANNED | |
-| 5 | M5: Admin Dashboard & PDF | Admin panel with warnings and stats edit; Profile & Bulk PDF export. | M4 | PLANNED | |
-| 6 | M6: Matchmaking API Route | `/api/matchmaking` balancing engine with PSI logic. | M5 | PLANNED | |
-| 7 | M7: E2E Integration & Hardening | Full suite verification & adversarial gap analysis. | M6 | PLANNED | |
+| 1 | M1: Codebase Exploration & Testing Baseline | Verify E2E baseline and map codebase structures. | None | DONE | aedd1092-ccc2-460d-be49-95f783416b17 |
+| 2 | M2: UI & Styling Enhancements | Scrollbars, active tab Navbar, light/dark themes, animations, layout centering, load speed. | M1 | PLANNED | |
+| 3 | M3: Arabic Localization | Arabic translation for Community, Stats, and Admin pages. | M2 | PLANNED | |
+| 4 | M4: Profile & Workflows | Fix Player Not Found, Owner workflow, Normal user approval workflow, Unique username + cooldown. | M3 | PLANNED | |
+| 5 | M5: Community Chat Features | Name/Avatar in chat, Reply and React functionality. | M4 | PLANNED | |
+| 6 | M6: Matchmaking & Admin Improvements | Owner visibility, 22-player limit, stats/positions/ratings logic. | M5 | PLANNED | |
+| 7 | M7: Final Integration, E2E Testing, and Deployment | Complete new E2E tests, final build, and Firebase deployment. | M6 | PLANNED | |
 
 ## Interface Contracts
 

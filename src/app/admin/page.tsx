@@ -10,9 +10,13 @@ import { AnimatePresence } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
 import Navbar from "@/components/Navbar";
+import { useLocale } from "@/components/ThemeProvider";
+import PendingEdits from "@/components/PendingEdits";
 
 export default function AdminPage() {
   const { players, loading } = usePlayers();
+  const { locale } = useLocale();
+  const isAr = locale === "ar";
 
   // Matchmaking State
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);
@@ -64,8 +68,8 @@ export default function AdminPage() {
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
-              <h2 className="text-3xl font-black mb-2">Platform Controls</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-start" dir="ltr">Manage players, update stats, and run matchmaking.</p>
+              <h2 className="text-3xl font-black mb-2 text-slate-900 dark:text-white">{isAr ? "أدوات التحكم" : "Platform Controls"}</h2>
+              <p className="text-slate-500 dark:text-slate-400" dir={isAr ? "rtl" : "ltr"}>{isAr ? "إدارة اللاعبين، تحديث الإحصائيات، وتشكيل الفرق." : "Manage players, update stats, and run matchmaking."}</p>
             </div>
             
             <div className="flex gap-4 w-full md:w-auto">
@@ -73,14 +77,14 @@ export default function AdminPage() {
                 onClick={handleBulkPdf}
                 className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold rounded-lg shadow-sm whitespace-nowrap"
               >
-                Export Bulk PDF
+                {isAr ? "تصدير بطاقات الجميع PDF" : "Export Bulk PDF"}
               </button>
               <button
                 onClick={handleMatchmaking}
                 disabled={matchmakingLoading}
                 className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 whitespace-nowrap"
               >
-                {matchmakingLoading ? "Generating..." : "Run Matchmaking"}
+                {matchmakingLoading ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "تشكيل الفرق" : "Run Matchmaking")}
               </button>
             </div>
           </div>
@@ -90,6 +94,8 @@ export default function AdminPage() {
               {matchmakingError}
             </div>
           )}
+
+          <PendingEdits />
 
           {loading ? (
             <div className="flex justify-center items-center h-64">

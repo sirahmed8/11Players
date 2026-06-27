@@ -201,3 +201,75 @@ Ensure the application builds successfully and deploy the final result to Fireba
 ### Codebase & Deployment
 - [ ] The command `npm run build` completes successfully with no critical errors.
 - [ ] The application is successfully deployed to production using `firebase deploy --project an-11-players`.
+
+## Follow-up — 2026-06-27T15:38:39Z
+
+# Teamwork Project Prompt — Draft
+
+> Status: Launched
+> Goal: Fix all UI/UX bugs, Arabic translations, profile workflows, and matchmaking logic.
+
+Implement UI enhancements, Arabic localization, an owner-approval workflow for profile edits, community chat features (replies, reactions, unique usernames), and matchmaking logic improvements for an 11-player soccer management web app.
+
+Working directory: d:\11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. UI & Styling Improvements
+- Hide default HTML scrollbars across the app (use custom or hidden scrollbars).
+- Improve light mode styling for Admin and Community pages, and ensure the loading screen respects the active theme (light/dark).
+- Add an active state highlight to the Navbar to show the user which tab they are currently on.
+- Animate the cookie acceptance banner (appear/disappear).
+- Remove the text "تسجيل اللاعب وتحديد البيانات" from the welcome screen.
+- Add an outline animation to the Community search box, matching the registration boxes.
+- Fix layout centering issues: the screen should not center on the type box by default, but on mobile, it should center the type box when the keyboard is open.
+- Ensure all pages load extremely fast for the first time.
+
+### R2. Localization
+- Translate "Community Hub Lounge", the Stats page, and the Admin page to Arabic.
+
+### R3. Profile & Workflow
+- Fix the "Player Not Found" error on the Profile page (`/profile/?uid=...`).
+- Owner workflow: The owner can create their profile if it doesn't exist and edit it anytime.
+- Normal user workflow: Normal users' profile edits must go into a pending state and require the Owner's approval before being applied.
+- Introduce unique usernames during the first registration, with a limit of changing it once every 7 days (display a small note about this limit).
+
+### R4. Community Chat Features
+- Display the user's name and Google profile picture next to their chat messages.
+- Add "Reply" and "React" functionality to chat messages.
+
+### R5. Matchmaking & Admin
+- The "Run Matchmaking" button should only be visible to the Owner.
+- Remove the "(Admin)" text from the matchmaking button.
+- Disable or hide the matchmaking button if there are fewer than 22 registered players.
+- Verify and improve the logic for stats, positions, ratings, and matchmaking.
+
+## Acceptance Criteria
+
+### UI & Styling
+- [ ] Scrollbars are custom or hidden without breaking scrolling functionality.
+- [ ] Light mode in Admin/Community is visually cohesive; loading screens respect the theme.
+- [ ] Navbar clearly indicates the active page.
+- [ ] Cookie banner animates in and out.
+- [ ] Welcome screen text is removed.
+- [ ] Community search box has the focus outline animation.
+- [ ] Layout centering behaves correctly on desktop and mobile keyboards.
+- [ ] Page load speeds are optimized.
+
+### Localization
+- [ ] Community Hub Lounge, Stats, and Admin pages are fully translated to Arabic.
+
+### Profile Workflow
+- [ ] Owner can create/edit their profile seamlessly without "Player Not Found" errors.
+- [ ] Normal user edits trigger an approval request for the Owner instead of applying immediately.
+- [ ] Users can set a unique username during registration, enforced by the database, with a 7-day cooldown on changes.
+
+### Community Chat
+- [ ] Chat messages show the sender's display name and avatar.
+- [ ] Users can reply to specific messages and add emoji reactions.
+
+### Matchmaking & Admin
+- [ ] Only the owner can see the matchmaking button, and it does not say "(Admin)".
+- [ ] Matchmaking button is disabled when `< 22` players are available.
+- [ ] Matchmaking logic successfully balances teams based on improved ratings and positions.

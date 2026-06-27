@@ -8,6 +8,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import PlayerCard from "@/components/PlayerCard";
 import { PlayerProfile } from "@/types";
 import { generateProfilePDF } from "@/lib/pdf";
+import EditProfileModal from "@/components/EditProfileModal";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -73,7 +74,7 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
 
 export default function PlayerProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-950">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">Loading...</div>}>
       <PlayerProfileContent />
     </Suspense>
   );
@@ -82,12 +83,13 @@ export default function PlayerProfilePage() {
 function PlayerProfileContent() {
   const searchParams = useSearchParams();
   const uid = searchParams.get("uid");
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const effectiveUid = uid || user?.uid;
 
@@ -134,13 +136,13 @@ function PlayerProfileContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 gap-4">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
           className="w-16 h-16 rounded-full border-4 border-emerald-500/30 border-t-emerald-500"
         />
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {isAr ? "جارٍ التحميل..." : "Loading..."}
         </p>
       </div>
@@ -148,18 +150,28 @@ function PlayerProfileContent() {
   }
 
   if (!player) {
+    const isViewingOwnProfile = user?.uid === effectiveUid;
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 gap-6">
         <div className="text-6xl">🔍</div>
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-slate-950 dark:text-white">
           {isAr ? "اللاعب غير موجود" : "Player Not Found"}
         </h2>
-        <Link
-          href="/community"
-          className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition-colors"
-        >
-          {isAr ? "العودة إلى المجتمع" : "Back to Community"}
-        </Link>
+        {isViewingOwnProfile ? (
+          <Link
+            href="/onboarding"
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition-colors"
+          >
+            {isAr ? "إنشاء ملف اللاعب" : "Create Player Profile"}
+          </Link>
+        ) : (
+          <Link
+            href="/community"
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition-colors"
+          >
+            {isAr ? "العودة إلى المجتمع" : "Back to Community"}
+          </Link>
+        )}
       </div>
     );
   }
@@ -380,23 +392,40 @@ function PlayerProfileContent() {
           </motion.section>
         )}
 
-        {/* Export PDF */}
-        {canExport && (
+        {/* Export PDF & Edit Profile */}
+        {(canExport || user?.uid === effectiveUid) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
-            className="flex justify-center"
+            className="flex flex-wrap justify-center gap-4"
           >
-            <button
-              onClick={() => generateProfilePDF(player)}
-              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95"
-            >
-              📄 {isAr ? "تصدير ملف PDF" : "Export PDF"}
-            </button>
+            {user?.uid === effectiveUid && (
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="px-8 py-4 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-2xl text-white font-black text-lg transition-all active:scale-95"
+              >
+                ✏️ {isAr ? "تعديل الملف الشخصي" : "Edit Profile"}
+              </button>
+            )}
+            {canExport && (
+              <button
+                onClick={() => generateProfilePDF(player)}
+                className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95"
+              >
+                📄 {isAr ? "تصدير ملف PDF" : "Export PDF"}
+              </button>
+            )}
           </motion.div>
         )}
       </main>
+
+      <EditProfileModal
+        player={player}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        onRefresh={() => {}} // Data updates automatically via onSnapshot
+      />
     </div>
   );
 }

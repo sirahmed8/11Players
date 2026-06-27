@@ -4,22 +4,36 @@ import React from "react";
 import { usePlayers } from "@/contexts/PlayersContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PlayerProfile } from "@/types";
+import { useLocale } from "@/components/ThemeProvider";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 
 export default function StatsPage() {
   const { players, loading } = usePlayers();
+  const { locale } = useLocale();
+  const isAr = locale === "ar";
 
   const getOverall = (p: PlayerProfile) => {
     const attrs = Object.values(p.attributes);
     return Math.round(attrs.reduce((a, b) => a + b, 0) / attrs.length);
   };
 
-  const topScorers = [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0)).slice(0, 10);
-  const topAssisters = [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, 10);
-  const topMVPs = [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0)).slice(0, 10);
-  const highestRated = [...players].sort((a, b) => getOverall(b) - getOverall(a)).slice(0, 10);
+  const topScorers = React.useMemo(() => {
+    return [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0)).slice(0, 10);
+  }, [players]);
+
+  const topAssisters = React.useMemo(() => {
+    return [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, 10);
+  }, [players]);
+
+  const topMVPs = React.useMemo(() => {
+    return [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0)).slice(0, 10);
+  }, [players]);
+
+  const highestRated = React.useMemo(() => {
+    return [...players].sort((a, b) => getOverall(b) - getOverall(a)).slice(0, 10);
+  }, [players]);
 
   const StatTable = ({ title, data, statKey, isOverall = false }: { title: string, data: PlayerProfile[], statKey: string, isOverall?: boolean }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -28,7 +42,7 @@ export default function StatsPage() {
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-700/50">
         {data.length === 0 ? (
-          <div className="p-4 text-center text-slate-500 text-sm">No data yet</div>
+          <div className="p-4 text-center text-slate-500 text-sm">{isAr ? "لا توجد بيانات بعد" : "No data yet"}</div>
         ) : (
           data.map((p, i) => (
             <motion.div 
@@ -73,8 +87,8 @@ export default function StatsPage() {
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-10 text-center">
-            <h2 className="text-4xl font-black mb-2">Global Leaderboards</h2>
-            <p className="text-slate-500 dark:text-slate-400 text-start" dir="ltr">The best of the best in 11Players.</p>
+            <h2 className="text-4xl font-black mb-2">{isAr ? "قائمة المتصدرين العالمية" : "Global Leaderboards"}</h2>
+            <p className="text-slate-500 dark:text-slate-400" dir={isAr ? "rtl" : "ltr"}>{isAr ? "الأفضل بين الأفضل في 11Players." : "The best of the best in 11Players."}</p>
           </div>
 
           {loading ? (
@@ -83,10 +97,10 @@ export default function StatsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatTable title="Top Scorers" data={topScorers} statKey="goals" />
-              <StatTable title="Playmakers" data={topAssisters} statKey="assists" />
-              <StatTable title="Most Valuable" data={topMVPs} statKey="mvp" />
-              <StatTable title="Highest Rated" data={highestRated} statKey="overall" isOverall={true} />
+              <StatTable title={isAr ? "الهدافين" : "Top Scorers"} data={topScorers} statKey="goals" />
+              <StatTable title={isAr ? "صُناع اللعب" : "Playmakers"} data={topAssisters} statKey="assists" />
+              <StatTable title={isAr ? "أفضل اللاعبين" : "Most Valuable"} data={topMVPs} statKey="mvp" />
+              <StatTable title={isAr ? "الأعلى تقييماً" : "Highest Rated"} data={highestRated} statKey="overall" isOverall={true} />
             </div>
           )}
         </main>

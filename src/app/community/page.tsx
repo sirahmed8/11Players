@@ -7,16 +7,22 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCard from "@/components/PlayerCard";
 import MatchmakingModal from "@/components/MatchmakingModal";
-import VirtualChat from "@/components/VirtualChat";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { balanceTeams } from "@/lib/matchmaker";
+import dynamic from "next/dynamic";
+
+const VirtualChat = dynamic(() => import("@/components/VirtualChat"), {
+  ssr: false,
+  loading: () => <div className="text-slate-500 py-8">Loading Chat...</div>
+});
 
 export default function CommunityPage() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const { locale } = useLocale();
+  const isAr = locale === "ar";
 
   const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
@@ -26,14 +32,17 @@ export default function CommunityPage() {
   const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
 
-  const filteredPlayers = players.filter((p) => {
-    const query = searchQuery.toLowerCase();
-    return (
-      p.fullName.toLowerCase().includes(query) ||
-      p.cardName.toLowerCase().includes(query) ||
-      p.primaryPosition.toLowerCase().includes(query)
-    );
-  });
+  const filteredPlayers = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return players;
+    return players.filter((p) => {
+      return (
+        p.fullName.toLowerCase().includes(query) ||
+        p.cardName.toLowerCase().includes(query) ||
+        p.primaryPosition.toLowerCase().includes(query)
+      );
+    });
+  }, [players, searchQuery]);
 
   const handleMatchmaking = async () => {
     try {
@@ -81,24 +90,29 @@ export default function CommunityPage() {
             </div>
             
             <div className="flex gap-4 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
+              <div className="relative w-full md:w-64 flex items-center bg-white dark:bg-slate-800/60 border-2 rounded-xl transition-all duration-300 border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search by name or position..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-transparent border-0 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
                 />
               </div>
               
-              {isAdmin && (
+              {isOwner && (
                 <button
                   onClick={handleMatchmaking}
-                  disabled={matchmakingLoading}
-                  className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 whitespace-nowrap"
+                  disabled={matchmakingLoading || players.length < 22}
+                  className={`px-4 py-2 text-white font-bold rounded-lg shadow-lg whitespace-nowrap transition-all ${
+                    players.length < 22
+                      ? "bg-slate-400 dark:bg-slate-700 cursor-not-allowed opacity-50"
+                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400"
+                  }`}
+                  title={players.length < 22 ? (isAr ? "يتطلب 22 لاعبًا" : "Requires 22 players") : ""}
                 >
-                  {matchmakingLoading ? "Generating..." : "Matchmake (Admin)"}
+                  {matchmakingLoading ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "تشكيل الفرق" : "Matchmake")}
                 </button>
               )}
             </div>
@@ -139,7 +153,7 @@ export default function CommunityPage() {
 
           {/* Group Chat Section */}
           <div className="mt-16 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold mb-6 text-center">Community Hub Lounge</h3>
+            <h3 className="text-2xl font-bold mb-6 text-center">{isAr ? "صالة المجتمع" : "Community Hub Lounge"}</h3>
             <div className="flex justify-center">
               {user && <VirtualChat currentUser={user} />}
             </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { doc, updateDoc, increment, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
@@ -161,19 +161,21 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const sortedPlayers = [...players].sort((a, b) => {
-    const aVal = getSortValue(a, sortKey);
-    const bVal = getSortValue(b, sortKey);
-    const modifier = sortDir === 'asc' ? 1 : -1;
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => {
+      const aVal = getSortValue(a, sortKey);
+      const bVal = getSortValue(b, sortKey);
+      const modifier = sortDir === 'asc' ? 1 : -1;
 
-    if (typeof aVal === 'string' && typeof bVal === 'string') {
-      return aVal.localeCompare(bVal) * modifier;
-    }
-    if (typeof aVal === 'number' && typeof bVal === 'number') {
-      return (aVal - bVal) * modifier;
-    }
-    return 0;
-  });
+      if (typeof aVal === 'string' && typeof bVal === 'string') {
+        return aVal.localeCompare(bVal) * modifier;
+      }
+      if (typeof aVal === 'number' && typeof bVal === 'number') {
+        return (aVal - bVal) * modifier;
+      }
+      return 0;
+    });
+  }, [players, sortKey, sortDir]);
 
   const toggleWarning = async (uid: string, current: boolean) => {
     setLoadingUid(uid);
@@ -319,7 +321,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center rounded-2xl border border-slate-700 bg-slate-900 p-16 text-center"
+        className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-16 text-center"
       >
         <svg
           className="mb-4 h-16 w-16 text-slate-600"
@@ -334,10 +336,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
             d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"
           />
         </svg>
-        <h3 className="text-lg font-semibold text-slate-400">
+        <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-400">
           {t(locale, 'No players found', 'لا يوجد لاعبين')}
         </h3>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           {t(locale, 'Players will appear here once registered.', 'سيظهر اللاعبون هنا بعد التسجيل.')}
         </p>
       </motion.div>
@@ -350,22 +352,22 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         <button
           onClick={handleGeneratePlayers}
           disabled={loadingUid === 'generating-players'}
-          className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
+          className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
         >
           {loadingUid === 'generating-players' ? 'Generating...' : t(locale, 'Generate 22 Test Players', 'إنشاء 22 لاعب للتجربة')}
         </button>
       </div>
       {/* Table */}
-      <div className="overflow-x-auto rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
         <table className="w-full min-w-[900px] text-sm" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
           <thead>
-            <tr className="border-b border-slate-700 bg-slate-800/80">
+            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   onClick={col.key ? () => handleSort(col.key!) : undefined}
-                  className={`px-4 py-3 text-left font-semibold text-emerald-400 ${
-                    col.key ? 'cursor-pointer select-none transition-colors hover:text-emerald-300' : ''
+                  className={`px-4 py-3 text-left font-semibold text-emerald-600 dark:text-emerald-400 ${
+                    col.key ? 'cursor-pointer select-none transition-colors hover:text-emerald-500 dark:hover:text-emerald-300' : ''
                   } ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                 >
                   {t(locale, col.en, col.ar)}
@@ -386,7 +388,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: locale === 'ar' ? -20 : 20 }}
                   transition={{ duration: 0.2 }}
-                  className="border-b border-slate-800 transition-colors hover:bg-slate-800/60"
+                  className="border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
                 >
                   {/* Name */}
                   <td className="px-4 py-3">
@@ -395,29 +397,29 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                         <img
                           src={player.photoUrl}
                           alt={player.fullName}
-                          className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-700"
+                          className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
                         />
                       ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-700 text-xs font-bold text-emerald-400">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                           {player.fullName.charAt(0)}
                         </div>
                       )}
-                      <span className="font-medium text-slate-200">{player.fullName}</span>
+                      <span className="font-medium text-slate-900 dark:text-slate-200">{player.fullName}</span>
                     </div>
                   </td>
 
                   {/* Position */}
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-400">
+                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                       {player.primaryPosition}
                     </span>
                   </td>
 
                   {/* Age */}
-                  <td className="px-4 py-3 text-slate-300">{player.calculatedAge}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{player.calculatedAge}</td>
 
                   {/* Foot */}
-                  <td className="px-4 py-3 text-slate-300">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
                     {locale === 'ar'
                       ? player.preferredFoot === 'Right'
                         ? 'يمنى'
@@ -434,8 +436,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       onClick={() => toggleWarning(player.uid, player.hasWarning)}
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                         player.hasWarning
-                          ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30'
-                          : 'bg-slate-700/50 text-slate-400 hover:bg-slate-700'
+                          ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400 hover:bg-amber-500/30'
+                          : 'bg-slate-200/50 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                       } disabled:opacity-50`}
                       title={t(locale, 'Toggle warning', 'تبديل التحذير')}
                     >
@@ -451,8 +453,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       onClick={() => toggleVerify(player.uid, player.isVerifiedByAdmin)}
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                         player.isVerifiedByAdmin
-                          ? 'bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30'
-                          : 'bg-red-500/15 text-red-400 hover:bg-red-500/25'
+                          ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/30'
+                          : 'bg-red-500/10 dark:bg-red-500/15 text-red-600 dark:text-red-400 hover:bg-red-500/20 dark:hover:bg-red-500/25'
                       } disabled:opacity-50`}
                       title={t(locale, 'Toggle verification', 'تبديل التوثيق')}
                     >
@@ -465,12 +467,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                   {/* Goals */}
                   <td className="px-4 py-3">
-                    <span className="font-mono font-semibold text-slate-200">{player.stats.goals}</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats.goals}</span>
                   </td>
 
                   {/* Assists */}
                   <td className="px-4 py-3">
-                    <span className="font-mono font-semibold text-slate-200">{player.stats.assists}</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats.assists}</span>
                   </td>
 
                   {/* Actions */}
@@ -479,7 +481,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       {/* Edit Profile */}
                       <button
                         onClick={() => setEditModal({ open: true, player })}
-                        className="rounded-lg bg-indigo-600/20 p-2 text-indigo-400 transition-colors hover:bg-indigo-600/40 hover:text-indigo-300"
+                        className="rounded-lg bg-indigo-50 dark:bg-indigo-600/20 p-2 text-indigo-600 dark:text-indigo-400 transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-600/40 hover:text-indigo-700 dark:hover:text-indigo-300"
                         title={t(locale, 'Edit Profile', 'تعديل الملف الشخصي')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -490,7 +492,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       {/* Edit Attributes */}
                       <button
                         onClick={() => openAttrModal(player)}
-                        className="rounded-lg bg-purple-600/20 p-2 text-purple-400 transition-colors hover:bg-purple-600/40 hover:text-purple-300"
+                        className="rounded-lg bg-purple-50 dark:bg-purple-600/20 p-2 text-purple-600 dark:text-purple-400 transition-colors hover:bg-purple-100 dark:hover:bg-purple-600/40 hover:text-purple-700 dark:hover:text-purple-300"
                         title={t(locale, 'Edit Attributes', 'تعديل الطاقات')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -501,7 +503,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       {/* Edit Stats */}
                       <button
                         onClick={() => openStatsModal(player)}
-                        className="rounded-lg bg-emerald-600/20 p-2 text-emerald-400 transition-colors hover:bg-emerald-600/40 hover:text-emerald-300"
+                        className="rounded-lg bg-emerald-50 dark:bg-emerald-600/20 p-2 text-emerald-600 dark:text-emerald-400 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-600/40 hover:text-emerald-700 dark:hover:text-emerald-300"
                         title={t(locale, 'Edit Stats', 'تعديل الإحصائيات')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -516,7 +518,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       {/* PDF Export */}
                       <button
                         onClick={() => generateProfilePDF(player)}
-                        className="rounded-lg bg-blue-600/20 p-2 text-blue-400 transition-colors hover:bg-blue-600/40 hover:text-blue-300"
+                        className="rounded-lg bg-blue-50 dark:bg-blue-600/20 p-2 text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-100 dark:hover:bg-blue-600/40 hover:text-blue-700 dark:hover:text-blue-300"
                         title={t(locale, 'Export PDF', 'تصدير PDF')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -532,7 +534,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       <button
                         onClick={() => handleResetStats(player)}
                         disabled={loadingUid === player.uid}
-                        className="rounded-lg bg-orange-600/20 p-2 text-orange-400 transition-colors hover:bg-orange-600/40 hover:text-orange-300 disabled:opacity-50"
+                        className="rounded-lg bg-orange-50 dark:bg-orange-600/20 p-2 text-orange-600 dark:text-orange-400 transition-colors hover:bg-orange-100 dark:hover:bg-orange-600/40 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-50"
                         title={t(locale, 'Reset Stats', 'تصفير الإحصائيات')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -544,7 +546,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                       <button
                         onClick={() => handleDelete(player)}
                         disabled={loadingUid === player.uid}
-                        className="rounded-lg bg-red-600/20 p-2 text-red-400 transition-colors hover:bg-red-600/40 hover:text-red-300 disabled:opacity-50"
+                        className="rounded-lg bg-red-50 dark:bg-red-600/20 p-2 text-red-600 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-600/40 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
                         title={t(locale, 'Delete Player', 'حذف اللاعب')}
                       >
                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -576,18 +578,18 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="mx-4 w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="mx-4 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
-              <h2 className="mb-1 text-xl font-bold text-emerald-400">
+              <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                 {t(locale, 'Update Stats', 'تحديث الإحصائيات')}
               </h2>
-              <p className="mb-6 text-sm text-slate-400">{statsModal.player.fullName}</p>
+              <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{statsModal.player.fullName}</p>
 
               <div className="space-y-4">
                 {/* Goals */}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     {t(locale, 'Goals', 'أهداف')}
                   </label>
                   <input
@@ -597,13 +599,13 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, goals: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
 
                 {/* Assists */}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     {t(locale, 'Assists', 'تمريرات حاسمة')}
                   </label>
                   <input
@@ -613,13 +615,13 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, assists: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
 
                 {/* MVP */}
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
                     {t(locale, 'MVP', 'أفضل لاعب')}
                   </label>
                   <input
@@ -629,7 +631,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, mvp: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -654,7 +656,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                 </button>
                 <button
                   onClick={closeStatsModal}
-                  className="flex-1 rounded-lg border border-slate-700 px-4 py-2.5 font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+                  className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   {t(locale, 'Cancel', 'إلغاء')}
                 </button>
@@ -680,13 +682,13 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="mx-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl"
+              className="mx-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
-              <h2 className="mb-1 text-xl font-bold text-emerald-400">
+              <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                 {t(locale, 'Edit Attributes', 'تعديل الطاقات')}
               </h2>
-              <p className="mb-6 text-sm text-slate-400">{attrModal.player.fullName}</p>
+              <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{attrModal.player.fullName}</p>
 
               <div className="scale-90 origin-top-left md:origin-top w-[111%]">
                 <AttributeSliders
@@ -707,7 +709,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                 </button>
                 <button
                   onClick={closeAttrModal}
-                  className="flex-1 rounded-lg border border-slate-700 px-4 py-2.5 font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+                  className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   {t(locale, 'Cancel', 'إلغاء')}
                 </button>

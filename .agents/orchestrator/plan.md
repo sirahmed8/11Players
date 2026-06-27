@@ -1,37 +1,50 @@
-# Implementation Plan - Hagoozat Elite
+# Plan - Hagoozat Elite Improvements (2026-06-27)
 
-This plan describes the high-level roadmap and architectural steps for Hagoozat Elite, conforming to the Project Pattern.
+This plan describes the roadmap and milestones to implement the requested UI/UX improvements, Arabic translations, profile workflows, and matchmaking logic improvements.
 
-## Dual-Track Strategy
-The project will run two tracks in parallel:
-1. **E2E Testing Track**: Build the test infrastructure and a comprehensive 4-tier test suite.
-2. **Implementation Track**: Decompose the project into sequential milestones, developing the frontend, backend integration, admin dashboard, and matchmaking engine.
+## Milestones
 
-## Milestones Decomposition
-We will target the following milestones:
-- **Milestone 1: Project Setup & Baseline**
-  - Git repository layout, TypeScript configuration, Next.js boilerplate, Firebase config, Tailwind CSS, and basic ESLint setup.
-- **Milestone 2: Database Schema, Security Rules & Authentication**
-  - Implement Google OAuth, configure public/private Firestore collections (e.g. `admins`, `players`, `chats`) under the '11Players' Firebase project scope, and define Firestore security rules.
-- **Milestone 3: 4-Step Onboarding Wizard**
-  - Step 1 (Bio Data) with age computation.
-  - Step 2 (Interactive SVG Pitch Position Picker).
-  - Step 3 (Attribute sliders and skills checklist).
-  - Step 4 (Client-side background removal using `@imgly/background-removal`, Cloudinary upload using cloud name `dfvh4jcsh` and unsigned preset `11players`, and FIFA/PES-style Player Card).
-- **Milestone 4: Live Community Hub & Chat**
-  - Real-time directory grid with `onSnapshot` listener.
-  - Virtualized real-time chat with message batching.
-- **Milestone 5: Admin Dashboard & PDF Engine**
-  - Restricted Admin view for profile adjustments (override stats, toggle warnings).
-  - Single profile PDF export & Master Bulk PDF summary.
-- **Milestone 6: Matchmaking API & Constraint Engine**
-  - `/api/matchmaking` endpoint implementation.
-  - Positional Suitability Index ($PSI$) calculation with penalties and physical attribute modifiers.
-  - Two-team backtracking/balancing solver.
-- **Milestone 7: E2E Integration and Adversarial Hardening**
-  - Integrate all modules and execute the full test suite.
-  - Perform adversarial testing (white-box gap analysis) to harden coverage.
+### Milestone 1: Codebase Exploration & Testing Baseline
+- Objective: Investigate current codebase layout, existing test suites, Firebase configuration, and run a baseline test verification.
+- Verification: Successful run of `npm run test:e2e` (or existing test commands) via worker/explorer.
 
-## Verification
-- Each milestone must undergo exploration, implementation, review, and forensic audit.
-- No milestone is declared complete without a passing audit and verified build/test suite.
+### Milestone 2: UI & Styling Enhancements (R1)
+- Objective:
+  - Hide default HTML scrollbars across the app (use custom/hidden scrollbars).
+  - Improve light mode styling for Admin & Community pages, ensuring loading screen respects active theme.
+  - Highlight active tab in the Navbar.
+  - Animate cookie acceptance banner (appear/disappear).
+  - Remove "تسجيل اللاعب وتحديد البيانات" from welcome screen.
+  - Add focus outline animation to Community search box.
+  - Fix layout centering issues (no default typing box center, center on mobile when keyboard open).
+  - Optimize page load speeds.
+- Verification: Visual verification, component unit tests, and layout checks.
+
+### Milestone 3: Arabic Localization (R2)
+- Objective: Translate "Community Hub Lounge", Stats page, and Admin page fully to Arabic.
+- Verification: Check text and language switching support.
+
+### Milestone 4: Profile & Workflows (R3)
+- Objective:
+  - Fix "Player Not Found" error on profile page.
+  - Owner workflow: Owner can create/edit profile anytime.
+  - Normal user workflow: Edits go to a pending state in Firestore and require Owner's approval.
+  - Unique usernames on registration with 7-day cooldown note and enforcement.
+- Verification: Verify workflow state machine in Firestore and edit controls.
+
+### Milestone 5: Community Chat Features (R4)
+- Objective:
+  - Display sender name and Google profile picture next to messages.
+  - Add Reply and React (emoji) functionality.
+- Verification: Verify Firestore chat structure and UI rendering.
+
+### Milestone 6: Matchmaking & Admin Improvements (R5)
+- Objective:
+  - Limit Run Matchmaking button to Owner only, remove "(Admin)" text.
+  - Hide/disable matchmaking button if registered players < 22.
+  - Review and optimize stats, positions, ratings, and matchmaking balancing logic.
+- Verification: Run matchmaking with mocked and real datasets; check team balancing metrics.
+
+### Milestone 7: Final Integration, E2E Testing, and Deployment
+- Objective: Validate all improvements, run full E2E test suite, and deploy to Firebase.
+- Verification: Successful `npm run build` and `firebase deploy --project an-11-players` (or the configured Firebase project).

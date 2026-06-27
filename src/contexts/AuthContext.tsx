@@ -15,6 +15,7 @@ interface AuthContextProps {
   user: User | null;
   loading: boolean;
   isAdmin: boolean;
+  isOwner: boolean;
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -27,6 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   // Check if the user's UID exists in the 'admins' Firestore collection
   const checkAdminStatus = useCallback(async (uid: string): Promise<boolean> => {
@@ -45,8 +47,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setUser(firebaseUser);
       
       if (firebaseUser) {
+        const ownerEmail = 'a7medorabe7@gmail.com';
+        const userIsOwner = firebaseUser.email === ownerEmail;
+        setIsOwner(userIsOwner);
+
         // If owner, set admin true immediately and skip Firestore check
-        if (firebaseUser.email === 'a7medorabe7@gmail.com') {
+        if (userIsOwner) {
           setIsAdmin(true);
           setLoading(false);
         } else {
@@ -62,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       } else {
         setIsAdmin(false);
+        setIsOwner(false);
         setLoading(false);
       }
     });
@@ -98,7 +105,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, login, logout }}>
       <PlayersProvider>
         {children}
       </PlayersProvider>

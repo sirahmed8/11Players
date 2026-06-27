@@ -17,16 +17,16 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-slate-900 rounded-3xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto border border-slate-700 p-6 lg:p-10"
+        className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-700 p-6 lg:p-10 text-slate-900 dark:text-white"
         dir={locale === 'ar' ? 'rtl' : 'ltr'}
       >
-        <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-6">
-          <h2 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+        <div className="flex justify-between items-center mb-8 border-b border-slate-100 dark:border-slate-800 pb-6">
+          <h2 className="text-3xl lg:text-4xl font-black bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
             {t(locale, 'Matchmaking Results', 'نتائج تشكيل الفرق')}
           </h2>
           <button 
             onClick={onClose}
-            className="p-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl transition-colors font-bold"
+            className="p-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors font-bold"
           >
             {t(locale, 'Close', 'إغلاق')}
           </button>
@@ -34,22 +34,22 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
         
         <div className="grid xl:grid-cols-2 gap-10">
           {/* Team A */}
-          <div className="bg-slate-800/50 rounded-3xl p-6 lg:p-8 border border-slate-700">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-700">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <h3 className="text-3xl font-black text-blue-400">Team A</h3>
+              <h3 className="text-3xl font-black text-blue-600 dark:text-blue-400">Team A</h3>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-mono bg-blue-900/40 text-blue-300 px-4 py-2 rounded-xl font-bold border border-blue-800/50">
+                <span className="font-mono bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 px-4 py-2 rounded-xl font-bold border border-blue-200 dark:border-blue-800/50">
                   {result.formation?.teamA || "Formation"}
                 </span>
-                <span className="font-mono bg-slate-900 text-slate-300 px-4 py-2 rounded-xl font-bold border border-slate-700">
+                <span className="font-mono bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl font-bold border border-slate-200 dark:border-slate-700">
                   OVR: {result.metrics?.teamAOverall?.toFixed(1)}
                 </span>
               </div>
             </div>
             {result.tipsAndTactics?.teamA && (
-              <div className="mb-8 p-4 bg-blue-900/20 border border-blue-800/30 rounded-xl">
-                <p className="text-blue-200 font-medium leading-relaxed">
-                  <span className="font-bold text-blue-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
+              <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
+                <p className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
+                  <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
                   {result.tipsAndTactics.teamA}
                 </p>
               </div>
@@ -72,22 +72,22 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
           </div>
 
           {/* Team B */}
-          <div className="bg-slate-800/50 rounded-3xl p-6 lg:p-8 border border-slate-700">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-700">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-              <h3 className="text-3xl font-black text-red-400">Team B</h3>
+              <h3 className="text-3xl font-black text-red-600 dark:text-red-400">Team B</h3>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-mono bg-red-900/40 text-red-300 px-4 py-2 rounded-xl font-bold border border-red-800/50">
+                <span className="font-mono bg-red-50 dark:bg-red-900/40 text-red-700 dark:text-red-300 px-4 py-2 rounded-xl font-bold border border-red-200 dark:border-red-800/50">
                   {result.formation?.teamB || "Formation"}
                 </span>
-                <span className="font-mono bg-slate-900 text-slate-300 px-4 py-2 rounded-xl font-bold border border-slate-700">
+                <span className="font-mono bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl font-bold border border-slate-200 dark:border-slate-700">
                   OVR: {result.metrics?.teamBOverall?.toFixed(1)}
                 </span>
               </div>
             </div>
             {result.tipsAndTactics?.teamB && (
-              <div className="mb-8 p-4 bg-red-900/20 border border-red-800/30 rounded-xl">
-                <p className="text-red-200 font-medium leading-relaxed">
-                  <span className="font-bold text-red-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
+              <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl">
+                <p className="text-red-800 dark:text-red-200 font-medium leading-relaxed">
+                  <span className="font-bold text-red-600 dark:text-red-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
                   {result.tipsAndTactics.teamB}
                 </p>
               </div>

@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateDoc, doc } from 'firebase/firestore';
+import { updateDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/components/ThemeProvider';
 import type { PlayerProfile, PESPosition } from '@/types';
 
@@ -19,6 +20,7 @@ const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Creative P
 
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
   const { locale } = useLocale();
+  const { isOwner } = useAuth();
   const isRTL = locale === 'ar';
   
   const [formData, setFormData] = useState({
@@ -43,9 +45,19 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      await updateDoc(doc(db, 'players', player.uid), {
-        ...formData
-      });
+      if (isOwner) {
+        await updateDoc(doc(db, 'players', player.uid), {
+          ...formData
+        });
+        alert(isRTL ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully');
+      } else {
+        await setDoc(doc(db, 'profileEdits', player.uid), {
+          ...formData,
+          status: 'pending',
+          requestedAt: new Date().toISOString()
+        });
+        alert(isRTL ? 'تم إرسال طلب التعديل للمراجعة' : 'Edit request sent for approval');
+      }
       onRefresh();
       onClose();
     } catch (err) {
@@ -65,66 +77,66 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl custom-scrollbar"
+          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl custom-scrollbar"
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <h2 className="mb-4 text-xl font-bold text-emerald-400">
+          <h2 className="mb-4 text-xl font-bold text-emerald-600 dark:text-emerald-400">
             {isRTL ? 'تعديل الملف الشخصي' : 'Edit Profile'}
           </h2>
 
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Full Name</label>
-                <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200" />
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Card Name</label>
-                <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200" />
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Card Name</label>
+                <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Date of Birth</label>
-                <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200" />
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label>
+                <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">Height (cm)</label>
-                  <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200" />
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Height (cm)</label>
+                  <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-300">Weight (kg)</label>
-                  <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200" />
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Weight (kg)</label>
+                  <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
                 </div>
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Primary Position</label>
-                <select value={formData.primaryPosition} onChange={(e) => handleChange('primaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Primary Position</label>
+                <select value={formData.primaryPosition} onChange={(e) => handleChange('primaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                   {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Secondary Position</label>
-                <select value={formData.secondaryPosition} onChange={(e) => handleChange('secondaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Secondary Position</label>
+                <select value={formData.secondaryPosition} onChange={(e) => handleChange('secondaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                   {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Tertiary Position</label>
-                <select value={formData.tertiaryPosition} onChange={(e) => handleChange('tertiaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Tertiary Position</label>
+                <select value={formData.tertiaryPosition} onChange={(e) => handleChange('tertiaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                   {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Play Style</label>
-                <select value={formData.playStyle} onChange={(e) => handleChange('playStyle', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Play Style</label>
+                <select value={formData.playStyle} onChange={(e) => handleChange('playStyle', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                   <option value="">None</option>
                   {PLAY_STYLES.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-slate-300">Preferred Foot</label>
-                <select value={formData.preferredFoot} onChange={(e) => handleChange('preferredFoot', e.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-slate-200">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Preferred Foot</label>
+                <select value={formData.preferredFoot} onChange={(e) => handleChange('preferredFoot', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
                   <option value="Right">Right</option>
                   <option value="Left">Left</option>
                   <option value="Ambidextrous">Ambidextrous</option>
@@ -143,7 +155,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             </button>
             <button
               onClick={onClose}
-              className="flex-1 rounded-lg border border-slate-700 px-4 py-2.5 font-semibold text-slate-300 transition-colors hover:bg-slate-800"
+              className="flex-1 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-2.5 font-semibold text-slate-600 dark:text-slate-300 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
             >
               {isRTL ? 'إلغاء' : 'Cancel'}
             </button>

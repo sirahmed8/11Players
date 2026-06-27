@@ -6,7 +6,7 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Users, TrendingUp, ShieldCheck, Loader2, LogIn } from "lucide-react";
 import SettingsMenu from "@/components/SettingsMenu";
 
@@ -134,16 +134,6 @@ export default function Home() {
           transition={{ duration: 0.8 }}
           className="space-y-8 max-w-4xl"
         >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
-          >
-            <span className="px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:border dark:border-emerald-800/50 dark:text-emerald-300">
-              {t("onboarding")}
-            </span>
-          </motion.div>
-
           <h2 className="text-5xl md:text-7xl font-black leading-tight bg-gradient-to-br from-emerald-600 to-teal-800 dark:from-emerald-400 dark:to-teal-600 bg-clip-text text-transparent pb-2">
             {t("welcome")}
           </h2>
@@ -219,21 +209,29 @@ export default function Home() {
       </section>
 
       {/* Cookie Consent Banner */}
-      {!cookieConsent && (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md bg-slate-900 text-white p-4 rounded-xl border border-slate-700 shadow-2xl z-50 flex flex-col gap-3">
-          <p className="text-sm">
-            {t("privacy_banner")}
-          </p>
-          <div className="flex justify-end gap-2">
-            <button
-              onClick={handleAcceptCookies}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg text-xs transition-colors"
-            >
-              {t("accept")}
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {!cookieConsent && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md bg-slate-900 text-white p-4 rounded-xl border border-slate-700 shadow-2xl z-50 flex flex-col gap-3"
+          >
+            <p className="text-sm">
+              {t("privacy_banner")}
+            </p>
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleAcceptCookies}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg text-xs transition-colors"
+              >
+                {t("accept")}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

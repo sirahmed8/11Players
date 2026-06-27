@@ -23,23 +23,23 @@ export default function Navbar() {
         </Link>
       </div>
       <div className="flex items-center gap-3">
-        <nav className="flex items-center gap-4 text-sm font-semibold mr-4">
+        <nav className="flex items-center gap-2 text-sm font-semibold mr-4">
           <Link
             href="/community"
-            className={`${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               pathname === "/community"
-                ? "text-emerald-500 dark:text-emerald-400 font-bold"
-                : "hover:text-emerald-500 transition-colors"
+                ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             {isAr ? "المجتمع" : "Community"}
           </Link>
           <Link
             href="/stats"
-            className={`${
+            className={`px-3 py-1.5 rounded-lg transition-all ${
               pathname === "/stats"
-                ? "text-emerald-500 dark:text-emerald-400 font-bold"
-                : "hover:text-emerald-500 transition-colors"
+                ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
             {isAr ? "الإحصائيات" : "Stats"}
@@ -47,10 +47,10 @@ export default function Navbar() {
           {user && (
             <Link
               href={`/profile?uid=${user.uid}`}
-              className={`${
+              className={`px-3 py-1.5 rounded-lg transition-all ${
                 pathname === "/profile"
-                  ? "text-emerald-500 dark:text-emerald-400 font-bold"
-                  : "hover:text-emerald-500 transition-colors"
+                  ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                  : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
             >
               {isAr ? "ملفي الشخصي" : "My Profile"}
@@ -59,10 +59,10 @@ export default function Navbar() {
           {isAdmin && (
             <Link
               href="/admin"
-              className={`flex items-center gap-1 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 pathname === "/admin"
-                  ? "text-amber-500 dark:text-amber-400 font-bold"
-                  : "text-amber-500 hover:text-amber-600 transition-colors"
+                  ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-black shadow-inner"
+                  : "text-amber-500 hover:text-amber-600 hover:bg-amber-500/5"
               }`}
             >
               <ShieldAlert className="w-4 h-4" /> {isAr ? "لوحة التحكم" : "Admin"}
