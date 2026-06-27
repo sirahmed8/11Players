@@ -93,110 +93,115 @@ const VETERAN_AGE_THRESHOLD = 32;
  */
 const PSI_WEIGHTS: Record<PESPosition, Partial<Record<keyof PlayerAttributes, number>>> = {
   GK: {
-    goalkeeping: 0.40,
-    defensiveProwess: 0.20,
+    goalkeeping: 0.50,
+    jump: 0.15,
     physicalContact: 0.15,
-    speed: 0.10,
-    passing: 0.10,
-    acceleration: 0.05,
+    defensiveAwareness: 0.10,
+    loftedPass: 0.10,
   },
   CB: {
-    defensiveProwess: 0.30,
-    physicalContact: 0.25,
-    speed: 0.15,
-    acceleration: 0.10,
-    passing: 0.10,
-    attackingProwess: 0.05,
+    defensiveAwareness: 0.25,
+    ballWinning: 0.25,
+    physicalContact: 0.15,
+    heading: 0.15,
+    jump: 0.10,
+    speed: 0.05,
     stamina: 0.05,
   },
   LB: {
     speed: 0.20,
-    defensiveProwess: 0.20,
     stamina: 0.20,
-    acceleration: 0.15,
-    passing: 0.15,
-    dribbling: 0.10,
+    defensiveAwareness: 0.15,
+    ballWinning: 0.15,
+    acceleration: 0.10,
+    loftedPass: 0.10,
+    lowPass: 0.10,
   },
   RB: {
     speed: 0.20,
-    defensiveProwess: 0.20,
     stamina: 0.20,
-    acceleration: 0.15,
-    passing: 0.15,
-    dribbling: 0.10,
+    defensiveAwareness: 0.15,
+    ballWinning: 0.15,
+    acceleration: 0.10,
+    loftedPass: 0.10,
+    lowPass: 0.10,
   },
   DMF: {
-    defensiveProwess: 0.25,
-    passing: 0.20,
+    defensiveAwareness: 0.20,
+    ballWinning: 0.20,
     stamina: 0.20,
+    lowPass: 0.15,
     physicalContact: 0.15,
-    speed: 0.10,
-    acceleration: 0.10,
+    loftedPass: 0.10,
   },
   CMF: {
-    passing: 0.25,
+    lowPass: 0.25,
     stamina: 0.20,
-    dribbling: 0.15,
-    speed: 0.15,
-    defensiveProwess: 0.10,
-    attackingProwess: 0.10,
-    acceleration: 0.05,
+    loftedPass: 0.15,
+    ballControl: 0.15,
+    dribbling: 0.10,
+    defensiveAwareness: 0.10,
+    ballWinning: 0.05,
   },
   AMF: {
-    dribbling: 0.25,
-    passing: 0.20,
-    attackingProwess: 0.20,
-    speed: 0.15,
-    acceleration: 0.10,
-    shotPower: 0.10,
+    lowPass: 0.20,
+    ballControl: 0.20,
+    dribbling: 0.20,
+    offensiveAwareness: 0.15,
+    loftedPass: 0.10,
+    finishing: 0.10,
+    balance: 0.05,
   },
   LMF: {
     speed: 0.20,
     stamina: 0.20,
-    dribbling: 0.20,
-    passing: 0.15,
-    acceleration: 0.15,
-    defensiveProwess: 0.10,
+    loftedPass: 0.15,
+    lowPass: 0.15,
+    dribbling: 0.15,
+    ballControl: 0.10,
+    acceleration: 0.05,
   },
   RMF: {
     speed: 0.20,
     stamina: 0.20,
-    dribbling: 0.20,
-    passing: 0.15,
-    acceleration: 0.15,
-    defensiveProwess: 0.10,
+    loftedPass: 0.15,
+    lowPass: 0.15,
+    dribbling: 0.15,
+    ballControl: 0.10,
+    acceleration: 0.05,
   },
   LWF: {
     speed: 0.25,
-    dribbling: 0.20,
     acceleration: 0.20,
-    attackingProwess: 0.15,
-    shotPower: 0.10,
-    passing: 0.10,
+    dribbling: 0.20,
+    ballControl: 0.15,
+    offensiveAwareness: 0.10,
+    finishing: 0.10,
   },
   RWF: {
     speed: 0.25,
-    dribbling: 0.20,
     acceleration: 0.20,
-    attackingProwess: 0.15,
-    shotPower: 0.10,
-    passing: 0.10,
+    dribbling: 0.20,
+    ballControl: 0.15,
+    offensiveAwareness: 0.10,
+    finishing: 0.10,
   },
   SS: {
-    attackingProwess: 0.25,
-    speed: 0.20,
+    offensiveAwareness: 0.20,
+    ballControl: 0.20,
     dribbling: 0.20,
-    acceleration: 0.15,
-    shotPower: 0.10,
-    passing: 0.10,
+    lowPass: 0.15,
+    finishing: 0.15,
+    speed: 0.10,
   },
   CF: {
-    attackingProwess: 0.30,
-    shotPower: 0.25,
-    physicalContact: 0.15,
-    speed: 0.15,
-    acceleration: 0.10,
-    dribbling: 0.05,
+    offensiveAwareness: 0.25,
+    finishing: 0.25,
+    kickingPower: 0.15,
+    heading: 0.10,
+    physicalContact: 0.10,
+    speed: 0.10,
+    jump: 0.05,
   },
 };
 
@@ -275,8 +280,8 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
   // ── Step 1: Weighted attribute sum ──
   let rawPSI = 0;
   for (const [attr, weight] of Object.entries(weights)) {
-    const attrValue = player.attributes[attr as keyof PlayerAttributes] ?? 0;
-    rawPSI += weight * clamp(attrValue, 1, 99);
+    const attrValue = player.attributes[attr as keyof PlayerAttributes] ?? 40;
+    rawPSI += weight * clamp(attrValue, 40, 99);
   }
 
   // ── Step 2: Familiarity multiplier ──
@@ -359,16 +364,12 @@ export function calculateTeamMetrics(team: PlayerProfile[]): TeamMetrics {
     if (!a) continue;
 
     // Overall is the straight mean of all 10 attributes
-    const allAttrs = [
-      a.attackingProwess, a.defensiveProwess, a.speed, a.acceleration,
-      a.stamina, a.dribbling, a.passing, a.physicalContact, a.shotPower,
-      a.goalkeeping,
-    ];
+    const allAttrs = Object.values(a).map(val => Number(val) || 40);
     overalls.push(mean(allAttrs));
-    speeds.push(mean([a.speed, a.acceleration]));
-    staminas.push(a.stamina);
-    defenses.push(mean([a.defensiveProwess, a.physicalContact]));
-    attacks.push(mean([a.attackingProwess, a.shotPower, a.dribbling]));
+    speeds.push(mean([a.speed || 40, a.acceleration || 40]));
+    staminas.push(a.stamina || 40);
+    defenses.push(mean([a.defensiveAwareness || 40, a.ballWinning || 40]));
+    attacks.push(mean([a.offensiveAwareness || 40, a.finishing || 40, a.kickingPower || 40]));
   }
 
   return {
@@ -802,23 +803,35 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   const teamA = assignPlayersToFormation(rawA, formationA);
   const teamB = assignPlayersToFormation(rawB, formationB);
 
-  // ── 5. Compute final metrics ──
-  const metricsA = calculateTeamMetrics(rawA);
-  const metricsB = calculateTeamMetrics(rawB);
-  const variance = calculateTotalVariance(metricsA, metricsB);
-
-  const getTactics = (formation: string) => {
-    switch (formation) {
-      case "4-3-3": return "Utilize the wingers to stretch the defense. Ensure the midfield trio maintains possession.";
-      case "4-4-2": return "Play with structure. Use the two strikers to press the center-backs and cross often.";
-      case "3-5-2": return "Control the midfield with numbers. Wing-backs must track back on defense.";
-      case "4-2-3-1": return "Rely on the double pivot for defensive stability and let the AMF orchestrate attacks.";
-      case "5-3-2": return "Defend deep and counter-attack quickly using the two strikers.";
-      case "3-4-3": return "High pressing system. Win the ball high up the pitch and attack with width.";
-      case "4-1-4-1": return "Keep it tight defensively and attack as a unit. The lone striker needs support.";
-      default: return "Play balanced football and maintain structure.";
+  // ── 5. Generate AI Manager Advices ──
+  const metricsA = calculateTeamMetrics(teamA);
+  const metricsB = calculateTeamMetrics(teamB);
+  
+  const generateAdvice = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string) => {
+    let advice = "Manager's Tactical Brief: ";
+    if (myMetrics.speed > oppMetrics.speed + 2) {
+      advice += "Our team has a clear pace advantage. Exploit the flanks and look for through balls behind their defensive line. ";
+    } else if (myMetrics.defense > oppMetrics.defense + 2) {
+      advice += "We are defensively solid. Stay compact, absorb pressure, and hit them on the counter-attack. ";
+    } else if (myMetrics.attack > oppMetrics.attack + 2) {
+      advice += "We have superior attacking prowess. Press high up the pitch and dictate the tempo in the final third. ";
+    } else if (myMetrics.stamina > oppMetrics.stamina + 2) {
+      advice += "We have the stamina advantage. Keep a high intensity throughout the match and wear them down in the second half. ";
+    } else {
+      advice += "This is a very evenly matched game. Focus on ball retention and capitalizing on set pieces. ";
     }
+    
+    if (formation === '4-3-3') advice += "With the 4-3-3, ensure the wingers stay wide to stretch their defense.";
+    if (formation === '4-4-2') advice += "In a 4-4-2, the two strikers must link up closely and the wide midfielders should track back.";
+    if (formation === '3-5-2') advice += "Using a 3-5-2, the wing-backs are crucial. Overload the midfield but beware of counter-attacks out wide.";
+    if (formation === '4-2-3-1') advice += "The 4-2-3-1 relies on the AMF finding pockets of space. Feed the playmaker.";
+    if (formation === '5-3-2') advice += "We are playing a defensive 5-3-2. Look for the strikers holding up the ball and bringing midfielders into play.";
+
+    return advice;
   };
+
+  const adviceA = generateAdvice(metricsA, metricsB, formationA);
+  const adviceB = generateAdvice(metricsB, metricsA, formationB);
 
   return {
     teamA,
@@ -828,18 +841,13 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
       teamB: formationB,
     },
     tipsAndTactics: {
-      teamA: getTactics(formationA),
-      teamB: getTactics(formationB),
+      teamA: adviceA,
+      teamB: adviceB,
     },
     metrics: {
       teamAOverall: metricsA.overall,
       teamBOverall: metricsB.overall,
-      variance: {
-        overall: variance.overall,
-        speed: variance.speed,
-        stamina: variance.stamina,
-        defense: variance.defense,
-      },
+      variance: calculateTotalVariance(metricsA, metricsB),
     },
   };
 }

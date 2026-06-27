@@ -2,8 +2,9 @@
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import type { PlayerAttributes } from '@/types';
+import type { PlayerAttributes, PESPosition } from '@/types';
 import { useLocale } from '@/components/ThemeProvider';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 /* ──────────────────────────────────────────────
    Translations
@@ -13,58 +14,86 @@ const translations = {
     title: 'Player Attributes',
     overall: 'Overall Rating',
     warningHigh: 'Warning: Unrealistic ratings will be flagged for admin review',
-    attackingProwess: 'Attacking Prowess',
-    defensiveProwess: 'Defensive Prowess',
+    offensiveAwareness: 'Offensive Awareness',
+    ballControl: 'Ball Control',
+    dribbling: 'Dribbling',
+    lowPass: 'Low Pass',
+    loftedPass: 'Lofted Pass',
+    finishing: 'Finishing',
+    heading: 'Heading',
     speed: 'Speed',
     acceleration: 'Acceleration',
-    stamina: 'Stamina',
-    dribbling: 'Dribbling',
-    passing: 'Passing',
+    kickingPower: 'Kicking Power',
+    jump: 'Jump',
     physicalContact: 'Physical Contact',
-    shotPower: 'Shot Power',
+    balance: 'Balance',
+    stamina: 'Stamina',
+    defensiveAwareness: 'Defensive Awareness',
+    ballWinning: 'Ball Winning',
     goalkeeping: 'Goalkeeping',
   },
   ar: {
     title: 'سمات اللاعب',
     overall: 'التقييم العام',
     warningHigh: 'تنبيه: التقييمات غير الواقعية ستُراجَع بواسطة المشرف',
-    attackingProwess: 'القوة الهجومية',
-    defensiveProwess: 'القوة الدفاعية',
+    offensiveAwareness: 'الوعي الهجومي',
+    ballControl: 'التحكم بالكرة',
+    dribbling: 'المراوغة',
+    lowPass: 'التمرير القصير',
+    loftedPass: 'التمرير الطويل',
+    finishing: 'الإنهاء',
+    heading: 'الرأسيات',
     speed: 'السرعة',
     acceleration: 'التسارع',
-    stamina: 'اللياقة البدنية',
-    dribbling: 'المراوغة',
-    passing: 'التمرير',
+    kickingPower: 'قوة التسديد',
+    jump: 'القفز',
     physicalContact: 'القوة البدنية',
-    shotPower: 'قوة التسديد',
+    balance: 'التوازن',
+    stamina: 'اللياقة البدنية',
+    defensiveAwareness: 'الوعي الدفاعي',
+    ballWinning: 'افتكاك الكرة',
     goalkeeping: 'حراسة المرمى',
   },
 } as const;
 
 const descriptions = {
   en: {
-    attackingProwess: 'Offensive awareness and positioning.',
-    defensiveProwess: 'Defensive awareness and tackling.',
-    speed: 'Top running speed.',
-    acceleration: 'How fast the player reaches top speed.',
-    stamina: 'Endurance over the match.',
-    dribbling: 'Ball control and agility.',
-    passing: 'Accuracy of short and long passes.',
-    physicalContact: 'Strength and balance against opponents.',
-    shotPower: 'Power of shots and clearances.',
-    goalkeeping: 'Reflexes and handling (GK only).',
+    offensiveAwareness: 'Attacking awareness and positioning.',
+    ballControl: 'Ability to control the ball upon receiving it.',
+    dribbling: 'Agility and ball control while moving.',
+    lowPass: 'Accuracy of passes along the ground.',
+    loftedPass: 'Accuracy of passes in the air.',
+    finishing: 'Accuracy of shots on target.',
+    heading: 'Accuracy and power of headers.',
+    speed: 'Top running speed without the ball.',
+    acceleration: 'How quickly the player reaches top speed.',
+    kickingPower: 'Power behind shots and long passes.',
+    jump: 'Ability to jump high.',
+    physicalContact: 'Strength to hold off opponents.',
+    balance: 'Ability to stay upright under pressure.',
+    stamina: 'Fitness to maintain performance throughout the match.',
+    defensiveAwareness: 'Defensive positioning and reading the game.',
+    ballWinning: 'Ability to tackle and win the ball back.',
+    goalkeeping: 'Overall goalkeeping ability (GK only).',
   },
   ar: {
-    attackingProwess: 'التمركز الهجومي ورد الفعل أمام المرمى.',
-    defensiveProwess: 'الوعي الدفاعي وقطع الكرات.',
-    speed: 'السرعة القصوى للركض.',
+    offensiveAwareness: 'التمركز والوعي الهجومي.',
+    ballControl: 'القدرة على السيطرة على الكرة عند استلامها.',
+    dribbling: 'الرشاقة والتحكم بالكرة أثناء الحركة.',
+    lowPass: 'دقة التمريرات الأرضية.',
+    loftedPass: 'دقة التمريرات العالية.',
+    finishing: 'دقة التسديد على المرمى.',
+    heading: 'دقة وقوة الضربات الرأسية.',
+    speed: 'السرعة القصوى بدون كرة.',
     acceleration: 'مدى سرعة الوصول للسرعة القصوى.',
-    stamina: 'القدرة على التحمل طوال المباراة.',
-    dribbling: 'التحكم بالكرة والرشاقة.',
-    passing: 'دقة التمريرات القصيرة والطويلة.',
-    physicalContact: 'القوة البدنية والتوازن أمام الخصوم.',
-    shotPower: 'قوة التسديدات وتشتيت الكرة.',
-    goalkeeping: 'ردود الفعل والتعامل مع الكرة (للحراس فقط).',
+    kickingPower: 'قوة التسديدات والتمريرات الطويلة.',
+    jump: 'القدرة على القفز عاليًا.',
+    physicalContact: 'القوة البدنية للاحتفاظ بالكرة.',
+    balance: 'القدرة على الحفاظ على التوازن تحت الضغط.',
+    stamina: 'اللياقة للحفاظ على الأداء طوال المباراة.',
+    defensiveAwareness: 'التمركز والوعي الدفاعي وقراءة اللعب.',
+    ballWinning: 'القدرة على قطع الكرة وافتكاكها.',
+    goalkeeping: 'القدرات العامة لحارس المرمى.',
   },
 } as const;
 
@@ -74,28 +103,29 @@ const descriptions = {
 type AttrKey = keyof PlayerAttributes;
 
 const ATTRIBUTE_KEYS: AttrKey[] = [
-  'attackingProwess',
-  'defensiveProwess',
-  'speed',
-  'acceleration',
-  'stamina',
-  'dribbling',
-  'passing',
-  'physicalContact',
-  'shotPower',
-  'goalkeeping',
+  'offensiveAwareness', 'ballControl', 'dribbling', 'lowPass', 'loftedPass',
+  'finishing', 'heading', 'speed', 'acceleration', 'kickingPower',
+  'jump', 'physicalContact', 'balance', 'stamina',
+  'defensiveAwareness', 'ballWinning', 'goalkeeping'
 ];
 
 const ATTRIBUTE_ICONS: Record<AttrKey, string> = {
-  attackingProwess: '⚔️',
-  defensiveProwess: '🛡️',
+  offensiveAwareness: '🧠',
+  ballControl: '⚽',
+  dribbling: '🪄',
+  lowPass: '👟',
+  loftedPass: '✈️',
+  finishing: '🎯',
+  heading: '🤕',
   speed: '💨',
   acceleration: '🚀',
-  stamina: '🫁',
-  dribbling: '🏃',
-  passing: '🎯',
+  kickingPower: '💥',
+  jump: '🦘',
   physicalContact: '💪',
-  shotPower: '🔥',
+  balance: '⚖️',
+  stamina: '🫁',
+  defensiveAwareness: '🛡️',
+  ballWinning: '🪓',
   goalkeeping: '🧤',
 };
 
@@ -125,6 +155,8 @@ interface AttributeSlidersProps {
   attributes: PlayerAttributes;
   onChange: (attrs: PlayerAttributes) => void;
   locale?: 'en' | 'ar';
+  primaryPosition?: PESPosition | null;
+  playStyle?: string;
 }
 
 /* ──────────────────────────────────────────────
@@ -134,14 +166,20 @@ export default function AttributeSliders({
   attributes,
   onChange,
   locale = 'ar',
+  primaryPosition,
+  playStyle,
 }: AttributeSlidersProps) {
   const txt = translations[locale];
   const desc = descriptions[locale];
 
   const overallAvg = useMemo(() => {
+    if (primaryPosition) {
+      return calculateRealisticOverall(attributes, primaryPosition, playStyle || '');
+    }
+    // Fallback if no position selected yet
     const vals = Object.values(attributes);
     return Math.round(vals.reduce((s, v) => s + v, 0) / vals.length);
-  }, [attributes]);
+  }, [attributes, primaryPosition, playStyle]);
 
   const showWarning = overallAvg > 90;
   const grade = getOverallGrade(overallAvg);
@@ -223,14 +261,14 @@ export default function AttributeSliders({
               <div className="relative mt-2">
                 <input
                   type="range"
-                  min={1}
+                  min={40}
                   max={99}
                   value={value}
                   onChange={(e) => handleChange(key, parseInt(e.target.value, 10))}
                   className="w-full h-2 rounded-full appearance-none cursor-pointer slider-thumb"
                   dir="ltr"
                   style={{
-                    background: `linear-gradient(to right, ${color} 0%, ${color} ${((value - 1) / 98) * 100}%, rgba(71,85,105,0.4) ${((value - 1) / 98) * 100}%, rgba(71,85,105,0.4) 100%)`,
+                    background: `linear-gradient(to right, ${color} 0%, ${color} ${((value - 40) / 59) * 100}%, rgba(71,85,105,0.4) ${((value - 40) / 59) * 100}%, rgba(71,85,105,0.4) 100%)`,
                   }}
                 />
               </div>

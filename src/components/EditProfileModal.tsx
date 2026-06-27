@@ -7,6 +7,7 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/components/ThemeProvider';
 import type { PlayerProfile, PESPosition } from '@/types';
+import BackgroundRemover from '@/components/BackgroundRemover';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -33,7 +34,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     secondaryPosition: player.secondaryPosition,
     tertiaryPosition: player.tertiaryPosition,
     playStyle: player.playStyle || '',
-    preferredFoot: player.preferredFoot
+    preferredFoot: player.preferredFoot,
+    photoUrl: player.photoUrl || ''
   });
   
   const [isSaving, setIsSaving] = useState(false);
@@ -141,6 +143,14 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <option value="Left">Left</option>
                   <option value="Ambidextrous">Ambidextrous</option>
                 </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Photo</label>
+                <BackgroundRemover 
+                  onImageReady={(url) => handleChange('photoUrl', url)} 
+                  locale={(locale as 'en' | 'ar') ?? 'ar'} 
+                  initialImageUrl={formData.photoUrl}
+                />
               </div>
             </div>
           </div>

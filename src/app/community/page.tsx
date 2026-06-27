@@ -6,12 +6,9 @@ import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCard from "@/components/PlayerCard";
-import MatchmakingModal from "@/components/MatchmakingModal";
-import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { balanceTeams } from "@/lib/matchmaker";
 import dynamic from "next/dynamic";
 
 const VirtualChat = dynamic(() => import("@/components/VirtualChat"), {
@@ -27,10 +24,6 @@ export default function CommunityPage() {
   const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Matchmaking State
-  const [matchmakingLoading, setMatchmakingLoading] = useState(false);
-  const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
-  const [matchmakingError, setMatchmakingError] = useState("");
 
   const filteredPlayers = React.useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -44,38 +37,6 @@ export default function CommunityPage() {
     });
   }, [players, searchQuery]);
 
-  const handleMatchmaking = async () => {
-    try {
-      setMatchmakingLoading(true);
-      setMatchmakingError("");
-      
-      const playerIds = players.map((p) => p.uid);
-
-      if (playerIds.length !== 22) {
-        setMatchmakingError(`Matchmaking requires exactly 22 players. Currently have ${playerIds.length}.`);
-        setMatchmakingLoading(false);
-        return;
-      }
-
-      // Small delay to simulate processing
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const result = balanceTeams(players);
-
-      setMatchmakingResult({
-        success: true,
-        teamA: result.teamA,
-        teamB: result.teamB,
-        metrics: result.metrics,
-        formation: result.formation,
-        tipsAndTactics: result.tipsAndTactics,
-      });
-    } catch (error: any) {
-      setMatchmakingError(error.message || "Matchmaking failed.");
-    } finally {
-      setMatchmakingLoading(false);
-    }
-  };
 
   return (
     <ProtectedRoute>
@@ -101,28 +62,9 @@ export default function CommunityPage() {
                 />
               </div>
               
-              {isOwner && (
-                <button
-                  onClick={handleMatchmaking}
-                  disabled={matchmakingLoading || players.length < 22}
-                  className={`px-4 py-2 text-white font-bold rounded-lg shadow-lg whitespace-nowrap transition-all ${
-                    players.length < 22
-                      ? "bg-slate-400 dark:bg-slate-700 cursor-not-allowed opacity-50"
-                      : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400"
-                  }`}
-                  title={players.length < 22 ? (isAr ? "يتطلب 22 لاعبًا" : "Requires 22 players") : ""}
-                >
-                  {matchmakingLoading ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "تشكيل الفرق" : "Matchmake")}
-                </button>
-              )}
             </div>
           </div>
 
-          {matchmakingError && (
-            <div className="mb-8 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-xl font-medium">
-              {matchmakingError}
-            </div>
-          )}
 
           {/* Directory Grid */}
           {loading ? (
@@ -159,16 +101,6 @@ export default function CommunityPage() {
             </div>
           </div>
         </main>
-        
-        {/* Matchmaking Results Modal */}
-        <AnimatePresence>
-          {matchmakingResult && (
-            <MatchmakingModal 
-              result={matchmakingResult} 
-              onClose={() => setMatchmakingResult(null)} 
-            />
-          )}
-        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );

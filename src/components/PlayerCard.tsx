@@ -8,19 +8,6 @@ interface PlayerCardProps {
   player: PlayerProfile;
 }
 
-const ATTRIBUTE_LABELS: { key: keyof PlayerProfile['attributes']; label: string }[] = [
-  { key: 'attackingProwess', label: 'ATT' },
-  { key: 'defensiveProwess', label: 'DEF' },
-  { key: 'speed', label: 'SPD' },
-  { key: 'acceleration', label: 'ACC' },
-  { key: 'stamina', label: 'STA' },
-  { key: 'dribbling', label: 'DRI' },
-  { key: 'passing', label: 'PAS' },
-  { key: 'physicalContact', label: 'PHY' },
-  { key: 'shotPower', label: 'SHT' },
-  { key: 'goalkeeping', label: 'GKP' },
-];
-
 function getAttributeColor(value: number): string {
   if (value >= 90) return 'text-emerald-300';
   if (value >= 75) return 'text-green-400';
@@ -29,16 +16,27 @@ function getAttributeColor(value: number): string {
   return 'text-red-400';
 }
 
+function calculateMainStats(attrs: PlayerProfile['attributes']) {
+  return [
+    { label: 'PAC', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
+    { label: 'SHO', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
+    { label: 'PAS', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
+    { label: 'DRI', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
+    { label: 'DEF', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
+    { label: 'PHY', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
+  ];
+}
+
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
   switch (foot) {
     case 'Right':
-      return '🦶R';
+      return 'Right Foot';
     case 'Left':
-      return '🦶L';
+      return 'Left Foot';
     case 'Ambidextrous':
-      return '🦶A';
+      return 'Ambidextrous';
   }
 }
 
@@ -106,10 +104,14 @@ export default function PlayerCard({ player }: PlayerCardProps) {
             {player.cardName}
           </h3>
 
-          {/* Preferred Foot */}
-          <span className="text-[11px] text-amber-100/80 mt-0.5">
-            {getFootIndicator(player.preferredFoot)}
-          </span>
+          {/* Physical Info */}
+          <div className="flex gap-2 text-[10px] text-amber-100/80 mt-1 uppercase font-semibold">
+            <span>{player.height} cm</span>
+            <span>•</span>
+            <span>{player.weight} kg</span>
+            <span>•</span>
+            <span>{getFootIndicator(player.preferredFoot)}</span>
+          </div>
         </div>
 
         {/* --- Position Badges --- */}
@@ -134,24 +136,21 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           </div>
         </div>
 
-        {/* --- Attributes Grid (2 columns × 5 rows) --- */}
+        {/* --- Attributes Grid (2 columns × 3 rows) --- */}
         <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            {ATTRIBUTE_LABELS.map(({ key, label }) => {
-              const value = player.attributes[key];
-              return (
-                <div key={key} className="flex items-center justify-between">
-                  <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider">
-                    {label}
-                  </span>
-                  <span
-                    className={`text-[13px] font-bold tabular-nums ${getAttributeColor(value)}`}
-                  >
-                    {value}
-                  </span>
-                </div>
-              );
-            })}
+          <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+            {calculateMainStats(player.attributes).map(({ label, value }) => (
+              <div key={label} className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider">
+                  {label}
+                </span>
+                <span
+                  className={`text-[13px] font-bold tabular-nums ${getAttributeColor(value)}`}
+                >
+                  {value}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
 

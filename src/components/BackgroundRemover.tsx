@@ -46,17 +46,18 @@ type ProcessingStatus = 'idle' | 'uploading' | 'uploaded' | 'failed';
 interface BackgroundRemoverProps {
   onImageReady: (cloudinaryUrl: string) => void;
   locale?: 'en' | 'ar';
+  initialImageUrl?: string;
 }
 
 /* ──────────────────────────────────────────────
    Component
    ────────────────────────────────────────────── */
-export default function BackgroundRemover({ onImageReady, locale = 'ar' }: BackgroundRemoverProps) {
+export default function BackgroundRemover({ onImageReady, locale = 'ar', initialImageUrl }: BackgroundRemoverProps) {
   const txt = translations[locale];
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [status, setStatus] = useState<ProcessingStatus>('idle');
-  const [originalPreview, setOriginalPreview] = useState<string | null>(null);
+  const [status, setStatus] = useState<ProcessingStatus>(initialImageUrl ? 'uploaded' : 'idle');
+  const [originalPreview, setOriginalPreview] = useState<string | null>(initialImageUrl || null);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 

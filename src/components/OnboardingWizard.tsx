@@ -128,9 +128,10 @@ interface WizardState {
 }
 
 const DEFAULT_ATTRIBUTES: PlayerAttributes = {
-  attackingProwess: 50, defensiveProwess: 50, speed: 50, acceleration: 50,
-  stamina: 50, dribbling: 50, passing: 50, physicalContact: 50,
-  shotPower: 50, goalkeeping: 50,
+  offensiveAwareness: 40, ballControl: 40, dribbling: 40, lowPass: 40, loftedPass: 40,
+  finishing: 40, heading: 40, speed: 40, acceleration: 40, kickingPower: 40,
+  jump: 40, physicalContact: 40, balance: 40, stamina: 40,
+  defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40,
 };
 
 const INITIAL_STATE: WizardState = {
@@ -388,12 +389,8 @@ export default function OnboardingWizard() {
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
       };
 
-      // Add a 30 second timeout to prevent silent hanging
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or disable ad-blockers.')), 30000));
-      await Promise.race([
-        setDoc(doc(db, 'players', user.uid), profile),
-        timeoutPromise
-      ]);
+      // Submit directly without artificial strict timeout
+      await setDoc(doc(db, 'players', user.uid), profile);
 
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
@@ -608,7 +605,13 @@ export default function OnboardingWizard() {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-slate-300 dark:border-slate-700/50 pt-8">
-                  <AttributeSliders attributes={state.attributes} onChange={(a) => setState(prev => ({...prev, attributes: a}))} locale={(locale as 'en' | 'ar') ?? 'ar'} />
+                  <AttributeSliders 
+                    attributes={state.attributes} 
+                    onChange={(a) => setState(prev => ({...prev, attributes: a}))} 
+                    locale={(locale as 'en' | 'ar') ?? 'ar'} 
+                    primaryPosition={state.primaryPosition}
+                    playStyle={state.playStyle}
+                  />
                   <SkillsChecklist selectedSkills={state.specialSkills} onSkillsChange={(s) => setState(prev => ({...prev, specialSkills: s}))} locale={(locale as 'en' | 'ar') ?? 'ar'} />
                 </div>
               </div>
@@ -639,7 +642,7 @@ export default function OnboardingWizard() {
                 </AnimatePresence>
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting}
-                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-2xl transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white shadow-emerald-900/40'}`}
+                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-lg transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white'}`}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-3">

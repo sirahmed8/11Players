@@ -82,7 +82,7 @@ export default function StatsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
         <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 py-8">

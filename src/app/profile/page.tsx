@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
+import { useRouter } from "next/navigation";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -81,6 +82,7 @@ export default function PlayerProfilePage() {
 }
 
 function PlayerProfileContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const uid = searchParams.get("uid");
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
@@ -109,6 +111,9 @@ function PlayerProfileContent() {
           setPlayer(null);
         }
         setLoading(false);
+        if (!snap.exists() && user?.uid === effectiveUid) {
+          router.push("/onboarding");
+        }
       },
       (err) => {
         console.error("Profile onSnapshot error:", err);
@@ -117,7 +122,7 @@ function PlayerProfileContent() {
     );
 
     return () => unsub();
-  }, [effectiveUid, authLoading]);
+  }, [effectiveUid, authLoading, user?.uid, router]);
 
   const canExport = user?.uid === effectiveUid || isAdmin;
 

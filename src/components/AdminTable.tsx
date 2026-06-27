@@ -81,9 +81,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     open: false,
     player: null,
     attributes: { 
-      attackingProwess: 50, defensiveProwess: 50, speed: 50, acceleration: 50, 
-      stamina: 50, dribbling: 50, passing: 50, physicalContact: 50, 
-      shotPower: 50, goalkeeping: 50 
+      offensiveAwareness: 40, ballControl: 40, dribbling: 40,
+      lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
+      speed: 40, acceleration: 40, kickingPower: 40, jump: 40,
+      physicalContact: 40, balance: 40, stamina: 40,
+      defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40
     },
   });
   const [editModal, setEditModal] = useState<{ open: boolean; player: PlayerProfile | null }>({
@@ -118,16 +120,23 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           preferredFoot: Math.random() > 0.5 ? 'Right' : 'Left',
           playStyle: styles[Math.floor(Math.random() * styles.length)],
           attributes: {
-            attackingProwess: 60 + Math.floor(Math.random() * 35),
-            defensiveProwess: 60 + Math.floor(Math.random() * 35),
-            speed: 60 + Math.floor(Math.random() * 35),
-            acceleration: 60 + Math.floor(Math.random() * 35),
-            stamina: 60 + Math.floor(Math.random() * 35),
-            dribbling: 60 + Math.floor(Math.random() * 35),
-            passing: 60 + Math.floor(Math.random() * 35),
-            physicalContact: 60 + Math.floor(Math.random() * 35),
-            shotPower: 60 + Math.floor(Math.random() * 35),
-            goalkeeping: pos === 'GK' ? 60 + Math.floor(Math.random() * 35) : 40,
+            offensiveAwareness: 40 + Math.floor(Math.random() * 55),
+            ballControl: 40 + Math.floor(Math.random() * 55),
+            dribbling: 40 + Math.floor(Math.random() * 55),
+            lowPass: 40 + Math.floor(Math.random() * 55),
+            loftedPass: 40 + Math.floor(Math.random() * 55),
+            finishing: 40 + Math.floor(Math.random() * 55),
+            heading: 40 + Math.floor(Math.random() * 55),
+            speed: 40 + Math.floor(Math.random() * 55),
+            acceleration: 40 + Math.floor(Math.random() * 55),
+            kickingPower: 40 + Math.floor(Math.random() * 55),
+            jump: 40 + Math.floor(Math.random() * 55),
+            physicalContact: 40 + Math.floor(Math.random() * 55),
+            balance: 40 + Math.floor(Math.random() * 55),
+            stamina: 40 + Math.floor(Math.random() * 55),
+            defensiveAwareness: 40 + Math.floor(Math.random() * 55),
+            ballWinning: 40 + Math.floor(Math.random() * 55),
+            goalkeeping: pos === 'GK' ? 40 + Math.floor(Math.random() * 55) : 40,
           },
           stats: {
             goals: Math.floor(Math.random() * 20),
@@ -215,9 +224,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       open: false,
       player: null,
       attributes: { 
-        attackingProwess: 50, defensiveProwess: 50, speed: 50, acceleration: 50, 
-        stamina: 50, dribbling: 50, passing: 50, physicalContact: 50, 
-        shotPower: 50, goalkeeping: 50 
+        offensiveAwareness: 40, ballControl: 40, dribbling: 40,
+        lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
+        speed: 40, acceleration: 40, kickingPower: 40, jump: 40,
+        physicalContact: 40, balance: 40, stamina: 40,
+        defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40
       },
     });
   };

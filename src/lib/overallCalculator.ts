@@ -3,29 +3,29 @@ import { PESPosition, PlayerAttributes } from '@/types';
 type Weights = Record<keyof PlayerAttributes, number>;
 
 const POSITION_WEIGHTS: Record<PESPosition, Weights> = {
-  CF: { attackingProwess: 0.25, shotPower: 0.20, speed: 0.15, acceleration: 0.10, dribbling: 0.10, physicalContact: 0.10, passing: 0.05, stamina: 0.05, defensiveProwess: 0, goalkeeping: 0 },
-  SS: { attackingProwess: 0.20, dribbling: 0.20, passing: 0.15, speed: 0.15, acceleration: 0.10, shotPower: 0.10, stamina: 0.05, physicalContact: 0.05, defensiveProwess: 0, goalkeeping: 0 },
-  RWF: { speed: 0.20, acceleration: 0.20, dribbling: 0.20, attackingProwess: 0.15, passing: 0.10, shotPower: 0.05, stamina: 0.10, physicalContact: 0, defensiveProwess: 0, goalkeeping: 0 },
-  LWF: { speed: 0.20, acceleration: 0.20, dribbling: 0.20, attackingProwess: 0.15, passing: 0.10, shotPower: 0.05, stamina: 0.10, physicalContact: 0, defensiveProwess: 0, goalkeeping: 0 },
-  AMF: { passing: 0.25, dribbling: 0.20, attackingProwess: 0.15, shotPower: 0.10, speed: 0.10, acceleration: 0.10, stamina: 0.05, physicalContact: 0.05, defensiveProwess: 0, goalkeeping: 0 },
-  RMF: { speed: 0.20, stamina: 0.20, passing: 0.15, dribbling: 0.15, acceleration: 0.10, attackingProwess: 0.10, defensiveProwess: 0.05, physicalContact: 0.05, shotPower: 0, goalkeeping: 0 },
-  LMF: { speed: 0.20, stamina: 0.20, passing: 0.15, dribbling: 0.15, acceleration: 0.10, attackingProwess: 0.10, defensiveProwess: 0.05, physicalContact: 0.05, shotPower: 0, goalkeeping: 0 },
-  CMF: { passing: 0.25, stamina: 0.20, dribbling: 0.15, defensiveProwess: 0.10, physicalContact: 0.10, attackingProwess: 0.05, speed: 0.05, acceleration: 0.05, shotPower: 0.05, goalkeeping: 0 },
-  DMF: { defensiveProwess: 0.25, stamina: 0.20, physicalContact: 0.15, passing: 0.15, speed: 0.10, acceleration: 0.05, dribbling: 0.05, shotPower: 0.05, attackingProwess: 0, goalkeeping: 0 },
-  CB: { defensiveProwess: 0.35, physicalContact: 0.25, stamina: 0.10, speed: 0.10, acceleration: 0.05, passing: 0.10, shotPower: 0.05, dribbling: 0, attackingProwess: 0, goalkeeping: 0 },
-  LB: { speed: 0.20, stamina: 0.20, defensiveProwess: 0.20, acceleration: 0.15, passing: 0.15, physicalContact: 0.05, dribbling: 0.05, attackingProwess: 0, shotPower: 0, goalkeeping: 0 },
-  RB: { speed: 0.20, stamina: 0.20, defensiveProwess: 0.20, acceleration: 0.15, passing: 0.15, physicalContact: 0.05, dribbling: 0.05, attackingProwess: 0, shotPower: 0, goalkeeping: 0 },
-  GK: { goalkeeping: 0.70, physicalContact: 0.10, defensiveProwess: 0.10, passing: 0.10, speed: 0, acceleration: 0, stamina: 0, dribbling: 0, shotPower: 0, attackingProwess: 0 },
+  CF: { offensiveAwareness: 0.20, finishing: 0.20, kickingPower: 0.10, speed: 0.10, acceleration: 0.05, ballControl: 0.05, dribbling: 0.05, heading: 0.05, jump: 0.05, physicalContact: 0.05, balance: 0.05, stamina: 0.05, lowPass: 0, loftedPass: 0, defensiveAwareness: 0, ballWinning: 0, goalkeeping: 0 },
+  SS: { offensiveAwareness: 0.15, ballControl: 0.15, dribbling: 0.15, lowPass: 0.10, finishing: 0.10, speed: 0.10, acceleration: 0.10, kickingPower: 0.05, balance: 0.05, stamina: 0.05, loftedPass: 0, heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, goalkeeping: 0 },
+  RWF: { speed: 0.20, acceleration: 0.15, dribbling: 0.15, ballControl: 0.10, offensiveAwareness: 0.10, lowPass: 0.05, loftedPass: 0.05, finishing: 0.05, kickingPower: 0.05, balance: 0.05, stamina: 0.05, heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, goalkeeping: 0 },
+  LWF: { speed: 0.20, acceleration: 0.15, dribbling: 0.15, ballControl: 0.10, offensiveAwareness: 0.10, lowPass: 0.05, loftedPass: 0.05, finishing: 0.05, kickingPower: 0.05, balance: 0.05, stamina: 0.05, heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, goalkeeping: 0 },
+  AMF: { lowPass: 0.20, ballControl: 0.15, dribbling: 0.15, offensiveAwareness: 0.10, loftedPass: 0.10, kickingPower: 0.05, finishing: 0.05, speed: 0.05, acceleration: 0.05, balance: 0.05, stamina: 0.05, heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, goalkeeping: 0 },
+  RMF: { speed: 0.15, stamina: 0.15, loftedPass: 0.15, lowPass: 0.10, dribbling: 0.10, ballControl: 0.10, acceleration: 0.10, offensiveAwareness: 0.05, balance: 0.05, defensiveAwareness: 0.05, finishing: 0, heading: 0, kickingPower: 0, jump: 0, physicalContact: 0, ballWinning: 0, goalkeeping: 0 },
+  LMF: { speed: 0.15, stamina: 0.15, loftedPass: 0.15, lowPass: 0.10, dribbling: 0.10, ballControl: 0.10, acceleration: 0.10, offensiveAwareness: 0.05, balance: 0.05, defensiveAwareness: 0.05, finishing: 0, heading: 0, kickingPower: 0, jump: 0, physicalContact: 0, ballWinning: 0, goalkeeping: 0 },
+  CMF: { lowPass: 0.20, loftedPass: 0.15, stamina: 0.15, ballControl: 0.10, dribbling: 0.10, defensiveAwareness: 0.05, ballWinning: 0.05, physicalContact: 0.05, speed: 0.05, acceleration: 0.05, balance: 0.05, offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0, jump: 0, goalkeeping: 0 },
+  DMF: { defensiveAwareness: 0.20, ballWinning: 0.20, stamina: 0.15, physicalContact: 0.10, lowPass: 0.10, loftedPass: 0.10, jump: 0.05, heading: 0.05, speed: 0.05, ballControl: 0, dribbling: 0, offensiveAwareness: 0, finishing: 0, acceleration: 0, kickingPower: 0, balance: 0, goalkeeping: 0 },
+  CB: { defensiveAwareness: 0.25, ballWinning: 0.25, physicalContact: 0.15, heading: 0.10, jump: 0.10, stamina: 0.05, speed: 0.05, lowPass: 0.05, loftedPass: 0, offensiveAwareness: 0, ballControl: 0, dribbling: 0, finishing: 0, acceleration: 0, kickingPower: 0, balance: 0, goalkeeping: 0 },
+  LB: { speed: 0.15, stamina: 0.15, defensiveAwareness: 0.15, ballWinning: 0.10, acceleration: 0.10, loftedPass: 0.10, lowPass: 0.10, dribbling: 0.05, ballControl: 0.05, physicalContact: 0.05, offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0, jump: 0, balance: 0, goalkeeping: 0 },
+  RB: { speed: 0.15, stamina: 0.15, defensiveAwareness: 0.15, ballWinning: 0.10, acceleration: 0.10, loftedPass: 0.10, lowPass: 0.10, dribbling: 0.05, ballControl: 0.05, physicalContact: 0.05, offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0, jump: 0, balance: 0, goalkeeping: 0 },
+  GK: { goalkeeping: 0.80, jump: 0.05, physicalContact: 0.05, defensiveAwareness: 0.05, loftedPass: 0.05, offensiveAwareness: 0, ballControl: 0, dribbling: 0, lowPass: 0, finishing: 0, heading: 0, speed: 0, acceleration: 0, kickingPower: 0, balance: 0, stamina: 0, ballWinning: 0 },
 };
 
-// Play Styles that give a flat bonus to overall rating based on synergy with the position
 const STYLE_BONUSES: Record<string, number> = {
-  'goal_poacher': 1, 'fox_in_the_box': 1, 'target_man': 1, // Attackers
-  'creative_playmaker': 1, 'hole_player': 1, 'classic_no_10': 1, // Midfield
-  'prolific_winger': 1, 'box_to_box': 2, 'orchestrator': 1, // Winger/CMF
-  'the_destroyer': 1, 'anchor_man': 1, 'build_up': 1, // Defenders/DMF
-  'offensive_fullback': 1, 'defensive_fullback': 1, // Fullbacks
-  'offensive_gk': 1, 'defensive_gk': 1 // GKs
+  'Goal Poacher': 1, 'Fox in the Box': 1, 'Target Man': 1, 'Dummy Runner': 1,
+  'Creative Playmaker': 1, 'Hole Player': 1, 'Classic No. 10': 1,
+  'Prolific Winger': 1, 'Roaming Flank': 1, 'Cross Specialist': 1,
+  'Box-to-Box': 2, 'Orchestrator': 1,
+  'The Destroyer': 1, 'Anchor Man': 1, 'Build Up': 1, 'Extra Frontman': 1,
+  'Offensive Full-back': 1, 'Defensive Full-back': 1, 'Full-back Finisher': 1,
+  'Offensive Goalkeeper': 1, 'Defensive Goalkeeper': 1
 };
 
 export function calculateRealisticOverall(
@@ -33,21 +33,20 @@ export function calculateRealisticOverall(
   position: PESPosition,
   playStyle: string
 ): number {
-  const weights = POSITION_WEIGHTS[position] || POSITION_WEIGHTS.CF; // fallback
+  if (!attributes) return 40;
+
+  const weights = POSITION_WEIGHTS[position] || POSITION_WEIGHTS.CF;
   
   let totalScore = 0;
-  for (const [key, value] of Object.entries(attributes)) {
-    const attrName = key as keyof PlayerAttributes;
-    const weight = weights[attrName] || 0;
-    totalScore += value * weight;
+  for (const [key, weight] of Object.entries(weights)) {
+    const attrValue = attributes[key as keyof PlayerAttributes] || 40;
+    totalScore += attrValue * weight;
   }
 
-  // Add play style synergy bonus (just a flat 1-2 points if they selected a valid style)
   const styleBonus = STYLE_BONUSES[playStyle] || 0;
   
   let finalOverall = Math.round(totalScore) + styleBonus;
 
-  // Cap at 99
   if (finalOverall > 99) finalOverall = 99;
   if (finalOverall < 40) finalOverall = 40;
 
