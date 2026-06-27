@@ -388,8 +388,8 @@ export default function OnboardingWizard() {
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
       };
 
-      // Add a 10 second timeout to prevent silent hanging
-      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or disable ad-blockers.')), 15000));
+      // Add a 30 second timeout to prevent silent hanging
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or disable ad-blockers.')), 30000));
       await Promise.race([
         setDoc(doc(db, 'players', user.uid), profile),
         timeoutPromise

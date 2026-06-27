@@ -17,13 +17,13 @@ const firebaseConfig = {
 let app;
 let dbInstance;
 
-if (getApps().length > 0) {
-  app = getApp();
-  dbInstance = getFirestore(app);
-} else {
+if (getApps().length === 0) {
   app = initializeApp(firebaseConfig);
   // Force long polling to bypass WebSocket blockages in strict networks (e.g., Egypt)
   dbInstance = initializeFirestore(app, { experimentalForceLongPolling: true });
+} else {
+  app = getApp();
+  dbInstance = getFirestore(app);
 }
 
 // Initialize Firebase services
