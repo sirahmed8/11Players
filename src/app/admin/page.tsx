@@ -12,6 +12,8 @@ import { balanceTeams } from "@/lib/matchmaker";
 import Navbar from "@/components/Navbar";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function AdminPage() {
   const { players, loading } = usePlayers();
@@ -41,14 +43,24 @@ export default function AdminPage() {
 
       const result = balanceTeams(players);
 
-      setMatchmakingResult({
+      const matchData = {
         success: true,
         teamA: result.teamA,
         teamB: result.teamB,
         metrics: result.metrics,
         formation: result.formation,
         tipsAndTactics: result.tipsAndTactics,
-      });
+        generatedAt: new Date().toISOString(),
+      };
+
+      setMatchmakingResult(matchData);
+
+      // Save to Firestore
+      try {
+        await setDoc(doc(db, "system", "latestMatch"), matchData);
+      } catch (err) {
+        console.error("Failed to save match to database:", err);
+      }
     } catch (error: any) {
       setMatchmakingError(error.message || "Matchmaking failed.");
     } finally {

@@ -389,15 +389,22 @@ export default function OnboardingWizard() {
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
       };
 
-      // Submit directly without artificial strict timeout
-      await setDoc(doc(db, 'players', user.uid), profile);
+      // Remove any undefined values to prevent Firestore errors
+      const cleanProfile = JSON.parse(JSON.stringify(profile));
+
+      // Use a timeout to prevent hanging on slow networks
+      const submitPromise = setDoc(doc(db, 'players', user.uid), cleanProfile);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Network timeout. Please check your connection.')), 15000)
+      );
+
+      await Promise.race([submitPromise, timeoutPromise]);
 
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
       setTimeout(() => router.push('/community'), 1500);
     } catch (err: any) {
       console.error('Submit error:', err);
-      // Try to extract a meaningful error message
       const errorMessage = err.message || txt.submitError;
       setSubmitMessage({ type: 'error', text: `${txt.submitError} (${errorMessage})` });
       setIsSubmitting(false);
@@ -600,6 +607,7 @@ export default function OnboardingWizard() {
                     selectedStyle={state.playStyle} 
                     onStyleSelect={(s) => handleFieldChange('playStyle', s)} 
                     locale={(locale as 'en' | 'ar') ?? 'ar'} 
+                    primaryPosition={state.primaryPosition}
                   />
                   {errors.playStyle && <p className="text-sm text-red-400">{errors.playStyle}</p>}
                 </div>
@@ -625,7 +633,11 @@ export default function OnboardingWizard() {
                   <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.photoSubtitle}</p>
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                  <BackgroundRemover onImageReady={(url) => handleFieldChange('photoUrl', url)} locale={(locale as 'en' | 'ar') ?? 'ar'} />
+                  <BackgroundRemover 
+                    onImageReady={(url) => handleFieldChange('photoUrl', url)} 
+                    locale={(locale as 'en' | 'ar') ?? 'ar'} 
+                    initialImageUrl={state.photoUrl}
+                  />
                   <div className="flex flex-col items-center gap-4">
                     <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">{txt.previewCard}</h3>
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
@@ -642,7 +654,7 @@ export default function OnboardingWizard() {
                 </AnimatePresence>
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting}
-                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-lg transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white'}`}
+                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-md shadow-emerald-500/20 transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white'}`}
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-3">
