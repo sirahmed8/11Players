@@ -138,34 +138,6 @@ export default function Home() {
           <p className="text-lg md:text-2xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">
             {t("tagline")}
           </p>
-
-          <motion.div 
-            className="pt-8"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loginInProgress || authLoading}
-              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-900/20 transition-all"
-            >
-              {loginInProgress || authLoading ? (
-                <Loader2 className="w-6 h-6 animate-spin" />
-              ) : (
-                <LogIn className="w-6 h-6" />
-              )}
-              <span>{t("cta_login")}</span>
-            </button>
-          </motion.div>
-        </motion.div>
-
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1 }}
-          className="absolute bottom-10 animate-bounce text-emerald-500"
-        >
-          ⬇
         </motion.div>
       </section>
 
@@ -208,6 +180,29 @@ export default function Home() {
             </motion.div>
           ))}
         </div>
+
+        <motion.div 
+          className="pt-16 pb-8 text-center flex justify-center"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+        >
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <button
+              onClick={handleGoogleLogin}
+              disabled={loginInProgress || authLoading}
+              className="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-600 disabled:to-slate-700 disabled:cursor-not-allowed text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-900/20 transition-all"
+            >
+              {loginInProgress || authLoading ? (
+                <Loader2 className="w-6 h-6 animate-spin" />
+              ) : (
+                <LogIn className="w-6 h-6" />
+              )}
+              <span>{t("cta_login")}</span>
+            </button>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* Cookie Consent Banner */}

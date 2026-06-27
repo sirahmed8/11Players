@@ -18,7 +18,7 @@ export default function Footer() {
           <span>&bull;</span>
           <Link href="/cookie" className="hover:text-emerald-500 transition-colors">{t('cookiePolicy')}</Link>
         </div>
-        <p>&copy; {currentYear} 11Players. All rights reserved.</p>
+        <p dir="ltr">&copy; {currentYear} 11Players. All rights reserved.</p>
       </div>
     </footer>
   );
