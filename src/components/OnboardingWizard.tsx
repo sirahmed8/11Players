@@ -222,19 +222,19 @@ export default function OnboardingWizard() {
   const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${error ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
+      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${error ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
         <input
           type="number"
           value={value}
           onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
           className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <div className={`absolute flex flex-col border-slate-300 dark:border-slate-700/50 h-full ${isRTL ? 'left-0 border-r' : 'right-0 border-l'}`}>
-          <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
+        <div className={`absolute flex flex-col border-slate-200 dark:border-slate-700 h-full ${isRTL ? 'left-0 border-r' : 'right-0 border-l'}`}>
+          <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center">
             <ChevronUp className="w-4 h-4" />
           </button>
-          <div className="w-full h-px bg-slate-700/50" />
-          <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="flex-1 px-2 hover:bg-slate-200 dark:hover:bg-slate-700/50 text-slate-600 dark:text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center">
+          <div className="w-full h-px bg-slate-200 dark:bg-slate-700" />
+          <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="flex-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center">
             <ChevronDown className="w-4 h-4" />
           </button>
         </div>
@@ -353,7 +353,7 @@ export default function OnboardingWizard() {
     <div className="w-full max-w-4xl mx-auto px-4 py-6" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ─── Step Indicator ─── */}
       <div className="mb-8">
-        <div className="relative h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
+        <div className="relative h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden mb-4">
           <motion.div
             className="absolute inset-y-0 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full"
             style={{ [isRTL ? 'right' : 'left']: 0 }}
@@ -373,11 +373,10 @@ export default function OnboardingWizard() {
                 <motion.div
                   animate={{
                     scale: isActive ? 1.15 : 1,
-                    backgroundColor: isCompleted ? '#10b981' : isActive ? '#059669' : '#1e293b',
                   }}
                   className={`
-                    w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-colors
-                    ${isCompleted ? 'border-emerald-500 text-white' : isActive ? 'border-emerald-400 text-white shadow-lg shadow-emerald-900/40' : 'border-slate-700 text-slate-500'}
+                    w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
+                    ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500'}
                   `}
                 >
                   {isCompleted ? '✓' : stepNum}
@@ -408,7 +407,7 @@ export default function OnboardingWizard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.fullName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${errors.fullName ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.fullName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
@@ -418,7 +417,7 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${errors.cardName ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
@@ -428,46 +427,44 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>
-                    <div className={`flex gap-2 rounded-xl bg-white dark:bg-slate-800/60 border transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'} p-1`}>
+                    <div className={`flex gap-1.5 rounded-xl bg-white dark:bg-slate-800/60 border-2 transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'} p-1.5`}>
                       <select
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
                         onChange={(e) => {
                           const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
                           handleFieldChange('dateOfBirth', `${y}-${m}-${e.target.value.padStart(2, '0')}`);
                         }}
-                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
-                        <option value="" disabled className="bg-white dark:bg-slate-800">DD</option>
+                        <option value="" disabled>DD</option>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                          <option key={d} value={d} className="bg-white dark:bg-slate-800">{d}</option>
+                          <option key={d} value={d}>{d}</option>
                         ))}
                       </select>
-                      <div className="w-px bg-slate-700/50 my-2" />
                       <select
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[1] : ''}
                         onChange={(e) => {
                           const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
                           handleFieldChange('dateOfBirth', `${y}-${e.target.value.padStart(2, '0')}-${d}`);
                         }}
-                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
-                        <option value="" disabled className="bg-white dark:bg-slate-800">MM</option>
+                        <option value="" disabled>MM</option>
                         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                          <option key={m} value={m} className="bg-white dark:bg-slate-800">{m}</option>
+                          <option key={m} value={m}>{m}</option>
                         ))}
                       </select>
-                      <div className="w-px bg-slate-700/50 my-2" />
                       <select
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[0] : ''}
                         onChange={(e) => {
                           const [, m, d] = state.dateOfBirth ? state.dateOfBirth.split('-') : ['', '01', '01'];
                           handleFieldChange('dateOfBirth', `${e.target.value}-${m}-${d}`);
                         }}
-                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
-                        <option value="" disabled className="bg-white dark:bg-slate-800">YYYY</option>
+                        <option value="" disabled>YYYY</option>
                         {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => (
-                          <option key={y} value={y} className="bg-white dark:bg-slate-800">{y}</option>
+                          <option key={y} value={y}>{y}</option>
                         ))}
                       </select>
                     </div>
