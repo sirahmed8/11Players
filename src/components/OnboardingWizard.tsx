@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { doc, setDoc } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
@@ -218,11 +218,73 @@ export default function OnboardingWizard() {
     setErrors((prev) => { const next = { ...prev }; delete next['positions']; return next; });
   }, []);
 
+  /* ── Custom Select Dropdown ── */
+  const CustomSelect = ({ value, options, placeholder, onChange }: { value: string | number; options: { value: string | number; label: string }[]; placeholder: string; onChange: (v: string) => void }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const handleClickOutside = (e: MouseEvent) => {
+        if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const selectedLabel = options.find(o => String(o.value) === String(value))?.label || placeholder;
+
+    return (
+      <div ref={ref} className="relative flex-1">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full py-2.5 px-2 rounded-lg text-center cursor-pointer font-medium text-sm transition-all duration-200 flex items-center justify-center gap-1 ${
+            isOpen
+              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+              : value
+                ? 'bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
+                : 'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
+          }`}
+        >
+          {selectedLabel}
+          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, scaleY: 0.8, y: -4 }}
+              animate={{ opacity: 1, scaleY: 1, y: 0 }}
+              exit={{ opacity: 0, scaleY: 0.8, y: -4 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{ transformOrigin: 'top' }}
+              className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-black/10 dark:shadow-black/30 custom-scrollbar"
+            >
+              {options.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { onChange(String(opt.value)); setIsOpen(false); }}
+                  className={`w-full px-3 py-2 text-sm text-center transition-colors ${
+                    String(opt.value) === String(value)
+                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-semibold'
+                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  };
+
   /* ── Number Input Component ── */
   const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${error ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
+      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${error ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
         <input
           type="number"
           value={value}
@@ -407,7 +469,7 @@ export default function OnboardingWizard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.fullName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.fullName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.fullName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
@@ -417,7 +479,7 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
                       <input
                         type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
@@ -427,46 +489,34 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>
-                    <div className={`flex gap-1.5 rounded-xl bg-white dark:bg-slate-800/60 border-2 transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500'} p-1.5`}>
-                      <select
+                    <div className={`flex gap-1.5 rounded-xl bg-white dark:bg-slate-800/60 border-2 transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'} p-1.5`}>
+                      <CustomSelect
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
-                        onChange={(e) => {
+                        placeholder="DD"
+                        options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                        onChange={(v) => {
                           const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${m}-${e.target.value.padStart(2, '0')}`);
+                          handleFieldChange('dateOfBirth', `${y}-${m}-${v.padStart(2, '0')}`);
                         }}
-                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
-                      >
-                        <option value="" disabled>DD</option>
-                        {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                          <option key={d} value={d}>{d}</option>
-                        ))}
-                      </select>
-                      <select
+                      />
+                      <CustomSelect
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[1] : ''}
-                        onChange={(e) => {
+                        placeholder="MM"
+                        options={Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                        onChange={(v) => {
                           const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${e.target.value.padStart(2, '0')}-${d}`);
+                          handleFieldChange('dateOfBirth', `${y}-${v.padStart(2, '0')}-${d}`);
                         }}
-                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
-                      >
-                        <option value="" disabled>MM</option>
-                        {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                          <option key={m} value={m}>{m}</option>
-                        ))}
-                      </select>
-                      <select
+                      />
+                      <CustomSelect
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[0] : ''}
-                        onChange={(e) => {
+                        placeholder="YYYY"
+                        options={Array.from({ length: 50 }, (_, i) => ({ value: new Date().getFullYear() - 10 - i, label: String(new Date().getFullYear() - 10 - i) }))}
+                        onChange={(v) => {
                           const [, m, d] = state.dateOfBirth ? state.dateOfBirth.split('-') : ['', '01', '01'];
-                          handleFieldChange('dateOfBirth', `${e.target.value}-${m}-${d}`);
+                          handleFieldChange('dateOfBirth', `${v}-${m}-${d}`);
                         }}
-                        className="flex-1 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white py-2.5 px-2 focus:outline-none rounded-lg text-center cursor-pointer font-medium text-sm transition-colors hover:bg-slate-100 dark:hover:bg-slate-700"
-                      >
-                        <option value="" disabled>YYYY</option>
-                        {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => (
-                          <option key={y} value={y}>{y}</option>
-                        ))}
-                      </select>
+                      />
                     </div>
                     {state.calculatedAge > 0 && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{txt.age}: {state.calculatedAge}</p>}
                     {errors.dateOfBirth && <p className="text-xs text-red-400">{errors.dateOfBirth}</p>}
