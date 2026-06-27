@@ -291,7 +291,7 @@ export default function OnboardingWizard() {
           onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
           className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
         />
-        <div className={`absolute flex flex-col border-slate-200 dark:border-slate-700 h-full ${isRTL ? 'left-0 border-r' : 'right-0 border-l'}`}>
+        <div className={`absolute flex flex-col border-slate-200 dark:border-slate-700 h-full overflow-hidden ${isRTL ? 'left-0 border-r rounded-l-[10px]' : 'right-0 border-l rounded-r-[10px]'}`}>
           <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center">
             <ChevronUp className="w-4 h-4" />
           </button>
