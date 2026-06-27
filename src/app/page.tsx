@@ -7,7 +7,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Sun, Moon, Globe, LogIn, Loader2, Users, TrendingUp, ShieldCheck } from "lucide-react";
+import { Users, TrendingUp, ShieldCheck, Loader2 } from "lucide-react";
+import SettingsMenu from "@/components/SettingsMenu";
 
 export default function Home() {
   const { locale, toggleLocale, t } = useLocale();
@@ -108,21 +109,7 @@ export default function Home() {
           ⚽ 11Players
         </h1>
         <div className="flex gap-2 items-center">
-          <button
-            onClick={toggleLocale}
-            className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            title={isAr ? "Switch to English" : "تغيير إلى العربية"}
-          >
-            <Globe className="w-5 h-5" />
-          </button>
-          
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
-            title="Toggle Theme"
-          >
-            {theme === "dark" ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
+          <SettingsMenu />
         </div>
       </header>
 

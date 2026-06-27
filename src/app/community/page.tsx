@@ -11,7 +11,8 @@ import MatchmakingModal from "@/components/MatchmakingModal";
 import VirtualChat from "@/components/VirtualChat";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, Sun, Moon, LogOut, ShieldAlert, Search } from "lucide-react";
+import { Globe, Sun, Moon, LogOut, ShieldAlert, Search, ChevronDown, Filter, Loader2, Star, Shield, Zap } from "lucide-react";
+import SettingsMenu from "@/components/SettingsMenu";
 import Link from "next/link";
 
 export default function CommunityPage() {
@@ -112,16 +113,8 @@ export default function CommunityPage() {
                 </Link>
               )}
             </nav>
-            <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-600 pl-4">
-              <button onClick={toggleLocale} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <Globe className="w-4 h-4" />
-              </button>
-              <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              <button onClick={logout} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors" title="Logout">
-                <LogOut className="w-4 h-4" />
-              </button>
+            <div className="flex gap-2 items-center pl-2 md:pl-4 border-l border-slate-200 dark:border-slate-800">
+              <SettingsMenu />
             </div>
           </div>
         </header>

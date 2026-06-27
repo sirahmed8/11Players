@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminTable from "@/components/AdminTable";
 import MatchmakingModal from "@/components/MatchmakingModal";
+import SettingsMenu from "@/components/SettingsMenu";
 import { PlayerProfile } from "@/types";
 import { Globe, Sun, Moon, LogOut, ArrowLeft } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
@@ -17,8 +19,9 @@ import { balanceTeams } from "@/lib/matchmaker";
 
 export default function AdminPage() {
   const { user, isAdmin, logout } = useAuth();
-  const { toggleLocale } = useLocale();
+  const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { toggleLocale } = useLocale();
 
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,16 +98,8 @@ export default function AdminPage() {
             </h1>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 pl-4">
-              <button onClick={toggleLocale} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                <Globe className="w-4 h-4" />
-              </button>
-              <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
-                {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-              <button onClick={logout} className="p-2 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors" title="Logout">
-                <LogOut className="w-4 h-4" />
-              </button>
+            <div className="flex items-center gap-2">
+              <SettingsMenu />
             </div>
           </div>
         </header>
