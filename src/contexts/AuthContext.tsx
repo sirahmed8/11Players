@@ -47,10 +47,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(false);
 
       if (firebaseUser) {
-        // Run admin check asynchronously so it doesn't block the initial load
-        checkAdminStatus(firebaseUser.uid).then(adminStatus => {
-          setIsAdmin(adminStatus || firebaseUser.email === 'a7medorabe7@gmail.com');
-        });
+        // If owner, set admin true immediately and skip Firestore check
+        if (firebaseUser.email === 'a7medorabe7@gmail.com') {
+          setIsAdmin(true);
+        } else {
+          // Run admin check asynchronously
+          checkAdminStatus(firebaseUser.uid).then(adminStatus => {
+            setIsAdmin(adminStatus);
+          });
+        }
       } else {
         setIsAdmin(false);
       }
