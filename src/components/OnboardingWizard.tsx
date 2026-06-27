@@ -370,9 +370,9 @@ export default function OnboardingWizard() {
         secondaryPosition: state.secondaryPosition!,
         tertiaryPosition: state.tertiaryPosition!,
         attributes: state.attributes,
-        specialSkills: state.specialSkills,
-        playStyle: state.playStyle,
-        photoUrl: state.photoUrl,
+        specialSkills: state.specialSkills || [],
+        playStyle: state.playStyle || '',
+        photoUrl: state.photoUrl || '',
         isVerifiedByAdmin: false,
         hasWarning: false,
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
@@ -395,7 +395,7 @@ export default function OnboardingWizard() {
   /* ── Preview profile ── */
   const previewProfile = useMemo((): PlayerProfile => ({
     ...state,
-    uid: user?.uid || 'preview',
+    uid: 'preview',
     fullName: state.fullName || 'Player Name',
     cardName: (state.cardName || 'PLAYER').toUpperCase(),
     dateOfBirth: state.dateOfBirth || '2000-01-01',

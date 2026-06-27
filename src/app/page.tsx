@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Users, TrendingUp, ShieldCheck, Loader2 } from "lucide-react";
+import { Users, TrendingUp, ShieldCheck, Loader2, LogIn } from "lucide-react";
 import SettingsMenu from "@/components/SettingsMenu";
 
 export default function Home() {

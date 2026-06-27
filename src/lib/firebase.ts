@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore, initializeFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Firebase configuration for project '11Players'
@@ -22,8 +22,7 @@ if (getApps().length > 0) {
   dbInstance = getFirestore(app);
 } else {
   app = initializeApp(firebaseConfig);
-  // Optimize Firestore connections for Next.js to prevent "client is offline" and slow loading
-  dbInstance = initializeFirestore(app, { experimentalForceLongPolling: true });
+  dbInstance = getFirestore(app);
 }
 
 // Initialize Firebase services
