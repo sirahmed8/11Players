@@ -18,7 +18,7 @@ const POSITIONS: PESPosition[] = ['CF', 'SS', 'RWF', 'LWF', 'AMF', 'CMF', 'DMF',
 const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Creative Playmaker', 'Box-to-Box', 'Anchor Man', 'Build Up', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
 
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
-  const { locale, t } = useLocale();
+  const { locale } = useLocale();
   const isRTL = locale === 'ar';
   
   const [formData, setFormData] = useState({
@@ -69,7 +69,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           dir={isRTL ? 'rtl' : 'ltr'}
         >
           <h2 className="mb-4 text-xl font-bold text-emerald-400">
-            {t('Edit Profile', 'تعديل الملف الشخصي')}
+            {isRTL ? 'تعديل الملف الشخصي' : 'Edit Profile'}
           </h2>
 
           <div className="space-y-4">
@@ -139,13 +139,13 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               disabled={isSaving}
               className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
             >
-              {isSaving ? t('Saving...', 'جاري الحفظ...') : t('Save', 'حفظ')}
+              {isSaving ? (isRTL ? 'جاري الحفظ...' : 'Saving...') : (isRTL ? 'حفظ' : 'Save')}
             </button>
             <button
               onClick={onClose}
               className="flex-1 rounded-lg border border-slate-700 px-4 py-2.5 font-semibold text-slate-300 transition-colors hover:bg-slate-800"
             >
-              {t('Cancel', 'إلغاء')}
+              {isRTL ? 'إلغاء' : 'Cancel'}
             </button>
           </div>
         </motion.div>
