@@ -493,19 +493,19 @@ export default function OnboardingWizard() {
                       <CustomSelect
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
                         placeholder="DD"
-                        options={Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                        options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
                         onChange={(v) => {
                           const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${m}-${v.padStart(2, '0')}`);
+                          handleFieldChange('dateOfBirth', `${y}-${m}-${v}`);
                         }}
                       />
                       <CustomSelect
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[1] : ''}
                         placeholder="MM"
-                        options={Array.from({ length: 12 }, (_, i) => ({ value: i + 1, label: String(i + 1) }))}
+                        options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
                         onChange={(v) => {
                           const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${v.padStart(2, '0')}-${d}`);
+                          handleFieldChange('dateOfBirth', `${y}-${v}-${d}`);
                         }}
                       />
                       <CustomSelect
