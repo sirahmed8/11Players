@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLocale } from '@/components/ThemeProvider';
 
 const content = {
@@ -57,6 +58,7 @@ const content = {
 
 export default function CookiePolicy() {
   const { locale, isRTL } = useLocale();
+  const router = useRouter();
   const t = content[locale as 'en' | 'ar'] ?? content.ar;
 
   return (
@@ -74,9 +76,9 @@ export default function CookiePolicy() {
         ))}
         
         <div className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 text-center">
-          <Link href="/" className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-colors">
+          <button onClick={() => router.back()} className="inline-block px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-colors">
             {t.returnHome}
-          </Link>
+          </button>
         </div>
       </div>
     </div>
