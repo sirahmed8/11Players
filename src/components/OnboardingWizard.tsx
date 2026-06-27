@@ -222,7 +222,7 @@ export default function OnboardingWizard() {
   const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
     <div className="space-y-1.5">
       <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${error ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
+      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${error ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
         <input
           type="number"
           value={value}
@@ -382,7 +382,7 @@ export default function OnboardingWizard() {
                 >
                   {isCompleted ? '✓' : stepNum}
                 </motion.div>
-                <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-emerald-400' : isCompleted ? 'text-emerald-500' : 'text-slate-600'}`}>
+                <span className={`text-xs font-medium hidden sm:block transition-colors ${isActive ? 'text-emerald-700 dark:text-emerald-400' : isCompleted ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-600 dark:text-slate-400'}`}>
                   {label}
                 </span>
               </div>
@@ -408,7 +408,7 @@ export default function OnboardingWizard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.fullName} *</label>
-                    <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.fullName ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${errors.fullName ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
                       <input
                         type="text" value={state.fullName} onChange={(e) => handleFieldChange('fullName', e.target.value)} placeholder={txt.fullNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
@@ -418,7 +418,7 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
-                    <div className={`relative flex items-center bg-slate-50 dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all ${errors.cardName ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'}`}>
+                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl overflow-hidden border transition-all duration-300 ${errors.cardName ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'}`}>
                       <input
                         type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
                         className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
@@ -428,14 +428,14 @@ export default function OnboardingWizard() {
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>
-                    <div className={`flex gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border transition-all ${errors.dateOfBirth ? 'border-red-500/60' : 'border-slate-300 dark:border-slate-700/50 focus-within:border-emerald-500'} p-1`}>
+                    <div className={`flex gap-2 rounded-xl bg-white dark:bg-slate-800/60 border transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400 ring-4 ring-red-400/20' : 'border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20'} p-1`}>
                       <select
                         value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
                         onChange={(e) => {
                           const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
                           handleFieldChange('dateOfBirth', `${y}-${m}-${e.target.value.padStart(2, '0')}`);
                         }}
-                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
                         <option value="" disabled className="bg-white dark:bg-slate-800">DD</option>
                         {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
@@ -449,7 +449,7 @@ export default function OnboardingWizard() {
                           const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
                           handleFieldChange('dateOfBirth', `${y}-${e.target.value.padStart(2, '0')}-${d}`);
                         }}
-                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
                         <option value="" disabled className="bg-white dark:bg-slate-800">MM</option>
                         {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
@@ -463,7 +463,7 @@ export default function OnboardingWizard() {
                           const [, m, d] = state.dateOfBirth ? state.dateOfBirth.split('-') : ['', '01', '01'];
                           handleFieldChange('dateOfBirth', `${e.target.value}-${m}-${d}`);
                         }}
-                        className="flex-1 bg-transparent text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
+                        className="flex-1 bg-transparent text-slate-900 dark:text-white p-2 focus:outline-none appearance-none text-center cursor-pointer custom-scrollbar"
                       >
                         <option value="" disabled className="bg-white dark:bg-slate-800">YYYY</option>
                         {Array.from({ length: 50 }, (_, i) => new Date().getFullYear() - 10 - i).map(y => (
@@ -471,7 +471,7 @@ export default function OnboardingWizard() {
                         ))}
                       </select>
                     </div>
-                    {state.calculatedAge > 0 && <p className="text-xs text-emerald-400 font-medium">{txt.age}: {state.calculatedAge}</p>}
+                    {state.calculatedAge > 0 && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{txt.age}: {state.calculatedAge}</p>}
                     {errors.dateOfBirth && <p className="text-xs text-red-400">{errors.dateOfBirth}</p>}
                   </div>
                   
@@ -487,7 +487,7 @@ export default function OnboardingWizard() {
                         return (
                           <motion.button
                             key={foot} whileTap={{ scale: 0.95 }} onClick={() => handleFieldChange('preferredFoot', foot)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all ${isSelected ? 'bg-emerald-600/20 text-emerald-300 border-emerald-500/50 shadow-lg shadow-emerald-900/20' : 'bg-white dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700/40 hover:border-slate-600'}`}
+                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all duration-300 ${isSelected ? 'bg-emerald-100 dark:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/50 shadow-lg shadow-emerald-500/20 dark:shadow-emerald-900/20' : 'bg-white dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700/40 hover:border-slate-400 dark:hover:border-slate-600'}`}
                           >
                             {foot === 'Right' ? '🦶' : foot === 'Left' ? '🦶' : '🦶🦶'} {label}
                           </motion.button>
@@ -506,7 +506,7 @@ export default function OnboardingWizard() {
                 <AnimatePresence>
                   {state.primaryPosition && state.secondaryPosition && state.tertiaryPosition && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="text-center">
-                      <span className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-semibold px-4 py-2 rounded-full">✅ {txt.positionsConfirmed}</span>
+                      <span className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold px-4 py-2 rounded-full">✅ {txt.positionsConfirmed}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -557,7 +557,7 @@ export default function OnboardingWizard() {
                 </div>
                 <AnimatePresence>
                   {submitMessage && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-3 rounded-xl border ${submitMessage.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-red-500/10 border-red-500/30 text-red-300'}`}>
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-3 rounded-xl border ${submitMessage.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-500/10 border-red-400 dark:border-red-500/30 text-red-700 dark:text-red-300'}`}>
                       {submitMessage.type === 'success' ? '🎉' : '❌'} {submitMessage.text}
                     </motion.div>
                   )}
