@@ -53,11 +53,29 @@ export default function SettingsMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`absolute top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden ${
+            className={`absolute top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden ${
               isRTL ? "left-0" : "right-0"
             }`}
           >
             <div className="py-2 flex flex-col">
+              {user && (
+                <>
+                  <div className="px-4 py-3 flex items-center gap-3">
+                    {user.photoURL ? (
+                      <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                    ) : (
+                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                        <User className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+                      </div>
+                    )}
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">{user.displayName || 'Player'}</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</span>
+                    </div>
+                  </div>
+                  <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-1" />
+                </>
+              )}
               <button
                 onClick={toggleLocale}
                 className="w-full px-4 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"

@@ -40,6 +40,13 @@ export default function Home() {
 
   const checkProfileAndRedirect = async (uid: string) => {
     try {
+      // First check if they are an admin, if so they bypass onboarding entirely
+      const adminDoc = await getDoc(doc(db, "admins", uid));
+      if (adminDoc.exists() || user?.email === 'a7medorabe7@gmail.com') {
+        router.push("/admin");
+        return;
+      }
+
       const playerDoc = await getDoc(doc(db, "players", uid));
       if (playerDoc.exists()) {
         router.push("/community");

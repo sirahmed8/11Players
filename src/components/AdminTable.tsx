@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { doc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
+import { doc, updateDoc, increment, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
+import EditProfileModal from './EditProfileModal';
 import { useLocale } from '@/components/ThemeProvider';
 import AttributeSliders from '@/components/AttributeSliders';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -85,7 +86,71 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       shotPower: 50, goalkeeping: 50 
     },
   });
+  const [editModal, setEditModal] = useState<{ open: boolean; player: PlayerProfile | null }>({
+    open: false,
+    player: null,
+  });
   const [loadingUid, setLoadingUid] = useState<string | null>(null);
+
+  const handleGeneratePlayers = async () => {
+    if (!confirm(t(locale, "Are you sure you want to generate 22 random players? This will add them to your live database.", "هل أنت متأكد من إنشاء 22 لاعب عشوائي؟ سيتم إضافتهم إلى قاعدة البيانات."))) return;
+    setLoadingUid('generating-players');
+    try {
+      const positions = ['CF', 'SS', 'RWF', 'LWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
+      const styles = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Creative Playmaker', 'Box-to-Box', 'Anchor Man', 'Build Up', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
+      
+      const promises = Array.from({ length: 22 }).map((_, i) => {
+        const uid = `test-player-${Date.now()}-${i}`;
+        const pos = positions[Math.floor(Math.random() * positions.length)];
+        const docRef = doc(db, 'players', uid);
+        return setDoc(docRef, {
+          uid,
+          fullName: `Test Player ${i+1}`,
+          cardName: `TEST ${i+1}`,
+          email: `test${i}@example.com`,
+          dateOfBirth: `199${Math.floor(Math.random() * 9)}-01-01`,
+          calculatedAge: 25 + Math.floor(Math.random() * 10),
+          height: 170 + Math.floor(Math.random() * 30),
+          weight: 65 + Math.floor(Math.random() * 25),
+          primaryPosition: pos,
+          secondaryPosition: positions[Math.floor(Math.random() * positions.length)],
+          tertiaryPosition: positions[Math.floor(Math.random() * positions.length)],
+          preferredFoot: Math.random() > 0.5 ? 'Right' : 'Left',
+          playStyle: styles[Math.floor(Math.random() * styles.length)],
+          attributes: {
+            attackingProwess: 60 + Math.floor(Math.random() * 35),
+            defensiveProwess: 60 + Math.floor(Math.random() * 35),
+            speed: 60 + Math.floor(Math.random() * 35),
+            acceleration: 60 + Math.floor(Math.random() * 35),
+            stamina: 60 + Math.floor(Math.random() * 35),
+            dribbling: 60 + Math.floor(Math.random() * 35),
+            passing: 60 + Math.floor(Math.random() * 35),
+            physicalContact: 60 + Math.floor(Math.random() * 35),
+            shotPower: 60 + Math.floor(Math.random() * 35),
+            goalkeeping: pos === 'GK' ? 60 + Math.floor(Math.random() * 35) : 40,
+          },
+          stats: {
+            goals: Math.floor(Math.random() * 20),
+            assists: Math.floor(Math.random() * 15),
+            mvp: Math.floor(Math.random() * 5),
+            matchesPlayed: Math.floor(Math.random() * 30),
+            rating: 5.0 + Math.random() * 4.9
+          },
+          hasWarning: false,
+          isVerifiedByAdmin: true,
+          createdAt: new Date().toISOString()
+        });
+      });
+      await Promise.all(promises);
+      onRefresh();
+      alert(t(locale, "Successfully generated 22 players!", "تم إنشاء 22 لاعب بنجاح!"));
+    } catch (error) {
+      console.error(error);
+      alert('Error generating players');
+    } finally {
+      setLoadingUid(null);
+    }
+  };
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -281,6 +346,15 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
   return (
     <>
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={handleGeneratePlayers}
+          disabled={loadingUid === 'generating-players'}
+          className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
+        >
+          {loadingUid === 'generating-players' ? 'Generating...' : t(locale, 'Generate 22 Test Players', 'إنشاء 22 لاعب للتجربة')}
+        </button>
+      </div>
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-700 bg-slate-900 shadow-xl">
         <table className="w-full min-w-[900px] text-sm" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
@@ -402,6 +476,17 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   {/* Actions */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
+                      {/* Edit Profile */}
+                      <button
+                        onClick={() => setEditModal({ open: true, player })}
+                        className="rounded-lg bg-indigo-600/20 p-2 text-indigo-400 transition-colors hover:bg-indigo-600/40 hover:text-indigo-300"
+                        title={t(locale, 'Edit Profile', 'تعديل الملف الشخصي')}
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                      </button>
+
                       {/* Edit Attributes */}
                       <button
                         onClick={() => openAttrModal(player)}
@@ -631,6 +716,15 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {editModal.player && (
+        <EditProfileModal
+          player={editModal.player}
+          isOpen={editModal.open}
+          onClose={() => setEditModal({ open: false, player: null })}
+          onRefresh={onRefresh}
+        />
+      )}
     </>
   );
 }
