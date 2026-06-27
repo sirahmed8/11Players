@@ -378,7 +378,12 @@ export default function OnboardingWizard() {
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
       };
 
-      await setDoc(doc(db, 'players', user.uid), profile);
+      // Add a 10 second timeout to prevent silent hanging
+      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out. Please check your internet connection or disable ad-blockers.')), 15000));
+      await Promise.race([
+        setDoc(doc(db, 'players', user.uid), profile),
+        timeoutPromise
+      ]);
 
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
@@ -458,7 +463,7 @@ export default function OnboardingWizard() {
       {/* ─── Step Content ─── */}
       <div className="relative overflow-hidden min-h-[500px]">
         <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div key={currentStep} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease: 'easeInOut' }}>
+          <motion.div key={currentStep} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease: 'easeInOut' }} className="px-2 pb-4">
             
             {/* ═══ STEP 1: Bio Data ═══ */}
             {currentStep === 1 && (
