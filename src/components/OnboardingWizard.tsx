@@ -320,7 +320,7 @@ export default function OnboardingWizard() {
       if (!state.cardName.trim()) {
         newErrors['cardName'] = txt.required;
       } else if (!/^[A-Za-z\s\-]+$/.test(state.cardName)) {
-        newErrors['cardName'] = isAr ? 'يجب أن يكون اسم البطاقة باللغة الإنجليزية' : 'Card name must be in English';
+        newErrors['cardName'] = locale === 'ar' ? 'يجب أن يكون اسم البطاقة باللغة الإنجليزية' : 'Card name must be in English';
       }
       if (!state.dateOfBirth) newErrors['dateOfBirth'] = txt.required;
       else {
@@ -343,7 +343,7 @@ export default function OnboardingWizard() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [state, txt]);
+  }, [state, txt, locale]);
 
   /* ── Navigation ── */
   const goNext = useCallback(() => {
