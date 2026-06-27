@@ -1,54 +1,23 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocale, useTheme } from "@/components/ThemeProvider";
+import { usePlayers } from "@/contexts/PlayersContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminTable from "@/components/AdminTable";
 import MatchmakingModal from "@/components/MatchmakingModal";
-import SettingsMenu from "@/components/SettingsMenu";
-import { PlayerProfile } from "@/types";
-import { Globe, Sun, Moon, LogOut, ArrowLeft } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
+import Navbar from "@/components/Navbar";
 
 export default function AdminPage() {
-  const { user, isAdmin, logout } = useAuth();
-  const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
-  const { toggleLocale } = useLocale();
-
-  const [players, setPlayers] = useState<PlayerProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { players, loading } = usePlayers();
 
   // Matchmaking State
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);
   const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
-
-  const loadPlayers = () => {
-    const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedPlayers: PlayerProfile[] = [];
-      snapshot.forEach((doc) => {
-        fetchedPlayers.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
-      });
-      setPlayers(fetchedPlayers);
-      setLoading(false);
-    });
-
-    return unsubscribe;
-  };
-
-  useEffect(() => {
-    const unsubscribe = loadPlayers();
-    return () => unsubscribe();
-  }, []);
 
   const handleMatchmaking = async () => {
     try {
@@ -73,6 +42,8 @@ export default function AdminPage() {
         teamA: result.teamA,
         teamB: result.teamB,
         metrics: result.metrics,
+        formation: result.formation,
+        tipsAndTactics: result.tipsAndTactics,
       });
     } catch (error: any) {
       setMatchmakingError(error.message || "Matchmaking failed.");
@@ -88,27 +59,13 @@ export default function AdminPage() {
   return (
     <ProtectedRoute adminOnly>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
-        <header className="sticky top-0 z-50 w-full flex flex-col md:flex-row justify-between items-center p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-4 mb-4 md:mb-0">
-            <Link href="/community" className="p-2 bg-slate-200 dark:bg-slate-700 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-amber-600 dark:text-amber-500">
-              🛡️ ADMIN DASHBOARD
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <SettingsMenu />
-            </div>
-          </div>
-        </header>
+        <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-black mb-2">Platform Controls</h2>
-              <p className="text-slate-500 dark:text-slate-400">Manage players, update stats, and run matchmaking.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-start" dir="ltr">Manage players, update stats, and run matchmaking.</p>
             </div>
             
             <div className="flex gap-4 w-full md:w-auto">
@@ -139,7 +96,7 @@ export default function AdminPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
             </div>
           ) : (
-            <AdminTable players={players} onRefresh={loadPlayers} />
+            <AdminTable players={players} onRefresh={() => {}} />
           )}
         </main>
 

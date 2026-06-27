@@ -13,8 +13,24 @@ const config: Config = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
+  modulePathIgnorePatterns: [
+    '<rootDir>/.firebase/',
+    '<rootDir>/.next/'
+  ],
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }]
+    '^.+\\.tsx?$': ['ts-jest', {
+      tsconfig: {
+        target: 'es2022',
+        module: 'commonjs',
+        moduleResolution: 'node',
+        jsx: 'react-jsx',
+        esModuleInterop: true,
+        allowJs: true,
+        paths: {
+          '@/*': ['./src/*']
+        }
+      }
+    }]
   }
 };
 

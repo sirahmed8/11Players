@@ -143,7 +143,11 @@ function triggerListeners(changedPath: string) {
 }
 
 // SDK Mocks
-export const initializeApp = () => ({ name: 'mock-app' });
+const mockApp = { name: 'mock-app' };
+export const initializeApp = () => mockApp;
+export const getApps = () => [];
+export const getApp = () => mockApp;
+export const initializeFirestore = () => ({ type: 'firestore' });
 
 export const getAuth = () => {
   return {
@@ -156,6 +160,15 @@ export const getAuth = () => {
         if (idx > -1) authListeners.splice(idx, 1);
       };
     }
+  };
+};
+
+export const onAuthStateChanged = (auth: any, cb: (user: any) => void) => {
+  authListeners.push(cb);
+  cb(currentUser);
+  return () => {
+    const idx = authListeners.indexOf(cb);
+    if (idx > -1) authListeners.splice(idx, 1);
   };
 };
 
@@ -180,6 +193,7 @@ export const signOut = async (auth: any) => {
 
 export class GoogleAuthProvider {
   static PROVIDER_ID = 'google.com';
+  setCustomParameters = jest.fn();
 }
 
 export const getFirestore = () => ({ type: 'firestore' });

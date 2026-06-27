@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { doc, getDoc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
@@ -12,6 +12,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import Navbar from "@/components/Navbar";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -96,20 +97,22 @@ function PlayerProfileContent() {
       return;
     }
 
-    // Initial fetch
-    getDoc(doc(db, "players", effectiveUid)).then((snap) => {
-      if (snap.exists()) {
-        setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
+    setLoading(true);
+    const unsub = onSnapshot(
+      doc(db, "players", effectiveUid),
+      (snap) => {
+        if (snap.exists()) {
+          setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
+        } else {
+          setPlayer(null);
+        }
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Profile onSnapshot error:", err);
+        setLoading(false);
       }
-      setLoading(false);
-    });
-
-    // Live updates
-    const unsub = onSnapshot(doc(db, "players", effectiveUid), (snap) => {
-      if (snap.exists()) {
-        setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
-      }
-    });
+    );
 
     return () => unsub();
   }, [effectiveUid, authLoading]);
@@ -199,21 +202,7 @@ function PlayerProfileContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link
-            href="/community"
-            className="flex items-center gap-2 text-emerald-400 hover:text-emerald-300 transition-colors font-bold"
-          >
-            <span className="text-xl">{isAr ? "→" : "←"}</span>
-            {isAr ? "العودة إلى المجتمع" : "Back to Community"}
-          </Link>
-          <h1 className="text-lg font-black text-white">
-            {isAr ? "ملف اللاعب" : "Player Profile"}
-          </h1>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
         {/* Top Section: Card + Physical Info */}

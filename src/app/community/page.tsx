@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCard from "@/components/PlayerCard";
@@ -11,37 +10,21 @@ import MatchmakingModal from "@/components/MatchmakingModal";
 import VirtualChat from "@/components/VirtualChat";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
-import { Globe, Sun, Moon, LogOut, ShieldAlert, Search, ChevronDown, Filter, Loader2, Star, Shield, Zap } from "lucide-react";
-import SettingsMenu from "@/components/SettingsMenu";
-import Link from "next/link";
+import { Search } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import { balanceTeams } from "@/lib/matchmaker";
 
 export default function CommunityPage() {
-  const { user, isAdmin, logout } = useAuth();
-  const { locale, toggleLocale, t } = useLocale();
-  const { theme, toggleTheme } = useTheme();
+  const { user, isAdmin } = useAuth();
+  const { locale } = useLocale();
 
-  const [players, setPlayers] = useState<PlayerProfile[]>([]);
+  const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
 
   // Matchmaking State
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);
   const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
-
-  useEffect(() => {
-    const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedPlayers: PlayerProfile[] = [];
-      snapshot.forEach((doc) => {
-        fetchedPlayers.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
-      });
-      setPlayers(fetchedPlayers);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   const filteredPlayers = players.filter((p) => {
     const query = searchQuery.toLowerCase();
@@ -65,19 +48,19 @@ export default function CommunityPage() {
         return;
       }
 
-      const response = await fetch("/api/matchmaking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playerIds }),
+      // Small delay to simulate processing
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      const result = balanceTeams(players);
+
+      setMatchmakingResult({
+        success: true,
+        teamA: result.teamA,
+        teamB: result.teamB,
+        metrics: result.metrics,
+        formation: result.formation,
+        tipsAndTactics: result.tipsAndTactics,
       });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setMatchmakingResult(data);
-      } else {
-        setMatchmakingError(data.error || "Matchmaking failed.");
-      }
     } catch (error: any) {
       setMatchmakingError(error.message || "Matchmaking failed.");
     } finally {
@@ -88,42 +71,13 @@ export default function CommunityPage() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
-        <header className="sticky top-0 z-50 w-full flex flex-col md:flex-row justify-between items-center p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-4 mb-4 md:mb-0">
-            <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-              ⚽ 11Players
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <nav className="flex items-center gap-4 text-sm font-semibold mr-4">
-              <Link href="/community" className="text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300">
-                Community
-              </Link>
-              <Link href="/stats" className="hover:text-emerald-500 transition-colors">
-                Stats
-              </Link>
-              {user && (
-                <Link href={`/profile?uid=${user.uid}`} className="hover:text-emerald-500 transition-colors">
-                  My Profile
-                </Link>
-              )}
-              {isAdmin && (
-                <Link href="/admin" className="flex items-center gap-1 text-amber-500 hover:text-amber-600 transition-colors">
-                  <ShieldAlert className="w-4 h-4" /> Admin
-                </Link>
-              )}
-            </nav>
-            <div className="flex gap-2 items-center pl-2 md:pl-4 border-l border-slate-200 dark:border-slate-800">
-              <SettingsMenu />
-            </div>
-          </div>
-        </header>
+        <Navbar />
 
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-black mb-2">Player Directory</h2>
-              <p className="text-slate-500 dark:text-slate-400">Live roster of all registered Elite players.</p>
+              <p className="text-slate-500 dark:text-slate-400 text-start" dir="ltr">Live roster of all registered Elite players.</p>
             </div>
             
             <div className="flex gap-4 w-full md:w-auto">

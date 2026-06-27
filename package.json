@@ -10,8 +10,6 @@
     "test:e2e": "jest --config tests/e2e/config/jest.config.ts"
   },
   "dependencies": {
-    "@emotion/is-prop-valid": "^1.4.0",
-    "clsx": "^2.1.1",
     "firebase": "^10.12.2",
     "framer-motion": "^11.2.10",
     "html2canvas": "^1.4.1",
@@ -19,10 +17,10 @@
     "lucide-react": "^0.395.0",
     "next": "^14.2.4",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwind-merge": "^2.3.0"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@imgly/background-removal": "^1.7.0",
     "@types/jest": "^29.5.12",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.14.2",

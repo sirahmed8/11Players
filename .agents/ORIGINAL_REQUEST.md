@@ -158,3 +158,46 @@ The user has provided the final Cloudinary configuration details:
 - Cloud Name: `dfvh4jcsh`
 - Upload Preset Name: `11players`
 - Mode: Unsigned
+
+## Follow-up — 2026-06-27T14:50:52Z
+
+# Teamwork Project Prompt — Draft
+
+> Status: Ready for launch — awaiting user approval
+> Goal: Craft prompt → get user approval → delegate to teamwork_preview
+
+An extensive overhaul of the "11Players" Next.js application focusing on performance optimizations, persistent navigation, RTL/LTR layout fixes, and a comprehensive codebase cleanup.
+
+Working directory: d:\11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. Performance Optimization
+Investigate and resolve the slow loading times when navigating between the top-level pages (`/admin`, `/profile`, `/stats`, `/community`). 
+
+### R2. Persistent Navigation Bar
+Replace the current page-specific "Back" buttons with a persistent top navigation bar (tabs) that remains visible and accessible across all main pages.
+
+### R3. LTR/RTL Text Direction Fixes
+Fix the text direction issue where English text in an RTL context displays the period at the beginning of the sentence (e.g., ".Live roster of all registered Elite players" -> "Live roster of all registered Elite players."). Ensure proper `dir` attributes are applied based on language.
+
+### R4. Codebase Cleanup and Refactoring
+Conduct a deep architectural review to remove unused libraries, dead code, and duplicate files. Refactor the codebase into a clean, maintainable architecture. You have full freedom to completely rewrite complex React components and introduce new libraries (like Zustand, Framer Motion, etc.) if it results in the best possible application.
+
+### R5. Deployment
+Ensure the application builds successfully and deploy the final result to Firebase.
+
+## Acceptance Criteria
+
+### Performance & Navigation
+- [ ] The browser subagent can navigate between `/admin`, `/profile`, `/stats`, and `/community` without encountering slow loading states.
+- [ ] The top navigation bar is present on all main pages, replacing the page-specific "Back" buttons.
+
+### UI & Layout
+- [ ] The English text "Live roster of all registered Elite players" correctly displays with the period at the end of the sentence, not the beginning.
+- [ ] The UI feels highly polished, professional, and visually excellent.
+
+### Codebase & Deployment
+- [ ] The command `npm run build` completes successfully with no critical errors.
+- [ ] The application is successfully deployed to production using `firebase deploy --project an-11-players`.

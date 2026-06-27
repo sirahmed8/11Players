@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "@/lib/firebase";
+import { PlayersProvider } from "./PlayersContext";
 
 interface AuthContextProps {
   user: User | null;
@@ -43,21 +44,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       
-      // Stop the global loading spinner instantly so the UI can render
-      setLoading(false);
-
       if (firebaseUser) {
         // If owner, set admin true immediately and skip Firestore check
         if (firebaseUser.email === 'a7medorabe7@gmail.com') {
           setIsAdmin(true);
+          setLoading(false);
         } else {
-          // Run admin check asynchronously
+          // Run admin check and set loading to false only after it resolves
           checkAdminStatus(firebaseUser.uid).then(adminStatus => {
             setIsAdmin(adminStatus);
+            setLoading(false);
+          }).catch(err => {
+            console.error("Admin check failed:", err);
+            setIsAdmin(false);
+            setLoading(false);
           });
         }
       } else {
         setIsAdmin(false);
+        setLoading(false);
       }
     });
 
@@ -94,7 +99,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <AuthContext.Provider value={{ user, loading, isAdmin, login, logout }}>
-      {children}
+      <PlayersProvider>
+        {children}
+      </PlayersProvider>
     </AuthContext.Provider>
   );
 };

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider, LocaleProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PlayersProvider } from "@/contexts/PlayersContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 
@@ -39,12 +40,14 @@ export default function RootLayout({
           <ThemeProvider>
             <ErrorBoundary>
               <AuthProvider>
-                <div className="flex flex-col min-h-screen">
-                  <div className="flex-1">
-                    {children}
+                <PlayersProvider>
+                  <div className="flex flex-col min-h-screen">
+                    <div className="flex-1">
+                      {children}
+                    </div>
+                    <Footer />
                   </div>
-                  <Footer />
-                </div>
+                </PlayersProvider>
               </AuthProvider>
             </ErrorBoundary>
           </ThemeProvider>
