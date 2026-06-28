@@ -10,7 +10,6 @@ import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
-import GlobalUsersTable from "@/components/GlobalUsersTable";
 import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
 
 export default function OwnerPage() {
