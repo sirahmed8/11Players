@@ -57,7 +57,7 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-14 text-xs font-bold text-slate-300 uppercase tracking-wider">
+      <span className="w-32 text-xs font-bold text-slate-300 tracking-wider truncate">
         {label}
       </span>
       <div className="flex-1 h-2.5 bg-slate-700 rounded-full overflow-hidden">
@@ -127,16 +127,23 @@ function PlayerProfileContent() {
   const canExport = user?.uid === effectiveUid || isAdmin;
 
   const attrMap = [
-    { key: "attackingProwess", label: "ATT" },
-    { key: "defensiveProwess", label: "DEF" },
-    { key: "speed", label: "SPD" },
-    { key: "acceleration", label: "ACC" },
-    { key: "stamina", label: "STA" },
-    { key: "dribbling", label: "DRI" },
-    { key: "passing", label: "PAS" },
-    { key: "physicalContact", label: "PHY" },
-    { key: "shotPower", label: "SHT" },
-    { key: "goalkeeping", label: "GKP" },
+    { key: "offensiveAwareness", label: isAr ? "الوعي الهجومي" : "Offensive Awareness" },
+    { key: "ballControl", label: isAr ? "التحكم بالكرة" : "Ball Control" },
+    { key: "dribbling", label: isAr ? "المراوغة" : "Dribbling" },
+    { key: "lowPass", label: isAr ? "التمرير القصير" : "Low Pass" },
+    { key: "loftedPass", label: isAr ? "التمرير الطويل" : "Lofted Pass" },
+    { key: "finishing", label: isAr ? "الإنهاء" : "Finishing" },
+    { key: "heading", label: isAr ? "الرأسيات" : "Heading" },
+    { key: "speed", label: isAr ? "السرعة" : "Speed" },
+    { key: "acceleration", label: isAr ? "التسارع" : "Acceleration" },
+    { key: "kickingPower", label: isAr ? "قوة التسديد" : "Kicking Power" },
+    { key: "jump", label: isAr ? "القفز" : "Jump" },
+    { key: "physicalContact", label: isAr ? "القوة البدنية" : "Physical Contact" },
+    { key: "balance", label: isAr ? "التوازن" : "Balance" },
+    { key: "stamina", label: isAr ? "اللياقة البدنية" : "Stamina" },
+    { key: "defensiveAwareness", label: isAr ? "الوعي الدفاعي" : "Defensive Awareness" },
+    { key: "ballWinning", label: isAr ? "افتكاك الكرة" : "Ball Winning" },
+    { key: "goalkeeping", label: isAr ? "حراسة المرمى" : "Goalkeeping" },
   ];
 
   if (loading) {

@@ -9,14 +9,15 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import Navbar from "@/components/Navbar";
 
+import { calculateRealisticOverall } from "@/lib/overallCalculator";
+
 export default function StatsPage() {
   const { players, loading } = usePlayers();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const getOverall = (p: PlayerProfile) => {
-    const attrs = Object.values(p.attributes);
-    return Math.round(attrs.reduce((a, b) => a + b, 0) / attrs.length);
+    return calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || "");
   };
 
   const topScorers = React.useMemo(() => {
