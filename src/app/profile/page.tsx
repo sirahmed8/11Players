@@ -385,7 +385,7 @@ function PlayerProfileContent() {
                   transition={{ delay: 0.7 + i * 0.05 }}
                   className="px-4 py-2 bg-gradient-to-r from-emerald-900/60 to-teal-900/60 border border-emerald-700/40 text-emerald-300 rounded-full text-sm font-bold"
                 >
-                  ⭐ {skill}
+                  ⭐ {skill.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                 </motion.span>
               ))}
             </div>

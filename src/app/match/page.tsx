@@ -9,14 +9,22 @@ import Navbar from "@/components/Navbar";
 import PlayerCard from "@/components/PlayerCard";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
+import MatchPitchDisplay from "@/components/MatchPitchDisplay";
+import PlayerCardCompact from "@/components/PlayerCardCompact";
+import { useAuth } from "@/contexts/AuthContext";
+import RecordStatsModal from "@/components/RecordStatsModal";
 
 export default function MatchPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   
+  const { isAdmin } = useAuth();
+  
   const [matchData, setMatchData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
+  const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "system", "latestMatch"), (docSnap) => {
@@ -97,6 +105,17 @@ export default function MatchPage() {
                     </p>
                   </div>
                 )}
+                
+                {isAdmin && (
+                  <div className="w-full mt-4 flex justify-center">
+                    <button 
+                      onClick={() => setIsRecordModalOpen(true)}
+                      className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 transition-transform active:scale-95"
+                    >
+                      {isAr ? "إنهاء المباراة وتسجيل الإحصائيات" : "End Match & Record Stats"}
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -150,20 +169,13 @@ export default function MatchPage() {
                     </div>
                   )}
                   
-                  {/* Player Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {matchData.teamA?.map((p: any) => (
-                      <div key={p.uid} className="relative group">
-                        <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
-                        <div className="relative transform transition-transform duration-300 group-hover:scale-[1.02]">
-                          <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 shadow-xl">
-                            <span className="font-black text-white text-sm">{p.assignedPosition}</span>
-                          </div>
-                          <PlayerCard player={p as PlayerProfile} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Player Grid -> Pitch Display */}
+                  <MatchPitchDisplay 
+                    team={matchData.teamA || []} 
+                    teamName="Team A" 
+                    color="blue" 
+                    onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
+                  />
                 </div>
               </div>
 
@@ -192,26 +204,78 @@ export default function MatchPage() {
                     </div>
                   )}
                   
-                  {/* Player Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {matchData.teamB?.map((p: any) => (
-                      <div key={p.uid} className="relative group">
-                        <div className="absolute -inset-2 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
-                        <div className="relative transform transition-transform duration-300 group-hover:scale-[1.02]">
-                          <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 shadow-xl">
-                            <span className="font-black text-white text-sm">{p.assignedPosition}</span>
-                          </div>
-                          <PlayerCard player={p as PlayerProfile} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  {/* Player Grid -> Pitch Display */}
+                  <MatchPitchDisplay 
+                    team={matchData.teamB || []} 
+                    teamName="Team B" 
+                    color="red" 
+                    isReversed={true}
+                    onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
+                  />
                 </div>
               </div>
             </motion.div>
           )}
+
+          {/* Bench Section */}
+          {!loading && !error && matchData?.bench && matchData.bench.length > 0 && (
+            <div className="mt-12 bg-slate-800 rounded-3xl p-6 lg:p-8 border border-slate-700 shadow-xl" dir={isAr ? 'rtl' : 'ltr'}>
+              <h3 className="text-2xl font-black text-slate-300 mb-6 border-b border-slate-700 pb-4">
+                {isAr ? 'دكة البدلاء' : 'The Bench'}
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {matchData.bench.map((b: any) => (
+                  <div key={b.player.uid} className="relative group">
+                    <PlayerCardCompact player={b.player} />
+                    {/* Benched Reason Tooltip */}
+                    <div className="absolute top-0 right-0 -translate-y-full translate-x-4 w-48 bg-black/90 backdrop-blur text-white text-xs p-2 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-white/10 shadow-xl mb-2">
+                      <span className="font-bold text-red-400">{isAr ? "سبب الاستبعاد:" : "Benched Reason:"}</span><br />
+                      {b.reason}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
         </main>
       </div>
+
+      {/* Player Modal */}
+      <AnimatePresence>
+        {selectedPlayer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedPlayer(null)}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative rounded-3xl shadow-2xl"
+            >
+              <button
+                onClick={() => setSelectedPlayer(null)}
+                className="absolute -top-4 -right-4 w-10 h-10 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-lg border border-slate-200 dark:border-slate-700 z-10 hover:scale-110 transition-transform text-slate-900 dark:text-white"
+              >
+                ✕
+              </button>
+              <PlayerCard player={selectedPlayer} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Admin Record Stats Modal */}
+      <RecordStatsModal 
+        isOpen={isRecordModalOpen} 
+        onClose={() => setIsRecordModalOpen(false)} 
+        matchData={matchData} 
+      />
     </ProtectedRoute>
   );
 }

@@ -33,6 +33,7 @@ export interface AssignedPlayer extends PlayerProfile {
 export interface MatchmakingResult {
   teamA: AssignedPlayer[];
   teamB: AssignedPlayer[];
+  bench?: { player: PlayerProfile; reason: string }[];
   formation: {
     teamA: string;
     teamB: string;
@@ -790,8 +791,21 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     );
   }
 
+  // ── 0. Determine Bench ──
+  // Sort players by their Primary Position PSI descending
+  const sortedPlayers = [...players].sort(
+    (a, b) =>
+      calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition)
+  );
+
+  const activePlayers = sortedPlayers.slice(0, 22);
+  const benchPlayers = sortedPlayers.slice(22).map(player => ({
+    player,
+    reason: "Lower overall rating compared to the top 22",
+  }));
+
   // ── 1. Partition ──
-  let [rawA, rawB] = partitionPlayers(players);
+  let [rawA, rawB] = partitionPlayers(activePlayers);
 
   // ── 2. Swap-balance ──
   [rawA, rawB] = iterativeSwapBalance(rawA, rawB);
@@ -837,6 +851,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   return {
     teamA,
     teamB,
+    bench: benchPlayers.length > 0 ? benchPlayers : undefined,
     formation: {
       teamA: formationA,
       teamB: formationB,

@@ -125,14 +125,6 @@ export default function PlayerCard({ player }: PlayerCardProps) {
                 {player.tertiaryPosition}
               </span>
             )}
-            {player.specialSkills?.map((skill) => (
-              <span
-                key={skill}
-                className="bg-amber-900/40 border border-amber-500/30 text-amber-200 text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider"
-              >
-                {skill.replace(/_/g, ' ')}
-              </span>
-            ))}
           </div>
         </div>
 
