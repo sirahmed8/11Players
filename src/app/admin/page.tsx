@@ -81,7 +81,7 @@ export default function AdminPage() {
 
   if (!activeCommunityId) {
     return (
-      <ProtectedRoute adminOnly requireCommunity>
+      <ProtectedRoute adminOnly requireCommunity={false}>
         <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
           <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
@@ -102,7 +102,7 @@ export default function AdminPage() {
   }
 
   return (
-    <ProtectedRoute adminOnly requireCommunity>
+    <ProtectedRoute adminOnly requireCommunity={false}>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
         
         <main className="max-w-7xl mx-auto px-4 py-8">

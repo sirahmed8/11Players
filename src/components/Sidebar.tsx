@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
@@ -35,7 +36,6 @@ export default function Sidebar() {
       { href: "/stats", labelEn: "Stats", labelAr: "الإحصائيات", icon: <BarChart3 className="w-5 h-5" /> },
       { href: "/match", labelEn: "Next Match", labelAr: "المباراة", icon: <Swords className="w-5 h-5" /> },
     ] : []),
-    ...(isOwner ? [{ href: "/users", labelEn: "Users", labelAr: "المستخدمين", icon: <Users className="w-5 h-5" /> }] : []),
     ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
     { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
   ];
@@ -49,7 +49,7 @@ export default function Sidebar() {
             <Menu className="w-6 h-6" />
           </button>
           <Link href="/communities" className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="11Players" className="w-8 h-8 rounded-lg object-cover shadow-sm" />
+            <Image src="/logo.jpg" alt="11Players" width={32} height={32} className="rounded-lg object-cover shadow-sm" priority />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl tracking-tight">11Players</span>
           </Link>
         </div>
@@ -77,7 +77,7 @@ export default function Sidebar() {
       >
         <div className="flex-shrink-0 z-10 flex items-center justify-between p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50" style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
           <Link href="/communities" className="flex items-center gap-3">
-            <img src="/logo.jpg" alt="11Players Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
+            <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
           </Link>
           <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
@@ -106,6 +106,21 @@ export default function Sidebar() {
               </Link>
             );
           })}
+
+          {isOwner && (
+            <Link
+              href="/users"
+              onClick={() => setIsOpen(false)}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
+                pathname.startsWith("/users")
+                  ? "bg-slate-800 text-white shadow-md shadow-slate-900/20"
+                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
+            >
+              <Users className="w-5 h-5" />
+              <span>{isAr ? "المستخدمين" : "Users"}</span>
+            </Link>
+          )}
 
           {isAdmin && (
             <Link

@@ -102,7 +102,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
             {player.playStyle && (
               <>
                 <span>•</span>
-                <span className="text-amber-300 font-bold">{player.playStyle}</span>
+                <span className="text-amber-300 font-bold">{player.playStyle.replace(/_/g, ' ')}</span>
               </>
             )}
           </div>
