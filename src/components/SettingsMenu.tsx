@@ -60,7 +60,7 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
             animate="visible"
             exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden ${
+            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-y-auto max-h-[80vh] hide-scrollbar ${
               isRTL ? "left-0 origin-bottom-left" : "right-0 origin-bottom-right"
             }`}
           >

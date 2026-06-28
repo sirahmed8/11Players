@@ -84,6 +84,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [locale, setLocale] = useState<Locale>("ar"); // Default is Arabic (RTL)
   const [direction, setDirection] = useState<Direction>("rtl");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const savedLocale = localStorage.getItem("locale") as Locale;
@@ -93,6 +94,7 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       document.documentElement.lang = savedLocale;
       document.documentElement.dir = savedLocale === "ar" ? "rtl" : "ltr";
     }
+    setMounted(true);
   }, []);
 
   const toggleLocale = () => {
@@ -109,11 +111,11 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return translations[locale][key] || key;
   };
 
-  const isRTL = direction === "rtl";
-
   return (
-    <LocaleContext.Provider value={{ locale, direction, isRTL, toggleLocale, t }}>
-      {children}
+    <LocaleContext.Provider value={{ locale, direction, isRTL: direction === "rtl", toggleLocale, t }}>
+      <div style={{ visibility: mounted ? "visible" : "hidden", display: "contents" }}>
+        {children}
+      </div>
     </LocaleContext.Provider>
   );
 };

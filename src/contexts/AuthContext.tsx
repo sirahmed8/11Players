@@ -24,7 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { activeCommunity, loadingCommunity } = useCommunity();
 
   // Determine if the current user is an admin of the active community
-  const isCommunityAdmin = activeCommunity?.adminUid === user?.uid;
+  const isCommunityAdmin = activeCommunity?.adminUid === user?.uid || activeCommunity?.adminUid === user?.email;
   const isAdmin = isOwner || isCommunityAdmin;
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
+import { toast } from "react-hot-toast";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -39,10 +40,12 @@ export default function ProtectedRoute({
       return;
     }
     if (adminOnly && !isAdmin) {
+      toast.error(t("admin_only") || "You do not have admin access for this community.");
       router.replace("/communities");
       return;
     }
     if (requireCommunity && !activeCommunityId) {
+      toast.error(t("require_community") || "Please select a community first.");
       router.replace("/communities");
       return;
     }
