@@ -12,7 +12,7 @@ export default function OnboardingPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen flex flex-col items-center bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white pb-12 transition-colors">
+      <div className="min-h-screen flex flex-col items-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12 transition-colors">
         <div className="w-full mb-4">
                   </div>
         

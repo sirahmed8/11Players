@@ -109,7 +109,7 @@ export default function Home() {
 
   if (authLoading || isRedirecting) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center bg-bg-light dark:bg-bg-dark">
+      <main className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1, ease: "linear" }}>
           <Loader2 className="w-12 h-12 text-emerald-500" />
         </motion.div>
@@ -121,10 +121,10 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center relative bg-bg-light dark:bg-bg-dark text-slate-800 dark:text-slate-100 transition-colors duration-300 overflow-x-hidden">
+    <main className="min-h-screen flex flex-col items-center relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
       
       {/* Header Controls */}
-      <header className="w-full max-w-6xl flex justify-between items-center py-4 px-6 z-50 sticky top-0 bg-bg-light/80 dark:bg-bg-dark/80 backdrop-blur-md border-b border-transparent transition-all">
+      <header className="w-full max-w-6xl flex justify-between items-center py-4 px-6 z-50 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all">
         <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
           ⚽ 11Players
         </h1>
