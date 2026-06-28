@@ -45,11 +45,60 @@ export default function MatchPage() {
             <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent mb-4">
               {isAr ? "المباراة القادمة" : "Next Match"}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
+            <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-6">
               {isAr 
                 ? "تشكيلات الفرق والتكتيكات الموصى بها للمباراة القادمة. يتم تحديثها تلقائياً عند قيام الإدارة بتشكيل الفرق."
                 : "Team lineups and recommended tactics for the upcoming match. Updates automatically when admins generate teams."}
             </p>
+
+            {matchData?.config && (
+              <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 max-w-3xl mx-auto shadow-sm flex flex-wrap justify-center gap-6">
+                {matchData.config.date && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">📅</span>
+                    <div className="text-left">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">{isAr ? "التاريخ" : "Date"}</p>
+                      <p className="text-slate-900 dark:text-white font-bold">{matchData.config.date}</p>
+                    </div>
+                  </div>
+                )}
+                {matchData.config.time && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">⏰</span>
+                    <div className="text-left">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">{isAr ? "الوقت" : "Time"}</p>
+                      <p className="text-slate-900 dark:text-white font-bold">{matchData.config.time}</p>
+                    </div>
+                  </div>
+                )}
+                {matchData.config.location && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">🏟️</span>
+                    <div className="text-left">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">{isAr ? "الملعب" : "Location"}</p>
+                      <p className="text-slate-900 dark:text-white font-bold">{matchData.config.location}</p>
+                    </div>
+                  </div>
+                )}
+                {matchData.config.cost && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">💰</span>
+                    <div className="text-left">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase">{isAr ? "التكلفة" : "Cost"}</p>
+                      <p className="text-slate-900 dark:text-white font-bold">{matchData.config.cost}</p>
+                    </div>
+                  </div>
+                )}
+                {matchData.config.notes && (
+                  <div className="w-full mt-2 pt-4 border-t border-slate-100 dark:border-slate-700 text-center">
+                    <p className="text-sm text-slate-600 dark:text-slate-300 font-medium whitespace-pre-wrap">
+                      <span className="font-bold text-slate-900 dark:text-white">📝 {isAr ? "ملاحظة:" : "Note:"} </span>
+                      {matchData.config.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {loading ? (

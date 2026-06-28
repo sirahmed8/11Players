@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import toast from "react-hot-toast";
 import { useLocale } from "@/components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -27,11 +28,12 @@ export default function PendingEdits() {
     try {
       // Create a copy of the edit without the metadata fields
       const { id, status, requestedAt, ...updateData } = edit;
-      await updateDoc(doc(db, "players", edit.id), updateData);
+      await updateDoc(doc(db, "players", edit.playerId), updateData);
       await deleteDoc(doc(db, "profileEdits", edit.id));
+      toast.success(isAr ? "تمت الموافقة على التعديل بنجاح!" : "Edit approved successfully!");
     } catch (err) {
       console.error(err);
-      alert("Error approving edit.");
+      toast.error(isAr ? "خطأ في الموافقة على التعديل." : "Error approving edit.");
     }
   };
 
@@ -39,9 +41,10 @@ export default function PendingEdits() {
     if (!confirm(isAr ? "هل أنت متأكد من رفض هذا التعديل؟" : "Are you sure you want to reject this edit?")) return;
     try {
       await deleteDoc(doc(db, "profileEdits", edit.id));
+      toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
     } catch (err) {
       console.error(err);
-      alert("Error rejecting edit.");
+      toast.error(isAr ? "خطأ في رفض التعديل." : "Error rejecting edit.");
     }
   };
 

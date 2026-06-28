@@ -72,13 +72,14 @@ interface SVGPitchPickerProps {
     tertiary: PESPosition;
   }) => void;
   locale?: 'en' | 'ar';
+  initialPositions?: PESPosition[];
 }
 
 /* ──────────────────────────────────────────────
    Component
    ────────────────────────────────────────────── */
-export default function SVGPitchPicker({ onPositionsSelected, locale = 'ar' }: SVGPitchPickerProps) {
-  const [selections, setSelections] = useState<PESPosition[]>([]);
+export default function SVGPitchPicker({ onPositionsSelected, locale = 'ar', initialPositions = [] }: SVGPitchPickerProps) {
+  const [selections, setSelections] = useState<PESPosition[]>(initialPositions);
   const txt = t[locale];
 
   const handleSelect = useCallback(

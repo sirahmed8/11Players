@@ -4,11 +4,14 @@ import React, { useState, useEffect, useRef } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale } from "@/components/ThemeProvider";
 import PlayerCard from "@/components/PlayerCard";
 import { PlayerProfile } from "@/types";
 import { generateProfilePDF } from "@/lib/pdf";
 import EditProfileModal from "@/components/EditProfileModal";
+import SVGPitchDisplay from "@/components/SVGPitchDisplay";
+import { getPlayerPositionRatings } from "@/lib/overallCalculator";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -86,14 +89,18 @@ function PlayerProfileContent() {
   const searchParams = useSearchParams();
   const uid = searchParams.get("uid");
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
+  const { players } = usePlayers();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const [player, setPlayer] = useState<PlayerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
   const effectiveUid = uid || user?.uid;
+
+  const [player, setPlayer] = useState<PlayerProfile | null>(() => {
+    if (!effectiveUid) return null;
+    return players.find(p => p.uid === effectiveUid) || null;
+  });
+  const [loading, setLoading] = useState(!player);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (!effectiveUid) {
@@ -101,7 +108,10 @@ function PlayerProfileContent() {
       return;
     }
 
-    setLoading(true);
+    if (!player) {
+      setLoading(true);
+    }
+    
     const unsub = onSnapshot(
       doc(db, "players", effectiveUid),
       (snap) => {
@@ -308,8 +318,16 @@ function PlayerProfileContent() {
               </span>
             </div>
 
+            {/* SVG Pitch Display */}
+            <div className="mt-6">
+              <h3 className="text-xl font-black text-emerald-400 mb-4">
+                {isAr ? "مراكز اللعب والتقييم" : "Positions & Ratings"}
+              </h3>
+              <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
+            </div>
+
             {/* Status Badges */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 mt-4">
               {player.isVerifiedByAdmin && (
                 <span className="px-3 py-1 bg-emerald-900/60 text-emerald-300 rounded-full text-xs font-bold border border-emerald-700/50">
                   ✅ {isAr ? "معتمد" : "Verified"}

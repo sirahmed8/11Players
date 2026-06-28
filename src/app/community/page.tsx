@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import PlayerCard from "@/components/PlayerCard";
+import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search } from "lucide-react";
 import Navbar from "@/components/Navbar";
@@ -76,17 +76,17 @@ export default function CommunityPage() {
               <p className="text-slate-500 dark:text-slate-400">No players found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               <AnimatePresence>
                 {filteredPlayers.map((player, index) => (
                   <motion.div
                     key={player.uid}
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: Math.min(index * 0.05, 0.5) }}
                     layout
                   >
-                    <PlayerCard player={player} />
+                    <PlayerCardCompact player={player} />
                   </motion.div>
                 ))}
               </AnimatePresence>

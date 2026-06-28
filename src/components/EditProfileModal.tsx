@@ -6,6 +6,7 @@ import { updateDoc, doc, setDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/components/ThemeProvider';
+import toast from 'react-hot-toast';
 import type { PlayerProfile, PESPosition } from '@/types';
 import BackgroundRemover from '@/components/BackgroundRemover';
 
@@ -47,24 +48,33 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const birthDate = new Date(formData.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
+
+      const dataToSave = {
+        ...formData,
+        calculatedAge: age
+      };
+
       if (isOwner) {
-        await updateDoc(doc(db, 'players', player.uid), {
-          ...formData
-        });
-        alert(isRTL ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully');
+        await updateDoc(doc(db, 'players', player.uid), dataToSave);
+        toast.success(isRTL ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully');
       } else {
         await setDoc(doc(db, 'profileEdits', player.uid), {
-          ...formData,
+          ...dataToSave,
           status: 'pending',
           requestedAt: new Date().toISOString()
         });
-        alert(isRTL ? 'تم إرسال طلب التعديل للمراجعة' : 'Edit request sent for approval');
+        toast.success(isRTL ? 'تم إرسال طلب التعديل للمراجعة' : 'Edit request sent for approval');
       }
       onRefresh();
       onClose();
     } catch (err) {
       console.error(err);
-      alert('Error saving profile');
+      toast.error(isRTL ? 'حدث خطأ أثناء الحفظ' : 'Error saving profile');
     } finally {
       setIsSaving(false);
     }

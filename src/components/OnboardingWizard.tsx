@@ -184,7 +184,12 @@ export default function OnboardingWizard() {
     try {
       const saved = localStorage.getItem('11players_wizard_draft');
       if (saved) {
-        setState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setState({
+          ...INITIAL_STATE,
+          ...parsed,
+          attributes: { ...DEFAULT_ATTRIBUTES, ...(parsed.attributes || {}) }
+        });
       }
     } catch (e) {
       console.error('Failed to load draft', e);
@@ -392,17 +397,28 @@ export default function OnboardingWizard() {
       // Remove any undefined values to prevent Firestore errors
       const cleanProfile = JSON.parse(JSON.stringify(profile));
 
-      // Use a timeout to prevent hanging on slow networks
+      // Use a short timeout, but if it times out, we still proceed optimistically
+      // because Firestore will queue the write locally and sync when possible.
       const submitPromise = setDoc(doc(db, 'players', user.uid), cleanProfile);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Network timeout. Please check your connection.')), 15000)
-      );
-
-      await Promise.race([submitPromise, timeoutPromise]);
+      
+      try {
+        await Promise.race([
+          submitPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+        ]);
+      } catch (err: any) {
+        if (err.message !== 'timeout') {
+          throw err;
+        }
+        // If it's just a timeout, we ignore it and proceed optimistically.
+        console.log('Submission taking longer than expected, proceeding optimistically...');
+      }
 
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
-      setTimeout(() => router.push('/community'), 1500);
+      setTimeout(() => {
+        window.location.href = '/community';
+      }, 1500);
     } catch (err: any) {
       console.error('Submit error:', err);
       const errorMessage = err.message || txt.submitError;
@@ -457,7 +473,7 @@ export default function OnboardingWizard() {
                   }}
                   className={`
                     w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
-                    ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-emerald-600 border-emerald-400 text-white shadow-lg shadow-emerald-500/30' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500'}
+                    ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-emerald-600 border-emerald-400 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500'}
                   `}
                 >
                   {isCompleted ? '✓' : stepNum}
@@ -581,7 +597,11 @@ export default function OnboardingWizard() {
             {/* ═══ STEP 2: Positions ═══ */}
             {currentStep === 2 && (
               <div className="space-y-4">
-                <SVGPitchPicker onPositionsSelected={handlePositionsSelected} locale={(locale as 'en' | 'ar') ?? 'ar'} />
+                <SVGPitchPicker 
+                  onPositionsSelected={handlePositionsSelected} 
+                  locale={(locale as 'en' | 'ar') ?? 'ar'} 
+                  initialPositions={[state.primaryPosition, state.secondaryPosition, state.tertiaryPosition].filter(Boolean) as any[]}
+                />
                 <AnimatePresence>
                   {state.primaryPosition && state.secondaryPosition && state.tertiaryPosition && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="text-center">

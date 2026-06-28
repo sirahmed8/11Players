@@ -38,6 +38,15 @@ export default function PlayerStylePicker({ selectedStyle, onStyleSelect, locale
     ? PLAYER_STYLES.filter(s => s.positions.includes(primaryPosition))
     : PLAYER_STYLES;
 
+  React.useEffect(() => {
+    if (selectedStyle && filteredStyles.length > 0) {
+      const isValid = filteredStyles.some(s => s.id === selectedStyle);
+      if (!isValid) {
+        onStyleSelect('');
+      }
+    }
+  }, [primaryPosition, selectedStyle, filteredStyles, onStyleSelect]);
+
   return (
     <div className="w-full">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[400px] overflow-y-auto overflow-x-hidden p-3 -mx-3 custom-scrollbar">

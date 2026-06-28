@@ -5,6 +5,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayersProvider } from "@/contexts/PlayersContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
+import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
   title: "11Players - Football Matchmaking & Community",
@@ -47,6 +48,29 @@ export default function RootLayout({
                     </div>
                     <Footer />
                   </div>
+                  <Toaster 
+                    position="bottom-center"
+                    toastOptions={{
+                      style: {
+                        background: '#1e293b',
+                        color: '#fff',
+                        borderRadius: '16px',
+                        border: '1px solid #334155',
+                      },
+                      success: {
+                        iconTheme: {
+                          primary: '#10b981',
+                          secondary: '#fff',
+                        },
+                      },
+                      error: {
+                        iconTheme: {
+                          primary: '#ef4444',
+                          secondary: '#fff',
+                        },
+                      },
+                    }}
+                  />
                 </PlayersProvider>
               </AuthProvider>
             </ErrorBoundary>

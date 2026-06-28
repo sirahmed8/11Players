@@ -52,3 +52,32 @@ export function calculateRealisticOverall(
 
   return finalOverall;
 }
+
+export function getPlayerPositionRatings(player: {
+  attributes: PlayerAttributes;
+  primaryPosition: PESPosition;
+  secondaryPosition?: PESPosition;
+  tertiaryPosition?: PESPosition;
+  playStyle?: string;
+}) {
+  const primaryRating = calculateRealisticOverall(player.attributes, player.primaryPosition, player.playStyle || '');
+  
+  const ratings = [
+    { position: player.primaryPosition, rating: primaryRating, tier: 0 }
+  ];
+
+  if (player.secondaryPosition) {
+    // Secondary position gets the exact same rating as primary
+    ratings.push({ position: player.secondaryPosition, rating: primaryRating, tier: 1 });
+  }
+
+  if (player.tertiaryPosition) {
+    // Tertiary position is calculated based on its own weights (so it depends on stats and position), 
+    // and we also apply a slight penalty (-2) to ensure it's decreased.
+    let tertiary = calculateRealisticOverall(player.attributes, player.tertiaryPosition, player.playStyle || '') - 2;
+    if (tertiary < 40) tertiary = 40;
+    ratings.push({ position: player.tertiaryPosition, rating: tertiary, tier: 2 });
+  }
+
+  return ratings;
+}

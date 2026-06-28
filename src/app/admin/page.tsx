@@ -12,6 +12,7 @@ import { balanceTeams } from "@/lib/matchmaker";
 import Navbar from "@/components/Navbar";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
+import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -24,8 +25,9 @@ export default function AdminPage() {
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);
   const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
 
-  const handleMatchmaking = async () => {
+  const handleMatchmaking = async (config: MatchConfig) => {
     try {
       setMatchmakingLoading(true);
       setMatchmakingError("");
@@ -50,6 +52,7 @@ export default function AdminPage() {
         metrics: result.metrics,
         formation: result.formation,
         tipsAndTactics: result.tipsAndTactics,
+        config, // Save the match config!
         generatedAt: new Date().toISOString(),
       };
 
@@ -92,9 +95,9 @@ export default function AdminPage() {
                 {isAr ? "تصدير بطاقات الجميع PDF" : "Export Bulk PDF"}
               </button>
               <button
-                onClick={handleMatchmaking}
+                onClick={() => setIsConfigModalOpen(true)}
                 disabled={matchmakingLoading}
-                className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 whitespace-nowrap"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 whitespace-nowrap"
               >
                 {matchmakingLoading ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "تشكيل الفرق" : "Run Matchmaking")}
               </button>
@@ -127,6 +130,12 @@ export default function AdminPage() {
             />
           )}
         </AnimatePresence>
+
+        <MatchConfigModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          onGenerate={handleMatchmaking}
+        />
       </div>
     </ProtectedRoute>
   );

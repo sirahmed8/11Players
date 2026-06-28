@@ -9,6 +9,7 @@ import { useLocale } from '@/components/ThemeProvider';
 import AttributeSliders from '@/components/AttributeSliders';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PlayerProfile } from '@/types';
+import toast from 'react-hot-toast';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -152,10 +153,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       });
       await Promise.all(promises);
       onRefresh();
-      alert(t(locale, "Successfully generated 22 players!", "تم إنشاء 22 لاعب بنجاح!"));
+      toast.success(t(locale, "Successfully generated 22 players!", "تم إنشاء 22 لاعب بنجاح!"));
     } catch (error) {
       console.error(error);
-      alert('Error generating players');
+      toast.error(t(locale, 'Error generating players', 'حدث خطأ أثناء إنشاء اللاعبين'));
     } finally {
       setLoadingUid(null);
     }
@@ -203,9 +204,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     try {
       await updateDoc(doc(db, 'players', uid), { isVerifiedByAdmin: !current });
       onRefresh();
+      toast.success(t(locale, 'Verification status updated', 'تم تحديث حالة التوثيق'));
     } catch (error) {
       console.error(error);
-      alert('Error updating warning status');
+      toast.error(t(locale, 'Error updating verification status', 'حدث خطأ أثناء التحديث'));
     } finally {
       setLoadingUid(null);
     }
@@ -242,9 +244,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       });
       onRefresh();
       closeAttrModal();
+      toast.success(t(locale, 'Attributes updated successfully', 'تم تحديث الطاقات بنجاح'));
     } catch (error) {
       console.error(error);
-      alert('Error updating attributes');
+      toast.error(t(locale, 'Error updating attributes', 'حدث خطأ أثناء تحديث الطاقات'));
     } finally {
       setLoadingUid(null);
     }
@@ -261,9 +264,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         'stats.matchesPlayed': 0,
       });
       onRefresh();
+      toast.success(t(locale, 'Stats reset successfully', 'تم تصفير الإحصائيات بنجاح'));
     } catch (error) {
       console.error(error);
-      alert('Error resetting stats');
+      toast.error(t(locale, 'Error resetting stats', 'حدث خطأ أثناء تصفير الإحصائيات'));
     } finally {
       setLoadingUid(null);
     }
@@ -275,9 +279,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     try {
       await deleteDoc(doc(db, 'players', player.uid));
       onRefresh();
+      toast.success(t(locale, 'Player deleted successfully', 'تم حذف اللاعب بنجاح'));
     } catch (error) {
       console.error(error);
-      alert('Error deleting player');
+      toast.error(t(locale, 'Error deleting player', 'حدث خطأ أثناء حذف اللاعب'));
     } finally {
       setLoadingUid(null);
     }
@@ -421,9 +426,21 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                   {/* Position */}
                   <td className="px-4 py-3">
-                    <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                      {player.primaryPosition}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                        {player.primaryPosition}
+                      </span>
+                      {player.secondaryPosition && (
+                        <span className="rounded-full bg-slate-500/10 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400">
+                          {player.secondaryPosition}
+                        </span>
+                      )}
+                      {player.tertiaryPosition && (
+                        <span className="rounded-full bg-slate-500/10 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-400 opacity-75">
+                          {player.tertiaryPosition}
+                        </span>
+                      )}
+                    </div>
                   </td>
 
                   {/* Age */}
@@ -701,11 +718,16 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               </h2>
               <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{attrModal.player.fullName}</p>
 
-              <div className="scale-90 origin-top-left md:origin-top w-[111%]">
-                <AttributeSliders
-                  attributes={attrModal.attributes}
-                  onChange={(attr) => setAttrModal(prev => ({ ...prev, attributes: attr }))}
-                />
+              <div className="w-full flex justify-center py-2 overflow-x-hidden">
+                <div className="w-full max-w-full">
+                  <AttributeSliders
+                    attributes={attrModal.attributes}
+                    onChange={(attr) => setAttrModal(prev => ({ ...prev, attributes: attr }))}
+                    locale={(locale as 'en' | 'ar') ?? 'ar'}
+                    primaryPosition={attrModal.player?.primaryPosition}
+                    playStyle={attrModal.player?.playStyle}
+                  />
+                </div>
               </div>
 
               <div className="mt-6 flex gap-3">

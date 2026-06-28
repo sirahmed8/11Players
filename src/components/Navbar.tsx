@@ -28,7 +28,7 @@ export default function Navbar() {
             href="/community"
             className={`px-3 py-1.5 rounded-lg transition-all ${
               pathname === "/community"
-                ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -38,7 +38,7 @@ export default function Navbar() {
             href="/stats"
             className={`px-3 py-1.5 rounded-lg transition-all ${
               pathname === "/stats"
-                ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -48,7 +48,7 @@ export default function Navbar() {
             href="/match"
             className={`px-3 py-1.5 rounded-lg transition-all ${
               pathname === "/match"
-                ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
@@ -59,7 +59,7 @@ export default function Navbar() {
               href={`/profile?uid=${user.uid}`}
               className={`px-3 py-1.5 rounded-lg transition-all ${
                 pathname === "/profile"
-                  ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 font-black shadow-inner"
+                  ? "bg-emerald-600 text-white font-black shadow-md"
                   : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
             >
@@ -71,7 +71,7 @@ export default function Navbar() {
               href="/admin"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
                 pathname === "/admin"
-                  ? "bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 font-black shadow-inner"
+                  ? "bg-amber-500 text-white font-black shadow-md"
                   : "text-amber-500 hover:text-amber-600 hover:bg-amber-500/5"
               }`}
             >
