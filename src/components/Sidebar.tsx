@@ -74,7 +74,7 @@ export default function Sidebar() {
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${isAr ? "right-0 left-auto border-r-0 border-l rounded-tl-3xl rounded-bl-3xl rounded-tr-none rounded-br-none md:rounded-none" : ""}`}
       >
-        <div className="flex-shrink-0 z-10 flex items-center justify-between p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50">
+        <div className="flex-shrink-0 z-10 flex items-center justify-between p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50" style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
           <Link href="/communities" className="flex items-center gap-3">
             <img src="/logo.jpg" alt="11Players Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
@@ -84,7 +84,7 @@ export default function Sidebar() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
+        <div className="flex-1 overflow-y-auto py-6 px-2 mx-2 flex flex-col gap-2 custom-scrollbar">
           {links.map((link) => {
             const baseHref = link.href.split("?")[0];
             const cleanPathname = pathname.replace(/\/$/, '');
