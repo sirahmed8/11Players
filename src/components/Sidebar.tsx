@@ -90,7 +90,7 @@ export default function Sidebar() {
         <div className="w-full h-full flex flex-col overflow-y-auto overflow-x-hidden hide-scrollbar relative">
           
           {/* Logo Area (Sticky) */}
-          <div className="sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+          <div className={`sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 ${isAr ? "rounded-tl-3xl md:rounded-t-3xl" : "rounded-tr-3xl md:rounded-t-3xl"}`} style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             <Link href="/communities" className="flex items-center gap-3">
               <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
@@ -170,7 +170,7 @@ export default function Sidebar() {
           </div>
 
           {/* Settings Area (Sticky) */}
-          <div className="sticky bottom-0 z-20 mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+          <div className="sticky bottom-0 z-20 mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             <SettingsMenu direction="up" />
           </div>
         </div>
