@@ -91,16 +91,28 @@ export async function generateDummyPlayersForCommunity(communityId: string) {
       
       const uid = `dummy_${Date.now()}_${i}_${Math.random().toString(36).substring(7)}`;
       
-      const dummyProfile: PlayerProfile = {
-        uid,
-        email: `dummy${i}@11players.com`,
-        fullName,
-        cardName: lastName,
-        dateOfBirth: "2000-01-01",
-        calculatedAge: randomInt(16, 40),
-        height: randomInt(165, 195),
-        weight: randomInt(60, 90),
-        preferredFoot: randomChoice(['Right', 'Left', 'Ambidextrous']),
+        const isLeftPref = ['LWF', 'LMF', 'LB'].includes(position);
+        const isRightPref = ['RWF', 'RMF', 'RB'].includes(position);
+        let foot = 'Right';
+        const footRand = Math.random();
+        if (isLeftPref) {
+          foot = footRand > 0.15 ? 'Left' : (footRand > 0.05 ? 'Ambidextrous' : 'Right');
+        } else if (isRightPref) {
+          foot = footRand > 0.15 ? 'Right' : (footRand > 0.05 ? 'Ambidextrous' : 'Left');
+        } else {
+          foot = footRand > 0.25 ? 'Right' : (footRand > 0.05 ? 'Left' : 'Ambidextrous');
+        }
+
+        const dummyProfile: PlayerProfile = {
+          uid,
+          email: `dummy${i}@11players.com`,
+          fullName,
+          cardName: lastName,
+          dateOfBirth: "2000-01-01",
+          calculatedAge: randomInt(16, 40),
+          height: randomInt(165, 195),
+          weight: randomInt(60, 90),
+          preferredFoot: foot as 'Right' | 'Left' | 'Ambidextrous',
         primaryPosition: position,
         secondaryPosition: randomChoice(POSITIONS),
         tertiaryPosition: randomChoice(POSITIONS),

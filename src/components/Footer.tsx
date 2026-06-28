@@ -8,7 +8,7 @@ export default function Footer() {
   const isAr = locale === "ar";
 
   return (
-    <footer className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-6 mb-4 mx-4 md:mx-8 mt-auto rounded-3xl shadow-sm">
+    <footer className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-6 mb-6 md:mb-8 mx-4 md:mx-8 mt-auto rounded-3xl shadow-sm shrink-0">
       <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-4">
         
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-semibold text-slate-500 dark:text-slate-400">

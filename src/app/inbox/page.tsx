@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SupportThread, ChatMessage } from "@/types";
-import { Send, Loader2, ArrowLeft, CheckCircle2, Image as ImageIcon, X } from "lucide-react";
+import { Send, Loader2, ArrowLeft, CheckCircle2, Image as ImageIcon, X, MessageSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
@@ -149,7 +149,12 @@ export default function InboxPage() {
               {loadingThreads ? (
                 <div className="p-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>
               ) : threads.length === 0 ? (
-                <div className="p-8 text-center text-slate-500">{isAr ? "لا توجد رسائل" : "No messages"}</div>
+                <div className="p-8 flex flex-col items-center justify-center text-slate-500 h-full gap-4 mt-10">
+                  <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-2 shadow-sm">
+                    <MessageSquare className="w-8 h-8 text-slate-400" />
+                  </div>
+                  <p className="font-medium text-slate-600 dark:text-slate-400">{isAr ? "لا توجد رسائل" : "No messages"}</p>
+                </div>
               ) : (
                 threads.map(t => (
                   <button 
@@ -176,8 +181,16 @@ export default function InboxPage() {
 
           <div className={`${!activeThreadId ? 'hidden md:flex' : 'flex'} flex-1 flex-col relative`}>
             {!activeThreadId ? (
-              <div className="flex-1 flex items-center justify-center text-slate-400">
-                {isAr ? "اختر محادثة للبدء" : "Select a conversation to start"}
+              <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/50 dark:bg-slate-900/20">
+                <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-full flex items-center justify-center shadow-sm mb-4 border border-slate-100 dark:border-slate-700">
+                  <MessageSquare className="w-10 h-10 text-emerald-500/50" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  {isAr ? "البريد الوارد" : "Inbox"}
+                </h3>
+                <p className="text-sm">
+                  {isAr ? "اختر محادثة للبدء" : "Select a conversation to start"}
+                </p>
               </div>
             ) : (
               <>
@@ -202,7 +215,12 @@ export default function InboxPage() {
                   {loadingMessages ? (
                     <div className="flex-1 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
                   ) : messages.length === 0 ? (
-                    <div className="flex-1 flex justify-center items-center text-slate-400">No messages found.</div>
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                      <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                        <MessageSquare className="w-8 h-8 text-slate-300 dark:text-slate-600" />
+                      </div>
+                      <p>{isAr ? "لا توجد رسائل بعد." : "No messages found."}</p>
+                    </div>
                   ) : (
                     messages.map(msg => {
                       const isMe = msg.senderUid === user?.uid;

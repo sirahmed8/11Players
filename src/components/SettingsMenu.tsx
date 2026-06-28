@@ -95,7 +95,7 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
             animate="visible"
             exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 overflow-y-auto max-h-[80vh] hide-scrollbar ${
+            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 ${
               isRTL ? "left-0" : "right-0"
             }`}
           >
@@ -150,50 +150,51 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
 
               {user && (
                 <>
-                  <div className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <Home className="w-4 h-4 text-blue-500" />
-                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                        {isAr ? "الرئيسية" : "Main Page"}
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <button 
-                        onClick={(e) => { e.stopPropagation(); setMainPageDropdownOpen(!mainPageDropdownOpen); }}
-                        className="flex items-center gap-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-1.5 outline-none hover:border-emerald-500 transition-colors text-slate-700 dark:text-slate-200"
-                      >
-                        {defaultPage === "/communities" ? (isAr ? "المجتمعات" : "Communities") :
-                         defaultPage === "/community" ? (isAr ? "مجتمعي" : "My Community") :
-                         defaultPage === "/profile" ? (isAr ? "حسابي" : "Profile") : (isAr ? "المجتمعات" : "Communities")}
-                        <ChevronDown className={`w-3 h-3 transition-transform ${mainPageDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      <AnimatePresence>
-                        {mainPageDropdownOpen && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.15 }}
-                            className={`absolute z-[70] ${isRTL ? "left-0" : "right-0"} top-full mt-2 w-36 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden flex flex-col`}
-                          >
-                            {[
-                              { value: "/communities", label: isAr ? "المجتمعات" : "Communities" },
-                              { value: "/community", label: isAr ? "مجتمعي" : "My Community" },
-                              { value: "/profile", label: isAr ? "حسابي" : "Profile" }
-                            ].map((opt) => (
-                              <button
-                                key={opt.value}
-                                onClick={(e) => { e.stopPropagation(); handleDefaultPageChange(opt.value); }}
-                                className={`text-left px-4 py-2 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${defaultPage === opt.value ? "text-emerald-500 bg-emerald-50 dark:bg-emerald-500/10" : "text-slate-700 dark:text-slate-200"}`}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                  <div className="w-full flex flex-col">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setMainPageDropdownOpen(!mainPageDropdownOpen); }}
+                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Home className="w-4 h-4 text-blue-500" />
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                          {isAr ? "الصفحة الرئيسية" : "Main Page"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {defaultPage === "/communities" ? (isAr ? "المجتمعات" : "Communities") :
+                           defaultPage === "/community" ? (isAr ? "مجتمعي" : "My Community") :
+                           defaultPage === "/profile" ? (isAr ? "حسابي" : "Profile") : (isAr ? "المجتمعات" : "Communities")}
+                        </span>
+                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mainPageDropdownOpen ? 'rotate-180' : ''}`} />
+                      </div>
+                    </button>
+                    <AnimatePresence>
+                      {mainPageDropdownOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/20"
+                        >
+                          {[
+                            { value: "/communities", label: isAr ? "المجتمعات" : "Communities" },
+                            { value: "/community", label: isAr ? "مجتمعي" : "My Community" },
+                            { value: "/profile", label: isAr ? "حسابي" : "Profile" }
+                          ].map((opt) => (
+                            <button
+                              key={opt.value}
+                              onClick={(e) => { e.stopPropagation(); handleDefaultPageChange(opt.value); }}
+                              className={`text-start px-11 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${defaultPage === opt.value ? "text-emerald-500" : "text-slate-600 dark:text-slate-400"}`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                   <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-1" />
                   <button

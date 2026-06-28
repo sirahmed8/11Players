@@ -243,10 +243,6 @@ function PlayerProfileContent() {
                 <h2 className="text-3xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
                   {player.fullName}
                 </h2>
-                <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-                  {isAr ? "الاسم المختصر:" : "Card Name:"}{" "}
-                  <span className="text-slate-800 dark:text-white font-bold">{player.cardName}</span>
-                </p>
               </div>
             </div>
 

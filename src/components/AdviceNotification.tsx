@@ -17,8 +17,10 @@ export default function AdviceNotification() {
     if (!user) return;
     
     const fetchProfileAndGenerateAdvice = async () => {
-      // Show advice only once per session to avoid spamming
-      if (sessionStorage.getItem("adviceShown")) return;
+      const lastShown = sessionStorage.getItem("adviceLastShown");
+      const now = Date.now();
+      // Show advice once every 10 minutes to avoid spamming but allow frequency
+      if (lastShown && now - parseInt(lastShown) < 600000) return;
       
       try {
         const playerDoc = await getDoc(doc(db, "players", user.uid));
@@ -31,7 +33,11 @@ export default function AdviceNotification() {
             isAr ? `تذكر يا ${position}، التمركز الصحيح هو نصف الدفاع!` : `Remember ${position}, good positioning is half the defense!`,
             isAr ? `أرقامك في التصاعد! استمر في العمل الجاد.` : `Your stats are looking great! Keep up the hard work.`,
             isAr ? `كـ ${position}، التواصل مع زملائك في الملعب يصنع الفارق.` : `As a ${position}, communication on the pitch makes all the difference.`,
-            isAr ? `لا تنسى الإحماء جيداً قبل المباراة القادمة.` : `Don't forget to warm up properly before your next match.`
+            isAr ? `لا تنسى الإحماء جيداً قبل المباراة القادمة.` : `Don't forget to warm up properly before your next match.`,
+            isAr ? `الراحة الكافية لا تقل أهمية عن التدريب الشاق.` : `Adequate rest is just as important as hard training.`,
+            isAr ? `شرب الماء بانتظام يحافظ على لياقتك طوال الـ 90 دقيقة.` : `Staying hydrated keeps you fit for the full 90 minutes.`,
+            isAr ? `الرؤية الجيدة للملعب تأتي من رفع رأسك أثناء الاستحواذ.` : `Good pitch vision comes from keeping your head up while in possession.`,
+            isAr ? `العمل الجماعي دائماً يتفوق على المهارات الفردية.` : `Teamwork always beats individual skills.`
           ];
           
           if (stats.goals > 10) {
@@ -47,8 +53,8 @@ export default function AdviceNotification() {
           // Delay showing advice slightly for better UX
           setTimeout(() => {
             setIsVisible(true);
-            sessionStorage.setItem("adviceShown", "true");
-          }, 3000);
+            sessionStorage.setItem("adviceLastShown", Date.now().toString());
+          }, 1000);
         }
       } catch (err) {
         console.error("Failed to generate advice", err);
@@ -65,7 +71,7 @@ export default function AdviceNotification() {
           initial={{ opacity: 0, y: -50, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.9 }}
-          className="fixed top-20 right-4 md:top-24 md:right-8 z-50 max-w-sm w-full"
+          className="fixed top-20 right-4 md:top-24 md:right-8 z-50 max-w-sm w-[calc(100vw-2rem)] md:w-full"
           dir={isAr ? "rtl" : "ltr"}
         >
           <div className="bg-emerald-600 text-white rounded-2xl shadow-2xl p-4 pr-12 rtl:pr-4 rtl:pl-12 relative overflow-hidden border border-emerald-400/30">

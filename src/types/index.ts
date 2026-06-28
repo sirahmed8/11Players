@@ -1,5 +1,15 @@
 export type PESPosition = 'GK' | 'CB' | 'LB' | 'RB' | 'DMF' | 'CMF' | 'AMF' | 'LMF' | 'RMF' | 'LWF' | 'RWF' | 'SS' | 'CF';
 
+export interface EditRequest {
+  id?: string;
+  playerId: string;
+  playerName: string;
+  requestedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+  attributes?: Partial<PlayerAttributes>;
+  stats?: Partial<CommunityStats>;
+}
+
 export interface Community {
   id: string;
   name: string;

@@ -5,31 +5,43 @@ import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from 
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useLocale } from "@/components/ThemeProvider";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PendingEdits() {
+  const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const [edits, setEdits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "profileEdits"), where("status", "==", "pending"));
+    if (!activeCommunityId) return;
+    const q = query(collection(db, `communities/${activeCommunityId}/editRequests`), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const pending = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setEdits(pending);
       setLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [activeCommunityId]);
 
   const handleApprove = async (edit: any) => {
+    if (!activeCommunityId) return;
     if (!confirm(isAr ? "هل أنت متأكد من الموافقة على هذا التعديل؟" : "Are you sure you want to approve this edit?")) return;
     try {
-      // Create a copy of the edit without the metadata fields
-      const { id, status, requestedAt, ...updateData } = edit;
-      await updateDoc(doc(db, "players", edit.playerId), updateData);
-      await deleteDoc(doc(db, "profileEdits", edit.id));
+      const updateData: any = {};
+      if (edit.attributes) {
+        updateData.attributes = edit.attributes;
+      }
+      if (edit.stats) {
+        updateData[`communityStats.${activeCommunityId}`] = edit.stats;
+      }
+      
+      if (Object.keys(updateData).length > 0) {
+        await updateDoc(doc(db, "players", edit.playerId), updateData);
+      }
+      await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
       toast.success(isAr ? "تمت الموافقة على التعديل بنجاح!" : "Edit approved successfully!");
     } catch (err) {
       console.error(err);
@@ -38,9 +50,10 @@ export default function PendingEdits() {
   };
 
   const handleReject = async (edit: any) => {
+    if (!activeCommunityId) return;
     if (!confirm(isAr ? "هل أنت متأكد من رفض هذا التعديل؟" : "Are you sure you want to reject this edit?")) return;
     try {
-      await deleteDoc(doc(db, "profileEdits", edit.id));
+      await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
       toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
     } catch (err) {
       console.error(err);
@@ -68,10 +81,11 @@ export default function PendingEdits() {
               dir={isAr ? 'rtl' : 'ltr'}
             >
               <div>
-                <p className="font-bold text-slate-900 dark:text-white">{edit.fullName}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  {isAr ? "المركز الأساسي:" : "Primary Position:"} <span className="font-semibold text-emerald-600 dark:text-emerald-400">{edit.primaryPosition}</span>
-                </p>
+                <p className="font-bold text-slate-900 dark:text-white">{edit.playerName}</p>
+                <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                  {edit.attributes && <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2 py-0.5 rounded mr-2">{isAr ? "القدرات" : "Attributes"}</span>}
+                  {edit.stats && <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2 py-0.5 rounded">{isAr ? "الإحصائيات" : "Stats"}</span>}
+                </div>
                 <p className="text-xs text-slate-400 mt-1">
                   {isAr ? "طلب في:" : "Requested at:"} {new Date(edit.requestedAt).toLocaleString(isAr ? 'ar-EG' : 'en-US')}
                 </p>

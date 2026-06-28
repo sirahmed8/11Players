@@ -53,8 +53,8 @@ export default function Sidebar() {
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
-        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10" />
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 rounded-b-3xl shadow-sm">
+        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10 rounded-b-3xl" />
         <div className="flex items-center gap-3">
           <button onClick={toggleSidebar} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <Menu className="w-6 h-6" />

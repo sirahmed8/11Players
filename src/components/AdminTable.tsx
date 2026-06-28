@@ -509,7 +509,14 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                           {player.fullName.charAt(0)}
                         </div>
                       )}
-                      <span className="font-medium text-slate-900 dark:text-slate-200">{player.fullName}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium text-slate-900 dark:text-slate-200">
+                          {player.googleName || player.email?.split('@')[0] || player.fullName}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {player.fullName} • {player.cardName}
+                        </span>
+                      </div>
                     </div>
                   </td>
 

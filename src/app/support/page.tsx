@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
-import { Send, Loader2, Image as ImageIcon, X } from "lucide-react";
+import { Send, Loader2, Image as ImageIcon, X, MessageSquare, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
@@ -149,8 +149,26 @@ export default function SupportPage() {
                 <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-                <p>{isAr ? "لا توجد رسائل بعد. أرسل رسالة للبدء!" : "No messages yet. Send a message to start!"}</p>
+              <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-6 shadow-sm border border-emerald-100 dark:border-emerald-800/30">
+                  <MessageSquare className="w-12 h-12 text-emerald-500" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
+                  {isAr ? "كيف يمكننا مساعدتك؟" : "How can we help you?"}
+                </h3>
+                <p className="text-slate-500 max-w-sm mb-8 leading-relaxed">
+                  {isAr 
+                    ? "نحن هنا للإجابة على استفساراتك ومساعدتك في أي مشكلة تواجهها في المنصة."
+                    : "We are here to answer your questions and help you with any issues on the platform."}
+                </p>
+                
+                <button 
+                  onClick={() => setText(isAr ? "اريد ان انشئ المجتمع الخاص بي" : "I want to create my community")}
+                  className="bg-white dark:bg-slate-800 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold py-3 px-6 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors shadow-sm flex items-center gap-2"
+                >
+                  <Sparkles className="w-5 h-5" />
+                  {isAr ? "اريد ان انشئ المجتمع الخاص بي" : "I want to create my community"}
+                </button>
               </div>
             ) : (
               messages.map(msg => {

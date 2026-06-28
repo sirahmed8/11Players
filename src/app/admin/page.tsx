@@ -15,12 +15,13 @@ import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
 import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function AdminPage() {
+  const { user, isOwner } = useAuth();
   const { players, loading } = usePlayers();
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
@@ -102,6 +103,29 @@ export default function AdminPage() {
     generateMasterBulkPDF(players);
   };
 
+  const handleMakeMeAdmin = async () => {
+    if (!activeCommunityId || !user) return;
+    try {
+      // Look up current global player profile or create dummy structure if doesn't exist
+      const pDoc = await getDoc(doc(db, "players", user.uid));
+      const pData = pDoc.exists() ? pDoc.data() : {
+        uid: user.uid,
+        email: user.email,
+        fullName: user.displayName || 'Owner',
+        cardName: user.displayName || 'Owner',
+      };
+      await setDoc(doc(db, "communities", activeCommunityId, "players", user.uid), {
+        ...pData,
+        role: "admin",
+        joinedAt: new Date().toISOString()
+      }, { merge: true });
+      toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add admin");
+    }
+  };
+
 
   return (
     <ProtectedRoute adminOnly requireCommunity={false}>
@@ -138,6 +162,14 @@ export default function AdminPage() {
               >
                 {isAr ? "تصدير بطاقات الجميع PDF" : "Export Bulk PDF"}
               </button>
+              {(isOwner || players.length === 0) && (
+                <button
+                  onClick={handleMakeMeAdmin}
+                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-sm whitespace-nowrap"
+                >
+                  {isAr ? "تعيين كمسؤول (تزامن)" : "Make me Admin"}
+                </button>
+              )}
               <button
                 onClick={handleGenerateDummyPlayers}
                 disabled={isGeneratingDummy}
