@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
 export default function CommunitiesPage() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { activeCommunityId, setActiveCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
@@ -21,25 +21,59 @@ export default function CommunitiesPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordInput, setPasswordInput] = useState<{ [key: string]: string }>({});
+  const [userProfile, setUserProfile] = useState<any>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchCommunities = async () => {
+    const fetchData = async () => {
       try {
         const snap = await getDocs(collection(db, "communities"));
-        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as Community));
+        const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Community));
         setCommunities(data);
+
+        if (user) {
+          const { doc, getDoc } = await import("firebase/firestore");
+          const userDoc = await getDoc(doc(db, "players", user.uid));
+          if (userDoc.exists()) {
+            setUserProfile(userDoc.data());
+          }
+        }
       } catch (err) {
-        console.error("Failed to fetch communities", err);
+        console.error("Failed to fetch data", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchCommunities();
-  }, []);
+    fetchData();
+  }, [user]);
 
   const handleJoin = async (community: Community) => {
     if (!user) {
       toast.error(isAr ? "يجب تسجيل الدخول أولاً" : "Must be logged in to join");
+      return;
+    }
+
+    if (!userProfile) {
+      toast.error(isAr ? "يجب إكمال ملفك الشخصي أولاً" : "Must complete your profile first");
+      router.push("/onboarding");
+      return;
+    }
+
+    const { doc, setDoc, updateDoc, arrayUnion } = await import("firebase/firestore");
+
+    // Check if they are already a member or admin
+    const isMember = userProfile.memberCommunities?.includes(community.id) || community.adminUid === user.uid || isOwner;
+
+    if (isMember) {
+      setActiveCommunityId(community.id);
+      toast.success(isAr ? `تم دخول مجتمع ${community.name}` : `Entered ${community.name} community`);
+      router.push("/community");
+      return;
+    }
+
+    // Check if already pending
+    if (userProfile.pendingCommunities?.includes(community.id)) {
+      toast.success(isAr ? "طلبك قيد المراجعة" : "Your request is pending approval");
       return;
     }
 
@@ -51,9 +85,27 @@ export default function CommunitiesPage() {
       }
     }
 
-    setActiveCommunityId(community.id);
-    toast.success(isAr ? `تم دخول مجتمع ${community.name}` : `Entered ${community.name} community`);
-    router.push("/community");
+    setActionLoading(community.id);
+    try {
+      // 1. Add to community's joinRequests collection
+      await setDoc(doc(db, "communities", community.id, "joinRequests", user.uid), {
+        ...userProfile,
+        requestedAt: new Date().toISOString()
+      });
+
+      // 2. Add to user's global pendingCommunities
+      await updateDoc(doc(db, "players", user.uid), {
+        pendingCommunities: arrayUnion(community.id)
+      });
+
+      setUserProfile((prev: any) => ({ ...prev, pendingCommunities: [...(prev?.pendingCommunities || []), community.id] }));
+      toast.success(isAr ? "تم إرسال طلب الانضمام! في انتظار موافقة المسؤول." : "Join request sent! Waiting for admin approval.");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل إرسال الطلب" : "Failed to send request");
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   return (
@@ -84,22 +136,43 @@ export default function CommunitiesPage() {
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">{c.description}</p>
                 
-                {c.isPrivate && activeCommunityId !== c.id && (
-                  <input 
-                    type="password"
-                    placeholder={isAr ? "كلمة المرور" : "Password"}
-                    className="w-full mb-3 px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
-                    value={passwordInput[c.id] || ""}
-                    onChange={(e) => setPasswordInput({ ...passwordInput, [c.id]: e.target.value })}
-                  />
-                )}
+                {(() => {
+                  const isMember = userProfile?.memberCommunities?.includes(c.id) || c.adminUid === user?.uid || isOwner;
+                  const isPending = userProfile?.pendingCommunities?.includes(c.id);
+                  const isCurrent = activeCommunityId === c.id;
 
-                <button 
-                  onClick={() => handleJoin(c)}
-                  className={`w-full py-2 rounded-xl font-bold transition-colors ${activeCommunityId === c.id ? 'bg-emerald-600 text-white shadow-lg' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`}
-                >
-                  {activeCommunityId === c.id ? (isAr ? "المجتمع النشط الآن" : "Currently Active") : (isAr ? "دخول" : "Enter Community")}
-                </button>
+                  return (
+                    <>
+                      {c.isPrivate && !isMember && !isPending && !isCurrent && (
+                        <input 
+                          type="password"
+                          placeholder={isAr ? "كلمة المرور" : "Password"}
+                          className="w-full mb-3 px-3 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm"
+                          value={passwordInput[c.id] || ""}
+                          onChange={(e) => setPasswordInput({ ...passwordInput, [c.id]: e.target.value })}
+                        />
+                      )}
+
+                      <button 
+                        onClick={() => handleJoin(c)}
+                        disabled={isPending || actionLoading === c.id}
+                        className={`w-full py-2 rounded-xl font-bold transition-colors disabled:opacity-50 ${isCurrent ? 'bg-emerald-600 text-white shadow-lg' : isPending ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                      >
+                        {actionLoading === c.id ? (
+                          <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                        ) : isCurrent ? (
+                          isAr ? "المجتمع النشط الآن" : "Currently Active"
+                        ) : isPending ? (
+                          isAr ? "قيد المراجعة" : "Pending Approval"
+                        ) : isMember ? (
+                          isAr ? "دخول" : "Enter"
+                        ) : (
+                          isAr ? "طلب انضمام" : "Join Request"
+                        )}
+                      </button>
+                    </>
+                  );
+                })()}
               </div>
             ))}
             {communities.length === 0 && (

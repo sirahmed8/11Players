@@ -45,6 +45,8 @@ export interface PlayerAttributes {
 
 export interface PlayerProfile {
   uid: string;
+  email?: string;
+  googlePic?: string;
   fullName: string;
   cardName: string;
   dateOfBirth: string; // YYYY-MM-DD
@@ -55,6 +57,8 @@ export interface PlayerProfile {
   primaryPosition: PESPosition;
   secondaryPosition: PESPosition;
   tertiaryPosition: PESPosition;
+  memberCommunities?: string[];
+  pendingCommunities?: string[];
   attributes: PlayerAttributes;
   selfAttributes?: PlayerAttributes;
   approvedAttributes?: PlayerAttributes;

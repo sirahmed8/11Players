@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
+import FormIcon from './FormIcon';
 
 interface PlayerCardProps {
   player: PlayerProfile;
@@ -85,21 +86,25 @@ export default function PlayerCard({ player }: PlayerCardProps) {
               {player.cardName}
             </h3>
             {player.form && (
-              <span className="text-sm" title="Current Form">
-                {player.form}
-              </span>
+              <div title="Current Form" className="bg-slate-900/40 rounded-full p-0.5">
+                <FormIcon form={player.form} className="w-3.5 h-3.5" />
+              </div>
             )}
           </div>
 
-          {/* Physical Info */}
+          {/* Physical Info & Play Style */}
           <div className="flex gap-2 text-[10px] text-amber-100/80 mt-1 uppercase font-semibold">
             <span>{player.height} cm</span>
             <span>•</span>
             <span>{player.weight} kg</span>
             <span>•</span>
             <span>{player.calculatedAge} y.o</span>
-            <span>•</span>
-            <span>{getFootIndicator(player.preferredFoot)}</span>
+            {player.playStyle && (
+              <>
+                <span>•</span>
+                <span className="text-amber-300 font-bold">{player.playStyle}</span>
+              </>
+            )}
           </div>
         </div>
 

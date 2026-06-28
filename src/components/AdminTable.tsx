@@ -381,13 +381,22 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!playerToDelete || !activeCommunityId) return;
     setLoadingUid('deleting-' + playerToDelete.uid);
     try {
+      const { arrayRemove } = await import('firebase/firestore');
+      
+      // Remove from community players
       await deleteDoc(doc(db, 'communities', activeCommunityId, 'players', playerToDelete.uid));
-      toast.success(t(locale, "Player deleted successfully!", "تم حذف اللاعب بنجاح!"));
+      
+      // Update global profile
+      await updateDoc(doc(db, 'players', playerToDelete.uid), {
+        memberCommunities: arrayRemove(activeCommunityId)
+      });
+
+      toast.success(t(locale, "Player kicked successfully!", "تم طرد اللاعب بنجاح!"));
       setPlayerToDelete(null);
       onRefresh();
     } catch (error) {
       console.error(error);
-      toast.error(t(locale, 'Error deleting player', 'حدث خطأ أثناء حذف اللاعب'));
+      toast.error(t(locale, 'Error kicking player', 'حدث خطأ أثناء طرد اللاعب'));
     } finally {
       setLoadingUid(null);
     }

@@ -93,6 +93,7 @@ export default function Sidebar() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
                   isActive
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
@@ -108,6 +109,7 @@ export default function Sidebar() {
           {isAdmin && (
             <Link
               href="/admin"
+              onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
                 pathname.startsWith("/admin")
                   ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
@@ -122,6 +124,7 @@ export default function Sidebar() {
           {isOwner && (
             <Link
               href="/owner"
+              onClick={() => setIsOpen(false)}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
                 pathname.startsWith("/owner")
                   ? "bg-red-500 text-white shadow-md shadow-red-500/20"

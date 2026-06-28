@@ -9,6 +9,7 @@ import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import GlobalUsersTable from "@/components/GlobalUsersTable";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -190,9 +191,17 @@ export default function OwnerPage() {
                   </label>
                   <AnimatePresence>
                     {isPrivate && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} className="overflow-hidden">
-                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300 mt-2">Password</label>
-                        <input required value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
+                      <motion.div 
+                        initial={{ opacity: 0, height: 0 }} 
+                        animate={{ opacity: 1, height: 'auto' }} 
+                        exit={{ opacity: 0, height: 0 }} 
+                        transition={{ duration: 0.3, ease: "easeInOut" }} 
+                        className="overflow-hidden"
+                      >
+                        <div className="p-1 -m-1">
+                          <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300 mt-1">Password</label>
+                          <input required value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -213,7 +222,7 @@ export default function OwnerPage() {
               </div>
             </div>
 
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <h2 className="text-xl font-bold mb-4">{isAr ? "المجتمعات الحالية" : "Active Communities"}</h2>
                 {loading ? <p>Loading...</p> : (
@@ -234,6 +243,8 @@ export default function OwnerPage() {
                   </div>
                 )}
               </div>
+
+              <GlobalUsersTable />
             </div>
           </div>
         </main>

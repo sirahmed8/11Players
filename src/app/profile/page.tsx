@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale } from "@/components/ThemeProvider";
 import PlayerCard from "@/components/PlayerCard";
+import FormIcon from "@/components/FormIcon";
 import { PlayerProfile } from "@/types";
 import { generateProfilePDF } from "@/lib/pdf";
 import EditProfileModal from "@/components/EditProfileModal";
@@ -266,10 +267,10 @@ function PlayerProfileContent() {
                               console.error("Failed to update form", e);
                             }
                           }}
-                          className={`text-2xl hover:scale-125 transition-transform ${player.form === arrow ? 'bg-amber-100 dark:bg-amber-500/20 rounded-full border border-amber-400 dark:border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'opacity-40 hover:opacity-100 grayscale hover:grayscale-0'}`}
-                          title={isAr ? `تحديث الحالة إلى ${arrow}` : `Update form to ${arrow}`}
+                          className={`p-1.5 hover:scale-125 transition-transform ${player.form === arrow ? 'bg-slate-200 dark:bg-slate-700 rounded-full border border-slate-300 dark:border-slate-600 shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'opacity-40 hover:opacity-100 grayscale hover:grayscale-0'}`}
+                          title={isAr ? `تحديث الحالة` : `Update form`}
                         >
-                          {arrow}
+                          <FormIcon form={arrow} className="w-6 h-6" />
                         </button>
                       ))}
                     </div>

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import FormIcon from './FormIcon';
 
 interface PlayerCardCompactProps {
   player: PlayerProfile;
@@ -43,6 +44,11 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
             <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">
               {player.cardName}
             </h3>
+            {player.form && (
+              <div title="Current Form" className="bg-slate-100 dark:bg-slate-700/50 rounded-full p-0.5">
+                <FormIcon form={player.form} className="w-3.5 h-3.5" />
+              </div>
+            )}
             {player.hasWarning && (
               <span className="text-[10px] bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 px-1.5 py-0.5 rounded font-bold">
                 ⚠
@@ -53,6 +59,11 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
             <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
               {player.primaryPosition}
             </span>
+            {player.playStyle && (
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+                {player.playStyle}
+              </span>
+            )}
             {player.secondaryPosition && (
               <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                 {player.secondaryPosition}

@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
+import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminTable from "@/components/AdminTable";
 import MatchmakingModal from "@/components/MatchmakingModal";
@@ -11,12 +12,14 @@ import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
+import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export default function AdminPage() {
   const { players, loading } = usePlayers();
+  const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
@@ -28,6 +31,7 @@ export default function AdminPage() {
 
   const handleMatchmaking = async (config: MatchConfig) => {
     try {
+      if (!activeCommunityId) throw new Error("No active community selected");
       setMatchmakingLoading(true);
       setMatchmakingError("");
       
@@ -59,7 +63,7 @@ export default function AdminPage() {
 
       // Save to Firestore
       try {
-        await setDoc(doc(db, "system", "latestMatch"), matchData);
+        await setDoc(doc(db, "communities", activeCommunityId, "system", "latestMatch"), matchData);
       } catch (err) {
         console.error("Failed to save match to database:", err);
       }
@@ -73,6 +77,28 @@ export default function AdminPage() {
   const handleBulkPdf = () => {
     generateMasterBulkPDF(players);
   };
+
+  if (!activeCommunityId) {
+    return (
+      <ProtectedRoute adminOnly requireCommunity>
+        <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
+              {isAr ? "الرجاء اختيار مجتمع" : "Select a Community"}
+            </h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">
+              {isAr 
+                ? "يجب عليك اختيار مجتمع من صفحة المجتمعات للوصول إلى لوحة الإدارة."
+                : "You must select a community from the Communities page to access the admin dashboard."}
+            </p>
+            <a href="/communities" className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+              {isAr ? "الذهاب للمجتمعات" : "Go to Communities"}
+            </a>
+          </div>
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute adminOnly requireCommunity>
@@ -108,6 +134,7 @@ export default function AdminPage() {
             </div>
           )}
 
+          <PendingRequests />
           <PendingEdits />
 
           {loading ? (

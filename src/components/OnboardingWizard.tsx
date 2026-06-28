@@ -375,6 +375,8 @@ export default function OnboardingWizard() {
     try {
       const profile: PlayerProfile = {
         uid: user.uid,
+        email: user.email || '',
+        googlePic: user.photoURL || '',
         fullName: `${state.firstName.trim()} ${state.lastName.trim()}`,
         cardName: state.cardName.trim().toUpperCase(),
         dateOfBirth: state.dateOfBirth,
@@ -391,6 +393,8 @@ export default function OnboardingWizard() {
         photoUrl: state.photoUrl || '',
         isVerifiedByAdmin: false,
         hasWarning: false,
+        memberCommunities: [],
+        pendingCommunities: [],
         stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
       };
 
