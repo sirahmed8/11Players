@@ -10,6 +10,7 @@ import MatchmakingModal from "@/components/MatchmakingModal";
 import { AnimatePresence } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
+import { generateDummyPlayersForCommunity } from "@/lib/dummyData";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
 import PendingRequests from "@/components/PendingRequests";
@@ -29,6 +30,24 @@ export default function AdminPage() {
   const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isGeneratingDummy, setIsGeneratingDummy] = useState(false);
+
+  const handleGenerateDummyPlayers = async () => {
+    if (!activeCommunityId) return;
+    const confirmed = window.confirm(isAr ? "هل أنت متأكد من إنشاء 32 لاعب وهمي؟" : "Are you sure you want to generate 32 dummy players?");
+    if (!confirmed) return;
+
+    setIsGeneratingDummy(true);
+    try {
+      await generateDummyPlayersForCommunity(activeCommunityId);
+      alert(isAr ? "تم إنشاء 32 لاعب بنجاح!" : "Successfully generated 32 players!");
+    } catch (err) {
+      console.error(err);
+      alert(isAr ? "فشل الإنشاء" : "Failed to generate players.");
+    } finally {
+      setIsGeneratingDummy(false);
+    }
+  };
 
   const handleMatchmaking = async (config: MatchConfig) => {
     try {
@@ -114,6 +133,13 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold rounded-lg shadow-sm whitespace-nowrap"
               >
                 {isAr ? "تصدير بطاقات الجميع PDF" : "Export Bulk PDF"}
+              </button>
+              <button
+                onClick={handleGenerateDummyPlayers}
+                disabled={isGeneratingDummy}
+                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm disabled:opacity-50 whitespace-nowrap"
+              >
+                {isGeneratingDummy ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "إنشاء 32 لاعب وهمي" : "Generate 32 Players")}
               </button>
               <button
                 onClick={() => setIsConfigModalOpen(true)}

@@ -87,10 +87,10 @@ export default function Sidebar() {
         } ${isAr ? "right-0 left-auto rounded-l-3xl md:rounded-3xl md:mx-4" : "left-0 right-auto rounded-r-3xl md:rounded-3xl md:mx-4"}`}
         style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
       >
-        <div className="w-full h-full flex flex-col overflow-y-auto overflow-x-hidden hide-scrollbar relative">
+        <div className="w-full h-full flex flex-col relative">
           
-          {/* Logo Area (Sticky) */}
-          <div className={`sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 ${isAr ? "rounded-tl-3xl md:rounded-t-3xl" : "rounded-tr-3xl md:rounded-t-3xl"}`} style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+          {/* Logo Area (Fixed Header) */}
+          <div className={`flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 ${isAr ? "rounded-tl-3xl md:rounded-t-3xl" : "rounded-tr-3xl md:rounded-t-3xl"}`} style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             <Link href="/communities" className="flex items-center gap-3">
               <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
@@ -101,7 +101,7 @@ export default function Sidebar() {
           </div>
 
           {/* Links */}
-          <div className="py-6 px-4 flex flex-col gap-2 z-10 flex-1">
+          <div className="py-6 px-4 flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
             {links.map((link) => {
               const baseHref = link.href.split("?")[0];
               const cleanPathname = pathname.replace(/\/$/, '');
@@ -169,8 +169,8 @@ export default function Sidebar() {
             )}
           </div>
 
-          {/* Settings Area (Sticky) */}
-          <div className="sticky bottom-0 z-20 mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+          {/* Settings Area (Fixed Footer) */}
+          <div className="mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             <SettingsMenu direction="up" />
           </div>
         </div>
