@@ -6,7 +6,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, writeBatch, doc, updateDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight } from "lucide-react";
+import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -30,6 +30,7 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all");
+  const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   
   const isAr = locale === "ar";
 
@@ -170,23 +171,51 @@ export default function NotificationsPage() {
               </button>
             </div>
             
-            <div className="relative min-w-[200px] z-20 group">
-              <div className={`absolute inset-y-0 ${isAr ? "left-0" : "right-0"} flex items-center px-4 pointer-events-none text-slate-500 group-hover:text-emerald-500 transition-colors`}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
-              <select 
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value as NotificationType | "all")}
-                className={`w-full appearance-none bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 text-slate-700 dark:text-slate-200 py-3 ${isAr ? "pr-4 pl-12" : "pl-4 pr-12"} rounded-xl font-bold cursor-pointer outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all`}
+            <div className="relative min-w-[200px] z-20">
+              <button 
+                onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
+                className="w-full flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 px-4 py-3 rounded-xl shadow-sm hover:border-emerald-500 transition-colors focus:outline-none focus:ring-4 focus:ring-emerald-500/20"
               >
-                <option value="all">{isAr ? "جميع الأنواع" : "All Types"}</option>
-                <option value="advices">{isAr ? "نصائح" : "Advices"}</option>
-                <option value="admin">{isAr ? "المسؤول" : "Admin"}</option>
-                <option value="owner">{isAr ? "المالك" : "Owner"}</option>
-                <option value="updates">{isAr ? "تحديثات" : "Updates"}</option>
-                <option value="stats">{isAr ? "إحصائيات" : "Stats"}</option>
-                <option value="trophies">{isAr ? "ألقاب" : "Trophies"}</option>
-              </select>
+                <span className="font-bold text-slate-700 dark:text-slate-200">
+                  {typeFilter === "all" ? (isAr ? "جميع الأنواع" : "All Types") :
+                   typeFilter === "advices" ? (isAr ? "نصائح" : "Advices") :
+                   typeFilter === "admin" ? (isAr ? "المسؤول" : "Admin") :
+                   typeFilter === "owner" ? (isAr ? "المالك" : "Owner") :
+                   typeFilter === "updates" ? (isAr ? "تحديثات" : "Updates") :
+                   typeFilter === "stats" ? (isAr ? "إحصائيات" : "Stats") :
+                   typeFilter === "trophies" ? (isAr ? "ألقاب" : "Trophies") : ""}
+                </span>
+                <motion.div animate={{ rotate: isTypeDropdownOpen ? 180 : 0 }}>
+                  <ChevronDown className="w-5 h-5 text-slate-500" />
+                </motion.div>
+              </button>
+              
+              <AnimatePresence>
+                {isTypeDropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }}
+                    className={`absolute z-30 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden ${isAr ? "right-0" : "left-0"}`}
+                  >
+                    {(["all", "advices", "admin", "owner", "updates", "stats", "trophies"] as const).map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => { setTypeFilter(t as NotificationType | "all"); setIsTypeDropdownOpen(false); }}
+                        className={`block w-full text-start px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700 font-bold transition-colors ${typeFilter === t ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/10" : "text-slate-700 dark:text-slate-300"}`}
+                      >
+                        {t === "all" ? (isAr ? "جميع الأنواع" : "All Types") :
+                         t === "advices" ? (isAr ? "نصائح" : "Advices") :
+                         t === "admin" ? (isAr ? "المسؤول" : "Admin") :
+                         t === "owner" ? (isAr ? "المالك" : "Owner") :
+                         t === "updates" ? (isAr ? "تحديثات" : "Updates") :
+                         t === "stats" ? (isAr ? "إحصائيات" : "Stats") :
+                         t === "trophies" ? (isAr ? "ألقاب" : "Trophies") : ""}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
