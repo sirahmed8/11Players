@@ -189,22 +189,16 @@ export default function OwnerPage() {
                     <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Private</span>
                   </label>
-                  <AnimatePresence>
-                    {isPrivate && (
-                      <motion.div 
-                        initial={{ opacity: 0, height: 0 }} 
-                        animate={{ opacity: 1, height: 'auto' }} 
-                        exit={{ opacity: 0, height: 0 }} 
-                        transition={{ duration: 0.2 }} 
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-2 px-1 pb-1">
-                          <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
-                          <input required value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div 
+                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isPrivate ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="pt-2">
+                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
+                        <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
+                      </div>
+                    </div>
+                  </div>
                   <button disabled={creating} className="w-full py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700">
                     {creating ? "Creating..." : "Create"}
                   </button>

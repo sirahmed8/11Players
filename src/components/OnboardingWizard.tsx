@@ -376,9 +376,10 @@ export default function OnboardingWizard() {
       const profile: PlayerProfile = {
         uid: user.uid,
         email: user.email || '',
-        googlePic: user.photoURL || '',
         fullName: `${state.firstName.trim()} ${state.lastName.trim()}`,
         cardName: state.cardName.trim().toUpperCase(),
+        googlePic: user.photoURL || '',
+        googleName: user.displayName || '',
         dateOfBirth: state.dateOfBirth,
         calculatedAge: state.calculatedAge,
         height: state.height,
