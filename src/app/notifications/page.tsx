@@ -10,6 +10,7 @@ import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown } fr
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import { generatePersonalizedAdvices } from "@/lib/adviceGenerator";
 
 type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
 
@@ -41,6 +42,15 @@ export default function NotificationsPage() {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
+
+    // Fetch user profile and generate advice
+    import("firebase/firestore").then(({ doc, getDoc }) => {
+      getDoc(doc(db, "players", user.uid)).then(snap => {
+        if (snap.exists()) {
+          generatePersonalizedAdvices(user.uid, snap.data() as any, isAr);
+        }
+      });
+    });
 
     const q = query(
       collection(db, "users", user.uid, "notifications"),

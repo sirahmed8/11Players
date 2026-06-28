@@ -116,4 +116,5 @@ export interface PlayerProfile {
   // Community-specific stats stored on the root player document for easy access
   // Record<communityId, CommunityStats>
   communityStats?: Record<string, CommunityStats>;
+  defaultPage?: string;
 }

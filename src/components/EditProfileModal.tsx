@@ -96,6 +96,22 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             {isRTL ? 'تعديل الملف الشخصي' : 'Edit Profile'}
           </h2>
 
+          <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 flex gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <span className="text-xl">⚠️</span>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-amber-800 dark:text-amber-500 mb-1">
+                {isRTL ? "تنبيه هام" : "Important Warning"}
+              </h3>
+              <p className="text-xs text-amber-700 dark:text-amber-600 font-medium leading-relaxed">
+                {isRTL 
+                  ? "يرجى تحري الدقة والصدق عند إدخال بياناتك (كالطول والوزن وغيرها). سيتم مراجعة هذه البيانات من قبل الإدارة، وأي معلومات مضللة قد تؤدي إلى حظر الحساب." 
+                  : "Please be accurate and honest when entering your details (like height, weight, etc.). This data will be reviewed by admins, and any misleading information may result in an account ban."}
+              </p>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
+import { generateDummyPlayersForCommunity } from '@/lib/dummyData';
 import EditProfileModal from './EditProfileModal';
 import { useLocale } from '@/components/ThemeProvider';
 import AttributeSliders from '@/components/AttributeSliders';
@@ -166,63 +167,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     setLoadingUid('generating-players');
     setShowGenerateModal(false);
     try {
-      const positions = ['CF', 'SS', 'RWF', 'LWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
-      const styles = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Creative Playmaker', 'Box-to-Box', 'Anchor Man', 'Build Up', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
-      
-      const batch = writeBatch(db);
-      
-      Array.from({ length: 32 }).forEach((_, i) => {
-        if (!activeCommunityId) return;
-        const uid = `test-player-${Date.now()}-${i}`;
-        const pos = positions[Math.floor(Math.random() * positions.length)];
-        const docRef = doc(db, 'communities', activeCommunityId, 'players', uid);
-        batch.set(docRef, {
-          uid,
-          fullName: `Test Player ${i+1}`,
-          cardName: `TEST ${i+1}`,
-          email: `test${i}@example.com`,
-          dateOfBirth: `199${Math.floor(Math.random() * 9)}-01-01`,
-          calculatedAge: 25 + Math.floor(Math.random() * 10),
-          height: 170 + Math.floor(Math.random() * 30),
-          weight: 65 + Math.floor(Math.random() * 25),
-          primaryPosition: pos,
-          secondaryPosition: positions[Math.floor(Math.random() * positions.length)],
-          tertiaryPosition: positions[Math.floor(Math.random() * positions.length)],
-          preferredFoot: Math.random() > 0.5 ? 'Right' : 'Left',
-          playStyle: styles[Math.floor(Math.random() * styles.length)],
-          attributes: {
-            offensiveAwareness: 40 + Math.floor(Math.random() * 55),
-            ballControl: 40 + Math.floor(Math.random() * 55),
-            dribbling: 40 + Math.floor(Math.random() * 55),
-            lowPass: 40 + Math.floor(Math.random() * 55),
-            loftedPass: 40 + Math.floor(Math.random() * 55),
-            finishing: 40 + Math.floor(Math.random() * 55),
-            heading: 40 + Math.floor(Math.random() * 55),
-            speed: 40 + Math.floor(Math.random() * 55),
-            acceleration: 40 + Math.floor(Math.random() * 55),
-            kickingPower: 40 + Math.floor(Math.random() * 55),
-            jump: 40 + Math.floor(Math.random() * 55),
-            physicalContact: 40 + Math.floor(Math.random() * 55),
-            balance: 40 + Math.floor(Math.random() * 55),
-            stamina: 40 + Math.floor(Math.random() * 55),
-            defensiveAwareness: 40 + Math.floor(Math.random() * 55),
-            ballWinning: 40 + Math.floor(Math.random() * 55),
-            goalkeeping: pos === 'GK' ? 40 + Math.floor(Math.random() * 55) : 40,
-          },
-          stats: {
-            goals: Math.floor(Math.random() * 20),
-            assists: Math.floor(Math.random() * 15),
-            mvp: Math.floor(Math.random() * 5),
-            matchesPlayed: Math.floor(Math.random() * 30),
-            rating: 5.0 + Math.random() * 4.9
-          },
-          hasWarning: false,
-          isVerifiedByAdmin: true,
-          isMockData: true,
-          createdAt: new Date().toISOString()
-        });
-      });
-      await batch.commit();
+      if (!activeCommunityId) return;
+      await generateDummyPlayersForCommunity(activeCommunityId);
       onRefresh();
       toast.success(t(locale, "Successfully generated 32 players!", "تم إنشاء 32 لاعب بنجاح!"));
     } catch (error) {
@@ -237,7 +183,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     setLoadingUid('deleting-mock');
     setShowDeleteMockModal(false);
     try {
-      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-'));
+      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-') || p.uid.startsWith('dummy_'));
       if (mockPlayers.length === 0) {
         toast.success(t(locale, 'No mock players found', 'لا يوجد لاعبين وهميين'));
         setLoadingUid(null);
@@ -247,6 +193,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       mockPlayers.forEach(p => {
         if (!activeCommunityId) return;
         batch.delete(doc(db, 'communities', activeCommunityId, 'players', p.uid));
+        batch.delete(doc(db, 'players', p.uid));
       });
       await batch.commit();
       onRefresh();

@@ -42,7 +42,12 @@ export default function Home() {
     try {
       const playerDoc = await getDoc(doc(db, "players", uid));
       if (playerDoc.exists()) {
-        router.push("/communities");
+        const data = playerDoc.data();
+        if (data.defaultPage) {
+          router.push(data.defaultPage);
+        } else {
+          router.push("/communities");
+        }
       } else {
         router.push("/onboarding");
       }

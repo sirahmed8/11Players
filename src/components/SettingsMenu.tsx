@@ -2,8 +2,10 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Globe, Sun, Moon, LogOut, User } from "lucide-react";
+import { Settings, Globe, Sun, Moon, LogOut, User, Home } from "lucide-react";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +26,30 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const [defaultPage, setDefaultPage] = useState("/communities");
+
+  useEffect(() => {
+    if (user) {
+      getDoc(doc(db, "players", user.uid)).then(snap => {
+        if (snap.exists() && snap.data().defaultPage) {
+          setDefaultPage(snap.data().defaultPage);
+        }
+      });
+    }
+  }, [user]);
+
+  const handleDefaultPageChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const page = e.target.value;
+    setDefaultPage(page);
+    if (user) {
+      try {
+        await updateDoc(doc(db, "players", user.uid), { defaultPage: page });
+      } catch (err) {
+        console.error("Failed to save default page", err);
+      }
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -122,6 +148,23 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
 
               {user && (
                 <>
+                  <div className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <Home className="w-4 h-4 text-blue-500" />
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                        {isAr ? "الرئيسية" : "Main Page"}
+                      </span>
+                    </div>
+                    <select 
+                      value={defaultPage} 
+                      onChange={handleDefaultPageChange}
+                      className="bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs rounded-lg px-2 py-1 outline-none focus:border-emerald-500 text-slate-700 dark:text-slate-200"
+                    >
+                      <option value="/communities">{isAr ? "المجتمعات" : "Communities"}</option>
+                      <option value="/community">{isAr ? "مجتمعي" : "My Community"}</option>
+                      <option value="/profile">{isAr ? "حسابي" : "Profile"}</option>
+                    </select>
+                  </div>
                   <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-1" />
                   <button
                     onClick={handleLogout}

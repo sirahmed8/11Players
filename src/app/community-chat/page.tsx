@@ -263,7 +263,7 @@ export default function CommunityChatPage() {
                               <img src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" />
                             </div>
                           )}
-                          {msg.text && <p>{msg.text}</p>}
+                          {msg.text && <p className="text-start" dir="auto">{msg.text}</p>}
                           
                           {/* Quick Actions (Hover) */}
                           <div className={`absolute top-0 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700 p-1 ${isMe ? 'right-0' : 'left-0'}`}>
@@ -346,7 +346,8 @@ export default function CommunityChatPage() {
                     onChange={e => setText(e.target.value)}
                     placeholder={cooldown > 0 ? (isAr ? `انتظر ${cooldown}ث` : `Wait ${cooldown}s`) : (isAr ? "اكتب رسالتك..." : "Type a message...")}
                     disabled={cooldown > 0 || uploadingImage}
-                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm p-1 disabled:opacity-50"
+                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm p-1 disabled:opacity-50 text-start"
+                    dir="auto"
                   />
                 </div>
               </div>

@@ -134,7 +134,7 @@ export default function CommunitiesPage() {
                     <span className="text-xs bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded">🌍 {isAr ? "عام" : "Public"}</span>
                   )}
                 </div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1">{c.description}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1 text-start" dir="auto">{c.description}</p>
                 
                 {(() => {
                   const isMember = userProfile?.memberCommunities?.includes(c.id) || c.adminUid === user?.uid || isOwner;

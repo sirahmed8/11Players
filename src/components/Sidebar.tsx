@@ -82,92 +82,97 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <div
-        className={`fixed md:sticky top-0 md:top-4 left-0 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden shadow-2xl shadow-black/20 ${
-          isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        className={`fixed md:sticky top-0 md:top-4 left-0 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl shadow-black/20 ${
+          isOpen ? "translate-x-0" : isAr ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${isAr ? "right-0 left-auto rounded-l-3xl md:rounded-3xl md:mx-4" : "left-0 right-auto rounded-r-3xl md:rounded-3xl md:mx-4"}`}
         style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
       >
-        {/* Logo Area */}
-        <div className="flex-shrink-0 z-20 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 sticky top-0 bg-white/70 dark:bg-slate-900/70" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
-          <Link href="/communities" className="flex items-center gap-3">
-            <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
-            <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
-          </Link>
-          <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
+        <div className="w-full h-full flex flex-col overflow-y-auto overflow-x-hidden hide-scrollbar relative">
+          
+          {/* Logo Area (Sticky) */}
+          <div className="sticky top-0 z-20 flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+            <Link href="/communities" className="flex items-center gap-3">
+              <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
+              <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
+            </Link>
+            <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar py-6 px-2 mx-2 flex flex-col gap-2">
-          {links.map((link) => {
-            const baseHref = link.href.split("?")[0];
-            const cleanPathname = pathname.replace(/\/$/, '');
-            const isActive = cleanPathname === baseHref || (baseHref !== "/community" && cleanPathname.startsWith(baseHref + "/"));
-            return (
+          {/* Links */}
+          <div className="py-6 px-4 flex flex-col gap-2 z-10 flex-1">
+            {links.map((link) => {
+              const baseHref = link.href.split("?")[0];
+              const cleanPathname = pathname.replace(/\/$/, '');
+              const isActive = cleanPathname === baseHref || (baseHref !== "/community" && cleanPathname.startsWith(baseHref + "/"));
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
+                    isActive
+                      ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  }`}
+                >
+                  {link.icon}
+                  <span>{isAr ? link.labelAr : link.labelEn}</span>
+                </Link>
+              );
+            })}
+
+            {isOwner && (
               <Link
-                key={link.href}
-                href={link.href}
+                href="/users"
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                  isActive
-                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
+                  pathname.startsWith("/users")
+                    ? "bg-slate-800 text-white shadow-md shadow-slate-900/20"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
-                {link.icon}
-                <span>{isAr ? link.labelAr : link.labelEn}</span>
+                <Users className="w-5 h-5" />
+                <span>{isAr ? "المستخدمين" : "Users"}</span>
               </Link>
-            );
-          })}
+            )}
 
-          {isOwner && (
-            <Link
-              href="/users"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
-                pathname.startsWith("/users")
-                  ? "bg-slate-800 text-white shadow-md shadow-slate-900/20"
-                  : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-              }`}
-            >
-              <Users className="w-5 h-5" />
-              <span>{isAr ? "المستخدمين" : "Users"}</span>
-            </Link>
-          )}
+            {isAdmin && (
+              <Link
+                href="/admin"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
+                  pathname.startsWith("/admin")
+                    ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
+                    : "text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
+                }`}
+              >
+                <ShieldAlert className="w-5 h-5" />
+                <span>{isAr ? "إدارة المجتمع" : "Admin"}</span>
+              </Link>
+            )}
 
-          {isAdmin && (
-            <Link
-              href="/admin"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
-                pathname.startsWith("/admin")
-                  ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
-                  : "text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-              }`}
-            >
-              <ShieldAlert className="w-5 h-5" />
-              <span>{isAr ? "إدارة المجتمع" : "Admin"}</span>
-            </Link>
-          )}
+            {isOwner && (
+              <Link
+                href="/owner"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
+                  pathname.startsWith("/owner")
+                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
+                    : "text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
+                }`}
+              >
+                <ShieldAlert className="w-5 h-5" />
+                <span>{isAr ? "المالك" : "Owner"}</span>
+              </Link>
+            )}
+          </div>
 
-          {isOwner && (
-            <Link
-              href="/owner"
-              onClick={() => setIsOpen(false)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                pathname.startsWith("/owner")
-                  ? "bg-red-500 text-white shadow-md shadow-red-500/20"
-                  : "text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-              }`}
-            >
-              <ShieldAlert className="w-5 h-5" />
-              <span>{isAr ? "المالك" : "Owner"}</span>
-            </Link>
-          )}
-        </div>
-
-        <div className="mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 hidden md:block">
-          <SettingsMenu direction="up" />
+          {/* Settings Area (Sticky) */}
+          <div className="sticky bottom-0 z-20 mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+            <SettingsMenu direction="up" />
+          </div>
         </div>
       </div>
     </>
