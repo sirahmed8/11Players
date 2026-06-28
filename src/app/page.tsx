@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Users, TrendingUp, ShieldCheck, Loader2, LogIn } from "lucide-react";
+import { Users, TrendingUp, ShieldCheck, Loader2, LogIn, BellRing, Sparkles, Smartphone } from "lucide-react";
 import SettingsMenu from "@/components/SettingsMenu";
 
 export default function Home() {
@@ -84,6 +84,21 @@ export default function Home() {
       icon: <ShieldCheck className="w-8 h-8 text-blue-500" />,
       title: isAr ? "موازنة الفرق" : "Team Balancing",
       desc: isAr ? "استخدام خوارزميات ذكية لتقسيم اللاعبين إلى فرق متوازنة بناءً على طاقاتهم ومراكزهم لضمان التنافسية." : "Use smart algorithms to divide players into balanced teams based on their stats and positions to ensure competitiveness."
+    },
+    {
+      icon: <BellRing className="w-8 h-8 text-purple-500" />,
+      title: isAr ? "نظام الإشعارات" : "Notification System",
+      desc: isAr ? "تلقي تنبيهات وإشعارات ونصائح حول المباريات والنتائج وحالة مجتمعك بشكل فوري." : "Receive instant alerts, notifications, and advice about matches, results, and your community status."
+    },
+    {
+      icon: <Sparkles className="w-8 h-8 text-rose-500" />,
+      title: isAr ? "إحصائيات متقدمة" : "Advanced Stats",
+      desc: isAr ? "احصل على تقييمات مفصلة كالمحترفين تعتمد على الطول والوزن والأداء الحقيقي على أرض الملعب." : "Get detailed pro-level ratings based on height, weight, and real performance on the pitch."
+    },
+    {
+      icon: <Smartphone className="w-8 h-8 text-indigo-500" />,
+      title: isAr ? "تطبيق متكامل" : "Installable App",
+      desc: isAr ? "ثبّت الموقع كتطبيق على هاتفك أو حاسوبك للحصول على تجربة أسرع وأكثر سلاسة." : "Install the site as an app on your phone or computer for a faster, smoother experience."
     }
   ];
 

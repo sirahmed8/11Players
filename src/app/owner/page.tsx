@@ -10,6 +10,7 @@ import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
+import { Users, FileText, UserCheck, ShieldCheck, Lock } from "lucide-react";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -171,36 +172,58 @@ export default function OwnerPage() {
                 <h2 className="text-xl font-bold mb-4">{isAr ? "إنشاء مجتمع جديد" : "Create New Community"}</h2>
                 <form onSubmit={handleCreateCommunity} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Name</label>
-                    <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Description</label>
-                    <input required value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Admin UID (User ID)</label>
-                    <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
-                  </div>
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
-                      <motion.div animate={{ x: isPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
+                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الاسم" : "Name"}</label>
+                    <div className="relative group">
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Elite League..." />
                     </div>
-                    <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Private</span>
-                  </label>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
+                    <div className="relative group">
+                      <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                      <input required value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="The best community for..." />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "معرف المسؤول (UID)" : "Admin UID (User ID)"}</label>
+                    <div className="relative group">
+                      <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="e.g. 8xJ9..." />
+                    </div>
+                  </div>
+                  <div className="p-4 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700">
+                    <label className="flex items-center justify-between cursor-pointer group">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${isPrivate ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'} transition-colors`}>
+                          <ShieldCheck className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <span className="block font-bold text-slate-900 dark:text-white">{isAr ? "مجتمع خاص" : "Private Community"}</span>
+                          <span className="text-xs text-slate-500">{isAr ? "يتطلب كلمة مرور للدخول" : "Requires password to join"}</span>
+                        </div>
+                      </div>
+                      <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                        <motion.div animate={{ x: isPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
+                      </div>
+                      <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
+                    </label>
+                  </div>
                   <div 
                     className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isPrivate ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
                   >
-                    <div className="overflow-hidden px-1 pb-1">
-                      <div className="pt-3">
-                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">Password</label>
-                        <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
+                    <div className="overflow-hidden">
+                      <div className="pt-2">
+                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                        <div className="relative group">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                          <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Secret..." />
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <button disabled={creating} className="w-full py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700">
-                    {creating ? "Creating..." : "Create"}
+                  <button disabled={creating} className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                    {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء المجتمع" : "Create Community")}
                   </button>
                 </form>
               </div>

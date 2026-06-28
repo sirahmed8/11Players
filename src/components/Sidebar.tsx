@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
 import SettingsMenu from "@/components/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2 } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useCommunity } from "@/contexts/CommunityContext";
@@ -40,14 +40,21 @@ export default function Sidebar() {
     ] : []),
     ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
     { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
+    ...(user ? [{ href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }] : []),
     ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support", labelAr: "الدعم الفني", icon: <HeadphonesIcon className="w-5 h-5" /> }] : []),
     ...(isOwner || isGlobalModerator ? [{ href: "/inbox", labelEn: "Inbox", labelAr: "البريد الوارد", icon: <InboxIcon className="w-5 h-5" /> }] : []),
   ];
 
+  // Hide sidebar completely on Welcome page if not logged in
+  if (pathname === "/" && !user) {
+    return null;
+  }
+
   return (
     <>
       {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50">
+        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10" />
         <div className="flex items-center gap-3">
           <button onClick={toggleSidebar} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
             <Menu className="w-6 h-6" />
@@ -75,13 +82,13 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <div
-        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden ${
+        className={`fixed md:sticky top-0 md:top-4 left-0 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden shadow-2xl ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } ${isAr ? "border-l right-0 left-auto" : "border-r"}`}
+        } ${isAr ? "border-l right-0 left-auto md:rounded-l-3xl md:ml-4" : "border-r md:rounded-r-3xl md:mr-4"}`}
         style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
       >
         {/* Logo Area */}
-        <div className="flex-shrink-0 z-10 flex items-center justify-between p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50" style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
+        <div className="flex-shrink-0 z-20 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 sticky top-0 bg-white/70 dark:bg-slate-900/70" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
           <Link href="/communities" className="flex items-center gap-3">
             <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>

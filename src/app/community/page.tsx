@@ -9,12 +9,7 @@ import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown } from "lucide-react";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
-import dynamic from "next/dynamic";
 
-const VirtualChat = dynamic(() => import("@/components/VirtualChat"), {
-  ssr: false,
-  loading: () => <div className="text-slate-500 py-8">Loading Chat...</div>
-});
 
 export default function CommunityPage() {
   const { user, isAdmin, isOwner } = useAuth();
@@ -139,13 +134,7 @@ export default function CommunityPage() {
             </div>
           )}
 
-          {/* Group Chat Section */}
-          <div className="mt-16 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold mb-6 text-center">{isAr ? "صالة المجتمع" : "Community Hub Lounge"}</h3>
-            <div className="flex justify-center">
-              {user && <VirtualChat currentUser={user} />}
-            </div>
-          </div>
+
         </main>
       </div>
     </ProtectedRoute>
