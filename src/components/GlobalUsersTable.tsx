@@ -15,7 +15,7 @@ export default function GlobalUsersTable() {
   const [users, setUsers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null={ key: 'fullName', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
 
   useEffect(() => {
     fetchUsers();
