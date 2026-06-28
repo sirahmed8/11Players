@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
@@ -30,7 +31,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
         {/* Photo */}
         <div className="w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
           {player.photoUrl ? (
-            <img src={player.photoUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={player.photoUrl} alt="" className="w-full h-full object-cover" width={56} height={56} />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-emerald-600/50 dark:text-emerald-400/50 font-bold text-xl">
               {player.cardName.charAt(0).toUpperCase()}

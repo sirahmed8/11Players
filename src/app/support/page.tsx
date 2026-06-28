@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale } from "@/components/ThemeProvider";
@@ -162,7 +163,7 @@ export default function SupportPage() {
                     className={`flex items-end gap-2 max-w-[80%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
                   >
                     {!isMe && msg.senderPic && (
-                      <img src={msg.senderPic} alt="" className="w-8 h-8 rounded-full flex-shrink-0" />
+                      <Image src={msg.senderPic} alt="" className="w-8 h-8 rounded-full flex-shrink-0" width={32} height={32} />
                     )}
                     <div className={`px-4 py-2 rounded-2xl relative z-10 text-sm shadow-sm flex flex-col gap-2 ${
                       isMe 
@@ -171,7 +172,7 @@ export default function SupportPage() {
                     }`}>
                       {msg.imageUrl && (
                         <div className="w-full max-w-sm rounded-xl overflow-hidden cursor-pointer" onClick={() => window.open(msg.imageUrl, '_blank')}>
-                          <img src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" />
+                          <Image src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" width={400} height={400} />
                         </div>
                       )}
                       {msg.text && <p>{msg.text}</p>}
@@ -188,7 +189,7 @@ export default function SupportPage() {
                 
                 {imageFile && (
                   <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
-                    <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                    <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" width={64} height={64} unoptimized />
                     <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
                       <X className="w-3 h-3" />
                     </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Globe, Sun, Moon, LogOut, User, Home } from "lucide-react";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
@@ -102,7 +103,7 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
                 <>
                   <div className="px-4 py-3 flex items-center gap-3">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" />
+                      <Image src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" width={40} height={40} />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                         <User className="w-5 h-5 text-slate-500 dark:text-slate-400" />

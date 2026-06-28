@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CLOUDINARY_CONFIG } from '@/lib/firebase';
 
@@ -197,10 +198,14 @@ export default function BackgroundRemover({ onImageReady, locale = 'ar', initial
           className="w-full h-56 rounded-2xl bg-slate-800/60 border border-slate-700/50 flex flex-col items-center justify-center gap-4 relative overflow-hidden"
         >
           {originalPreview && (
-            <img
+            <Image
               src={originalPreview}
               alt="Uploading"
               className="absolute inset-0 w-full h-full object-cover opacity-30"
+              fill
+              style={{ objectFit: 'cover' }}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              unoptimized
             />
           )}
           <div className="relative z-10 flex flex-col items-center gap-3">
@@ -231,10 +236,14 @@ export default function BackgroundRemover({ onImageReady, locale = 'ar', initial
           animate={{ opacity: 1, scale: 1 }}
           className="w-full h-56 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col items-center justify-center gap-3 relative overflow-hidden"
         >
-          <img
+          <Image
             src={originalPreview}
             alt="Uploaded"
             className="absolute inset-0 w-full h-full object-cover opacity-50"
+            fill
+            style={{ objectFit: 'cover' }}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            unoptimized
           />
           <div className="relative z-10 flex flex-col items-center">
             <motion.div

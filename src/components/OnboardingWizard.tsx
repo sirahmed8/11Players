@@ -430,7 +430,7 @@ export default function OnboardingWizard() {
       setSubmitMessage({ type: 'error', text: `${txt.submitError} (${errorMessage})` });
       setIsSubmitting(false);
     }
-  }, [user, state, txt, router, validateStep]);
+  }, [user, state, txt, validateStep]);
 
   /* ── Preview profile ── */
   const previewProfile = useMemo((): PlayerProfile => ({
@@ -446,7 +446,7 @@ export default function OnboardingWizard() {
     isVerifiedByAdmin: false,
     hasWarning: false,
     stats: { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 },
-  }), [user, state]);
+  }), [state]);
 
   const progressPercent = (currentStep / TOTAL_STEPS) * 100;
   const stepLabels = [txt.step1, txt.step2, txt.step3, txt.step4];

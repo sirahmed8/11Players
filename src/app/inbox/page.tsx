@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale } from "@/components/ThemeProvider";
@@ -77,7 +78,7 @@ export default function InboxPage() {
     }
 
     return () => unsub();
-  }, [activeThreadId]);
+  }, [activeThreadId, user?.uid]);
 
   const handleReply = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +158,7 @@ export default function InboxPage() {
                     className={`w-full text-left p-4 border-b border-slate-200 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-3 ${activeThreadId === t.id ? 'bg-slate-200 dark:bg-slate-700' : ''}`}
                   >
                     {t.userPic ? (
-                      <img src={t.userPic} alt="" className="w-12 h-12 rounded-full flex-shrink-0" />
+                      <Image src={t.userPic} alt="" className="w-12 h-12 rounded-full flex-shrink-0" width={48} height={48} />
                     ) : (
                       <div className="w-12 h-12 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500">
                         {t.userName.charAt(0)}
@@ -185,7 +186,7 @@ export default function InboxPage() {
                     <ArrowLeft className="w-5 h-5" />
                   </button>
                   {activeThread?.userPic ? (
-                    <img src={activeThread.userPic} alt="" className="w-10 h-10 rounded-full" />
+                    <Image src={activeThread.userPic} alt="" className="w-10 h-10 rounded-full" width={40} height={40} />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-slate-300 dark:bg-slate-600 flex items-center justify-center font-bold text-slate-500">
                       {activeThread?.userName?.charAt(0) || "U"}
@@ -219,7 +220,7 @@ export default function InboxPage() {
                           }`}>
                             {msg.imageUrl && (
                               <div className="w-full max-w-sm rounded-xl overflow-hidden cursor-pointer" onClick={() => window.open(msg.imageUrl, '_blank')}>
-                                <img src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" />
+                                <Image src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" width={400} height={400} />
                               </div>
                             )}
                             {msg.text && <p>{msg.text}</p>}
@@ -235,7 +236,7 @@ export default function InboxPage() {
                     <div className="flex-1 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500 transition-all p-2 flex flex-col">
                       {imageFile && (
                         <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
-                          <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                          <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" width={64} height={64} unoptimized />
                           <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
                             <X className="w-3 h-3" />
                           </button>

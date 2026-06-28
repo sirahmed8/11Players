@@ -83,7 +83,7 @@ export default function NotificationsPage() {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isAr]);
 
   const markAsRead = async (id: string) => {
     if (!user) return;

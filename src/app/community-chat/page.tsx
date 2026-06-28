@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -73,7 +74,7 @@ export default function CommunityChatPage() {
     }
 
     return () => unsub();
-  }, [activeCommunityId, router]);
+  }, [activeCommunityId, router, user?.uid]);
 
   useEffect(() => {
     // Cooldown timer
@@ -236,7 +237,7 @@ export default function CommunityChatPage() {
                       {!isMe ? (
                         <div className="w-8 h-8 flex-shrink-0">
                           {showAvatar ? (
-                            <img src={msg.senderPic || '/placeholder.png'} alt="" className="w-full h-full rounded-full object-cover" />
+                            <Image src={msg.senderPic || '/placeholder.png'} alt="" className="w-full h-full rounded-full object-cover" width={32} height={32} />
                           ) : <div className="w-8 h-8" />}
                         </div>
                       ) : null}
@@ -260,7 +261,7 @@ export default function CommunityChatPage() {
                         }`}>
                           {msg.imageUrl && (
                             <div className="w-full max-w-sm rounded-xl overflow-hidden cursor-pointer" onClick={() => window.open(msg.imageUrl, '_blank')}>
-                              <img src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" />
+                              <Image src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" width={500} height={500} />
                             </div>
                           )}
                           {msg.text && <p className="text-start" dir="auto">{msg.text}</p>}
@@ -328,7 +329,7 @@ export default function CommunityChatPage() {
                 
                 {imageFile && (
                   <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
-                    <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                    <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" width={64} height={64} unoptimized />
                     <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
                       <X className="w-3 h-3" />
                     </button>

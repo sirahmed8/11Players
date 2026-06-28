@@ -135,6 +135,7 @@ function PlayerProfileContent() {
     );
 
     return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [effectiveUid, authLoading, user?.uid, router]);
 
   const canExport = user?.uid === effectiveUid || isAdmin;

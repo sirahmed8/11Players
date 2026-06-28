@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from './FormIcon';
@@ -65,10 +66,12 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           {/* Player Photo */}
           <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
             {player.photoUrl ? (
-              <img
+              <Image
                 src={player.photoUrl}
                 alt=""
                 className="w-full h-full object-cover"
+                width={96}
+                height={96}
               />
             ) : (
               <span className="text-amber-500 font-bold text-3xl opacity-50">?</span>

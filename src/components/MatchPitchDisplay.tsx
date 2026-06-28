@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { PESPosition } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
@@ -95,7 +96,7 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
             {/* Player Avatar */}
             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 overflow-hidden flex items-center justify-center bg-gradient-to-br shadow-lg ${theme}`}>
               {p.photoUrl ? (
-                <img src={p.photoUrl} alt="" className="w-full h-full object-cover" />
+                <Image src={p.photoUrl} alt="" className="w-full h-full object-cover" width={48} height={48} />
               ) : (
                 <span className="font-bold text-white text-sm">{overall}</span>
               )}

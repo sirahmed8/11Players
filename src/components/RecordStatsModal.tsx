@@ -1,4 +1,7 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -113,7 +116,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
               <div key={p.uid} className={`flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl border ${isBench ? 'border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'}`}>
                 <div className="flex items-center gap-3 w-48">
                   <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                    {p.photoUrl && <img src={p.photoUrl} alt="" className="w-full h-full object-cover" />}
+                    {p.photoUrl && <Image src={p.photoUrl} alt="" className="w-full h-full object-cover" width={40} height={40} />}
                   </div>
                   <div>
                     <div className="font-bold text-slate-900 dark:text-white">{p.cardName}</div>

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
@@ -17,11 +18,7 @@ export default function GlobalUsersTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const snap = await getDocs(collection(db, "players"));
@@ -32,7 +29,11 @@ export default function GlobalUsersTable() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAr]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleBanUser = async (user: PlayerProfile) => {
     if (!window.confirm(isAr ? "هل أنت متأكد من حظر/حذف هذا المستخدم نهائياً؟" : "Are you sure you want to completely ban/delete this user?")) return;
@@ -149,7 +150,7 @@ export default function GlobalUsersTable() {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     {u.googlePic || u.photoUrl ? (
-                      <img src={u.googlePic || u.photoUrl} alt={u.fullName} className="w-10 h-10 rounded-full" />
+                      <Image src={u.googlePic || u.photoUrl} alt={u.fullName} className="w-10 h-10 rounded-full" width={40} height={40} />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
                         {u.fullName.charAt(0)}

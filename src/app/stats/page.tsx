@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import { usePlayers } from "@/contexts/PlayersContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PlayerProfile } from "@/types";
@@ -90,7 +91,7 @@ export default function StatsPage() {
                       <Link href={`/profile?uid=${p.uid}`} className="flex items-center gap-3 group">
                         <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden border border-slate-300 dark:border-slate-600 flex-shrink-0">
                           {p.photoUrl ? (
-                            <img src={p.photoUrl} alt={p.cardName} className="w-full h-full object-cover" />
+                            <Image src={p.photoUrl} alt={p.cardName} className="w-full h-full object-cover" width={40} height={40} />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400">
                               <User className="w-5 h-5" />

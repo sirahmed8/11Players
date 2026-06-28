@@ -49,7 +49,7 @@ export default function ProtectedRoute({
       router.replace("/communities");
       return;
     }
-  }, [user, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router]);
+  }, [user, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router, t]);
 
   // Loading spinner
   if (!isFullyLoaded) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
@@ -496,9 +497,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       {player.photoUrl ? (
-                        <img
+                        <Image
                           src={player.photoUrl}
                           alt={player.fullName}
+                          width={32}
+                          height={32}
                           className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
                         />
                       ) : (

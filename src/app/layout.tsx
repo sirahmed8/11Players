@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider, LocaleProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -15,6 +15,9 @@ export const metadata: Metadata = {
   title: "11Players - Football Matchmaking & Community",
   description: "Highly balanced matchmaking system for amateur football players",
   manifest: "/manifest.json",
+};
+
+export const viewport: Viewport = {
   themeColor: "#10b981",
 };
 

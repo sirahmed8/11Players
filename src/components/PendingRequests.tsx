@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { collection, getDocs, doc, deleteDoc, setDoc, updateDoc, arrayRemove, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useCommunity } from "@/contexts/CommunityContext";
@@ -17,12 +18,7 @@ export default function PendingRequests() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!activeCommunityId) return;
-    fetchRequests();
-  }, [activeCommunityId]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     if (!activeCommunityId) return;
     setLoading(true);
     try {
@@ -33,7 +29,12 @@ export default function PendingRequests() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeCommunityId]);
+
+  useEffect(() => {
+    if (!activeCommunityId) return;
+    fetchRequests();
+  }, [activeCommunityId, fetchRequests]);
 
   const handleApprove = async (request: any) => {
     if (!activeCommunityId) return;
@@ -101,7 +102,7 @@ export default function PendingRequests() {
           <div key={req.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-3">
               {req.googlePic && (
-                <img src={req.googlePic} alt={req.fullName} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" />
+                <Image src={req.googlePic} alt={req.fullName} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" width={40} height={40} />
               )}
               <div>
                 <p className="font-bold text-slate-900 dark:text-white">{req.fullName}</p>
