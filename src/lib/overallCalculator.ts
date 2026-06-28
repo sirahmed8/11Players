@@ -55,12 +55,14 @@ export function calculateRealisticOverall(
 
 export function getPlayerPositionRatings(player: {
   attributes: PlayerAttributes;
+  approvedAttributes?: PlayerAttributes;
   primaryPosition: PESPosition;
   secondaryPosition?: PESPosition;
   tertiaryPosition?: PESPosition;
   playStyle?: string;
 }) {
-  const primaryRating = calculateRealisticOverall(player.attributes, player.primaryPosition, player.playStyle || '');
+  const activeAttributes = player.approvedAttributes || player.attributes;
+  const primaryRating = calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
   
   const ratings = [
     { position: player.primaryPosition, rating: primaryRating, tier: 0 }
@@ -74,7 +76,7 @@ export function getPlayerPositionRatings(player: {
   if (player.tertiaryPosition) {
     // Tertiary position is calculated based on its own weights (so it depends on stats and position), 
     // and we also apply a slight penalty (-2) to ensure it's decreased.
-    let tertiary = calculateRealisticOverall(player.attributes, player.tertiaryPosition, player.playStyle || '') - 2;
+    let tertiary = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player.playStyle || '') - 2;
     if (tertiary < 40) tertiary = 40;
     ratings.push({ position: player.tertiaryPosition, rating: tertiary, tier: 2 });
   }

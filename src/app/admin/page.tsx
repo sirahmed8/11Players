@@ -34,8 +34,8 @@ export default function AdminPage() {
       
       const playerIds = players.map((p) => p.uid);
 
-      if (playerIds.length !== 22) {
-        setMatchmakingError(`Matchmaking requires exactly 22 players. Currently have ${playerIds.length}.`);
+      if (playerIds.length < 22) {
+        setMatchmakingError(`Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
         setMatchmakingLoading(false);
         return;
       }

@@ -1,13 +1,14 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 
 interface PlayersContextProps {
   players: PlayerProfile[];
   loading: boolean;
+  refreshPlayers: () => Promise<void>;
 }
 
 const PlayersContext = createContext<PlayersContextProps | undefined>(undefined);
@@ -18,29 +19,29 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const fetchedPlayers: PlayerProfile[] = [];
-        snapshot.forEach((doc) => {
-          fetchedPlayers.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
-        });
-        setPlayers(fetchedPlayers);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching players:", error);
-        setLoading(false);
-      }
-    );
+  const fetchPlayers = async () => {
+    setLoading(true);
+    try {
+      const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
+      const snapshot = await getDocs(q);
+      const fetchedPlayers: PlayerProfile[] = [];
+      snapshot.forEach((doc) => {
+        fetchedPlayers.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
+      });
+      setPlayers(fetchedPlayers);
+    } catch (error) {
+      console.error("Error fetching players:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return () => unsubscribe();
+  useEffect(() => {
+    fetchPlayers();
   }, []);
 
   return (
-    <PlayersContext.Provider value={{ players, loading }}>
+    <PlayersContext.Provider value={{ players, loading, refreshPlayers: fetchPlayers }}>
       {children}
     </PlayersContext.Provider>
   );

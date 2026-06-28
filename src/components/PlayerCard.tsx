@@ -41,7 +41,8 @@ function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const overall = calculateRealisticOverall(player.attributes, player.primaryPosition, player.playStyle || '');
+  const activeAttributes = player.approvedAttributes || player.attributes;
+  const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
 
   const CardWrapper = player.uid === 'preview' ? 'div' : Link;
   const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
@@ -56,24 +57,6 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         className="w-72 h-auto rounded-2xl bg-gradient-to-b from-amber-500 to-amber-700 shadow-lg overflow-hidden cursor-pointer relative"
       >
-        {/* --- Warning Indicator --- */}
-        {player.hasWarning && (
-          <div className="absolute top-2 left-2 z-20 bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow">
-            <span>⚠</span> Warning
-          </div>
-        )}
-
-        {/* --- Verified / Pending Badge --- */}
-        <div
-          className={`absolute top-2 right-2 z-20 text-[10px] font-bold px-2 py-0.5 rounded-full shadow ${
-            player.isVerifiedByAdmin
-              ? 'bg-emerald-500 text-white'
-              : 'bg-zinc-600 text-zinc-200'
-          }`}
-        >
-          {player.isVerifiedByAdmin ? '✓ Verified' : '⏳ Pending'}
-        </div>
-
         {/* --- Header: Photo + Overall --- */}
         <div className="relative flex flex-col items-center pt-8 pb-3 px-4">
           {/* Overall Rating */}
@@ -99,16 +82,25 @@ export default function PlayerCard({ player }: PlayerCardProps) {
             {overall}
           </div>
 
-          {/* Card Name */}
-          <h3 className="mt-1 text-base font-bold text-white tracking-wide text-center truncate w-full">
-            {player.cardName}
-          </h3>
+          {/* Card Name + Form */}
+          <div className="mt-1 flex items-center justify-center gap-1 w-full">
+            <h3 className="text-base font-bold text-white tracking-wide truncate">
+              {player.cardName}
+            </h3>
+            {player.form && (
+              <span className="text-sm" title="Current Form">
+                {player.form}
+              </span>
+            )}
+          </div>
 
           {/* Physical Info */}
           <div className="flex gap-2 text-[10px] text-amber-100/80 mt-1 uppercase font-semibold">
             <span>{player.height} cm</span>
             <span>•</span>
             <span>{player.weight} kg</span>
+            <span>•</span>
+            <span>{player.calculatedAge} y.o</span>
             <span>•</span>
             <span>{getFootIndicator(player.preferredFoot)}</span>
           </div>
@@ -133,13 +125,21 @@ export default function PlayerCard({ player }: PlayerCardProps) {
                 {player.tertiaryPosition}
               </span>
             )}
+            {player.specialSkills?.map((skill) => (
+              <span
+                key={skill}
+                className="bg-amber-900/40 border border-amber-500/30 text-amber-200 text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase tracking-wider"
+              >
+                {skill.replace(/_/g, ' ')}
+              </span>
+            ))}
           </div>
         </div>
 
         {/* --- Attributes Grid (2 columns × 3 rows) --- */}
         <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5">
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-            {calculateMainStats(player.attributes).map(({ label, value }) => (
+            {calculateMainStats(activeAttributes).map(({ label, value }) => (
               <div key={label} className="flex items-center justify-between">
                 <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider">
                   {label}

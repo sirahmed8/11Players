@@ -45,7 +45,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                   type="date"
                   value={config.date}
                   onChange={(e) => setConfig({ ...config, date: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow duration-300"
                 />
               </div>
               <div>
@@ -54,7 +54,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                   type="time"
                   value={config.time}
                   onChange={(e) => setConfig({ ...config, time: e.target.value })}
-                  className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow duration-300"
                 />
               </div>
             </div>
@@ -63,10 +63,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Location / Pitch</label>
               <input
                 type="text"
-                placeholder="e.g. King Fahd Stadium"
+                placeholder="e.g. Cairo Stadium"
                 value={config.location}
                 onChange={(e) => setConfig({ ...config, location: e.target.value })}
-                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow duration-300"
               />
             </div>
 
@@ -74,10 +74,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
               <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Cost per Player</label>
               <input
                 type="text"
-                placeholder="e.g. 50 SAR"
+                placeholder="e.g. 50 EGP"
                 value={config.cost}
                 onChange={(e) => setConfig({ ...config, cost: e.target.value })}
-                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow duration-300"
               />
             </div>
 
@@ -87,7 +87,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                 placeholder="Any special instructions..."
                 value={config.notes}
                 onChange={(e) => setConfig({ ...config, notes: e.target.value })}
-                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[80px]"
+                className="w-full bg-slate-100 dark:bg-slate-700/50 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[80px] transition-shadow duration-300"
               />
             </div>
           </div>

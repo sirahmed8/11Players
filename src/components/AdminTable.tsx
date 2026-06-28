@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { doc, updateDoc, increment, deleteDoc, setDoc } from 'firebase/firestore';
+import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
 import EditProfileModal from './EditProfileModal';
@@ -95,18 +95,80 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   });
   const [loadingUid, setLoadingUid] = useState<string | null>(null);
 
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [showDeleteMockModal, setShowDeleteMockModal] = useState(false);
+  const [playerToDelete, setPlayerToDelete] = useState<PlayerProfile | null>(null);
+  const [playerToReset, setPlayerToReset] = useState<PlayerProfile | null>(null);
+  const [showEndSeasonModal, setShowEndSeasonModal] = useState(false);
+
+  const handleEndSeason = async () => {
+    setLoadingUid('ending-season');
+    setShowEndSeasonModal(false);
+    try {
+      if (players.length === 0) return;
+
+      const batch = writeBatch(db);
+      
+      // Calculate winners
+      const topScorer = [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0))[0];
+      const topAssister = [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0))[0];
+      const topMVP = [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0))[0];
+      const ballonDor = [...players].sort((a, b) => {
+        const aScore = ((a.stats?.goals || 0) * 2) + ((a.stats?.assists || 0) * 1) + ((a.stats?.mvp || 0) * 5);
+        const bScore = ((b.stats?.goals || 0) * 2) + ((b.stats?.assists || 0) * 1) + ((b.stats?.mvp || 0) * 5);
+        return bScore - aScore;
+      })[0];
+
+      const seasonName = `Season ${new Date().getFullYear()}`;
+      const dateStr = new Date().toISOString();
+
+      players.forEach(p => {
+        const docRef = doc(db, 'players', p.uid);
+        const updates: any = {
+          'stats.goals': 0,
+          'stats.assists': 0,
+          'stats.mvp': 0,
+          'stats.matchesPlayed': 0,
+        };
+        
+        const newTrophies = [];
+        if (p.uid === topScorer.uid && (p.stats?.goals || 0) > 0) newTrophies.push({ name: 'Golden Boot ⚽', season: seasonName, date: dateStr });
+        if (p.uid === topAssister.uid && (p.stats?.assists || 0) > 0) newTrophies.push({ name: 'Playmaker 👟', season: seasonName, date: dateStr });
+        if (p.uid === topMVP.uid && (p.stats?.mvp || 0) > 0) newTrophies.push({ name: 'MVP 🏅', season: seasonName, date: dateStr });
+        if (p.uid === ballonDor.uid && ((p.stats?.goals || 0) + (p.stats?.assists || 0) + (p.stats?.mvp || 0) > 0)) newTrophies.push({ name: "Ballon d'Or 🏆", season: seasonName, date: dateStr });
+
+        if (newTrophies.length > 0) {
+          updates.trophies = arrayUnion(...newTrophies);
+        }
+
+        batch.update(docRef, updates);
+      });
+
+      await batch.commit();
+      onRefresh();
+      toast.success(t(locale, "Season ended successfully! Trophies awarded and stats reset.", "تم إنهاء الموسم بنجاح! تم توزيع الجوائز وتصفير الإحصائيات."));
+    } catch (error) {
+      console.error(error);
+      toast.error(t(locale, 'Error ending season', 'حدث خطأ أثناء إنهاء الموسم'));
+    } finally {
+      setLoadingUid(null);
+    }
+  };
+
   const handleGeneratePlayers = async () => {
-    if (!confirm(t(locale, "Are you sure you want to generate 22 random players? This will add them to your live database.", "هل أنت متأكد من إنشاء 22 لاعب عشوائي؟ سيتم إضافتهم إلى قاعدة البيانات."))) return;
     setLoadingUid('generating-players');
+    setShowGenerateModal(false);
     try {
       const positions = ['CF', 'SS', 'RWF', 'LWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
       const styles = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Creative Playmaker', 'Box-to-Box', 'Anchor Man', 'Build Up', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
       
-      const promises = Array.from({ length: 22 }).map((_, i) => {
+      const batch = writeBatch(db);
+      
+      Array.from({ length: 22 }).forEach((_, i) => {
         const uid = `test-player-${Date.now()}-${i}`;
         const pos = positions[Math.floor(Math.random() * positions.length)];
         const docRef = doc(db, 'players', uid);
-        return setDoc(docRef, {
+        batch.set(docRef, {
           uid,
           fullName: `Test Player ${i+1}`,
           cardName: `TEST ${i+1}`,
@@ -148,15 +210,41 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           },
           hasWarning: false,
           isVerifiedByAdmin: true,
+          isMockData: true,
           createdAt: new Date().toISOString()
         });
       });
-      await Promise.all(promises);
+      await batch.commit();
       onRefresh();
       toast.success(t(locale, "Successfully generated 22 players!", "تم إنشاء 22 لاعب بنجاح!"));
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error generating players', 'حدث خطأ أثناء إنشاء اللاعبين'));
+    } finally {
+      setLoadingUid(null);
+    }
+  };
+
+  const handleDeleteMockPlayers = async () => {
+    setLoadingUid('deleting-mock');
+    setShowDeleteMockModal(false);
+    try {
+      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-'));
+      if (mockPlayers.length === 0) {
+        toast.success(t(locale, 'No mock players found', 'لا يوجد لاعبين وهميين'));
+        setLoadingUid(null);
+        return;
+      }
+      const batch = writeBatch(db);
+      mockPlayers.forEach(p => {
+        batch.delete(doc(db, 'players', p.uid));
+      });
+      await batch.commit();
+      onRefresh();
+      toast.success(t(locale, `Successfully deleted ${mockPlayers.length} mock players`, `تم حذف ${mockPlayers.length} لاعب وهمي بنجاح`));
+    } catch (error) {
+      console.error(error);
+      toast.error(t(locale, 'Error deleting mock players', 'حدث خطأ أثناء حذف اللاعبين الوهميين'));
     } finally {
       setLoadingUid(null);
     }
@@ -253,11 +341,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const handleResetStats = async (player: PlayerProfile) => {
-    if (!confirm(t(locale, `Are you sure you want to reset stats for ${player.fullName}?`, `هل أنت متأكد من تصفير إحصائيات ${player.fullName}؟`))) return;
-    setLoadingUid(player.uid);
+  const handleResetStats = async () => {
+    if (!playerToReset) return;
+    setLoadingUid(playerToReset.uid);
     try {
-      await updateDoc(doc(db, 'players', player.uid), {
+      await updateDoc(doc(db, 'players', playerToReset.uid), {
         'stats.goals': 0,
         'stats.assists': 0,
         'stats.mvp': 0,
@@ -265,6 +353,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       });
       onRefresh();
       toast.success(t(locale, 'Stats reset successfully', 'تم تصفير الإحصائيات بنجاح'));
+      setPlayerToReset(null);
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error resetting stats', 'حدث خطأ أثناء تصفير الإحصائيات'));
@@ -273,13 +362,14 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const handleDelete = async (player: PlayerProfile) => {
-    if (!confirm(t(locale, `Are you sure you want to delete ${player.fullName}? This cannot be undone.`, `هل أنت متأكد من حذف ${player.fullName}؟ هذا الإجراء لا يمكن التراجع عنه.`))) return;
-    setLoadingUid(player.uid);
+  const handleDelete = async () => {
+    if (!playerToDelete) return;
+    setLoadingUid(playerToDelete.uid);
     try {
-      await deleteDoc(doc(db, 'players', player.uid));
+      await deleteDoc(doc(db, 'players', playerToDelete.uid));
       onRefresh();
       toast.success(t(locale, 'Player deleted successfully', 'تم حذف اللاعب بنجاح'));
+      setPlayerToDelete(null);
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error deleting player', 'حدث خطأ أثناء حذف اللاعب'));
@@ -364,9 +454,23 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
   return (
     <>
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-wrap justify-end gap-3">
         <button
-          onClick={handleGeneratePlayers}
+          onClick={() => setShowEndSeasonModal(true)}
+          disabled={loadingUid === 'ending-season'}
+          className="rounded-lg bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-600 dark:text-amber-500 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
+        >
+          {loadingUid === 'ending-season' ? 'Ending...' : t(locale, 'End Season', 'إنهاء الموسم')}
+        </button>
+        <button
+          onClick={() => setShowDeleteMockModal(true)}
+          disabled={loadingUid === 'deleting-mock'}
+          className="rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-600/30 transition-colors"
+        >
+          {loadingUid === 'deleting-mock' ? 'Deleting...' : t(locale, 'Delete All Mock Players', 'حذف جميع اللاعبين الوهميين')}
+        </button>
+        <button
+          onClick={() => setShowGenerateModal(true)}
           disabled={loadingUid === 'generating-players'}
           className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
         >
@@ -560,7 +664,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                       {/* Reset Stats */}
                       <button
-                        onClick={() => handleResetStats(player)}
+                          onClick={() => setPlayerToReset(player)}
                         disabled={loadingUid === player.uid}
                         className="rounded-lg bg-orange-50 dark:bg-orange-600/20 p-2 text-orange-600 dark:text-orange-400 transition-colors hover:bg-orange-100 dark:hover:bg-orange-600/40 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-50"
                         title={t(locale, 'Reset Stats', 'تصفير الإحصائيات')}
@@ -572,7 +676,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                       {/* Delete */}
                       <button
-                        onClick={() => handleDelete(player)}
+                          onClick={() => setPlayerToDelete(player)}
                         disabled={loadingUid === player.uid}
                         className="rounded-lg bg-red-50 dark:bg-red-600/20 p-2 text-red-600 dark:text-red-400 transition-colors hover:bg-red-100 dark:hover:bg-red-600/40 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-50"
                         title={t(locale, 'Delete Player', 'حذف اللاعب')}
@@ -760,6 +864,186 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           onRefresh={onRefresh}
         />
       )}
+      {/* Generate Players Modal */}
+      <AnimatePresence>
+        {showGenerateModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-6 text-center">
+                <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
+                  {t(locale, 'Generate 22 Random Players?', 'هل أنت متأكد من إنشاء 22 لاعب عشوائي؟')}
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                  {t(locale, 'This will add them to your live database.', 'سيتم إضافتهم إلى قاعدة البيانات الخاصة بك.')}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowGenerateModal(false)}
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
+                  >
+                    {t(locale, 'Cancel', 'إلغاء')}
+                  </button>
+                  <button
+                    onClick={handleGeneratePlayers}
+                    className="flex-1 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-emerald-500/20"
+                  >
+                    {t(locale, 'Confirm', 'تأكيد')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Mock Players Modal */}
+      <AnimatePresence>
+        {showDeleteMockModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-6 text-center">
+                <h2 className="text-xl font-bold mb-4 text-red-600">
+                  {t(locale, 'Delete All Mock Players?', 'هل أنت متأكد من حذف جميع اللاعبين الوهميين؟')}
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                  {t(locale, 'This will permanently remove all generated test data.', 'هذا الإجراء سيحذف بيانات التجربة بشكل دائم.')}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowDeleteMockModal(false)}
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
+                  >
+                    {t(locale, 'Cancel', 'إلغاء')}
+                  </button>
+                  <button
+                    onClick={handleDeleteMockPlayers}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-red-500/20"
+                  >
+                    {t(locale, 'Delete', 'حذف')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* Reset Stats Modal */}
+      <AnimatePresence>
+        {playerToReset && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-6 text-center">
+                <h2 className="text-xl font-bold mb-4 text-amber-600">
+                  {t(locale, `Reset Stats for ${playerToReset.fullName}?`, `تصفير إحصائيات ${playerToReset.fullName}؟`)}
+                </h2>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setPlayerToReset(null)}
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
+                  >
+                    {t(locale, 'Cancel', 'إلغاء')}
+                  </button>
+                  <button
+                    onClick={handleResetStats}
+                    className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-amber-500/20"
+                  >
+                    {t(locale, 'Reset Stats', 'تصفير الإحصائيات')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Player Modal */}
+      <AnimatePresence>
+        {playerToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-6 text-center">
+                <h2 className="text-xl font-bold mb-4 text-red-600">
+                  {t(locale, `Delete ${playerToDelete.fullName}?`, `حذف ${playerToDelete.fullName}؟`)}
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                  {t(locale, 'This action cannot be undone.', 'هذا الإجراء لا يمكن التراجع عنه.')}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setPlayerToDelete(null)}
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
+                  >
+                    {t(locale, 'Cancel', 'إلغاء')}
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-red-500/20"
+                  >
+                    {t(locale, 'Delete', 'حذف')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* End Season Modal */}
+      <AnimatePresence>
+        {showEndSeasonModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+            >
+              <div className="p-6 text-center">
+                <h2 className="text-2xl font-black mb-4 text-amber-600">
+                  {t(locale, 'End Season?', 'إنهاء الموسم؟')}
+                </h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-6">
+                  {t(locale, "This will award trophies to the top players (Ballon d'Or, Golden Boot, etc.) and reset all stats (Goals, Assists, MVPs) to 0 for everyone.", "سيؤدي هذا إلى منح الجوائز لأفضل اللاعبين (الكرة الذهبية، الحذاء الذهبي، إلخ) وتصفير جميع الإحصائيات للجميع.")}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowEndSeasonModal(false)}
+                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
+                  >
+                    {t(locale, 'Cancel', 'إلغاء')}
+                  </button>
+                  <button
+                    onClick={handleEndSeason}
+                    className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-amber-500/20"
+                  >
+                    {t(locale, 'Confirm End Season', 'تأكيد إنهاء الموسم')}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

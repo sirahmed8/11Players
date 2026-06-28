@@ -27,6 +27,10 @@ const nextConfig = {
         crypto: false,
         os: false,
       };
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        "node-fetch": false,
+      };
     }
     
     // Ignore ONNX Runtime Web modules which cause Webpack parsing errors

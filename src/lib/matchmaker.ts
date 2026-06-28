@@ -268,7 +268,8 @@ function mean(values: number[]): number {
  * ```
  */
 export function calculatePSI(player: PlayerProfile, position: PESPosition): number {
-  if (!player?.attributes) {
+  const activeAttributes = player?.approvedAttributes || player?.attributes;
+  if (!activeAttributes) {
     throw new Error(`calculatePSI: player "${player?.uid ?? 'unknown'}" has no attributes`);
   }
 
@@ -280,7 +281,7 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
   // ── Step 1: Weighted attribute sum ──
   let rawPSI = 0;
   for (const [attr, weight] of Object.entries(weights)) {
-    const attrValue = player.attributes[attr as keyof PlayerAttributes] ?? 40;
+    const attrValue = activeAttributes[attr as keyof PlayerAttributes] ?? 40;
     rawPSI += weight * clamp(attrValue, 40, 99);
   }
 
@@ -360,7 +361,7 @@ export function calculateTeamMetrics(team: PlayerProfile[]): TeamMetrics {
   const attacks: number[] = [];
 
   for (const p of team) {
-    const a = p.attributes;
+    const a = p.approvedAttributes || p.attributes;
     if (!a) continue;
 
     // Overall is the straight mean of all 10 attributes
@@ -616,8 +617,8 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
 
   // Sort by overall ability (descending) for serpentine draft
   const sorted = [...players].sort((a, b) => {
-    const overallA = mean(Object.values(a.attributes));
-    const overallB = mean(Object.values(b.attributes));
+    const overallA = mean(Object.values(a.approvedAttributes || a.attributes));
+    const overallB = mean(Object.values(b.approvedAttributes || b.attributes));
     return overallB - overallA;
   });
 

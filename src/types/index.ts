@@ -33,15 +33,26 @@ export interface PlayerProfile {
   secondaryPosition: PESPosition;
   tertiaryPosition: PESPosition;
   attributes: PlayerAttributes;
+  selfAttributes?: PlayerAttributes;
+  approvedAttributes?: PlayerAttributes;
+  peerReviews?: { reviewerUid: string; reviewerName: string; timestamp: string; ratings: Partial<PlayerAttributes>; }[];
+  averagePeerAttributes?: Partial<PlayerAttributes>;
+  isMockData?: boolean;
   specialSkills: string[];
   playStyle?: string;
   photoUrl: string;
   isVerifiedByAdmin: boolean;
   hasWarning: boolean;
+  form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
   stats: {
     goals: number;
     assists: number;
     mvp: number;
     matchesPlayed: number;
   };
+  trophies?: {
+    name: string;
+    season: string;
+    date: string;
+  }[];
 }

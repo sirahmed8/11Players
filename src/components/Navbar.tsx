@@ -27,7 +27,7 @@ export default function Navbar() {
           <Link
             href="/community"
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              pathname === "/community"
+              pathname.startsWith("/community")
                 ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
@@ -37,7 +37,7 @@ export default function Navbar() {
           <Link
             href="/stats"
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              pathname === "/stats"
+              pathname.startsWith("/stats")
                 ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
@@ -47,7 +47,7 @@ export default function Navbar() {
           <Link
             href="/match"
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              pathname === "/match"
+              pathname.startsWith("/match")
                 ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
@@ -58,7 +58,7 @@ export default function Navbar() {
             <Link
               href={`/profile?uid=${user.uid}`}
               className={`px-3 py-1.5 rounded-lg transition-all ${
-                pathname === "/profile"
+                pathname.startsWith("/profile")
                   ? "bg-emerald-600 text-white font-black shadow-md"
                   : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`}
@@ -66,11 +66,21 @@ export default function Navbar() {
               {isAr ? "ملفي الشخصي" : "My Profile"}
             </Link>
           )}
+          <Link
+            href="/guide"
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              pathname.startsWith("/guide")
+                ? "bg-emerald-600 text-white font-black shadow-md"
+                : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            {isAr ? "الدليل" : "Guide"}
+          </Link>
           {isAdmin && (
             <Link
               href="/admin"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
-                pathname === "/admin"
+                pathname.startsWith("/admin")
                   ? "bg-amber-500 text-white font-black shadow-md"
                   : "text-amber-500 hover:text-amber-600 hover:bg-amber-500/5"
               }`}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
@@ -94,6 +94,7 @@ function PlayerProfileContent() {
   const isAr = locale === "ar";
 
   const effectiveUid = uid || user?.uid;
+  const isViewingOwnProfile = user?.uid === effectiveUid;
 
   const [player, setPlayer] = useState<PlayerProfile | null>(() => {
     if (!effectiveUid) return null;
@@ -172,7 +173,6 @@ function PlayerProfileContent() {
   }
 
   if (!player) {
-    const isViewingOwnProfile = user?.uid === effectiveUid;
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 gap-6">
         <div className="text-6xl">🔍</div>
@@ -198,18 +198,7 @@ function PlayerProfileContent() {
     );
   }
 
-  const footLabel =
-    player.preferredFoot === "Right"
-      ? isAr
-        ? "🦶 يمنى"
-        : "🦶 Right"
-      : player.preferredFoot === "Left"
-      ? isAr
-        ? "🦶 يسرى"
-        : "🦶 Left"
-      : isAr
-      ? "🦶 كلتا القدمين"
-      : "🦶 Ambidextrous";
+
 
   const statCards = [
     {
@@ -253,69 +242,42 @@ function PlayerProfileContent() {
 
           {/* Info Panel */}
           <div className="flex-1 space-y-6 w-full">
-            {/* Full Name */}
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
-                {player.fullName}
-              </h2>
-              <p className="text-slate-400 mt-1 text-sm">
-                {isAr ? "الاسم المختصر:" : "Card Name:"}{" "}
-                <span className="text-white font-bold">{player.cardName}</span>
-              </p>
-            </div>
+            {/* Full Name & Form */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+                  {player.fullName}
+                </h2>
+                <p className="text-slate-400 mt-1 text-sm">
+                  {isAr ? "الاسم المختصر:" : "Card Name:"}{" "}
+                  <span className="text-white font-bold">{player.cardName}</span>
+                </p>
+              </div>
 
-            {/* Physical Info Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                {
-                  icon: "📏",
-                  label: isAr ? "الطول" : "Height",
-                  value: `${player.height} cm`,
-                },
-                {
-                  icon: "⚖️",
-                  label: isAr ? "الوزن" : "Weight",
-                  value: `${player.weight} kg`,
-                },
-                {
-                  icon: "🎂",
-                  label: isAr ? "العمر" : "Age",
-                  value: `${player.calculatedAge}`,
-                },
-                {
-                  icon: "🦶",
-                  label: isAr ? "القدم المفضلة" : "Foot",
-                  value: player.preferredFoot,
-                },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.2 + i * 0.1 }}
-                  className="bg-slate-800/60 border border-slate-700/50 rounded-xl p-4 text-center"
-                >
-                  <div className="text-2xl mb-1">{item.icon}</div>
-                  <div className="text-xs text-slate-400">{item.label}</div>
-                  <div className="text-lg font-bold text-white">{item.value}</div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Position Info */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <span className="px-4 py-2 bg-amber-600 text-white rounded-xl font-black text-lg">
-                {player.primaryPosition}
-              </span>
-              <span className="px-3 py-1.5 bg-slate-700 text-slate-200 rounded-lg font-bold text-sm">
-                {player.secondaryPosition}
-              </span>
-              <span className="px-3 py-1.5 bg-slate-700/60 text-slate-300 rounded-lg font-bold text-sm">
-                {player.tertiaryPosition}
-              </span>
-              <span className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-sm">
-                {footLabel}
-              </span>
+              {isViewingOwnProfile && (
+                <div className="flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/50 w-max">
+                  <span className="text-sm text-slate-300 font-semibold">{isAr ? "الحالة:" : "Form:"}</span>
+                  <div className="flex gap-1">
+                    {['⬆️', '↗️', '➡️', '↘️', '⬇️'].map((arrow) => (
+                      <button
+                        key={arrow}
+                        onClick={async () => {
+                          try {
+                            const ref = doc(db, "players", player.uid);
+                            await updateDoc(ref, { form: arrow });
+                          } catch (e) {
+                            console.error("Failed to update form", e);
+                          }
+                        }}
+                        className={`text-xl hover:scale-110 transition-transform ${player.form === arrow ? 'bg-amber-500/20 rounded border border-amber-500/50' : 'opacity-50 hover:opacity-100'}`}
+                        title={isAr ? `تحديث الحالة إلى ${arrow}` : `Update form to ${arrow}`}
+                      >
+                        {arrow}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SVG Pitch Display */}
@@ -324,20 +286,6 @@ function PlayerProfileContent() {
                 {isAr ? "مراكز اللعب والتقييم" : "Positions & Ratings"}
               </h3>
               <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
-            </div>
-
-            {/* Status Badges */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {player.isVerifiedByAdmin && (
-                <span className="px-3 py-1 bg-emerald-900/60 text-emerald-300 rounded-full text-xs font-bold border border-emerald-700/50">
-                  ✅ {isAr ? "معتمد" : "Verified"}
-                </span>
-              )}
-              {player.hasWarning && (
-                <span className="px-3 py-1 bg-amber-900/60 text-amber-300 rounded-full text-xs font-bold border border-amber-700/50">
-                  ⚠️ {isAr ? "إنذار" : "Warning"}
-                </span>
-              )}
             </div>
           </div>
         </motion.div>
@@ -371,6 +319,28 @@ function PlayerProfileContent() {
             ))}
           </div>
         </motion.section>
+
+        {/* Trophies Section */}
+        {player.trophies && player.trophies.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+          >
+            <h3 className="text-xl font-black text-amber-500 mb-4 flex items-center gap-2">
+              🏆 {isAr ? "خزانة البطولات والجوائز" : "Trophy Cabinet"}
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {player.trophies.map((trophy, i) => (
+                <div key={i} className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform">
+                  <div className="text-3xl mb-2">{trophy.name.split(' ')[1] || '🏆'}</div>
+                  <div className="font-black text-amber-500 text-sm">{trophy.name.split(' ')[0]}</div>
+                  <div className="text-xs text-slate-400 mt-1 font-semibold">{trophy.season}</div>
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
 
         {/* Attributes Breakdown */}
         <motion.section

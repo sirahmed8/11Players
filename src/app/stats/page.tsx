@@ -28,15 +28,28 @@ export default function StatsPage() {
     return [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, 10);
   }, [players]);
 
+  const topGA = React.useMemo(() => {
+    return [...players].sort((a, b) => ((b.stats?.goals || 0) + (b.stats?.assists || 0)) - ((a.stats?.goals || 0) + (a.stats?.assists || 0))).slice(0, 10);
+  }, [players]);
+
   const topMVPs = React.useMemo(() => {
     return [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0)).slice(0, 10);
+  }, [players]);
+
+  const ballonDOr = React.useMemo(() => {
+    return [...players].sort((a, b) => {
+      // Ballon d'Or formula: (Goals * 2) + (Assists * 1) + (MVPs * 5)
+      const aScore = ((a.stats?.goals || 0) * 2) + ((a.stats?.assists || 0) * 1) + ((a.stats?.mvp || 0) * 5);
+      const bScore = ((b.stats?.goals || 0) * 2) + ((b.stats?.assists || 0) * 1) + ((b.stats?.mvp || 0) * 5);
+      return bScore - aScore;
+    }).slice(0, 10);
   }, [players]);
 
   const highestRated = React.useMemo(() => {
     return [...players].sort((a, b) => getOverall(b) - getOverall(a)).slice(0, 10);
   }, [players]);
 
-  const StatTable = ({ title, data, statKey, isOverall = false }: { title: string, data: PlayerProfile[], statKey: string, isOverall?: boolean }) => (
+  const StatTable = ({ title, data, statKey, isOverall = false, isGA = false, isBallon = false }: { title: string, data: PlayerProfile[], statKey: string, isOverall?: boolean, isGA?: boolean, isBallon?: boolean }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
       <div className="bg-slate-100 dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-700">
         <h3 className="font-black text-lg text-emerald-600 dark:text-emerald-400">{title}</h3>
@@ -72,7 +85,13 @@ export default function StatsPage() {
                 </Link>
               </div>
               <div className="font-black text-xl text-slate-700 dark:text-slate-200">
-                {isOverall ? getOverall(p) : (p.stats as any)?.[statKey] || 0}
+                {isOverall 
+                  ? getOverall(p) 
+                  : isGA 
+                    ? (p.stats?.goals || 0) + (p.stats?.assists || 0)
+                    : isBallon
+                      ? ((p.stats?.goals || 0) * 2) + ((p.stats?.assists || 0) * 1) + ((p.stats?.mvp || 0) * 5)
+                      : (p.stats as any)?.[statKey] || 0}
               </div>
             </motion.div>
           ))
@@ -97,11 +116,17 @@ export default function StatsPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <StatTable title={isAr ? "الهدافين" : "Top Scorers"} data={topScorers} statKey="goals" />
-              <StatTable title={isAr ? "صُناع اللعب" : "Playmakers"} data={topAssisters} statKey="assists" />
-              <StatTable title={isAr ? "أفضل اللاعبين" : "Most Valuable"} data={topMVPs} statKey="mvp" />
-              <StatTable title={isAr ? "الأعلى تقييماً" : "Highest Rated"} data={highestRated} statKey="overall" isOverall={true} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="md:col-span-2 lg:col-span-3 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <StatTable title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} />
+                  <StatTable title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} />
+                </div>
+              </div>
+              <StatTable title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" />
+              <StatTable title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" />
+              <StatTable title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} />
+              <StatTable title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" />
             </div>
           )}
         </main>
