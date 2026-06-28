@@ -35,6 +35,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
         const userIsOwner = firebaseUser.email?.toLowerCase() === ownerEmail || firebaseUser.uid === ownerUid;
         setIsOwner(userIsOwner);
+        
+        // Force sync missing Google data for existing users
+        import("firebase/firestore").then(({ doc, getDoc, updateDoc }) => {
+          import("@/lib/firebase").then(({ db }) => {
+            getDoc(doc(db, "players", firebaseUser.uid)).then((docSnap) => {
+              if (docSnap.exists()) {
+                const data = docSnap.data();
+                if (!data.email || !data.googlePic || !data.googleName) {
+                  updateDoc(doc(db, "players", firebaseUser.uid), {
+                    email: firebaseUser.email || '',
+                    googlePic: firebaseUser.photoURL || '',
+                    googleName: firebaseUser.displayName || ''
+                  }).catch(console.error);
+                }
+              }
+            });
+          });
+        });
       } else {
         setIsOwner(false);
       }

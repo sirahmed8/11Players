@@ -5,7 +5,7 @@ import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown } from "lucide-react";
 import { PlayerProfile } from "@/types";
 
 export default function GlobalUsersTable() {
@@ -14,6 +14,8 @@ export default function GlobalUsersTable() {
   
   const [users, setUsers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null={ key: 'fullName', direction: 'asc' });
 
   useEffect(() => {
     fetchUsers();
@@ -58,32 +60,91 @@ export default function GlobalUsersTable() {
     }
   };
 
+  const handleSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const filteredUsers = React.useMemo(() => {
+    let result = [...users];
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(u => 
+        u.fullName.toLowerCase().includes(q) || 
+        u.cardName.toLowerCase().includes(q) || 
+        (u.email && u.email.toLowerCase().includes(q))
+      );
+    }
+    if (sortConfig) {
+      result.sort((a, b) => {
+        const aVal = (a as any)[sortConfig.key] || "";
+        const bVal = (b as any)[sortConfig.key] || "";
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return result;
+  }, [users, searchQuery, sortConfig]);
+
   if (loading) {
     return <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>;
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-          {isAr ? "جميع المستخدمين" : "All Users"}
-        </h2>
-        <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-sm font-semibold">
-          {users.length} {isAr ? "مستخدم" : "Users"}
-        </span>
+    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col h-full">
+      <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-800">
+        <div className="flex items-center gap-3">
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            {isAr ? "جميع المستخدمين" : "All Users"}
+          </h2>
+          <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-sm font-semibold">
+            {filteredUsers.length} {isAr ? "مستخدم" : "Users"}
+          </span>
+        </div>
+        
+        <div className="relative w-full sm:w-72">
+          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input 
+            type="text" 
+            placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm"
+          />
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500">{isAr ? "المستخدم" : "User"}</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500">{isAr ? "البريد الإلكتروني" : "Email"}</th>
+            <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+              <th 
+                className="px-6 py-4 text-sm font-semibold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group"
+                onClick={() => handleSort('fullName')}
+              >
+                <div className="flex items-center gap-2">
+                  {isAr ? "المستخدم" : "User"}
+                  <ArrowUpDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                </div>
+              </th>
+              <th 
+                className="px-6 py-4 text-sm font-semibold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group"
+                onClick={() => handleSort('email')}
+              >
+                <div className="flex items-center gap-2">
+                  {isAr ? "البريد الإلكتروني" : "Email"}
+                  <ArrowUpDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                </div>
+              </th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-500">{isAr ? "المجتمعات" : "Communities"}</th>
               <th className="px-6 py-4 text-sm font-semibold text-slate-500 text-right">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {users.map(u => (
+            {filteredUsers.map(u => (
               <tr key={u.uid} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
