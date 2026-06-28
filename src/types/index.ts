@@ -128,4 +128,5 @@ export interface PlayerProfile {
   // Record<communityId, CommunityStats>
   communityStats?: Record<string, CommunityStats>;
   defaultPage?: string;
+  isExcludedFromMatchmaking?: boolean;
 }

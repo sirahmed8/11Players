@@ -250,19 +250,24 @@ export default function OwnerPage() {
                       <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
                     </label>
                   </div>
-                  <div 
-                    className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isPrivate ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
-                  >
-                    <div className="overflow-hidden">
-                      <div className="pt-2">
-                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                        <div className="relative group">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                          <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Secret..." />
+                  <AnimatePresence>
+                    {isPrivate && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-2">
+                          <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                          <div className="relative group">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                            <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Secret..." />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                   <button disabled={creating} className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
                     {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء المجتمع" : "Create Community")}
                   </button>

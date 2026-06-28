@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import MatchPitchDisplay from "@/components/MatchPitchDisplay";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommunity } from "@/contexts/CommunityContext";
 import RecordStatsModal from "@/components/RecordStatsModal";
 
 export default function MatchPage() {
@@ -18,6 +19,7 @@ export default function MatchPage() {
   const isAr = locale === "ar";
   
   const { isAdmin } = useAuth();
+  const { activeCommunityId } = useCommunity();
   
   const [matchData, setMatchData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +28,8 @@ export default function MatchPage() {
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "system", "latestMatch"), (docSnap) => {
+    if (!activeCommunityId) return;
+    const unsub = onSnapshot(doc(db, "communities", activeCommunityId, "matches", "latest"), (docSnap) => {
       if (docSnap.exists()) {
         setMatchData(docSnap.data());
       } else {
@@ -40,7 +43,7 @@ export default function MatchPage() {
     });
 
     return () => unsub();
-  }, [isAr]);
+  }, [isAr, activeCommunityId]);
 
   return (
     <ProtectedRoute requireCommunity>
@@ -174,6 +177,26 @@ export default function MatchPage() {
                     color="blue" 
                     onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
                   />
+                  
+                  {/* Bench A Section */}
+                  {!loading && !error && matchData?.benchA && matchData.benchA.length > 0 && (
+                    <div className="mt-8 border-t border-slate-100 dark:border-slate-700/50 pt-6">
+                      <h4 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+                        {isAr ? 'دكة البدلاء' : 'Substitutes / Bench'}
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {matchData.benchA.map((b: any) => (
+                          <div key={b.player.uid} className="relative group">
+                            <PlayerCardCompact player={b.player} />
+                            <div className="absolute top-0 right-0 -translate-y-full translate-x-4 w-48 bg-black/90 backdrop-blur text-white text-xs p-2 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-white/10 shadow-xl mb-2">
+                              <span className="font-bold text-blue-400">{isAr ? "التقييم:" : "Rating:"}</span><br />
+                              {b.reason}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -210,30 +233,29 @@ export default function MatchPage() {
                     isReversed={true}
                     onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
                   />
+
+                  {/* Bench B Section */}
+                  {!loading && !error && matchData?.benchB && matchData.benchB.length > 0 && (
+                    <div className="mt-8 border-t border-slate-100 dark:border-slate-700/50 pt-6">
+                      <h4 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-4">
+                        {isAr ? 'دكة البدلاء' : 'Substitutes / Bench'}
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {matchData.benchB.map((b: any) => (
+                          <div key={b.player.uid} className="relative group">
+                            <PlayerCardCompact player={b.player} />
+                            <div className="absolute top-0 right-0 -translate-y-full translate-x-4 w-48 bg-black/90 backdrop-blur text-white text-xs p-2 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-white/10 shadow-xl mb-2">
+                              <span className="font-bold text-red-400">{isAr ? "التقييم:" : "Rating:"}</span><br />
+                              {b.reason}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
-          )}
-
-          {/* Bench Section */}
-          {!loading && !error && matchData?.bench && matchData.bench.length > 0 && (
-            <div className="mt-12 bg-slate-800 rounded-3xl p-6 lg:p-8 border border-slate-700 shadow-xl" dir={isAr ? 'rtl' : 'ltr'}>
-              <h3 className="text-2xl font-black text-slate-300 mb-6 border-b border-slate-700 pb-4">
-                {isAr ? 'دكة البدلاء' : 'The Bench'}
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {matchData.bench.map((b: any) => (
-                  <div key={b.player.uid} className="relative group">
-                    <PlayerCardCompact player={b.player} />
-                    {/* Benched Reason Tooltip */}
-                    <div className="absolute top-0 right-0 -translate-y-full translate-x-4 w-48 bg-black/90 backdrop-blur text-white text-xs p-2 rounded-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-10 border border-white/10 shadow-xl mb-2">
-                      <span className="font-bold text-red-400">{isAr ? "سبب الاستبعاد:" : "Benched Reason:"}</span><br />
-                      {b.reason}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
 
         </main>

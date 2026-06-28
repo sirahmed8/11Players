@@ -10,6 +10,7 @@ import { useLocale } from '@/components/ThemeProvider';
 import toast from 'react-hot-toast';
 import type { PlayerProfile, PESPosition, PlayerAttributes, CommunityStats } from '@/types';
 import BackgroundRemover from '@/components/BackgroundRemover';
+import AttributeSliders from '@/components/AttributeSliders';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -167,55 +168,55 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
-                  <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                  <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Card Name</label>
-                  <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                  <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label>
-                  <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                  <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 [color-scheme:light] dark:[color-scheme:dark]" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Height (cm)</label>
-                    <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                    <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Weight (kg)</label>
-                    <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                    <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                   </div>
                 </div>
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Primary Position</label>
-                  <select value={formData.primaryPosition} onChange={(e) => handleChange('primaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                  <select value={formData.primaryPosition} onChange={(e) => handleChange('primaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
                     {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Secondary Position</label>
-                  <select value={formData.secondaryPosition} onChange={(e) => handleChange('secondaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                  <select value={formData.secondaryPosition} onChange={(e) => handleChange('secondaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
                     {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Tertiary Position</label>
-                  <select value={formData.tertiaryPosition} onChange={(e) => handleChange('tertiaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                  <select value={formData.tertiaryPosition} onChange={(e) => handleChange('tertiaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
                     {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Play Style</label>
-                  <select value={formData.playStyle} onChange={(e) => handleChange('playStyle', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                  <select value={formData.playStyle} onChange={(e) => handleChange('playStyle', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
                     <option value="">None</option>
                     {PLAY_STYLES.map(p => <option key={p} value={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Preferred Foot</label>
-                  <select value={formData.preferredFoot} onChange={(e) => handleChange('preferredFoot', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors">
+                  <select value={formData.preferredFoot} onChange={(e) => handleChange('preferredFoot', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
                     <option value="Right">Right</option>
                     <option value="Left">Left</option>
                     <option value="Ambidextrous">Ambidextrous</option>
@@ -242,7 +243,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                     {['goals', 'assists', 'mvp', 'matchesPlayed'].map(statKey => (
                       <div key={statKey}>
                         <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{statKey}</label>
-                        <input type="number" min="0" value={stats[statKey as keyof CommunityStats] as number || 0} onChange={(e) => handleStatChange(statKey as keyof CommunityStats, parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
+                        <input type="number" min="0" value={stats[statKey as keyof CommunityStats] as number || 0} onChange={(e) => handleStatChange(statKey as keyof CommunityStats, parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                       </div>
                     ))}
                   </div>
@@ -252,14 +253,13 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">
                     {isRTL ? 'القدرات والمهارات' : 'Player Attributes'}
                   </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {ATTRIBUTES_KEYS.map(attr => (
-                      <div key={attr}>
-                        <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-300 capitalize truncate" title={attr}>{attr.replace(/([A-Z])/g, ' $1').trim()}</label>
-                        <input type="number" min="40" max="99" value={attributes[attr] || 40} onChange={(e) => handleAttributeChange(attr, parseInt(e.target.value) || 40)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors" />
-                      </div>
-                    ))}
-                  </div>
+                  <AttributeSliders
+                    attributes={attributes}
+                    onChange={setAttributes}
+                    locale={(locale as 'en' | 'ar') ?? 'ar'}
+                    primaryPosition={formData.primaryPosition}
+                    playStyle={formData.playStyle}
+                  />
                 </div>
               </>
             )}
@@ -280,6 +280,18 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               {isRTL ? 'إلغاء' : 'Cancel'}
             </button>
           </div>
+          <style jsx>{`
+            input[type="date"]::-webkit-calendar-picker-indicator,
+            input[type="time"]::-webkit-calendar-picker-indicator {
+              cursor: pointer;
+              opacity: 0.6;
+              transition: 0.2s;
+            }
+            input[type="date"]::-webkit-calendar-picker-indicator:hover,
+            input[type="time"]::-webkit-calendar-picker-indicator:hover {
+              opacity: 1;
+            }
+          `}</style>
         </motion.div>
       </div>
     </AnimatePresence>

@@ -8,15 +8,17 @@ import { useLocale } from "@/components/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
-import { Send, Loader2, Image as ImageIcon, X, MessageSquare, Sparkles } from "lucide-react";
+import { Send, Loader2, Image as ImageIcon, X, MessageSquare, Sparkles, ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
+import { useRouter } from "next/navigation";
 
 export default function SupportPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  const router = useRouter();
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
@@ -135,9 +137,14 @@ export default function SupportPage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pt-24 pb-12" dir={isAr ? "rtl" : "ltr"}>
         <main className="max-w-3xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
-          <div className="bg-white dark:bg-slate-800 rounded-t-2xl p-6 border-b border-slate-200 dark:border-slate-700 shadow-sm">
-            <h1 className="text-2xl font-black text-emerald-500">{isAr ? "الدعم الفني" : "Support"}</h1>
-            <p className="text-sm text-slate-500">{isAr ? "تحدث مع المالك أو المشرفين مباشرة." : "Chat directly with the platform owner and moderators."}</p>
+          <div className="bg-white dark:bg-slate-800 rounded-t-2xl p-6 border-b border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
+            <button onClick={() => router.back()} className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-black text-emerald-500">{isAr ? "الدعم الفني" : "Support"}</h1>
+              <p className="text-sm text-slate-500">{isAr ? "تحدث مع المالك أو المشرفين مباشرة." : "Chat directly with the platform owner and moderators."}</p>
+            </div>
           </div>
 
           <div 

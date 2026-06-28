@@ -1,4 +1,9 @@
 import { PlayerProfile } from "@/types";
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import PDFPlayerCard from '@/components/PDFPlayerCard';
+import PDFBulkTable from '@/components/PDFBulkTable';
+import html2canvas from 'html2canvas';
 
 export async function generateProfilePDF(profile: PlayerProfile): Promise<void> {
   if (typeof window === "undefined") {
@@ -8,44 +13,68 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
 
   try {
     const { jsPDF } = await import("jspdf");
-    const doc = new jsPDF({
+
+    // Create a hidden container
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    document.body.appendChild(container);
+
+    // Render the React component
+    const root = createRoot(container);
+    root.render(React.createElement(PDFPlayerCard, { player: profile }));
+
+    // Wait for a brief moment to let React render and images load
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // Select the actual card element
+    const cardElement = container.querySelector('#pdf-player-card') as HTMLElement;
+    if (!cardElement) throw new Error("Card element not found");
+
+    // Capture with html2canvas
+    const canvas = await html2canvas(cardElement, {
+      scale: 2, // Higher scale for better quality
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: null,
+    });
+
+    const imgData = canvas.toDataURL('image/png');
+
+    // Create PDF (A4 size is ~210x297mm)
+    const pdf = new jsPDF({
       orientation: "portrait",
       unit: "mm",
       format: "a4"
     });
 
-    // Write title
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(34, 197, 94); // emerald-500
-    doc.text("11PLAYERS PLAYER PROFILE", 20, 25);
+    // A4 dimensions
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Profile Info
-    doc.setFontSize(14);
-    doc.setTextColor(15, 23, 42); // slate-900
-    doc.text(`Full Name: ${profile.fullName}`, 20, 45);
-    doc.text(`Card Name: ${profile.cardName}`, 20, 55);
-    doc.text(`Date of Birth: ${profile.dateOfBirth} (Age: ${profile.calculatedAge})`, 20, 65);
-    doc.text(`Height: ${profile.height} cm | Weight: ${profile.weight} kg`, 20, 75);
-    doc.text(`Preferred Foot: ${profile.preferredFoot}`, 20, 85);
-    doc.text(`Primary Position: ${profile.primaryPosition}`, 20, 95);
+    // Calculate aspect ratio for the card (500x750)
+    const cardRatio = 500 / 750;
+    
+    // We want the card to fill most of the page but keep aspect ratio
+    const margin = 10;
+    let targetWidth = pdfWidth - (margin * 2);
+    let targetHeight = targetWidth / cardRatio;
 
-    // Attributes
-    doc.setFontSize(16);
-    doc.setTextColor(21, 128, 61); // emerald-700
-    doc.text("PLAYER ATTRIBUTES", 20, 115);
+    if (targetHeight > pdfHeight - (margin * 2)) {
+      targetHeight = pdfHeight - (margin * 2);
+      targetWidth = targetHeight * cardRatio;
+    }
 
-    doc.setFontSize(12);
-    doc.setTextColor(15, 23, 42);
-    let yPos = 125;
-    Object.entries(profile.attributes).forEach(([key, val]) => {
-      const label = key.replace(/([A-Z])/g, " $1");
-      doc.text(`${label.toUpperCase()}: ${val}`, 25, yPos);
-      yPos += 10;
-    });
+    const xPos = (pdfWidth - targetWidth) / 2;
+    const yPos = (pdfHeight - targetHeight) / 2;
 
-    // Save the PDF
-    doc.save(`${profile.cardName.toLowerCase().replace(/\s+/g, "_")}_profile.pdf`);
+    pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
+    pdf.save(`${profile.cardName.toLowerCase().replace(/\s+/g, "_")}_profile.pdf`);
+
+    // Cleanup
+    root.unmount();
+    document.body.removeChild(container);
   } catch (error) {
     console.error("Error generating profile PDF:", error);
     throw error;
@@ -60,50 +89,66 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[]): Promise<
 
   try {
     const { jsPDF } = await import("jspdf");
-    const doc = new jsPDF({
+
+    const pdf = new jsPDF({
       orientation: "landscape",
       unit: "mm",
       format: "a4"
     });
 
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(20);
-    doc.setTextColor(34, 197, 94);
-    doc.text("11PLAYERS MASTER PLAYER DIRECTORY", 20, 25);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    // Table Header
-    doc.setFontSize(10);
-    doc.setTextColor(15, 23, 42);
-    doc.text("Name", 20, 45);
-    doc.text("Position", 80, 45);
-    doc.text("Age", 110, 45);
-    doc.text("Foot", 130, 45);
-    doc.text("Verified", 160, 45);
-    doc.text("Warning", 190, 45);
-    doc.text("Goals", 220, 45);
-    doc.text("Assists", 250, 45);
+    const ITEMS_PER_PAGE = 15;
+    const totalPages = Math.ceil(profiles.length / ITEMS_PER_PAGE) || 1;
 
-    doc.line(20, 48, 275, 48);
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '-9999px';
+    document.body.appendChild(container);
 
-    let yPos = 55;
-    profiles.forEach((p) => {
-      if (yPos > 185) {
-        doc.addPage();
-        yPos = 30;
+    const root = createRoot(container);
+
+    for (let i = 0; i < totalPages; i++) {
+      const pageProfiles = profiles.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE);
+      
+      root.render(React.createElement(PDFBulkTable, {
+        profiles: pageProfiles,
+        pageIndex: i,
+        totalPages: totalPages
+      }));
+
+      // Wait for render and images
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const tableElement = container.querySelector('#pdf-bulk-table') as HTMLElement;
+      if (!tableElement) throw new Error("Bulk table element not found");
+
+      const canvas = await html2canvas(tableElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#f8fafc', // slate-50
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+
+      const targetWidth = pdfWidth; // Full width landscape
+      const targetHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      if (i > 0) {
+        pdf.addPage();
       }
-      doc.text(p.fullName, 20, yPos);
-      doc.text(p.primaryPosition, 80, yPos);
-      doc.text(p.calculatedAge.toString(), 110, yPos);
-      doc.text(p.preferredFoot, 130, yPos);
-      doc.text(p.isVerifiedByAdmin ? "Yes" : "No", 160, yPos);
-      doc.text(p.hasWarning ? "Yes" : "No", 190, yPos);
-      doc.text((p.stats?.goals || 0).toString(), 220, yPos);
-      doc.text((p.stats?.assists || 0).toString(), 250, yPos);
 
-      yPos += 10;
-    });
+      pdf.addImage(imgData, 'PNG', 0, 0, targetWidth, targetHeight);
+    }
 
-    doc.save("master_player_directory.pdf");
+    pdf.save("master_player_directory.pdf");
+
+    // Cleanup
+    root.unmount();
+    document.body.removeChild(container);
   } catch (error) {
     console.error("Error generating master bulk PDF:", error);
     throw error;

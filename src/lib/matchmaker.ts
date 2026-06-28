@@ -33,7 +33,8 @@ export interface AssignedPlayer extends PlayerProfile {
 export interface MatchmakingResult {
   teamA: AssignedPlayer[];
   teamB: AssignedPlayer[];
-  bench?: { player: PlayerProfile; reason: string }[];
+  benchA?: { player: PlayerProfile; reason: string }[];
+  benchB?: { player: PlayerProfile; reason: string }[];
   formation: {
     teamA: string;
     teamB: string;
@@ -798,11 +799,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
       calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition)
   );
 
-  const activePlayers = sortedPlayers.slice(0, 22);
-  const benchPlayers = sortedPlayers.slice(22).map(player => ({
-    player,
-    reason: "Lower overall rating compared to the top 22",
-  }));
+  const activePlayers = sortedPlayers.slice(0, 32);
 
   // ── 1. Partition ──
   let [rawA, rawB] = partitionPlayers(activePlayers);
@@ -815,8 +812,15 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   const formationB = selectBestFormation(rawB);
 
   // ── 4. Assign positions ──
-  const teamA = assignPlayersToFormation(rawA, formationA);
-  const teamB = assignPlayersToFormation(rawB, formationB);
+  const assignedA = assignPlayersToFormation(rawA, formationA);
+  const assignedB = assignPlayersToFormation(rawB, formationB);
+
+  // Split into starters (first 11) and bench
+  const teamA = assignedA.slice(0, 11);
+  const benchA = assignedA.slice(11).map(p => ({ player: p, reason: "Substitute" }));
+  
+  const teamB = assignedB.slice(0, 11);
+  const benchB = assignedB.slice(11).map(p => ({ player: p, reason: "Substitute" }));
 
   // ── 5. Generate AI Manager Advices ──
   const metricsA = calculateTeamMetrics(teamA);
@@ -851,7 +855,8 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   return {
     teamA,
     teamB,
-    bench: benchPlayers.length > 0 ? benchPlayers : undefined,
+    benchA: benchA.length > 0 ? benchA : undefined,
+    benchB: benchB.length > 0 ? benchB : undefined,
     formation: {
       teamA: formationA,
       teamB: formationB,

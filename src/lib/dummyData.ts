@@ -91,13 +91,15 @@ export async function generateDummyPlayersForCommunity(communityId: string) {
       
       const uid = `dummy_${Date.now()}_${i}_${Math.random().toString(36).substring(7)}`;
       
-        const isLeftPref = ['LWF', 'LMF', 'LB'].includes(position);
-        const isRightPref = ['RWF', 'RMF', 'RB'].includes(position);
         let foot = 'Right';
         const footRand = Math.random();
-        if (isLeftPref) {
+        if (['LWF', 'LMF'].includes(position)) {
+          foot = footRand > 0.15 ? 'Right' : (footRand > 0.05 ? 'Ambidextrous' : 'Left');
+        } else if (['RWF', 'RMF'].includes(position)) {
           foot = footRand > 0.15 ? 'Left' : (footRand > 0.05 ? 'Ambidextrous' : 'Right');
-        } else if (isRightPref) {
+        } else if (['LB'].includes(position)) {
+          foot = footRand > 0.15 ? 'Left' : (footRand > 0.05 ? 'Ambidextrous' : 'Right');
+        } else if (['RB'].includes(position)) {
           foot = footRand > 0.15 ? 'Right' : (footRand > 0.05 ? 'Ambidextrous' : 'Left');
         } else {
           foot = footRand > 0.25 ? 'Right' : (footRand > 0.05 ? 'Left' : 'Ambidextrous');

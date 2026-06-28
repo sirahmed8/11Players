@@ -453,13 +453,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         >
           {loadingUid === 'deleting-mock' ? 'Deleting...' : t(locale, 'Delete All Mock Players', 'حذف جميع اللاعبين الوهميين')}
         </button>
-        <button
-          onClick={() => setShowGenerateModal(true)}
-          disabled={loadingUid === 'generating-players'}
-          className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
-        >
-          {loadingUid === 'generating-players' ? 'Generating...' : t(locale, 'Generate 32 Test Players', 'إنشاء 32 لاعب للتجربة')}
-        </button>
+
       </div>
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">

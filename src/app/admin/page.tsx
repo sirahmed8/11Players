@@ -15,7 +15,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
 import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
@@ -60,7 +60,8 @@ export default function AdminPage() {
       setMatchmakingLoading(true);
       setMatchmakingError("");
       
-      const playerIds = players.map((p) => p.uid);
+      const availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
+      const playerIds = availablePlayers.map((p) => p.uid);
 
       if (playerIds.length < 22) {
         setMatchmakingError(`Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
@@ -71,7 +72,7 @@ export default function AdminPage() {
       // Small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const result = balanceTeams(players);
+      const result = balanceTeams(availablePlayers);
 
       const matchData = {
         success: true,
@@ -88,7 +89,10 @@ export default function AdminPage() {
 
       // Save to Firestore
       try {
-        await setDoc(doc(db, "communities", activeCommunityId, "system", "latestMatch"), matchData);
+        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), matchData);
+        // Also save a historical record
+        const matchId = `match_${Date.now()}`;
+        await setDoc(doc(db, "communities", activeCommunityId, "matches", matchId), matchData);
       } catch (err) {
         console.error("Failed to save match to database:", err);
       }
@@ -105,24 +109,38 @@ export default function AdminPage() {
 
   const handleMakeMeAdmin = async () => {
     if (!activeCommunityId || !user) return;
-    try {
-      // Look up current global player profile or create dummy structure if doesn't exist
-      const pDoc = await getDoc(doc(db, "players", user.uid));
-      const pData = pDoc.exists() ? pDoc.data() : {
-        uid: user.uid,
-        email: user.email,
-        fullName: user.displayName || 'Owner',
-        cardName: user.displayName || 'Owner',
-      };
-      await setDoc(doc(db, "communities", activeCommunityId, "players", user.uid), {
-        ...pData,
-        role: "admin",
-        joinedAt: new Date().toISOString()
-      }, { merge: true });
-      toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add admin");
+    const isAlreadyAdmin = players.some(p => p.uid === user.uid);
+
+    if (isAlreadyAdmin) {
+      if (!confirm(isAr ? "هل أنت متأكد أنك تريد إزالة نفسك كمسؤول؟" : "Are you sure you want to remove yourself as Admin?")) return;
+      try {
+        await deleteDoc(doc(db, "communities", activeCommunityId, "players", user.uid));
+        toast.success(isAr ? "تم إزالتك بنجاح" : "Successfully removed as Admin");
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to remove admin");
+      }
+    } else {
+      if (!confirm(isAr ? "هل أنت متأكد أنك تريد إضافة نفسك كمسؤول؟" : "Are you sure you want to add yourself as Admin?")) return;
+      try {
+        // Look up current global player profile or create dummy structure if doesn't exist
+        const pDoc = await getDoc(doc(db, "players", user.uid));
+        const pData = pDoc.exists() ? pDoc.data() : {
+          uid: user.uid,
+          email: user.email,
+          fullName: user.displayName || 'Owner',
+          cardName: user.displayName || 'Owner',
+        };
+        await setDoc(doc(db, "communities", activeCommunityId, "players", user.uid), {
+          ...pData,
+          role: "admin",
+          joinedAt: new Date().toISOString()
+        }, { merge: true });
+        toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to add admin");
+      }
     }
   };
 
@@ -155,7 +173,7 @@ export default function AdminPage() {
                   <p className="text-slate-500 dark:text-slate-400" dir={isAr ? "rtl" : "ltr"}>{isAr ? "إدارة اللاعبين، تحديث الإحصائيات، وتشكيل الفرق." : "Manage players, update stats, and run matchmaking."}</p>
                 </div>
                 
-                <div className="flex gap-4 w-full md:w-auto">
+                <div className="flex flex-wrap gap-4 w-full md:w-auto">
               <button
                 onClick={handleBulkPdf}
                 className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold rounded-lg shadow-sm whitespace-nowrap"
@@ -165,9 +183,11 @@ export default function AdminPage() {
               {(isOwner || players.length === 0) && (
                 <button
                   onClick={handleMakeMeAdmin}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg shadow-sm whitespace-nowrap"
+                  className={`px-4 py-2 ${user && players.some(p => p.uid === user.uid) ? 'bg-red-600 hover:bg-red-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-bold rounded-lg shadow-sm whitespace-nowrap`}
                 >
-                  {isAr ? "تعيين كمسؤول (تزامن)" : "Make me Admin"}
+                  {user && players.some(p => p.uid === user.uid) 
+                    ? (isAr ? "إزالة نفسي كمسؤول" : "Remove me as Admin")
+                    : (isAr ? "تعيين كمسؤول (تزامن)" : "Make me Admin")}
                 </button>
               )}
               <button
@@ -176,6 +196,22 @@ export default function AdminPage() {
                 className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm disabled:opacity-50 whitespace-nowrap"
               >
                 {isGeneratingDummy ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "إنشاء 32 لاعب وهمي" : "Generate 32 Players")}
+              </button>
+              <button
+                onClick={async () => {
+                  if (!user || !activeCommunityId) return;
+                  const isExcluded = players.find(p => p.uid === user.uid)?.isExcludedFromMatchmaking;
+                  const docRef = doc(db, 'communities', activeCommunityId, 'players', user.uid);
+                  await setDoc(docRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
+                  const globalDocRef = doc(db, 'players', user.uid);
+                  await setDoc(globalDocRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
+                  toast.success(isExcluded ? (isAr ? "تم إضافتك للتشكيل" : "Included in matchmaking") : (isAr ? "تم استبعادك" : "Excluded from matchmaking"));
+                }}
+                className={`px-4 py-2 ${players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white font-bold rounded-lg shadow-sm whitespace-nowrap`}
+              >
+                {players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking 
+                  ? (isAr ? "تضمين في التشكيل" : "Include in Match")
+                  : (isAr ? "استبعاد من التشكيل" : "Exclude from Match")}
               </button>
               <button
                 onClick={() => setIsConfigModalOpen(true)}

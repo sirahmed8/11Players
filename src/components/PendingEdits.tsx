@@ -61,8 +61,7 @@ export default function PendingEdits() {
     }
   };
 
-  if (loading) return <div className="text-center py-4">Loading pending edits...</div>;
-  if (edits.length === 0) return null;
+  if (loading || edits.length === 0) return null;
 
   return (
     <div className="mb-8 p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-2xl shadow-sm">
