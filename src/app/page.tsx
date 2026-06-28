@@ -40,22 +40,9 @@ export default function Home() {
 
   const checkProfileAndRedirect = async (uid: string) => {
     try {
-      // First check if they are the owner, to completely bypass any Firestore hanging issues
-      if (user?.email === 'a7medorabe7@gmail.com') {
-        router.push("/admin");
-        return;
-      }
-
-      // Then check if they are an admin
-      const adminDoc = await getDoc(doc(db, "admins", uid));
-      if (adminDoc.exists()) {
-        router.push("/admin");
-        return;
-      }
-
       const playerDoc = await getDoc(doc(db, "players", uid));
       if (playerDoc.exists()) {
-        router.push("/community");
+        router.push("/communities");
       } else {
         router.push("/onboarding");
       }

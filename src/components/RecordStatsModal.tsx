@@ -130,13 +130,37 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                   {/* Goals */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold">⚽ Goals</span>
-                    <input type="number" min="0" value={stats[p.uid]?.goals || 0} onChange={e => updateStat(p.uid, 'goals', parseInt(e.target.value) || 0)} className="w-16 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-center" />
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded overflow-hidden">
+                      <button 
+                        onClick={() => updateStat(p.uid, 'goals', Math.max(0, (stats[p.uid]?.goals || 0) - 1))}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors font-bold"
+                      >−</button>
+                      <div className="w-8 text-center font-semibold text-slate-900 dark:text-white">
+                        {stats[p.uid]?.goals || 0}
+                      </div>
+                      <button 
+                        onClick={() => updateStat(p.uid, 'goals', (stats[p.uid]?.goals || 0) + 1)}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors font-bold"
+                      >+</button>
+                    </div>
                   </div>
 
                   {/* Assists */}
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold">👟 Assists</span>
-                    <input type="number" min="0" value={stats[p.uid]?.assists || 0} onChange={e => updateStat(p.uid, 'assists', parseInt(e.target.value) || 0)} className="w-16 bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded px-2 py-1 text-center" />
+                    <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded overflow-hidden">
+                      <button 
+                        onClick={() => updateStat(p.uid, 'assists', Math.max(0, (stats[p.uid]?.assists || 0) - 1))}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors font-bold"
+                      >−</button>
+                      <div className="w-8 text-center font-semibold text-slate-900 dark:text-white">
+                        {stats[p.uid]?.assists || 0}
+                      </div>
+                      <button 
+                        onClick={() => updateStat(p.uid, 'assists', (stats[p.uid]?.assists || 0) + 1)}
+                        className="px-2 py-1 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors font-bold"
+                      >+</button>
+                    </div>
                   </div>
 
                   {/* MVP */}

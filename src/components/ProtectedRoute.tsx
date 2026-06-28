@@ -4,32 +4,52 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
+  ownerOnly?: boolean;
+  requireCommunity?: boolean;
 }
 
 export default function ProtectedRoute({
   children,
   adminOnly = false,
+  ownerOnly = false,
+  requireCommunity = false,
 }: ProtectedRouteProps) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, isOwner } = useAuth();
+  const { activeCommunityId, loadingCommunity } = useCommunity();
   const router = useRouter();
   const { t } = useLocale();
 
+  const isFullyLoaded = !loading && !loadingCommunity;
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!isFullyLoaded) return;
+    
+    if (!user) {
       router.replace("/");
+      return;
     }
-    if (!loading && user && adminOnly && !isAdmin) {
-      router.replace("/community");
+    if (ownerOnly && !isOwner) {
+      router.replace("/communities");
+      return;
     }
-  }, [user, loading, isAdmin, adminOnly, router]);
+    if (adminOnly && !isAdmin) {
+      router.replace("/communities");
+      return;
+    }
+    if (requireCommunity && !activeCommunityId) {
+      router.replace("/communities");
+      return;
+    }
+  }, [user, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router]);
 
   // Loading spinner
-  if (loading) {
+  if (!isFullyLoaded) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 transition-colors duration-300 gap-4">
         <motion.div
@@ -51,6 +71,16 @@ export default function ProtectedRoute({
 
   // Admin-only route but user is not admin
   if (adminOnly && !isAdmin) {
+    return null;
+  }
+
+  // Owner-only route but user is not owner
+  if (ownerOnly && !isOwner) {
+    return null;
+  }
+
+  // Community required but not selected
+  if (requireCommunity && !activeCommunityId) {
     return null;
   }
 

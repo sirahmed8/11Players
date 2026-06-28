@@ -1,5 +1,28 @@
 export type PESPosition = 'GK' | 'CB' | 'LB' | 'RB' | 'DMF' | 'CMF' | 'AMF' | 'LMF' | 'RMF' | 'LWF' | 'RWF' | 'SS' | 'CF';
 
+export interface Community {
+  id: string;
+  name: string;
+  description: string;
+  adminUid: string;
+  isPrivate: boolean;
+  password?: string;
+  createdAt: string;
+}
+
+export interface CommunityStats {
+  goals: number;
+  assists: number;
+  mvp: number;
+  matchesPlayed: number;
+  form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
+  trophies?: {
+    name: string;
+    season: string;
+    date: string;
+  }[];
+}
+
 export interface PlayerAttributes {
   offensiveAwareness: number; // 40-99
   ballControl: number;        // 40-99
@@ -44,6 +67,7 @@ export interface PlayerProfile {
   isVerifiedByAdmin: boolean;
   hasWarning: boolean;
   form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
+  // Global total stats (aggregated)
   stats: {
     goals: number;
     assists: number;
@@ -55,4 +79,9 @@ export interface PlayerProfile {
     season: string;
     date: string;
   }[];
+  // Which communities this player is a part of
+  joinedCommunities?: string[];
+  // Community-specific stats stored on the root player document for easy access
+  // Record<communityId, CommunityStats>
+  communityStats?: Record<string, CommunityStats>;
 }

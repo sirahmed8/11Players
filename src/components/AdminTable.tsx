@@ -10,6 +10,7 @@ import AttributeSliders from '@/components/AttributeSliders';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PlayerProfile } from '@/types';
 import toast from 'react-hot-toast';
+import { useCommunity } from '@/contexts/CommunityContext';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -69,6 +70,7 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
 
 export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const { locale } = useLocale();
+  const { activeCommunityId } = useCommunity();
   const [sortKey, setSortKey] = useState<SortKey>('fullName');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [statsModal, setStatsModal] = useState<StatsModal>({
@@ -123,7 +125,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       const dateStr = new Date().toISOString();
 
       players.forEach(p => {
-        const docRef = doc(db, 'players', p.uid);
+        if (!activeCommunityId) return;
+        const docRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
         const updates: any = {
           'stats.goals': 0,
           'stats.assists': 0,
@@ -139,6 +142,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
         if (newTrophies.length > 0) {
           updates.trophies = arrayUnion(...newTrophies);
+          
+          // Also award trophies to the global player card
+          const globalDocRef = doc(db, 'players', p.uid);
+          batch.update(globalDocRef, { trophies: arrayUnion(...newTrophies) });
         }
 
         batch.update(docRef, updates);
@@ -165,9 +172,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       const batch = writeBatch(db);
       
       Array.from({ length: 32 }).forEach((_, i) => {
+        if (!activeCommunityId) return;
         const uid = `test-player-${Date.now()}-${i}`;
         const pos = positions[Math.floor(Math.random() * positions.length)];
-        const docRef = doc(db, 'players', uid);
+        const docRef = doc(db, 'communities', activeCommunityId, 'players', uid);
         batch.set(docRef, {
           uid,
           fullName: `Test Player ${i+1}`,
@@ -237,7 +245,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       }
       const batch = writeBatch(db);
       mockPlayers.forEach(p => {
-        batch.delete(doc(db, 'players', p.uid));
+        if (!activeCommunityId) return;
+        batch.delete(doc(db, 'communities', activeCommunityId, 'players', p.uid));
       });
       await batch.commit();
       onRefresh();
@@ -275,10 +284,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     });
   }, [players, sortKey, sortDir]);
 
-  const toggleWarning = async (uid: string, current: boolean) => {
-    setLoadingUid(uid);
+  const handleToggleWarning = async (player: PlayerProfile) => {
+    if (!activeCommunityId) return;
+    setLoadingUid(player.uid);
     try {
-      await updateDoc(doc(db, 'players', uid), { hasWarning: !current });
+      const docRef = doc(db, 'communities', activeCommunityId, 'players', player.uid);
+      await updateDoc(docRef, { hasWarning: !player.hasWarning });
       onRefresh();
     } catch (err) {
       console.error('Failed to toggle warning:', err);
@@ -287,10 +298,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const toggleVerify = async (uid: string, current: boolean) => {
-    setLoadingUid(uid);
+  const handleToggleVerify = async (player: PlayerProfile) => {
+    if (!activeCommunityId) return;
+    setLoadingUid(player.uid);
     try {
-      await updateDoc(doc(db, 'players', uid), { isVerifiedByAdmin: !current });
+      const docRef = doc(db, 'communities', activeCommunityId, 'players', player.uid);
+      await updateDoc(docRef, { isVerifiedByAdmin: !player.isVerifiedByAdmin });
       onRefresh();
       toast.success(t(locale, 'Verification status updated', 'تم تحديث حالة التوثيق'));
     } catch (error) {
@@ -323,11 +336,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     });
   };
 
-  const saveAttributes = async () => {
-    if (!attrModal.player) return;
-    setLoadingUid(attrModal.player.uid);
+  const handleUpdateAttributes = async () => {
+    if (!attrModal.player || !activeCommunityId) return;
+    setLoadingUid('attr-' + attrModal.player.uid);
     try {
-      await updateDoc(doc(db, 'players', attrModal.player.uid), {
+      const docRef = doc(db, 'communities', activeCommunityId, 'players', attrModal.player.uid);
+      await updateDoc(docRef, {
         attributes: attrModal.attributes,
       });
       onRefresh();
@@ -341,11 +355,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const handleResetStats = async () => {
-    if (!playerToReset) return;
-    setLoadingUid(playerToReset.uid);
+  const handleResetSinglePlayer = async () => {
+    if (!playerToReset || !activeCommunityId) return;
+    setLoadingUid('resetting-' + playerToReset.uid);
     try {
-      await updateDoc(doc(db, 'players', playerToReset.uid), {
+      const docRef = doc(db, 'communities', activeCommunityId, 'players', playerToReset.uid);
+      await updateDoc(docRef, {
         'stats.goals': 0,
         'stats.assists': 0,
         'stats.mvp': 0,
@@ -362,14 +377,14 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     }
   };
 
-  const handleDelete = async () => {
-    if (!playerToDelete) return;
-    setLoadingUid(playerToDelete.uid);
+  const handleDeletePlayer = async () => {
+    if (!playerToDelete || !activeCommunityId) return;
+    setLoadingUid('deleting-' + playerToDelete.uid);
     try {
-      await deleteDoc(doc(db, 'players', playerToDelete.uid));
-      onRefresh();
-      toast.success(t(locale, 'Player deleted successfully', 'تم حذف اللاعب بنجاح'));
+      await deleteDoc(doc(db, 'communities', activeCommunityId, 'players', playerToDelete.uid));
+      toast.success(t(locale, "Player deleted successfully!", "تم حذف اللاعب بنجاح!"));
       setPlayerToDelete(null);
+      onRefresh();
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error deleting player', 'حدث خطأ أثناء حذف اللاعب'));
@@ -386,16 +401,28 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     setStatsModal({ open: false, player: null, goals: 0, assists: 0, mvp: 0 });
   };
 
-  const saveStats = async () => {
-    if (!statsModal.player) return;
-    setLoadingUid(statsModal.player.uid);
+  const handleUpdateStats = async () => {
+    if (!statsModal.player || !activeCommunityId) return;
+    setLoadingUid('stats-' + statsModal.player.uid);
     try {
-      await updateDoc(doc(db, 'players', statsModal.player.uid), {
+      // 1. Update Community Stats
+      const communityDocRef = doc(db, 'communities', activeCommunityId, 'players', statsModal.player.uid);
+      await updateDoc(communityDocRef, {
         'stats.goals': increment(statsModal.goals),
         'stats.assists': increment(statsModal.assists),
         'stats.mvp': increment(statsModal.mvp),
         'stats.matchesPlayed': increment(1),
       });
+
+      // 2. Update Global Stats
+      const globalDocRef = doc(db, 'players', statsModal.player.uid);
+      await updateDoc(globalDocRef, {
+        'stats.goals': increment(statsModal.goals),
+        'stats.assists': increment(statsModal.assists),
+        'stats.mvp': increment(statsModal.mvp),
+        'stats.matchesPlayed': increment(1),
+      }).catch(err => console.error("Global stat update failed (might not exist):", err));
+
       closeStatsModal();
       onRefresh();
     } catch (err) {
@@ -503,11 +530,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               {sortedPlayers.map((player) => (
                 <motion.tr
                   key={player.uid}
-                  layout
-                  initial={{ opacity: 0, x: locale === 'ar' ? 20 : -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: locale === 'ar' ? -20 : 20 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.15 }}
                   className="border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
                 >
                   {/* Name */}
@@ -565,7 +591,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   <td className="px-4 py-3">
                     <button
                       disabled={loadingUid === player.uid}
-                      onClick={() => toggleWarning(player.uid, player.hasWarning)}
+                      onClick={() => handleToggleWarning(player)}
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                         player.hasWarning
                           ? 'bg-amber-500/20 text-amber-500 dark:text-amber-400 hover:bg-amber-500/30'
@@ -582,7 +608,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   <td className="px-4 py-3">
                     <button
                       disabled={loadingUid === player.uid}
-                      onClick={() => toggleVerify(player.uid, player.isVerifiedByAdmin)}
+                      onClick={() => handleToggleVerify(player)}
                       className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold transition-all ${
                         player.isVerifiedByAdmin
                           ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 dark:hover:bg-emerald-500/30'
@@ -778,7 +804,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={saveStats}
+                  onClick={handleUpdateStats}
                   disabled={loadingUid === statsModal.player.uid}
                   className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                 >
@@ -836,7 +862,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
               <div className="mt-6 flex gap-3">
                 <button
-                  onClick={saveAttributes}
+                  onClick={handleUpdateAttributes}
                   disabled={loadingUid === attrModal.player.uid}
                   className="flex-1 rounded-lg bg-emerald-600 px-4 py-2.5 font-semibold text-white transition-colors hover:bg-emerald-500 disabled:opacity-50"
                 >
@@ -959,7 +985,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     {t(locale, 'Cancel', 'إلغاء')}
                   </button>
                   <button
-                    onClick={handleResetStats}
+                    onClick={handleResetSinglePlayer}
                     className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-amber-500/20"
                   >
                     {t(locale, 'Reset Stats', 'تصفير الإحصائيات')}
@@ -996,7 +1022,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     {t(locale, 'Cancel', 'إلغاء')}
                   </button>
                   <button
-                    onClick={handleDelete}
+                    onClick={handleDeletePlayer}
                     className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-red-500/20"
                   >
                     {t(locale, 'Delete', 'حذف')}

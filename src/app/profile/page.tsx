@@ -233,17 +233,10 @@ function PlayerProfileContent() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="flex flex-col lg:flex-row gap-8 items-start"
+          className="space-y-8"
         >
-          {/* Player Card */}
-          <div className="flex-shrink-0 mx-auto lg:mx-0">
-            <PlayerCard player={player} />
-          </div>
-
-          {/* Info Panel */}
-          <div className="flex-1 space-y-6 w-full">
-            {/* Full Name & Form */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Full Name & Form */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h2 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
                   {player.fullName}
@@ -253,41 +246,50 @@ function PlayerProfileContent() {
                   <span className="text-white font-bold">{player.cardName}</span>
                 </p>
               </div>
+            </div>
 
-              {isViewingOwnProfile && (
-                <div className="flex items-center gap-2 bg-slate-800/80 px-4 py-2 rounded-xl border border-slate-700/50 w-max">
-                  <span className="text-sm text-slate-300 font-semibold">{isAr ? "الحالة:" : "Form:"}</span>
-                  <div className="flex gap-1">
-                    {['⬆️', '↗️', '➡️', '↘️', '⬇️'].map((arrow) => (
-                      <button
-                        key={arrow}
-                        onClick={async () => {
-                          try {
-                            const ref = doc(db, "players", player.uid);
-                            await updateDoc(ref, { form: arrow });
-                          } catch (e) {
-                            console.error("Failed to update form", e);
-                          }
-                        }}
-                        className={`text-xl hover:scale-110 transition-transform ${player.form === arrow ? 'bg-amber-500/20 rounded border border-amber-500/50' : 'opacity-50 hover:opacity-100'}`}
-                        title={isAr ? `تحديث الحالة إلى ${arrow}` : `Update form to ${arrow}`}
-                      >
-                        {arrow}
-                      </button>
-                    ))}
+            <div className="flex flex-col lg:flex-row gap-8 w-full justify-center lg:justify-between items-center lg:items-start bg-slate-800/30 p-6 md:p-8 rounded-3xl border border-slate-700/50">
+              {/* Left Column: Card & Form */}
+              <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
+                {isViewingOwnProfile && (
+                  <div className="flex items-center gap-3 bg-slate-800 px-6 py-3 rounded-2xl border border-slate-600 w-full max-w-[340px] justify-between shadow-lg">
+                    <span className="text-sm text-slate-300 font-bold">{isAr ? "فورمة اللاعب (قبل المباراة):" : "Match Form:"}</span>
+                    <div className="flex gap-2">
+                      {['⬆️', '↗️', '➡️', '↘️', '⬇️'].map((arrow) => (
+                        <button
+                          key={arrow}
+                          onClick={async () => {
+                            try {
+                              const ref = doc(db, "players", player.uid);
+                              await updateDoc(ref, { form: arrow });
+                            } catch (e) {
+                              console.error("Failed to update form", e);
+                            }
+                          }}
+                          className={`text-2xl hover:scale-125 transition-transform ${player.form === arrow ? 'bg-amber-500/20 rounded-full border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'opacity-40 hover:opacity-100 grayscale hover:grayscale-0'}`}
+                          title={isAr ? `تحديث الحالة إلى ${arrow}` : `Update form to ${arrow}`}
+                        >
+                          {arrow}
+                        </button>
+                      ))}
+                    </div>
                   </div>
+                )}
+                
+                <PlayerCard player={player} />
+              </div>
+
+              {/* Right Column: SVG Pitch */}
+              <div className="flex flex-col items-center w-full max-w-[400px]">
+                <h3 className="text-xl font-black text-emerald-400 mb-4 self-center lg:self-start bg-slate-800/50 px-4 py-2 rounded-lg border border-emerald-500/20">
+                  {isAr ? "مراكز اللعب والتقييم" : "Positions & Ratings"}
+                </h3>
+                <div className="w-full">
+                  <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
                 </div>
-              )}
+              </div>
             </div>
 
-            {/* SVG Pitch Display */}
-            <div className="mt-6">
-              <h3 className="text-xl font-black text-emerald-400 mb-4">
-                {isAr ? "مراكز اللعب والتقييم" : "Positions & Ratings"}
-              </h3>
-              <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
-            </div>
-          </div>
         </motion.div>
 
         {/* Match Stats */}

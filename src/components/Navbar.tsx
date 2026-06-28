@@ -9,7 +9,7 @@ import SettingsMenu from "@/components/SettingsMenu";
 import { ShieldAlert } from "lucide-react";
 
 export default function Navbar() {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const { locale } = useLocale();
   const pathname = usePathname();
 
@@ -25,14 +25,34 @@ export default function Navbar() {
       <div className="flex items-center gap-3">
         <nav className="flex items-center gap-2 text-sm font-semibold mr-4">
           <Link
-            href="/community"
+            href="/communities"
             className={`px-3 py-1.5 rounded-lg transition-all ${
-              pathname.startsWith("/community")
+              pathname.startsWith("/communities")
                 ? "bg-emerald-600 text-white font-black shadow-md"
                 : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
             }`}
           >
-            {isAr ? "المجتمع" : "Community"}
+            {isAr ? "المجتمعات" : "Communities"}
+          </Link>
+          <Link
+            href="/global"
+            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1 ${
+              pathname.startsWith("/global")
+                ? "bg-amber-500 text-white font-black shadow-md"
+                : "text-slate-600 dark:text-slate-300 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            🌍 {isAr ? "عالمي" : "Global"}
+          </Link>
+          <Link
+            href="/community"
+            className={`px-3 py-1.5 rounded-lg transition-all ${
+              pathname === "/community"
+                ? "bg-emerald-600 text-white font-black shadow-md"
+                : "text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            }`}
+          >
+            {isAr ? "الروستر" : "Roster"}
           </Link>
           <Link
             href="/stats"
@@ -85,7 +105,19 @@ export default function Navbar() {
                   : "text-amber-500 hover:text-amber-600 hover:bg-amber-500/5"
               }`}
             >
-              <ShieldAlert className="w-4 h-4" /> {isAr ? "لوحة التحكم" : "Admin"}
+              <ShieldAlert className="w-4 h-4" /> {isAr ? "إدارة المجتمع" : "Admin"}
+            </Link>
+          )}
+          {isOwner && (
+            <Link
+              href="/owner"
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all ${
+                pathname.startsWith("/owner")
+                  ? "bg-red-500 text-white font-black shadow-md"
+                  : "text-red-500 hover:text-red-600 hover:bg-red-500/5"
+              }`}
+            >
+              <ShieldAlert className="w-4 h-4" /> {isAr ? "المالك" : "Owner"}
             </Link>
           )}
         </nav>

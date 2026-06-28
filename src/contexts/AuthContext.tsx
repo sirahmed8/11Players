@@ -4,12 +4,13 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "@/lib/firebase";
+import { useCommunity } from "./CommunityContext";
 
 interface AuthContextProps {
   user: User | null;
   loading: boolean;
-  isAdmin: boolean;
-  isOwner: boolean;
+  isAdmin: boolean; // True if Global Owner OR Community Admin
+  isOwner: boolean; // True ONLY if Global Owner
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -19,18 +20,12 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const { activeCommunity, loadingCommunity } = useCommunity();
 
-  const checkAdminStatus = useCallback(async (uid: string): Promise<boolean> => {
-    try {
-      const adminDoc = await getDoc(doc(db, "admins", uid));
-      return adminDoc.exists();
-    } catch (error) {
-      console.error("Error checking admin status:", error);
-      return false;
-    }
-  }, []);
+  // Determine if the current user is an admin of the active community
+  const isCommunityAdmin = activeCommunity?.adminUid === user?.uid;
+  const isAdmin = isOwner || isCommunityAdmin;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -39,24 +34,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const ownerEmail = "a7medorabe7@gmail.com";
         const userIsOwner = firebaseUser.email === ownerEmail;
         setIsOwner(userIsOwner);
-
-        if (userIsOwner) {
-          setIsAdmin(true);
-          setLoading(false);
-        } else {
-          checkAdminStatus(firebaseUser.uid)
-            .then((status) => setIsAdmin(status))
-            .finally(() => setLoading(false));
-        }
       } else {
-        setIsAdmin(false);
         setIsOwner(false);
-        setLoading(false);
       }
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [checkAdminStatus]);
+  }, []);
 
   const login = useCallback(async () => {
     setLoading(true);

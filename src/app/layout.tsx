@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider, LocaleProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayersProvider } from "@/contexts/PlayersContext";
+import { CommunityProvider } from "@/contexts/CommunityContext";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
@@ -40,9 +41,10 @@ export default function RootLayout({
         <LocaleProvider>
           <ThemeProvider>
             <ErrorBoundary>
-              <AuthProvider>
-                <PlayersProvider>
-                  <div className="flex flex-col min-h-screen">
+              <CommunityProvider>
+                <AuthProvider>
+                  <PlayersProvider>
+                    <div className="flex flex-col min-h-screen">
                     <div className="flex-1">
                       {children}
                     </div>
@@ -71,8 +73,9 @@ export default function RootLayout({
                       },
                     }}
                   />
-                </PlayersProvider>
-              </AuthProvider>
+                  </PlayersProvider>
+                </AuthProvider>
+              </CommunityProvider>
             </ErrorBoundary>
           </ThemeProvider>
         </LocaleProvider>
