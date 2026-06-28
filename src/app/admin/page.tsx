@@ -7,7 +7,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminTable from "@/components/AdminTable";
 import MatchmakingModal from "@/components/MatchmakingModal";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
 import { generateDummyPlayersForCommunity } from "@/lib/dummyData";
@@ -17,7 +17,8 @@ import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Target } from "lucide-react";
+import { Target, AlertTriangle } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function AdminPage() {
   const { players, loading } = usePlayers();
@@ -31,22 +32,25 @@ export default function AdminPage() {
   const [matchmakingError, setMatchmakingError] = useState("");
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isGeneratingDummy, setIsGeneratingDummy] = useState(false);
+  const [showDummyConfirm, setShowDummyConfirm] = useState(false);
 
-  const handleGenerateDummyPlayers = async () => {
+  const executeGenerateDummyPlayers = async () => {
     if (!activeCommunityId) return;
-    const confirmed = window.confirm(isAr ? "هل أنت متأكد من إنشاء 32 لاعب وهمي؟" : "Are you sure you want to generate 32 dummy players?");
-    if (!confirmed) return;
-
+    setShowDummyConfirm(false);
     setIsGeneratingDummy(true);
     try {
       await generateDummyPlayersForCommunity(activeCommunityId);
-      alert(isAr ? "تم إنشاء 32 لاعب بنجاح!" : "Successfully generated 32 players!");
+      toast.success(isAr ? "تم إنشاء 32 لاعب بنجاح!" : "Successfully generated 32 players!");
     } catch (err) {
       console.error(err);
-      alert(isAr ? "فشل الإنشاء" : "Failed to generate players.");
+      toast.error(isAr ? "فشل الإنشاء" : "Failed to generate players.");
     } finally {
       setIsGeneratingDummy(false);
     }
+  };
+
+  const handleGenerateDummyPlayers = () => {
+    setShowDummyConfirm(true);
   };
 
   const handleMatchmaking = async (config: MatchConfig) => {
@@ -186,6 +190,52 @@ export default function AdminPage() {
           onClose={() => setIsConfigModalOpen(false)}
           onGenerate={handleMatchmaking}
         />
+
+        {/* Dummy Generation Confirm Modal */}
+        <AnimatePresence>
+          {showDummyConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xl max-w-md w-full relative"
+                dir={isAr ? "rtl" : "ltr"}
+              >
+                <div className="flex items-center gap-3 mb-4 text-indigo-600 dark:text-indigo-400">
+                  <AlertTriangle className="w-8 h-8" />
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                    {isAr ? "تأكيد الإنشاء" : "Confirm Generation"}
+                  </h3>
+                </div>
+                <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+                  {isAr 
+                    ? "هل أنت متأكد من رغبتك في إنشاء 32 لاعب وهمي؟ سيتم إضافتهم إلى مجتمعك الحالي لغرض التجربة." 
+                    : "Are you sure you want to generate 32 dummy players? They will be added to your active community for testing purposes."}
+                </p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setShowDummyConfirm(false)}
+                    className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-lg transition-colors"
+                  >
+                    {isAr ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    onClick={executeGenerateDummyPlayers}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-lg transition-colors"
+                  >
+                    {isAr ? "تأكيد وإنشاء" : "Confirm & Generate"}
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );

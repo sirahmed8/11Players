@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, getCountFromServer } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import { useRouter } from "next/navigation";
@@ -28,7 +28,16 @@ export default function CommunitiesPage() {
     const fetchData = async () => {
       try {
         const snap = await getDocs(collection(db, "communities"));
-        const data = snap.docs.map(d => ({ id: d.id, ...d.data() } as Community));
+        const data = await Promise.all(snap.docs.map(async (d) => {
+          let count = 0;
+          try {
+            const countSnap = await getCountFromServer(collection(db, "communities", d.id, "players"));
+            count = countSnap.data().count;
+          } catch (e) {
+            console.error("Failed to get count", e);
+          }
+          return { id: d.id, ...d.data(), playerCount: count } as Community & { playerCount: number };
+        }));
         setCommunities(data);
 
         if (user) {
@@ -133,6 +142,10 @@ export default function CommunitiesPage() {
                   ) : (
                     <span className="text-xs bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded">🌍 {isAr ? "عام" : "Public"}</span>
                   )}
+                </div>
+                <div className="flex items-center gap-2 mb-4 text-xs text-slate-500 font-semibold bg-slate-100 dark:bg-slate-800 self-start px-2 py-1 rounded-md">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  {isAr ? `${(c as any).playerCount || 0} لاعبين` : `${(c as any).playerCount || 0} Players`}
                 </div>
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1 text-start" dir="auto">{c.description}</p>
                 

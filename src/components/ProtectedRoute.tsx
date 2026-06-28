@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
 import { toast } from "react-hot-toast";
+import AdviceNotification from "@/components/AdviceNotification";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -87,5 +88,10 @@ export default function ProtectedRoute({
     return null;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <AdviceNotification />
+      {children}
+    </>
+  );
 }

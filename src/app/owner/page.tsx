@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale } from "@/components/ThemeProvider";
-import { collection, getDocs, doc, setDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import toast from "react-hot-toast";
@@ -62,6 +62,25 @@ export default function OwnerPage() {
         password: isPrivate ? password : null,
         createdAt: new Date().toISOString()
       });
+
+      // Add admin to the community's players
+      if (newCommAdmin) {
+        const adminDoc = await getDoc(doc(db, "players", newCommAdmin));
+        if (adminDoc.exists()) {
+          const adminData = adminDoc.data();
+          await setDoc(doc(db, "communities", id, "players", newCommAdmin), {
+            ...adminData,
+            role: "admin",
+            joinedAt: new Date().toISOString()
+          });
+
+          // Update admin's global profile
+          await updateDoc(doc(db, "players", newCommAdmin), {
+            memberCommunities: arrayUnion(id),
+            joinedCommunities: arrayUnion(id)
+          });
+        }
+      }
       toast.success(isAr ? "تم إنشاء المجتمع!" : "Community created!");
       setNewCommName("");
       setNewCommDesc("");

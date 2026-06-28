@@ -10,6 +10,13 @@ const ARABIC_LAST_NAMES = ["عبدالله", "إبراهيم", "سعيد", "صل
 const ENGLISH_FIRST_NAMES = ["John", "Michael", "David", "Chris", "James", "Kevin", "Robert", "William", "Joseph", "Thomas", "Daniel", "Paul", "Mark", "George"];
 const ENGLISH_LAST_NAMES = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez"];
 
+const PLAY_STYLES = [
+  "Goal Poacher", "Fox in the Box", "Creative Playmaker", "Hole Player",
+  "Box-to-Box", "Anchor Man", "Destroyer", "Orchestrator", "Cross Specialist",
+  "Offensive Full-back", "Defensive Full-back", "Build Up", "Extra Frontman",
+  "Offensive Goalkeeper", "Defensive Goalkeeper"
+];
+
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
@@ -99,7 +106,7 @@ export async function generateDummyPlayersForCommunity(communityId: string) {
         tertiaryPosition: randomChoice(POSITIONS),
         attributes: generateRandomAttributes(position),
         specialSkills: [],
-        playStyle: "Dummy Style",
+        playStyle: randomChoice(PLAY_STYLES),
         photoUrl: "",
         isVerifiedByAdmin: true,
         hasWarning: false,
@@ -114,7 +121,7 @@ export async function generateDummyPlayersForCommunity(communityId: string) {
       
       // Add to community's players
       batch.set(doc(db, "communities", communityId, "players", uid), {
-        uid,
+        ...dummyProfile,
         joinedAt: new Date().toISOString(),
         role: "member"
       });
