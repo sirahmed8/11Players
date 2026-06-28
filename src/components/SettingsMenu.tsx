@@ -7,7 +7,7 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 
-export default function SettingsMenu() {
+export default function SettingsMenu({ direction = "down" }: { direction?: "up" | "down" }) {
   const [isOpen, setIsOpen] = useState(false);
   const { locale, toggleLocale, isRTL, t } = useLocale();
   const { theme, toggleTheme } = useTheme();
@@ -36,11 +36,17 @@ export default function SettingsMenu() {
 
   const isAr = locale === "ar";
 
+  const popupVariants = {
+    hidden: { opacity: 0, y: direction === "up" ? 10 : -10, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: direction === "up" ? 10 : -10, scale: 0.95 }
+  };
+
   return (
-    <div className="relative z-50" ref={menuRef}>
+    <div className="relative z-[60]" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center"
+        className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-sm"
         title={isAr ? "الإعدادات" : "Settings"}
       >
         <Settings className="w-5 h-5 text-slate-700 dark:text-slate-300" />
@@ -49,12 +55,13 @@ export default function SettingsMenu() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className={`absolute top-full mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden ${
-              isRTL ? "left-0" : "right-0"
+            variants={popupVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden ${
+              isRTL ? "left-0 origin-bottom-left" : "right-0 origin-bottom-right"
             }`}
           >
             <div className="py-2 flex flex-col">

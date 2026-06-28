@@ -2,26 +2,24 @@
 
 ## Supported Versions
 
-Currently, only the latest active branch is supported with security updates.
+Currently, only the latest version of the 11Players platform is supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| 0.1.x   | :x:                |
-
-## Infrastructure Security
-
-11Players relies on Google Firebase for Authentication and Database (Firestore).
-- **Authentication**: All users are authenticated via Google OAuth.
-- **Database Rules**: Firestore security rules ensure that users can only modify their own profiles. Only community admins can modify community data, and only the site owner can perform global administrative actions.
+| Latest  | :white_check_mark: |
+| Older   | :x:                |
 
 ## Reporting a Vulnerability
 
-If you discover any security-related issues, please report them directly to the repository maintainers via private communication rather than using the public issue tracker.
+Security is a top priority for 11Players. If you discover a security vulnerability within this project, please send an email to the developer or contact via the developer linktree.
 
-We take all security vulnerabilities seriously and will work to address them as quickly as possible. When reporting a vulnerability, please provide:
-1. Detailed steps to reproduce the issue.
-2. The potential impact of the vulnerability.
-3. Any suggested mitigations if known.
+**Please do not report security vulnerabilities through public GitHub issues.**
 
-Please allow up to 48 hours for an initial response.
+When reporting a vulnerability, please include the following details:
+- A description of the vulnerability.
+- Steps to reproduce the issue.
+- Potential impact and an assessment of the severity.
+- Any suggested mitigations or fixes if available.
+
+### Response Timeline
+We aim to acknowledge all security reports within 48 hours and will keep you informed of our progress towards a fix and full disclosure.

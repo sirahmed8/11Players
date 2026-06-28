@@ -49,7 +49,7 @@ export default function Sidebar() {
           </button>
           <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl">11Players</span>
         </div>
-        <SettingsMenu />
+        <SettingsMenu direction="down" />
       </div>
 
       {/* Sidebar Overlay (Mobile) */}
@@ -67,18 +67,18 @@ export default function Sidebar() {
 
       {/* Sidebar Content */}
       <div
-        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out overflow-y-auto rounded-tr-3xl rounded-br-3xl md:rounded-none ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } ${isAr ? "right-0 left-auto border-r-0 border-l" : ""}`}
+        } ${isAr ? "right-0 left-auto border-r-0 border-l rounded-tl-3xl rounded-bl-3xl rounded-tr-none rounded-br-none md:rounded-none" : ""}`}
       >
-        <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-6 bg-white/30 dark:bg-slate-900/30 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50">
           <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">⚽ 11Players</span>
-          <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+          <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
+        <div className="py-6 px-4 flex flex-col gap-2">
           {links.map((link) => {
             const isActive = pathname === link.href || (link.href !== "/community" && pathname.startsWith(link.href));
             return (
@@ -126,8 +126,8 @@ export default function Sidebar() {
           )}
         </div>
 
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800 hidden md:block">
-          <SettingsMenu />
+        <div className="p-4 border-t border-slate-200/50 dark:border-slate-800/50 hidden md:block">
+          <SettingsMenu direction="up" />
         </div>
       </div>
     </>
