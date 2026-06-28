@@ -113,6 +113,7 @@ export default function CommunityChatPage() {
 
     if (editingMessage) {
       try {
+        if (!editingMessage.id) return;
         await updateDoc(doc(db, "communities", activeCommunityId, "chats", editingMessage.id), {
           text: currentText,
           isEdited: true
