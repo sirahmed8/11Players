@@ -5,6 +5,7 @@ import { usePlayers } from "@/contexts/PlayersContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ThemeProvider";
+import { User } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -91,7 +92,9 @@ export default function StatsPage() {
                           {p.photoUrl ? (
                             <img src={p.photoUrl} alt={p.cardName} className="w-full h-full object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs">⚽</div>
+                            <div className="w-full h-full flex items-center justify-center bg-slate-300 dark:bg-slate-600 text-slate-500 dark:text-slate-400">
+                              <User className="w-5 h-5" />
+                            </div>
                           )}
                         </div>
                         <div>

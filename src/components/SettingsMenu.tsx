@@ -37,10 +37,14 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
   const isAr = locale === "ar";
 
   const popupVariants = {
-    hidden: { opacity: 0, y: direction === "up" ? 10 : -10, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: direction === "up" ? 10 : -10, scale: 0.95 }
+    hidden: { opacity: 0, scale: 0 },
+    visible: { opacity: 1, scale: 1 },
+    exit: { opacity: 0, scale: 0 }
   };
+
+  const originClass = direction === "up" 
+    ? (isRTL ? "origin-bottom-left" : "origin-bottom-right")
+    : (isRTL ? "origin-top-left" : "origin-top-right");
 
   return (
     <div className="relative z-[60]" ref={menuRef}>
@@ -60,9 +64,9 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
             animate="visible"
             exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-y-auto max-h-[80vh] hide-scrollbar ${
-              isRTL ? "left-0 origin-bottom-left" : "right-0 origin-bottom-right"
-            }`}
+            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-y-auto max-h-[80vh] hide-scrollbar ${
+              isRTL ? "left-0" : "right-0"
+            } ${originClass}`}
           >
             <div className="py-2 flex flex-col">
               {user && (

@@ -32,6 +32,8 @@ const translations: Record<Locale, Record<string, string>> = {
     tos: "Terms of Service",
     privacy: "Privacy Policy",
     cookiePolicy: "Cookie Policy",
+    requireCommunity: "Please select a community first.",
+    adminOnly: "You do not have admin access for this community.",
   },
   ar: {
     welcome: "مرحباً بك في 11Players",
@@ -44,6 +46,8 @@ const translations: Record<Locale, Record<string, string>> = {
     tos: "شروط الخدمة",
     privacy: "سياسة الخصوصية",
     cookiePolicy: "سياسة ملفات تعريف الارتباط",
+    requireCommunity: "يرجى اختيار مجتمع أولاً.",
+    adminOnly: "ليس لديك صلاحيات إدارية لهذا المجتمع.",
   },
 };
 
@@ -111,11 +115,11 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return translations[locale][key] || key;
   };
 
+  if (!mounted) return null;
+
   return (
     <LocaleContext.Provider value={{ locale, direction, isRTL: direction === "rtl", toggleLocale, t }}>
-      <div style={{ visibility: mounted ? "visible" : "hidden", display: "contents" }}>
-        {children}
-      </div>
+      {children}
     </LocaleContext.Provider>
   );
 };

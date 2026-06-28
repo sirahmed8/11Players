@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
+import { AlertTriangle } from "lucide-react";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -34,18 +35,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       return (
         <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 transition-colors duration-300 p-6">
           <div className="relative w-full max-w-lg text-center space-y-6">
-            {/* Red Card */}
-            <div className="mx-auto w-28 h-40 rounded-xl bg-gradient-to-br from-red-500 to-red-700 shadow-2xl shadow-red-500/30 flex items-center justify-center transform -rotate-6 transition-transform hover:rotate-0 duration-500">
-              <span className="text-6xl select-none">🟥</span>
-            </div>
-
-            {/* Title - bilingual */}
-            <h1 className="text-3xl md:text-4xl font-black text-red-600 dark:text-red-400 tracking-tight">
-              Red Card! 🚫
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 flex flex-col items-center text-center">
+            <AlertTriangle className="w-16 h-16 text-red-500 mb-4 animate-bounce" />
+            <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
+              Oops! Something went wrong.
             </h1>
-            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">
-              بطاقة حمراء! حدث خطأ غير متوقع
-            </p>
 
             {/* Description */}
             <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
@@ -65,6 +59,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 </pre>
               </details>
             )}
+            </div>
 
             {/* Try Again Button */}
             <button

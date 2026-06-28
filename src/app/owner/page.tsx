@@ -106,10 +106,55 @@ export default function OwnerPage() {
     }
   };
 
+  const handleGlobalResetStats = async () => {
+    if (!window.confirm(isAr ? "هل أنت متأكد من تصفير كافة إحصائيات اللاعبين وحذف جميع المباريات في كافة المجتمعات؟" : "Are you sure you want to reset ALL player stats and delete ALL matches across ALL communities?")) return;
+    
+    setLoading(true);
+    try {
+      // For each community, fetch players and matches, and reset/delete them
+      const cSnap = await getDocs(collection(db, "communities"));
+      for (const cDoc of cSnap.docs) {
+        const batch = writeBatch(db);
+        let operationsCount = 0;
+        
+        // Reset players
+        const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
+        pSnap.forEach(p => {
+          const docRef = doc(db, "communities", cDoc.id, "players", p.id);
+          batch.update(docRef, {
+            'stats.goals': 0,
+            'stats.assists': 0,
+            'stats.mvp': 0,
+            'stats.matchesPlayed': 0,
+          });
+          operationsCount++;
+        });
+
+        // Delete matches
+        const mSnap = await getDocs(collection(db, "communities", cDoc.id, "matches"));
+        mSnap.forEach(m => {
+          batch.delete(m.ref);
+          operationsCount++;
+        });
+
+        if (operationsCount > 0) {
+          // Note: Firestore batches are limited to 500 operations. 
+          // For a massive database, chunking is required, but this suffices for the scope.
+          await batch.commit();
+        }
+      }
+      toast.success(isAr ? "تم تصفير جميع الإحصائيات بنجاح" : "Global stats reset successfully.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to reset stats globally.");
+    }
+    setLoading(false);
+  };
+
   return (
-    <ProtectedRoute adminOnly>
+    <ProtectedRoute ownerOnly>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white pb-12">
-                <main className="max-w-7xl mx-auto px-4 py-8">
+        <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-black text-red-600 mb-2">
               {isAr ? "لوحة المالك (Owner)" : "Owner Dashboard"}
@@ -137,15 +182,15 @@ export default function OwnerPage() {
                     <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
                   </div>
                   <label className="flex items-center gap-3 cursor-pointer group">
-                    <div className={`relative w-12 h-6 transition-colors rounded-full ${isPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
-                      <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${isPrivate ? 'translate-x-6' : 'translate-x-0'}`} />
+                    <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                      <motion.div animate={{ x: isPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
                     </div>
                     <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Private</span>
                   </label>
                   <AnimatePresence>
                     {isPrivate && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2, ease: "easeInOut" }} className="overflow-hidden">
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.3, ease: "easeInOut" }} className="overflow-hidden">
                         <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300 mt-2">Password</label>
                         <input required value={password} onChange={e => setPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all outline-none" />
                       </motion.div>
@@ -157,8 +202,11 @@ export default function OwnerPage() {
                 </form>
               </div>
 
-              <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-200 dark:border-red-800/30">
+              <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-200 dark:border-red-800/30 flex flex-col gap-4">
                 <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
+                <button onClick={handleGlobalResetStats} className="w-full py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700">
+                  Global Stats Reset (All Communities)
+                </button>
                 <button onClick={handleWipeAllData} className="w-full py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
                   Wipe ALL Site Data
                 </button>

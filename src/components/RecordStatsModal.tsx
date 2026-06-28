@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PlayerProfile } from '@/types';
+import { Target, Handshake, Trophy } from 'lucide-react';
 
 interface RecordStatsModalProps {
   isOpen: boolean;
@@ -129,7 +130,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
 
                   {/* Goals */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">⚽ Goals</span>
+                    <span className="text-sm font-bold flex items-center gap-1"><Target className="w-4 h-4" /> Goals</span>
                     <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded overflow-hidden">
                       <button 
                         onClick={() => updateStat(p.uid, 'goals', Math.max(0, (stats[p.uid]?.goals || 0) - 1))}
@@ -147,7 +148,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
 
                   {/* Assists */}
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold">👟 Assists</span>
+                    <span className="text-sm font-bold flex items-center gap-1"><Handshake className="w-4 h-4" /> Assists</span>
                     <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded overflow-hidden">
                       <button 
                         onClick={() => updateStat(p.uid, 'assists', Math.max(0, (stats[p.uid]?.assists || 0) - 1))}
@@ -166,7 +167,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                   {/* MVP */}
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={stats[p.uid]?.mvp || false} onChange={e => updateStat(p.uid, 'mvp', e.target.checked)} className="rounded text-amber-500 focus:ring-amber-500" />
-                    <span className="text-sm font-bold text-amber-600 dark:text-amber-500">MVP 🏅</span>
+                    <span className="text-sm font-bold text-amber-600 dark:text-amber-500 flex items-center gap-1">MVP <Trophy className="w-4 h-4" /></span>
                   </label>
                 </div>
               </div>

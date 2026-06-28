@@ -9,6 +9,7 @@ import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { Loader2 } from "lucide-react";
 
 export default function CommunitiesPage() {
   const { user } = useAuth();
@@ -67,9 +68,8 @@ export default function CommunitiesPage() {
             {isAr ? "اختر مجتمعك المفضل للبدء" : "Select your preferred community to get started"}
           </p>
         </div>
-
         {loading ? (
-          <div className="flex justify-center"><div className="animate-spin text-3xl">⚽</div></div>
+          <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {communities.map((c) => (

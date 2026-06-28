@@ -135,10 +135,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         };
         
         const newTrophies = [];
-        if (p.uid === topScorer.uid && (p.stats?.goals || 0) > 0) newTrophies.push({ name: 'Golden Boot ⚽', season: seasonName, date: dateStr });
-        if (p.uid === topAssister.uid && (p.stats?.assists || 0) > 0) newTrophies.push({ name: 'Playmaker 👟', season: seasonName, date: dateStr });
-        if (p.uid === topMVP.uid && (p.stats?.mvp || 0) > 0) newTrophies.push({ name: 'MVP 🏅', season: seasonName, date: dateStr });
-        if (p.uid === ballonDor.uid && ((p.stats?.goals || 0) + (p.stats?.assists || 0) + (p.stats?.mvp || 0) > 0)) newTrophies.push({ name: "Ballon d'Or 🏆", season: seasonName, date: dateStr });
+        if (p.uid === topScorer.uid && (p.stats?.goals || 0) > 0) newTrophies.push({ name: 'Golden Boot', season: seasonName, date: dateStr });
+        if (p.uid === topAssister.uid && (p.stats?.assists || 0) > 0) newTrophies.push({ name: 'Playmaker', season: seasonName, date: dateStr });
+        if (p.uid === topMVP.uid && (p.stats?.mvp || 0) > 0) newTrophies.push({ name: 'Season MVP', season: seasonName, date: dateStr });
+        if (p.uid === ballonDor.uid && ((p.stats?.goals || 0) + (p.stats?.assists || 0) + (p.stats?.mvp || 0) > 0)) newTrophies.push({ name: "Ballon d'Or", season: seasonName, date: dateStr });
 
         if (newTrophies.length > 0) {
           updates.trophies = arrayUnion(...newTrophies);

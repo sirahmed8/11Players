@@ -40,12 +40,12 @@ export default function ProtectedRoute({
       return;
     }
     if (adminOnly && !isAdmin) {
-      toast.error(t("admin_only") || "You do not have admin access for this community.");
+      toast.error(t("adminOnly") || "You do not have admin access for this community.");
       router.replace("/communities");
       return;
     }
-    if (requireCommunity && !activeCommunityId) {
-      toast.error(t("require_community") || "Please select a community first.");
+    if (requireCommunity && !activeCommunityId && !isOwner) {
+      toast.error(t("requireCommunity") || "Please select a community first.");
       router.replace("/communities");
       return;
     }

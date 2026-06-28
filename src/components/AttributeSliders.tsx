@@ -109,24 +109,30 @@ const ATTRIBUTE_KEYS: AttrKey[] = [
   'defensiveAwareness', 'ballWinning', 'goalkeeping'
 ];
 
-const ATTRIBUTE_ICONS: Record<AttrKey, string> = {
-  offensiveAwareness: '🧠',
-  ballControl: '⚽',
-  dribbling: '🪄',
-  lowPass: '👟',
-  loftedPass: '✈️',
-  finishing: '🎯',
-  heading: '🤕',
-  speed: '💨',
-  acceleration: '🚀',
-  kickingPower: '💥',
-  jump: '🦘',
-  physicalContact: '💪',
-  balance: '⚖️',
-  stamina: '🫁',
-  defensiveAwareness: '🛡️',
-  ballWinning: '🪓',
-  goalkeeping: '🧤',
+import { 
+  Brain, CircleDot, Wand2, Footprints, Plane, Target, 
+  Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, 
+  Shield, Axe, Hand
+} from 'lucide-react';
+
+const ATTRIBUTE_ICONS: Record<AttrKey, React.ReactNode> = {
+  offensiveAwareness: <Brain className="w-4 h-4 text-emerald-500" />,
+  ballControl: <CircleDot className="w-4 h-4 text-emerald-500" />,
+  dribbling: <Wand2 className="w-4 h-4 text-emerald-500" />,
+  lowPass: <Footprints className="w-4 h-4 text-amber-500" />,
+  loftedPass: <Plane className="w-4 h-4 text-amber-500" />,
+  finishing: <Target className="w-4 h-4 text-red-500" />,
+  heading: <ArrowUpCircle className="w-4 h-4 text-amber-500" />,
+  speed: <Wind className="w-4 h-4 text-blue-500" />,
+  acceleration: <Rocket className="w-4 h-4 text-blue-500" />,
+  kickingPower: <Zap className="w-4 h-4 text-red-500" />,
+  jump: <ArrowUpCircle className="w-4 h-4 text-emerald-500" />,
+  physicalContact: <Dumbbell className="w-4 h-4 text-emerald-500" />,
+  balance: <Scale className="w-4 h-4 text-emerald-500" />,
+  stamina: <HeartPulse className="w-4 h-4 text-emerald-500" />,
+  defensiveAwareness: <Shield className="w-4 h-4 text-blue-500" />,
+  ballWinning: <Axe className="w-4 h-4 text-blue-500" />,
+  goalkeeping: <Hand className="w-4 h-4 text-amber-500" />,
 };
 
 /* ──────────────────────────────────────────────

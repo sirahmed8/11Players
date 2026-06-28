@@ -86,7 +86,9 @@ export default function Sidebar() {
 
         <div className="flex-1 overflow-y-auto py-6 px-4 flex flex-col gap-2">
           {links.map((link) => {
-            const isActive = pathname === link.href || (link.href !== "/community" && pathname.startsWith(link.href));
+            const baseHref = link.href.split("?")[0];
+            const cleanPathname = pathname.replace(/\/$/, '');
+            const isActive = cleanPathname === baseHref || (baseHref !== "/community" && cleanPathname.startsWith(baseHref + "/"));
             return (
               <Link
                 key={link.href}

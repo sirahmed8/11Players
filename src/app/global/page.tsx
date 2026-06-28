@@ -7,7 +7,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GlobalLeaderboardPage() {
@@ -88,7 +88,7 @@ export default function GlobalLeaderboardPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center"><div className="animate-spin text-3xl">⚽</div></div>
+          <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedPlayers.map((p) => (

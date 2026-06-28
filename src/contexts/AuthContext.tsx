@@ -32,7 +32,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(firebaseUser);
       if (firebaseUser) {
         const ownerEmail = "a7medorabe7@gmail.com";
-        const userIsOwner = firebaseUser.email === ownerEmail;
+        const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+        const userIsOwner = firebaseUser.email?.toLowerCase() === ownerEmail || firebaseUser.uid === ownerUid;
         setIsOwner(userIsOwner);
       } else {
         setIsOwner(false);
