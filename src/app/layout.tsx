@@ -8,6 +8,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "11Players - Football Matchmaking & Community",
@@ -81,6 +82,7 @@ export default function RootLayout({
             </ErrorBoundary>
           </ThemeProvider>
         </LocaleProvider>
+        <Analytics />
       </body>
     </html>
   );
