@@ -47,6 +47,7 @@ export interface PlayerProfile {
   uid: string;
   email?: string;
   googlePic?: string;
+  googleName?: string;
   fullName: string;
   cardName: string;
   dateOfBirth: string; // YYYY-MM-DD
