@@ -16,15 +16,15 @@ export interface CommunitySettings {
 }
 
 export interface ChatMessage {
-  id: string;
+  id?: string;
   senderUid: string;
   senderName: string;
   senderPic?: string;
   text: string;
   imageUrl?: string;
   timestamp: any;
-  replyToId?: string;
-  reactions?: Record<string, string>; // e.g. { "uid123": "🔥" }
+  replyToId?: string; // ID of the message being replied to
+  reactions?: Record<string, string>; // uid -> emoji
 }
 
 export interface SupportThread {

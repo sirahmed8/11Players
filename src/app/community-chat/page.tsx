@@ -12,6 +12,7 @@ import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, Reply, SmilePlus, Tras
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 export default function CommunityChatPage() {
   const { user, isAdmin } = useAuth();
@@ -22,9 +23,12 @@ export default function CommunityChatPage() {
   
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Slow mode logic
   const [lastMessageTime, setLastMessageTime] = useState(0);
@@ -43,12 +47,30 @@ export default function CommunityChatPage() {
 
     const unsub = onSnapshot(q, (snap) => {
       const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() } as ChatMessage));
-      setMessages(msgs);
+      
+      setMessages(prev => {
+        // Check for new messages if we already have some loaded
+        if (prev.length > 0 && msgs.length > prev.length) {
+          const newMsg = msgs[msgs.length - 1];
+          if (newMsg.senderUid !== user?.uid && Notification.permission === "granted" && document.hidden) {
+            new Notification("New Community Message", {
+              body: `${newMsg.senderName}: ${newMsg.text || 'Sent an image'}`,
+              icon: "/logo.jpg"
+            });
+          }
+        }
+        return msgs;
+      });
+
       setLoading(false);
       setTimeout(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }, 100);
     });
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
 
     return () => unsub();
   }, [activeCommunityId, router]);
@@ -63,7 +85,7 @@ export default function CommunityChatPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!text.trim() || !user || !activeCommunityId) return;
+    if ((!text.trim() && !imageFile) || !user || !activeCommunityId) return;
 
     if (!isAdmin && communitySettings.slowModeDelay > 0) {
       const now = Date.now();
@@ -76,8 +98,21 @@ export default function CommunityChatPage() {
 
     const currentText = text.trim();
     setText("");
+    const currentImage = imageFile;
+    setImageFile(null);
     const replyId = replyTo?.id || null;
     setReplyTo(null);
+
+    let imageUrl = null;
+    if (currentImage) {
+      setUploadingImage(true);
+      imageUrl = await uploadImageToCloudinary(currentImage);
+      setUploadingImage(false);
+      if (!imageUrl) {
+        toast.error(isAr ? "فشل رفع الصورة" : "Failed to upload image");
+        return;
+      }
+    }
 
     try {
       await addDoc(collection(db, "communities", activeCommunityId, "chats"), {
@@ -85,6 +120,7 @@ export default function CommunityChatPage() {
         senderName: user.displayName || "User",
         senderPic: user.photoURL || "",
         text: currentText,
+        ...(imageUrl ? { imageUrl } : {}),
         timestamp: serverTimestamp(),
         ...(replyId ? { replyToId: replyId } : {}),
       });
@@ -95,6 +131,17 @@ export default function CommunityChatPage() {
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "فشل إرسال الرسالة" : "Failed to send message");
+    }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error(isAr ? "حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)" : "Image size too large (Max 5MB)");
+        return;
+      }
+      setImageFile(file);
     }
   };
 
@@ -206,22 +253,27 @@ export default function CommunityChatPage() {
                         )}
 
                         {/* Main Bubble */}
-                        <div className={`px-4 py-2 rounded-2xl relative z-10 text-sm shadow-sm ${
+                        <div className={`px-4 py-2 rounded-2xl relative z-10 text-sm shadow-sm flex flex-col gap-2 ${
                           isMe 
                             ? 'bg-emerald-500 text-white rounded-br-sm' 
                             : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-sm border border-slate-200 dark:border-slate-600'
                         }`}>
-                          {msg.text}
+                          {msg.imageUrl && (
+                            <div className="w-full max-w-sm rounded-xl overflow-hidden cursor-pointer" onClick={() => window.open(msg.imageUrl, '_blank')}>
+                              <img src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" />
+                            </div>
+                          )}
+                          {msg.text && <p>{msg.text}</p>}
                           
                           {/* Quick Actions (Hover) */}
                           <div className={`absolute top-0 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700 p-1 ${isMe ? 'right-0' : 'left-0'}`}>
                             <button onClick={() => setReplyTo(msg)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500">
                               <Reply className="w-3.5 h-3.5" />
                             </button>
-                            <button onClick={() => handleReaction(msg.id, '👍')} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">👍</button>
-                            <button onClick={() => handleReaction(msg.id, '❤️')} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">❤️</button>
+                            <button onClick={() => handleReaction(msg.id!, '👍')} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">👍</button>
+                            <button onClick={() => handleReaction(msg.id!, '❤️')} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full">❤️</button>
                             {(isAdmin || isMe) && (
-                              <button onClick={() => deleteMessage(msg.id)} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 rounded-full">
+                              <button onClick={() => deleteMessage(msg.id!)} className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 rounded-full">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}
@@ -234,7 +286,7 @@ export default function CommunityChatPage() {
                             {Object.entries(reactionCounts).map(([emoji, count]) => (
                               <button 
                                 key={emoji}
-                                onClick={() => handleReaction(msg.id, emoji)}
+                                onClick={() => handleReaction(msg.id!, emoji)}
                                 className={`text-xs px-1.5 py-0.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-1 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${msg.reactions?.[user?.uid || ''] === emoji ? 'border-emerald-500 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-500/10' : ''}`}
                               >
                                 <span>{emoji}</span>
@@ -271,21 +323,40 @@ export default function CommunityChatPage() {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSend} className="flex gap-2 items-center">
-              <input 
-                type="text" 
-                value={text}
-                onChange={e => setText(e.target.value)}
-                placeholder={cooldown > 0 ? (isAr ? `انتظر ${cooldown}ث` : `Wait ${cooldown}s`) : (isAr ? "اكتب رسالتك..." : "Type a message...")}
-                disabled={cooldown > 0}
-                className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none transition-all disabled:opacity-50"
-              />
+            <form onSubmit={handleSend} className="flex gap-2 items-end">
+              <div className="flex-1 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500 transition-all p-2 flex flex-col">
+                
+                {imageFile && (
+                  <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
+                    <img src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" />
+                    <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  <input type="file" accept="image/*" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-full transition-colors">
+                    <ImageIcon className="w-5 h-5" />
+                  </button>
+                  <input 
+                    type="text" 
+                    value={text}
+                    onChange={e => setText(e.target.value)}
+                    placeholder={cooldown > 0 ? (isAr ? `انتظر ${cooldown}ث` : `Wait ${cooldown}s`) : (isAr ? "اكتب رسالتك..." : "Type a message...")}
+                    disabled={cooldown > 0 || uploadingImage}
+                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm p-1 disabled:opacity-50"
+                  />
+                </div>
+              </div>
+              
               <button 
                 type="submit"
-                disabled={!text.trim() || cooldown > 0}
-                className="px-4 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center"
+                disabled={(!text.trim() && !imageFile) || cooldown > 0 || uploadingImage}
+                className="px-4 py-4 h-14 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center flex-shrink-0"
               >
-                <Send className="w-5 h-5" />
+                {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
               </button>
             </form>
           </div>

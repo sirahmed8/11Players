@@ -13,6 +13,8 @@ import { Analytics } from "@vercel/analytics/next";
 export const metadata: Metadata = {
   title: "11Players - Football Matchmaking & Community",
   description: "Highly balanced matchmaking system for amateur football players",
+  manifest: "/manifest.json",
+  themeColor: "#10b981",
 };
 
 export default function RootLayout({
@@ -33,6 +35,19 @@ export default function RootLayout({
                   const savedLocale = localStorage.getItem('locale') || 'ar';
                   document.documentElement.lang = savedLocale;
                   document.documentElement.dir = savedLocale === 'ar' ? 'rtl' : 'ltr';
+
+                  if ('serviceWorker' in navigator) {
+                    window.addEventListener('load', function() {
+                      navigator.serviceWorker.register('/sw.js').then(
+                        function(registration) {
+                          console.log('ServiceWorker registration successful');
+                        },
+                        function(err) {
+                          console.log('ServiceWorker registration failed: ', err);
+                        }
+                      );
+                    });
+                  }
                 } catch (e) {}
               })();
             `,

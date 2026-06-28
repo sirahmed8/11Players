@@ -31,7 +31,9 @@ const STYLE_BONUSES: Record<string, number> = {
 export function calculateRealisticOverall(
   attributes: PlayerAttributes,
   position: PESPosition,
-  playStyle: string
+  playStyle: string,
+  height?: number,
+  weight?: number
 ): number {
   if (!attributes) return 40;
 
@@ -44,8 +46,24 @@ export function calculateRealisticOverall(
   }
 
   const styleBonus = STYLE_BONUSES[playStyle] || 0;
-  
   let finalOverall = Math.round(totalScore) + styleBonus;
+
+  // Height and Weight modifiers (BMI)
+  if (height && weight && height > 0) {
+    const heightM = height / 100;
+    const bmi = weight / (heightM * heightM);
+    
+    // Different positions benefit differently from BMI/Height
+    if (['CB', 'DMF', 'GK'].includes(position)) {
+      if (height >= 185) finalOverall += 1; // Tall advantage for defense/GK
+      if (bmi >= 24 && bmi <= 27) finalOverall += 1; // Strong build advantage
+    } else if (['LWF', 'RWF', 'LMF', 'RMF', 'SS'].includes(position)) {
+      if (bmi >= 20 && bmi <= 23) finalOverall += 1; // Lean build advantage for wingers
+      if (weight > 85) finalOverall -= 1; // Heavy penalty for wingers
+    } else if (['CF'].includes(position)) {
+      if (height >= 185 && bmi >= 24) finalOverall += 1; // Target man advantage
+    }
+  }
 
   if (finalOverall > 99) finalOverall = 99;
   if (finalOverall < 40) finalOverall = 40;
@@ -60,23 +78,22 @@ export function getPlayerPositionRatings(player: {
   secondaryPosition?: PESPosition;
   tertiaryPosition?: PESPosition;
   playStyle?: string;
+  height?: number;
+  weight?: number;
 }) {
   const activeAttributes = player.approvedAttributes || player.attributes;
-  const primaryRating = calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
+  const primaryRating = calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '', player.height, player.weight);
   
   const ratings = [
     { position: player.primaryPosition, rating: primaryRating, tier: 0 }
   ];
 
   if (player.secondaryPosition) {
-    // Secondary position gets the exact same rating as primary
     ratings.push({ position: player.secondaryPosition, rating: primaryRating, tier: 1 });
   }
 
   if (player.tertiaryPosition) {
-    // Tertiary position is calculated based on its own weights (so it depends on stats and position), 
-    // and we also apply a slight penalty (-2) to ensure it's decreased.
-    let tertiary = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player.playStyle || '') - 2;
+    let tertiary = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player.playStyle || '', player.height, player.weight) - 2;
     if (tertiary < 40) tertiary = 40;
     ratings.push({ position: player.tertiaryPosition, rating: tertiary, tier: 2 });
   }
