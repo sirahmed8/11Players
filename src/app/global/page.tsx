@@ -36,7 +36,7 @@ export default function GlobalLeaderboardPage() {
 
   const sortedPlayers = [...globalPlayers].sort((a, b) => {
     if (sortBy === "name") {
-      return (a.name || "").localeCompare(b.name || "");
+      return (a.fullName || "").localeCompare(b.fullName || "");
     }
     return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
   });
