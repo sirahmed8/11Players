@@ -98,7 +98,7 @@ export default function Sidebar() {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-2 mx-2 flex flex-col gap-2 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar py-6 px-2 mx-2 flex flex-col gap-2">
           {links.map((link) => {
             const baseHref = link.href.split("?")[0];
             const cleanPathname = pathname.replace(/\/$/, '');

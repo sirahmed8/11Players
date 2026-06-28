@@ -136,7 +136,7 @@ export default function StatsPage() {
 
   return (
     <ProtectedRoute requireCommunity>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
         
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-10 text-center">

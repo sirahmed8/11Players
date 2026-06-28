@@ -17,6 +17,13 @@ export default function OwnerPage() {
   const isAr = locale === "ar";
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const [editingCommunity, setEditingCommunity] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editAdminUid, setEditAdminUid] = useState("");
+  const [editPassword, setEditPassword] = useState("");
+  const [isEditPrivate, setIsEditPrivate] = useState(false);
 
   // New community form
   const [newCommName, setNewCommName] = useState("");
@@ -72,13 +79,28 @@ export default function OwnerPage() {
   const handleDeleteCommunity = async (id: string) => {
     if (!window.confirm("Are you SURE you want to delete this community? ALL PLAYERS inside will be lost.")) return;
     try {
-      // For a real production app, we would delete all players in the subcollection first.
-      // Firestore client SDK doesn't support recursive delete, so we do what we can.
       await deleteDoc(doc(db, "communities", id));
       toast.success("Community deleted");
       fetchCommunities();
     } catch (e) {
       toast.error("Failed to delete");
+    }
+  };
+
+  const handleEditSave = async (id: string) => {
+    try {
+      await setDoc(doc(db, "communities", id), {
+        name: editName,
+        description: editDesc,
+        adminUid: editAdminUid,
+        isPrivate: isEditPrivate,
+        password: isEditPrivate ? editPassword : null,
+      }, { merge: true });
+      toast.success(isAr ? "تم تحديث المجتمع بنجاح" : "Community updated successfully");
+      setEditingCommunity(null);
+      fetchCommunities();
+    } catch (e) {
+      toast.error(isAr ? "فشل التحديث" : "Failed to update");
     }
   };
 
@@ -155,7 +177,7 @@ export default function OwnerPage() {
 
   return (
     <ProtectedRoute ownerOnly>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white pb-12">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12">
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-black text-red-600 mb-2">
@@ -245,15 +267,52 @@ export default function OwnerPage() {
                 {loading ? <p>Loading...</p> : (
                   <div className="space-y-4">
                     {communities.map(c => (
-                      <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex justify-between items-center bg-slate-50 dark:bg-slate-900">
-                        <div>
-                          <div className="font-bold text-lg flex items-center gap-2">
-                            {c.name} {c.isPrivate && <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded">Private</span>}
+                      <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">
+                        {editingCommunity === c.id ? (
+                          <div className="flex flex-col gap-3">
+                            <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Name" />
+                            <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Description" />
+                            <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Admin UID" />
+                            <label className="flex items-center gap-2">
+                              <input type="checkbox" checked={isEditPrivate} onChange={e => setIsEditPrivate(e.target.checked)} />
+                              Private
+                            </label>
+                            {isEditPrivate && (
+                              <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Password" />
+                            )}
+                            <div className="flex gap-2">
+                              <button onClick={() => handleEditSave(c.id)} className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
+                              <button onClick={() => setEditingCommunity(null)} className="bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
+                            </div>
                           </div>
-                          <div className="text-sm text-slate-500">Admin UID: {c.adminUid}</div>
-                          {c.isPrivate && <div className="text-xs text-slate-400">Password: {c.password}</div>}
-                        </div>
-                        <button onClick={() => handleDeleteCommunity(c.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1 rounded">Delete</button>
+                        ) : (
+                          <div className="flex justify-between items-center w-full">
+                            <div>
+                              <div className="font-bold text-lg flex items-center gap-2">
+                                {c.name} {c.isPrivate && <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded">Private</span>}
+                              </div>
+                              <div className="text-sm text-slate-500">Admin UID: {c.adminUid}</div>
+                              <div className="text-sm text-slate-500 truncate max-w-sm">{c.description}</div>
+                              {c.isPrivate && <div className="text-xs text-slate-400">Password: {c.password}</div>}
+                            </div>
+                            <div className="flex gap-2">
+                              <button 
+                                onClick={() => {
+                                  setEditingCommunity(c.id);
+                                  setEditName(c.name);
+                                  setEditDesc(c.description || "");
+                                  setEditAdminUid(c.adminUid);
+                                  setIsEditPrivate(c.isPrivate || false);
+                                  setEditPassword(c.password || "");
+                                }} 
+                                className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded"
+                              >
+                                Edit
+                              </button>
+                              <button onClick={() => handleDeleteCommunity(c.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1 rounded">Delete</button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                     {communities.length === 0 && <p className="text-slate-500">No communities exist yet.</p>}

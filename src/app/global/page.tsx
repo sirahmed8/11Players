@@ -15,7 +15,7 @@ export default function GlobalLeaderboardPage() {
   const isAr = locale === "ar";
   const [globalPlayers, setGlobalPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<"goals" | "assists" | "mvp">("goals");
+  const [sortBy, setSortBy] = useState<"name" | "goals" | "assists" | "mvp">("name");
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   useEffect(() => {
@@ -35,6 +35,9 @@ export default function GlobalLeaderboardPage() {
   }, []);
 
   const sortedPlayers = [...globalPlayers].sort((a, b) => {
+    if (sortBy === "name") {
+      return (a.name || "").localeCompare(b.name || "");
+    }
     return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
   });
 
@@ -58,7 +61,7 @@ export default function GlobalLeaderboardPage() {
               className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
             >
               <span className="font-semibold text-slate-700 dark:text-slate-300">
-                {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "name" ? (isAr ? "الاسم" : "Name") : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
               </span>
               <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
                 <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -72,13 +75,13 @@ export default function GlobalLeaderboardPage() {
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute z-10 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden"
                 >
-                  {(["goals", "assists", "mvp"] as const).map((s) => (
+                  {(["name", "goals", "assists", "mvp"] as const).map((s) => (
                     <button
                       key={s}
                       onClick={() => { setSortBy(s); setIsSortOpen(false); }}
                       className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
                     >
-                      {s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                      {s === "name" ? (isAr ? "الاسم" : "Name") : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
                     </button>
                   ))}
                 </motion.div>

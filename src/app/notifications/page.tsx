@@ -11,7 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-type NotificationType = "system" | "match" | "hint";
+type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
 
 interface UserNotification {
   id: string;
@@ -29,6 +29,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all");
   
   const isAr = locale === "ar";
 
@@ -101,12 +102,22 @@ export default function NotificationsPage() {
   const getIconForType = (type: NotificationType) => {
     switch (type) {
       case "match": return <Trophy className="w-5 h-5 text-amber-500" />;
-      case "hint": return <Info className="w-5 h-5 text-blue-500" />;
+      case "hint":
+      case "advices": return <Info className="w-5 h-5 text-blue-500" />;
+      case "admin":
+      case "owner": return <CheckCircle2 className="w-5 h-5 text-indigo-500" />;
+      case "updates": return <Bell className="w-5 h-5 text-emerald-500" />;
+      case "stats": return <Info className="w-5 h-5 text-purple-500" />;
+      case "trophies": return <Trophy className="w-5 h-5 text-yellow-500" />;
       default: return <Bell className="w-5 h-5 text-emerald-500" />;
     }
   };
 
-  const filteredNotifs = filter === "all" ? notifications : notifications.filter(n => !n.read);
+  const filteredNotifs = notifications.filter(n => {
+    if (filter === "unread" && n.read) return false;
+    if (typeFilter !== "all" && n.type !== typeFilter) return false;
+    return true;
+  });
 
   return (
     <ProtectedRoute>
@@ -137,24 +148,45 @@ export default function NotificationsPage() {
             </div>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setFilter("all")}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === "all" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
-            >
-              {isAr ? "الكل" : "All"}
-            </button>
-            <button
-              onClick={() => setFilter("unread")}
-              className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === "unread" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
-            >
-              {isAr ? "غير مقروء" : "Unread"}
-              {notifications.filter(n => !n.read).length > 0 && (
-                <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                  {notifications.filter(n => !n.read).length}
-                </span>
-              )}
-            </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setFilter("all")}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === "all" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              >
+                {isAr ? "الكل" : "All"}
+              </button>
+              <button
+                onClick={() => setFilter("unread")}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${filter === "unread" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+              >
+                {isAr ? "غير مقروء" : "Unread"}
+                {notifications.filter(n => !n.read).length > 0 && (
+                  <span className="ml-2 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                    {notifications.filter(n => !n.read).length}
+                  </span>
+                )}
+              </button>
+            </div>
+            
+            <div className="relative min-w-[200px]">
+              <select 
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value as NotificationType | "all")}
+                className="w-full appearance-none px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer transition-colors"
+              >
+                <option value="all">{isAr ? "جميع الأنواع" : "All Types"}</option>
+                <option value="advices">{isAr ? "نصائح" : "Advices"}</option>
+                <option value="admin">{isAr ? "المسؤول" : "Admin"}</option>
+                <option value="owner">{isAr ? "المالك" : "Owner"}</option>
+                <option value="updates">{isAr ? "تحديثات" : "Updates"}</option>
+                <option value="stats">{isAr ? "إحصائيات" : "Stats"}</option>
+                <option value="trophies">{isAr ? "ألقاب" : "Trophies"}</option>
+              </select>
+              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl">
