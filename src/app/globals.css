@@ -42,6 +42,17 @@ body {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Hide number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
 ::-webkit-scrollbar-thumb {
   background: rgba(16, 185, 129, 0.4);
   border-radius: 8px;

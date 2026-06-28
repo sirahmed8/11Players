@@ -14,9 +14,9 @@ import SVGPitchDisplay from "@/components/SVGPitchDisplay";
 import { getPlayerPositionRatings } from "@/lib/overallCalculator";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { SKILLS } from "@/components/SkillsChecklist";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import Navbar from "@/components/Navbar";
 import { useRouter } from "next/navigation";
 
 /* ── Animated Counter ── */
@@ -225,8 +225,7 @@ function PlayerProfileContent() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white">
-      <Navbar />
-
+      
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
         {/* Top Section: Card + Physical Info */}
         <motion.div
@@ -379,17 +378,25 @@ function PlayerProfileContent() {
               {isAr ? "المهارات الخاصة" : "Special Skills"}
             </h3>
             <div className="flex flex-wrap gap-2">
-              {player.specialSkills.map((skill, i) => (
-                <motion.span
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.7 + i * 0.05 }}
-                  className="px-4 py-2 bg-gradient-to-r from-emerald-900/60 to-teal-900/60 border border-emerald-700/40 text-emerald-300 rounded-full text-sm font-bold"
-                >
-                  ⭐ {skill.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                </motion.span>
-              ))}
+              {player.specialSkills.map((skillId, i) => {
+                // Find skill label or default to formatted ID
+                let label = skillId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const skillInfo = SKILLS.find(s => s.id === skillId);
+                if (skillInfo) {
+                  label = isAr ? skillInfo.labelAr : skillInfo.label;
+                }
+                return (
+                  <motion.span
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.7 + i * 0.05 }}
+                    className="px-4 py-2 bg-gradient-to-r from-emerald-900/60 to-teal-900/60 border border-emerald-700/40 text-emerald-300 rounded-full text-sm font-bold"
+                  >
+                    ⭐ {label}
+                  </motion.span>
+                );
+              })}
             </div>
           </motion.section>
         )}

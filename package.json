@@ -10,6 +10,7 @@
     "test:e2e": "jest --config tests/e2e/config/jest.config.ts"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.4.0",
     "firebase": "^10.12.2",
     "framer-motion": "^11.2.10",
     "html2canvas": "^1.4.1",

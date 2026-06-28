@@ -19,6 +19,8 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [activeCommunity, setActiveCommunity] = useState<Community | null>(null);
   const [loadingCommunity, setLoadingCommunity] = useState(true);
 
+  const [hasReadStorage, setHasReadStorage] = useState(false);
+
   // Load from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem("activeCommunityId");
@@ -27,6 +29,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     } else {
       setLoadingCommunity(false);
     }
+    setHasReadStorage(true);
   }, []);
 
   const setActiveCommunityId = (id: string | null) => {
@@ -40,6 +43,8 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Sync active community data from Firestore
   useEffect(() => {
+    if (!hasReadStorage) return;
+
     if (!activeCommunityId) {
       setActiveCommunity(null);
       setLoadingCommunity(false);

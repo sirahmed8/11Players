@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import Navbar from "@/components/Navbar";
 import { useLocale } from "@/components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -22,8 +21,7 @@ export default function GuidePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>
-      <Navbar />
-
+      
       <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar Navigation */}
@@ -114,7 +112,9 @@ export default function GuidePage() {
                       { pos: "GK (Goalkeeper)", ar: "حارس مرمى", desc: isAr ? "حامي العرين. الطاقات الوحيدة المهمة هي حراسة المرمى والتمركز." : "The last line of defense. The only stats that matter are Goalkeeping and positioning." },
                     ].map((p, i) => (
                       <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-lg text-emerald-600 dark:text-emerald-400 mb-1">{p.pos} <span className="text-sm text-slate-500 font-normal">({p.ar})</span></div>
+                        <div className="font-bold text-lg text-emerald-600 dark:text-emerald-400 mb-1">
+                          {p.pos} {isAr && <span className="text-sm text-slate-500 font-normal">({p.ar})</span>}
+                        </div>
                         <div className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{p.desc}</div>
                       </div>
                     ))}
@@ -133,19 +133,28 @@ export default function GuidePage() {
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     {[
-                      { style: "Goal Poacher", desc: "Always looking to run behind the defensive line." },
-                      { style: "Fox in the Box", desc: "Waits in the penalty box to finish chances." },
-                      { style: "Target Man", desc: "Holds up the ball using physical strength to bring others into play." },
-                      { style: "Creative Playmaker", desc: "Drops deep to receive the ball and orchestrate attacks." },
-                      { style: "Box-to-Box", desc: "Tirelessly runs between both penalty boxes all game." },
-                      { style: "Anchor Man", desc: "Stays deep in midfield to protect the backline." },
-                      { style: "Build Up", desc: "Drops deep to receive the ball and initiate attacks from the defense." },
-                      { style: "Offensive Goalkeeper", desc: "Plays as a sweeper keeper, rushing out to clear through balls." },
-                      { style: "Defensive Goalkeeper", desc: "Prefers to stay on the goal line to react to shots." },
+                      { style: "Goal Poacher", ar: "مهاجم قناص", descEn: "Always looking to run off the last defender.", descAr: "يسعى دائماً للهروب من آخر مدافع." },
+                      { style: "Fox in the Box", ar: "ثعلب المربع", descEn: "Lurks in the box waiting for the ball.", descAr: "يتربص داخل منطقة الجزاء في انتظار الكرة." },
+                      { style: "Target Man", ar: "محطة لعب", descEn: "Holds up the ball to bring others into play.", descAr: "يستلم الكرة ويهيئها لزملائه." },
+                      { style: "Creative Playmaker", ar: "صانع لعب مبدع", descEn: "Takes advantage of any opening in the defense.", descAr: "يستغل أي ثغرة في الدفاع." },
+                      { style: "Hole Player", ar: "لاعب ثغرات", descEn: "Makes late runs into the box to score.", descAr: "يقوم بانطلاقات متأخرة لمنطقة الجزاء للتسجيل." },
+                      { style: "Classic No. 10", ar: "رقم 10 كلاسيكي", descEn: "An old-style static playmaker.", descAr: "صانع ألعاب كلاسيكي يركز على التمرير." },
+                      { style: "Prolific Winger", ar: "جناح هداف", descEn: "Positions himself on the wing to cut inside.", descAr: "يتمركز على الجناح ليخترق للداخل." },
+                      { style: "Orchestrator", ar: "مايسترو", descEn: "Dictates the play from deep positions.", descAr: "يتحكم في إيقاع اللعب من مناطق متأخرة." },
+                      { style: "Box-to-Box", ar: "من الصندوق للصندوق", descEn: "Tirelessly covers the whole pitch.", descAr: "يغطي الملعب بالكامل بلا كلل." },
+                      { style: "The Destroyer", ar: "المدمر", descEn: "A tenacious tackler who stops attacks.", descAr: "مدافع شرس يوقف هجمات الخصم." },
+                      { style: "Anchor Man", ar: "ارتكاز دفاعي", descEn: "Protects the backline defensively.", descAr: "يحمي خط الدفاع بشكل أساسي." },
+                      { style: "Build Up", ar: "بناء اللعب", descEn: "Drops back to receive the ball and trigger attacks.", descAr: "يتراجع لاستلام الكرة وبدء الهجمات." },
+                      { style: "Offensive Full-back", ar: "ظهير هجومي", descEn: "Constantly runs up the wing to attack.", descAr: "يتقدم باستمرار على الجناح للهجوم." },
+                      { style: "Defensive Full-back", ar: "ظهير دفاعي", descEn: "Prefers to stay back and fulfill defensive duties.", descAr: "يفضل البقاء في الخلف للقيام بالمهام الدفاعية." },
+                      { style: "Offensive Goalkeeper", ar: "حارس هجومي", descEn: "Often comes out of the goal area.", descAr: "غالباً ما يخرج من منطقة المرمى." },
+                      { style: "Defensive Goalkeeper", ar: "حارس دفاعي", descEn: "Prefers to stay on the goal line.", descAr: "يفضل البقاء على خط المرمى." },
                     ].map((s, i) => (
                       <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">{s.style}</div>
-                        <div className="text-slate-600 dark:text-slate-300 text-sm">{s.desc}</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                          {s.style} {isAr && <span className="text-sm text-slate-500 font-normal">({s.ar})</span>}
+                        </div>
+                        <div className="text-slate-600 dark:text-slate-300 text-sm">{isAr ? s.descAr : s.descEn}</div>
                       </div>
                     ))}
                   </div>
@@ -163,21 +172,46 @@ export default function GuidePage() {
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     {[
-                      { skill: "Scissors Feint", desc: "Can execute the scissors feint dribble at high speed." },
-                      { skill: "Double Touch", desc: "Quickly shifts the ball from one foot to the other to bypass defenders." },
-                      { skill: "Sombrero", desc: "Flicks the ball over the opponent's head." },
-                      { skill: "Heading", desc: "Improves accuracy and downward trajectory of headers." },
-                      { skill: "Long Range Shooting", desc: "More accurate shots from outside the box." },
-                      { skill: "One-touch Pass", desc: "Improves the accuracy of passes played first-time." },
-                      { skill: "Through Passing", desc: "Increases the accuracy and curve of through balls." },
-                      { skill: "Outside Curler", desc: "Allows shooting and passing using the outside of the boot with curve." },
-                      { skill: "Man Marking", desc: "Sticks tightly to an assigned opponent defensively." },
-                      { skill: "Interception", desc: "Better positioning to cut out opponent's passes." },
-                      { skill: "GK Penalty Saver", desc: "Improves reactions when facing penalty kicks." },
+                      { skill: 'One-touch Pass', ar: 'التمريرة بلمسة واحدة', descEn: 'Accurate passes with just one touch', descAr: 'تمريرات دقيقة بلمسة واحدة' },
+                      { skill: 'Through Passing', ar: 'التمريرة البينية', descEn: 'Precise through balls behind the defense', descAr: 'تمريرات بينية دقيقة خلف الدفاع' },
+                      { skill: 'Pinpoint Crossing', ar: 'العرضية الدقيقة', descEn: 'Highly accurate crosses into the box', descAr: 'عرضيات دقيقة جداً داخل منطقة الجزاء' },
+                      { skill: 'Outside Curler', ar: 'الكيرفة الخارجية', descEn: 'Curl passes and shots with outside of foot', descAr: 'تمريرات وتسديدات منحنية بخارج القدم' },
+                      { skill: 'Weighted Pass', ar: 'التمريرة الموزونة', descEn: 'Perfectly weighted passes to teammates', descAr: 'تمريرات بقوة مثالية للزملاء' },
+                      { skill: 'Long Throw', ar: 'الرمية الطويلة', descEn: 'Can throw the ball far into the box', descAr: 'قادر على رمي الكرة لمسافة بعيدة' },
+                      { skill: 'Long Range Drive', ar: 'التسديدة البعيدة', descEn: 'Powerful and accurate long-range shots', descAr: 'تسديدات قوية ودقيقة من مسافات بعيدة' },
+                      { skill: 'Knuckle Shot', ar: 'الكرة المتذبذبة', descEn: 'Shots that swerve unpredictably in the air', descAr: 'تسديدات تتذبذب في الهواء بشكل غير متوقع' },
+                      { skill: 'Rising Shot', ar: 'التسديدة الصاعدة', descEn: 'Powerful rising shots that climb towards goal', descAr: 'تسديدات قوية صاعدة نحو المرمى' },
+                      { skill: 'First-time Shot', ar: 'التسديدة المباشرة', descEn: 'Accurate shots without controlling the ball first', descAr: 'تسديدات دقيقة بدون السيطرة على الكرة أولاً' },
+                      { skill: 'Penalty Specialist', ar: 'متخصص ركلات الجزاء', descEn: 'Calm and accurate penalty kick taker', descAr: 'مسدد ركلات جزاء هادئ ودقيق' },
+                      { skill: 'Chip Shot Control', ar: 'التسديدة اللوبية', descEn: 'Delicate chip shots over the goalkeeper', descAr: 'تسديدات لوبية ناعمة فوق حارس المرمى' },
+                      { skill: 'Rabona', ar: 'رابونا', descEn: 'Can perform the rabona kick technique', descAr: 'قادر على تنفيذ تقنية الرابونا' },
+                      { skill: 'Acrobatic Clearance', ar: 'التشتيت البهلواني', descEn: 'Spectacular clearances in difficult situations', descAr: 'تشتيتات رائعة في المواقف الصعبة' },
+                      { skill: 'Interception', ar: 'قطع الكرات', descEn: 'Excellent at reading and cutting passing lanes', descAr: 'ممتاز في قراءة وقطع خطوط التمرير' },
+                      { skill: 'Man Marking', ar: 'المراقبة اللصيقة', descEn: 'Tight man-to-man marking ability', descAr: 'قدرة عالية على المراقبة اللصيقة' },
+                      { skill: 'Track Back', ar: 'الرجوع الدفاعي', descEn: 'Willingness to chase back and defend', descAr: 'الاستعداد للرجوع والمساهمة دفاعياً' },
+                      { skill: 'Sliding Tackle', ar: 'الانزلاق', descEn: 'Clean and effective sliding tackles', descAr: 'انزلاقات نظيفة وفعالة' },
+                      { skill: 'Scissors Feint', ar: 'المقص', descEn: 'Quick scissors feint to deceive defenders', descAr: 'حركة المقص السريعة لخداع المدافعين' },
+                      { skill: 'Step On Skill', ar: 'الدوس على الكرة', descEn: 'Skillful step-on moves for close control', descAr: 'حركات الدوس على الكرة للتحكم القريب' },
+                      { skill: 'Double Touch', ar: 'اللمسة المزدوجة', descEn: 'Quick double-touch to change direction', descAr: 'اللمسة المزدوجة السريعة لتغيير الاتجاه' },
+                      { skill: 'Flip Flap', ar: 'فليب فلاب', descEn: 'Elastico-style flip flap move', descAr: 'حركة الفليب فلاب على طريقة الإلاستيكو' },
+                      { skill: 'Marseille Turn', ar: 'لفة مارسيليا', descEn: 'The classic Zidane roulette spin move', descAr: 'حركة الدوران الكلاسيكية على طريقة زيدان' },
+                      { skill: 'Sombrero', ar: 'سومبريرو', descEn: 'Flick the ball over the opponent\'s head', descAr: 'رفع الكرة فوق رأس الخصم' },
+                      { skill: 'Elastico', ar: 'إلاستيكو', descEn: 'The famous elastico dribbling technique', descAr: 'تقنية الإلاستيكو الشهيرة' },
+                      { skill: 'Heel Trick', ar: 'خدعة الكعب', descEn: 'Clever heel flicks and passes', descAr: 'تمريرات وحركات ذكية بالكعب' },
+                      { skill: 'Speed Merchant', ar: 'تاجر السرعة', descEn: 'Exceptional pace to outrun defenders', descAr: 'سرعة استثنائية لتجاوز المدافعين' },
+                      { skill: 'Captaincy', ar: 'القيادة', descEn: 'Natural leader that inspires the team', descAr: 'قائد طبيعي يلهم الفريق' },
+                      { skill: 'Super Sub', ar: 'البديل الخارق', descEn: 'Performs better when coming off the bench', descAr: 'أداء أفضل عند الدخول كبديل' },
+                      { skill: 'Fighting Spirit', ar: 'الروح القتالية', descEn: 'Never gives up, fights until the end', descAr: 'لا يستسلم أبداً، يقاتل حتى النهاية' },
+                      { skill: 'Aerial Superiority', ar: 'التفوق الهوائي', descEn: 'Dominant in aerial duels and headers', descAr: 'مسيطر في الصراعات الهوائية والضربات الرأسية' },
+                      { skill: 'Low Punt Trajectory', ar: 'الركلة المنخفضة', descEn: 'Goal kicks with a low, fast trajectory', descAr: 'ركلات مرمى بمسار منخفض وسريع' },
+                      { skill: 'GK Long Throw', ar: 'رمية الحارس الطويلة', descEn: 'Goalkeeper can throw the ball far distances', descAr: 'قدرة الحارس على رمي الكرة لمسافات بعيدة' },
+                      { skill: 'GK Reflexes', ar: 'ردود فعل الحارس', descEn: 'Lightning-fast reflexes to make saves', descAr: 'ردود فعل سريعة كالبرق لإنقاذ المرمى' },
                     ].map((s, i) => (
                       <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">{s.skill}</div>
-                        <div className="text-slate-600 dark:text-slate-300 text-sm">{s.desc}</div>
+                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                          {s.skill} {isAr && <span className="text-sm text-slate-500 font-normal">({s.ar})</span>}
+                        </div>
+                        <div className="text-slate-600 dark:text-slate-300 text-sm">{isAr ? s.descAr : s.descEn}</div>
                       </div>
                     ))}
                   </div>
@@ -209,6 +243,39 @@ export default function GuidePage() {
                       {isAr 
                         ? "تقوم الخوارزمية باختيار أفضل 22 لاعباً بناءً على مراكزهم (PSI)، وتقسيمهم لفريقين متكافئين تماماً بناءً على الطاقات. يتم تحويل الباقي لدكة البدلاء."
                         : "The algorithm selects the best 22 players based on Position Specific Index (PSI), and divides them into perfectly balanced teams. The rest are sent to the bench."}
+                    </p>
+                  </section>
+                  
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      ✅ {isAr ? "مراجعة الأقران وتوثيق الطاقات" : "Peer Reviews & Approvals"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "طاقات اللاعبين تعتمد على مراجعة باقي اللاعبين (Peer Review) ليتم حساب المتوسط، ثم يعتمدها المسؤول لضمان عدم المبالغة في التقييمات وتوثيق البطاقة."
+                        : "Player attributes are based on Peer Reviews to calculate averages, which are then approved by the admin to prevent inflated stats and verify the card."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      📊 {isAr ? "تتبع الإحصائيات (Stats Tracking)" : "Stats Tracking"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "يمكن لكل مجتمع تسجيل الأهداف والتمريرات الحاسمة وجوائز رجل المباراة في كل مباراة."
+                        : "Each community can record Goals, Assists, and MVP awards in every match."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🌟 {isAr ? "المزاج والحالة (Mood & Form)" : "Mood & Form"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "يمكن للاعبين تحديث حالتهم ومزاجهم (مثل ↗️، ↘️) قبل المباريات لعكس مستوى لياقتهم الحالية."
+                        : "Players can update their form/mood (e.g., ↗️, ↘️) before matches to reflect their current fitness level."}
                     </p>
                   </section>
 

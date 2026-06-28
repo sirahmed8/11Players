@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PlayerCard from './PlayerCard';
+import PlayerCardCompact from './PlayerCardCompact';
 import { PlayerProfile } from '@/types';
 import { useLocale } from './ThemeProvider';
 
@@ -56,15 +57,15 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
             )}
             
             {/* Player Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               {result.teamA?.map((p: any) => (
                 <div key={p.uid} className="relative group">
                   <div className="absolute -inset-2 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
                   <div className="relative transform transition-transform duration-300 group-hover:scale-[1.02]">
-                    <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 shadow-xl">
-                      <span className="font-black text-white text-sm">{p.assignedPosition}</span>
+                    <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 shadow-xl">
+                      <span className="font-black text-white text-xs">{p.assignedPosition}</span>
                     </div>
-                    <PlayerCard player={p as PlayerProfile} />
+                    <PlayerCardCompact player={p as PlayerProfile} />
                   </div>
                 </div>
               ))}
@@ -94,15 +95,15 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
             )}
             
             {/* Player Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               {result.teamB?.map((p: any) => (
                 <div key={p.uid} className="relative group">
                   <div className="absolute -inset-2 bg-gradient-to-r from-red-600 to-orange-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
                   <div className="relative transform transition-transform duration-300 group-hover:scale-[1.02]">
-                    <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg border border-white/10 shadow-xl">
-                      <span className="font-black text-white text-sm">{p.assignedPosition}</span>
+                    <div className="absolute top-2 right-2 z-10 bg-black/60 backdrop-blur-md px-2 py-0.5 rounded border border-white/10 shadow-xl">
+                      <span className="font-black text-white text-xs">{p.assignedPosition}</span>
                     </div>
-                    <PlayerCard player={p as PlayerProfile} />
+                    <PlayerCardCompact player={p as PlayerProfile} />
                   </div>
                 </div>
               ))}

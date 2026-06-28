@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
@@ -58,8 +57,7 @@ export default function CommunitiesPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>
-      <Navbar />
-
+      
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-2">

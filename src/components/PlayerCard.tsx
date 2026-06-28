@@ -59,10 +59,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
       >
         {/* --- Header: Photo + Overall --- */}
         <div className="relative flex flex-col items-center pt-8 pb-3 px-4">
-          {/* Overall Rating */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-amber-900/70 tracking-wider uppercase">
-            Overall
-          </div>
+
 
           {/* Player Photo */}
           <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">

@@ -5,7 +5,6 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Navbar from "@/components/Navbar";
 import PlayerCard from "@/components/PlayerCard";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
@@ -46,8 +45,7 @@ export default function MatchPage() {
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
-        <Navbar />
-
+        
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent mb-4">

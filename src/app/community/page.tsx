@@ -7,8 +7,8 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import { Search, ChevronDown } from "lucide-react";
+import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import dynamic from "next/dynamic";
 
 const VirtualChat = dynamic(() => import("@/components/VirtualChat"), {
@@ -23,26 +23,37 @@ export default function CommunityPage() {
 
   const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<"overall" | "goals" | "assists" | "mvp">("overall");
+  const [isSortOpen, setIsSortOpen] = useState(false);
 
 
   const filteredPlayers = React.useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    if (!query) return players;
+    if (!query) return [...players].sort((a, b) => {
+      if (sortBy === "overall") {
+        return calculateRealisticOverall(b.attributes, b.primaryPosition, b.playStyle || "") - calculateRealisticOverall(a.attributes, a.primaryPosition, a.playStyle || "");
+      }
+      return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
+    });
     return players.filter((p) => {
       return (
         p.fullName.toLowerCase().includes(query) ||
         p.cardName.toLowerCase().includes(query) ||
         p.primaryPosition.toLowerCase().includes(query)
       );
+    }).sort((a, b) => {
+      if (sortBy === "overall") {
+        return calculateRealisticOverall(b.attributes, b.primaryPosition, b.playStyle || "") - calculateRealisticOverall(a.attributes, a.primaryPosition, a.playStyle || "");
+      }
+      return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
-  }, [players, searchQuery]);
+  }, [players, searchQuery, sortBy]);
 
 
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
-        <Navbar />
-
+        
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
@@ -61,7 +72,42 @@ export default function CommunityPage() {
                   className="w-full bg-transparent border-0 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400"
                 />
               </div>
-              
+            </div>
+          </div>
+          
+          <div className="flex justify-end mb-6">
+            <div className="relative">
+              <button 
+                onClick={() => setIsSortOpen(!isSortOpen)}
+                className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
+              >
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "overall" ? "Overall" : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                </span>
+                <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
+                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {isSortOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-10 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden right-0"
+                  >
+                    {(["overall", "goals", "assists", "mvp"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => { setSortBy(s); setIsSortOpen(false); }}
+                        className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
+                      >
+                        {s === "overall" ? "Overall" : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

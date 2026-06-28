@@ -9,7 +9,6 @@ import MatchmakingModal from "@/components/MatchmakingModal";
 import { AnimatePresence } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
-import Navbar from "@/components/Navbar";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
@@ -78,8 +77,7 @@ export default function AdminPage() {
   return (
     <ProtectedRoute adminOnly requireCommunity>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12">
-        <Navbar />
-
+        
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>

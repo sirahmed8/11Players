@@ -7,7 +7,6 @@ import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ThemeProvider";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "@/components/Navbar";
 
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 
@@ -135,8 +134,7 @@ export default function StatsPage() {
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
-        <Navbar />
-
+        
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="mb-10 text-center">
             <h2 className="text-4xl font-black mb-2">{isAr ? "قائمة المتصدرين العالمية" : "Global Leaderboards"}</h2>

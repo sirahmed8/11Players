@@ -33,7 +33,7 @@ interface SkillInfo {
   category: 'passing' | 'shooting' | 'defending' | 'dribbling' | 'physical' | 'goalkeeping';
 }
 
-const SKILLS: SkillInfo[] = [
+export const SKILLS: SkillInfo[] = [
   // Passing
   { id: 'one_touch_pass', label: 'One-touch Pass', labelAr: 'التمريرة بلمسة واحدة', description: 'Accurate passes with just one touch', descriptionAr: 'تمريرات دقيقة بلمسة واحدة', category: 'passing' },
   { id: 'through_passing', label: 'Through Passing', labelAr: 'التمريرة البينية', description: 'Precise through balls behind the defense', descriptionAr: 'تمريرات بينية دقيقة خلف الدفاع', category: 'passing' },
