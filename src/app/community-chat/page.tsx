@@ -307,7 +307,7 @@ export default function CommunityChatPage() {
                               </button>
                             )}
                             {(isAdmin || isMe) && (
-                              <button onClick={() => setShowDeleteConfirm(msg.id)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 rounded-full transition-colors" title={isAr ? "حذف" : "Delete"}>
+                              <button onClick={() => setShowDeleteConfirm(msg.id!)} className="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 rounded-full transition-colors" title={isAr ? "حذف" : "Delete"}>
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             )}

@@ -25,6 +25,7 @@ export interface ChatMessage {
   timestamp: any;
   replyToId?: string; // ID of the message being replied to
   reactions?: Record<string, string>; // uid -> emoji
+  isEdited?: boolean;
 }
 
 export interface SupportThread {
