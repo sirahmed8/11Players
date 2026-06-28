@@ -10,7 +10,8 @@ import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
-import { Users, FileText, UserCheck, ShieldCheck, Lock } from "lucide-react";
+import GlobalUsersTable from "@/components/GlobalUsersTable";
+import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -268,51 +269,32 @@ export default function OwnerPage() {
                   <div className="space-y-4">
                     {communities.map(c => (
                       <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">
-                        {editingCommunity === c.id ? (
-                          <div className="flex flex-col gap-3">
-                            <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Name" />
-                            <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Description" />
-                            <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Admin UID" />
-                            <label className="flex items-center gap-2">
-                              <input type="checkbox" checked={isEditPrivate} onChange={e => setIsEditPrivate(e.target.checked)} />
-                              Private
-                            </label>
-                            {isEditPrivate && (
-                              <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-300 dark:border-slate-600" placeholder="Password" />
-                            )}
-                            <div className="flex gap-2">
-                              <button onClick={() => handleEditSave(c.id)} className="bg-emerald-500 text-white px-4 py-2 rounded-lg text-sm font-bold">Save</button>
-                              <button onClick={() => setEditingCommunity(null)} className="bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-4 py-2 rounded-lg text-sm font-bold">Cancel</button>
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4">
+                          <div>
+                            <div className="font-black text-lg flex items-center gap-2">
+                              {c.name} {c.isPrivate && <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-lg">Private</span>}
                             </div>
+                            <div className="text-sm font-semibold text-slate-500 mt-1">Admin UID: {c.adminUid}</div>
+                            <div className="text-sm text-slate-500 truncate max-w-sm mt-1">{c.description}</div>
+                            {c.isPrivate && <div className="text-xs font-mono bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md mt-2 inline-block">Password: {c.password}</div>}
                           </div>
-                        ) : (
-                          <div className="flex justify-between items-center w-full">
-                            <div>
-                              <div className="font-bold text-lg flex items-center gap-2">
-                                {c.name} {c.isPrivate && <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded">Private</span>}
-                              </div>
-                              <div className="text-sm text-slate-500">Admin UID: {c.adminUid}</div>
-                              <div className="text-sm text-slate-500 truncate max-w-sm">{c.description}</div>
-                              {c.isPrivate && <div className="text-xs text-slate-400">Password: {c.password}</div>}
-                            </div>
-                            <div className="flex gap-2">
-                              <button 
-                                onClick={() => {
-                                  setEditingCommunity(c.id);
-                                  setEditName(c.name);
-                                  setEditDesc(c.description || "");
-                                  setEditAdminUid(c.adminUid);
-                                  setIsEditPrivate(c.isPrivate || false);
-                                  setEditPassword(c.password || "");
-                                }} 
-                                className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-3 py-1 rounded"
-                              >
-                                Edit
-                              </button>
-                              <button onClick={() => handleDeleteCommunity(c.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-3 py-1 rounded">Delete</button>
-                            </div>
+                          <div className="flex gap-2 self-end sm:self-auto">
+                            <button 
+                              onClick={() => {
+                                setEditingCommunity(c.id);
+                                setEditName(c.name);
+                                setEditDesc(c.description || "");
+                                setEditAdminUid(c.adminUid);
+                                setIsEditPrivate(c.isPrivate || false);
+                                setEditPassword(c.password || "");
+                              }} 
+                              className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-4 py-2 rounded-xl font-bold text-sm transition-colors"
+                            >
+                              Edit
+                            </button>
+                            <button onClick={() => handleDeleteCommunity(c.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-xl font-bold text-sm transition-colors">Delete</button>
                           </div>
-                        )}
+                        </div>
                       </div>
                     ))}
                     {communities.length === 0 && <p className="text-slate-500">No communities exist yet.</p>}
@@ -323,6 +305,101 @@ export default function OwnerPage() {
           </div>
         </main>
       </div>
+
+      <AnimatePresence>
+        {editingCommunity && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setEditingCommunity(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+                  {isAr ? "تعديل بيانات المجتمع" : "Edit Community"}
+                </h3>
+                <button
+                  onClick={() => setEditingCommunity(null)}
+                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-6 overflow-y-auto space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الاسم" : "Name"}</label>
+                  <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Name" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
+                  <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Description" />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "معرف المسؤول" : "Admin UID"}</label>
+                  <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Admin UID" />
+                </div>
+                
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-slate-200 dark:border-slate-700">
+                  <label className="flex items-center justify-between cursor-pointer group">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${isEditPrivate ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'} transition-colors`}>
+                        <ShieldCheck className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="block font-bold text-slate-900 dark:text-white">{isAr ? "مجتمع خاص" : "Private Community"}</span>
+                      </div>
+                    </div>
+                    <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isEditPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                      <motion.div animate={{ x: isEditPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
+                    </div>
+                    <input type="checkbox" checked={isEditPrivate} onChange={e => setIsEditPrivate(e.target.checked)} className="sr-only" />
+                  </label>
+                </div>
+                
+                <AnimatePresence>
+                  {isEditPrivate && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-2">
+                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                        <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Password" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 justify-end">
+                <button
+                  onClick={() => setEditingCommunity(null)}
+                  className="px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors border border-slate-200 dark:border-slate-700"
+                >
+                  {isAr ? "إلغاء" : "Discard"}
+                </button>
+                <button
+                  onClick={() => handleEditSave(editingCommunity!)}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                >
+                  {isAr ? "حفظ التغييرات" : "Save Changes"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </ProtectedRoute>
   );
 }

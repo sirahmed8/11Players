@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { useCommunity } from "./CommunityContext";
 
@@ -23,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isGlobalModerator, setIsGlobalModerator] = useState(false);
-  const { activeCommunity, loadingCommunity } = useCommunity();
+  const { activeCommunityId, setActiveCommunityId, activeCommunity, loadingCommunity } = useCommunity();
 
   // Determine if the current user is an admin of the active community
   const isCommunityAdmin = activeCommunity?.adminUid === user?.uid || activeCommunity?.adminUid === user?.email;
@@ -67,6 +67,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return () => unsubscribe();
   }, []);
+
+  // Sync activeCommunityId with Firestore so it remembers across logins/devices
+  useEffect(() => {
+    if (!user) return;
+    
+    const syncCommunity = async () => {
+      const userRef = doc(db, "users", user.uid);
+      
+      if (activeCommunityId) {
+        // Save to Firestore
+        try {
+          await setDoc(userRef, { lastCommunityId: activeCommunityId }, { merge: true });
+        } catch (e) {
+          console.error("Failed to save lastCommunityId:", e);
+        }
+      } else {
+        // Load from Firestore if missing
+        try {
+          const snap = await getDoc(userRef);
+          if (snap.exists() && snap.data().lastCommunityId) {
+            setActiveCommunityId(snap.data().lastCommunityId);
+          }
+        } catch (e) {
+          console.error("Failed to load lastCommunityId:", e);
+        }
+      }
+    };
+    
+    syncCommunity();
+  }, [user, activeCommunityId, setActiveCommunityId]);
 
   const login = useCallback(async () => {
     setLoading(true);

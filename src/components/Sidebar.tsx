@@ -82,9 +82,9 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <div
-        className={`fixed md:sticky top-0 md:top-4 left-0 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden shadow-2xl ${
+        className={`fixed md:sticky top-0 md:top-4 left-0 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden shadow-2xl shadow-black/20 ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } ${isAr ? "border-l right-0 left-auto md:rounded-l-3xl md:ml-4" : "border-r md:rounded-r-3xl md:mr-4"}`}
+        } ${isAr ? "right-0 left-auto rounded-l-3xl md:rounded-3xl md:mx-4" : "left-0 right-auto rounded-r-3xl md:rounded-3xl md:mx-4"}`}
         style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
       >
         {/* Logo Area */}
@@ -111,7 +111,7 @@ export default function Sidebar() {
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
                   isActive
                     ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                 }`}
               >
                 {link.icon}

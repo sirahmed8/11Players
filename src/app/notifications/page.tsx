@@ -121,7 +121,7 @@ export default function NotificationsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-bg-light dark:bg-bg-dark transition-colors duration-300 py-8 px-4 sm:px-6 md:px-8">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-300 py-8 px-4 sm:px-6 md:px-8">
         <main className="max-w-4xl mx-auto space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex items-center gap-4">
@@ -140,7 +140,8 @@ export default function NotificationsPage() {
             <div className="flex items-center gap-2">
               <button
                 onClick={markAllAsRead}
-                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-bold transition-colors flex items-center gap-2"
+                disabled={notifications.filter(n => !n.read).length === 0}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${notifications.filter(n => !n.read).length === 0 ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed" : "bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300"}`}
               >
                 <CheckCircle2 className="w-4 h-4" />
                 {isAr ? "تحديد الكل كمقروء" : "Mark all as read"}
@@ -169,11 +170,14 @@ export default function NotificationsPage() {
               </button>
             </div>
             
-            <div className="relative min-w-[200px]">
+            <div className="relative min-w-[200px] z-20 group">
+              <div className={`absolute inset-y-0 ${isAr ? "left-0" : "right-0"} flex items-center px-4 pointer-events-none text-slate-500 group-hover:text-emerald-500 transition-colors`}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
               <select 
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value as NotificationType | "all")}
-                className="w-full appearance-none px-4 py-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer transition-colors"
+                className={`w-full appearance-none bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-emerald-500 dark:hover:border-emerald-500 text-slate-700 dark:text-slate-200 py-3 ${isAr ? "pr-4 pl-12" : "pl-4 pr-12"} rounded-xl font-bold cursor-pointer outline-none focus:ring-4 focus:ring-emerald-500/20 transition-all`}
               >
                 <option value="all">{isAr ? "جميع الأنواع" : "All Types"}</option>
                 <option value="advices">{isAr ? "نصائح" : "Advices"}</option>
@@ -183,9 +187,6 @@ export default function NotificationsPage() {
                 <option value="stats">{isAr ? "إحصائيات" : "Stats"}</option>
                 <option value="trophies">{isAr ? "ألقاب" : "Trophies"}</option>
               </select>
-              <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-              </div>
             </div>
           </div>
 
