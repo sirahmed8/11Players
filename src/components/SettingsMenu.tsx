@@ -67,10 +67,9 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
             animate="visible"
             exit="exit"
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-y-auto max-h-[80vh] hide-scrollbar ${
+            className={`absolute ${direction === "up" ? "bottom-full mb-3" : "top-full mt-3"} w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] border border-slate-200 dark:border-slate-700 overflow-y-auto max-h-[80vh] hide-scrollbar ${
               isRTL ? "left-0" : "right-0"
             }`}
-            style={{ backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)" }}
           >
             <div className="py-2 flex flex-col">
               {user && (
