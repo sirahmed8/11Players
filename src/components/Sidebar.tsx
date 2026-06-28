@@ -35,6 +35,7 @@ export default function Sidebar() {
       { href: "/stats", labelEn: "Stats", labelAr: "الإحصائيات", icon: <BarChart3 className="w-5 h-5" /> },
       { href: "/match", labelEn: "Next Match", labelAr: "المباراة", icon: <Swords className="w-5 h-5" /> },
     ] : []),
+    ...(isOwner ? [{ href: "/users", labelEn: "Users", labelAr: "المستخدمين", icon: <Users className="w-5 h-5" /> }] : []),
     ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
     { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
   ];
@@ -70,9 +71,9 @@ export default function Sidebar() {
 
       {/* Sidebar Content */}
       <div
-        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden rounded-tr-3xl rounded-br-3xl md:rounded-none ${
+        className={`fixed md:sticky top-0 left-0 h-screen w-72 bg-white/60 dark:bg-slate-900/60 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out flex flex-col overflow-hidden rounded-tr-3xl rounded-br-3xl md:rounded-tr-2xl md:rounded-br-2xl ${
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } ${isAr ? "right-0 left-auto border-r-0 border-l rounded-tl-3xl rounded-bl-3xl rounded-tr-none rounded-br-none md:rounded-none" : ""}`}
+        } ${isAr ? "right-0 left-auto border-r-0 border-l rounded-tl-3xl rounded-bl-3xl rounded-tr-none rounded-br-none md:rounded-tl-2xl md:rounded-bl-2xl md:rounded-tr-none md:rounded-br-none" : ""}`}
       >
         <div className="flex-shrink-0 z-10 flex items-center justify-between p-6 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl border-b border-slate-200/50 dark:border-slate-800/50" style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}>
           <Link href="/communities" className="flex items-center gap-3">

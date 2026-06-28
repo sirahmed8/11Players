@@ -14,12 +14,12 @@ export default function GuidePage() {
   const isAr = locale === "ar";
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
-    { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", icon: <BookOpen className="w-5 h-5 text-emerald-500" /> },
-    { id: 'positions', label: isAr ? "المراكز" : "Positions", icon: <Target className="w-5 h-5 text-red-500" /> },
-    { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", icon: <Shuffle className="w-5 h-5 text-blue-500" /> },
-    { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", icon: <Star className="w-5 h-5 text-amber-500" /> },
-    { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", icon: <Rocket className="w-5 h-5 text-purple-500" /> },
+  const tabs: { id: Tab; label: string; Icon: React.FC<any>; color: string }[] = [
+    { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-emerald-500" },
+    { id: 'positions', label: isAr ? "المراكز" : "Positions", Icon: Target, color: "text-red-500" },
+    { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", Icon: Shuffle, color: "text-blue-500" },
+    { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", Icon: Star, color: "text-amber-500" },
+    { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
   ];
 
   return (
@@ -34,20 +34,25 @@ export default function GuidePage() {
               {isAr ? "دليل 11Players" : "11Players Guide"}
             </h2>
             <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-              {tabs.map(tab => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
-                    activeTab === tab.id 
-                    ? 'bg-emerald-500 text-white font-bold shadow-md' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  <span className="text-xl">{tab.icon}</span>
-                  <span>{tab.label}</span>
-                </button>
-              ))}
+              {tabs.map(tab => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+                      isActive 
+                      ? 'bg-emerald-500 text-white font-bold shadow-md' 
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <span className={`text-xl ${isActive ? 'text-white' : tab.color}`}>
+                      <tab.Icon className="w-5 h-5" />
+                    </span>
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </nav>
           </div>
         </div>

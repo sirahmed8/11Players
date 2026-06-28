@@ -18,7 +18,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="relative flex items-center p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+        className="relative flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
       >
         {/* Verification Status */}
         <div
@@ -39,7 +39,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
         </div>
 
         {/* Details */}
-        <div className="ml-4 flex-1 min-w-0">
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">
               {player.cardName}
@@ -55,7 +55,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
               </span>
             )}
           </div>
-          <div className="flex gap-2 mt-1">
+          <div className="flex flex-wrap items-center gap-2 mt-1">
             <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
               {player.primaryPosition}
             </span>
@@ -73,7 +73,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
         </div>
 
         {/* Overall Rating */}
-        <div className="ml-4 mr-2 flex flex-col items-center justify-center">
+        <div className="flex-shrink-0 px-2 flex flex-col items-center justify-center border-s border-slate-200 dark:border-slate-700 pl-4">
           <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">OVR</span>
           <div className="text-2xl font-black text-amber-500 drop-shadow-sm leading-none">
             {overall}
