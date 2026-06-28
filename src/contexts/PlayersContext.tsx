@@ -1,56 +1,49 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 
 interface PlayersContextProps {
   players: PlayerProfile[];
   loading: boolean;
-  refreshPlayers: () => Promise<void>;
 }
 
 const PlayersContext = createContext<PlayersContextProps | undefined>(undefined);
 
-export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchPlayers = async () => {
-    setLoading(true);
-    try {
-      const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
-      const snapshot = await getDocs(q);
-      const fetchedPlayers: PlayerProfile[] = [];
-      snapshot.forEach((doc) => {
-        fetchedPlayers.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
-      });
-      setPlayers(fetchedPlayers);
-    } catch (error) {
-      console.error("Error fetching players:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchPlayers();
+    const q = query(collection(db, "players"), orderBy("calculatedAge", "asc"));
+    
+    // Real-time listener replacing static getDocs
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const liveRoster: PlayerProfile[] = [];
+      snapshot.forEach((doc) => {
+        liveRoster.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
+      });
+      setPlayers(liveRoster);
+      setLoading(false);
+    }, (error) => {
+      console.error("Real-time roster sync failed:", error);
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (
-    <PlayersContext.Provider value={{ players, loading, refreshPlayers: fetchPlayers }}>
+    <PlayersContext.Provider value={{ players, loading }}>
       {children}
     </PlayersContext.Provider>
   );
 };
 
-export const usePlayers = (): PlayersContextProps => {
+export const usePlayers = () => {
   const context = useContext(PlayersContext);
-  if (!context) {
-    throw new Error("usePlayers must be used within a PlayersProvider");
-  }
+  if (!context) throw new Error("usePlayers must be used within a PlayersProvider");
   return context;
 };

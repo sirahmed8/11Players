@@ -62,7 +62,18 @@ export default function GuidePage() {
 
             <section>
               <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
-                {isAr ? "3. الكرة الذهبية والجوائز (Ballon d'Or & Trophies)" : "3. Ballon d'Or & Trophies"}
+                {isAr ? "3. التقييم حسب المركز والبدلاء (Position Ratings & The Bench)" : "3. Position Ratings & The Bench"}
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                {isAr 
+                  ? "لاختيار أفضل 22 لاعب للمباراة، يقوم النظام بحساب (مؤشر التقييم الخاص بالمركز - PSI) لكل لاعب. يأخذ هذا المؤشر في عين الاعتبار طاقات اللاعب ومدى ملاءمتها للمراكز المطلوبة في التشكيلة المحددة. أعلى 22 لاعب تقييماً في مراكزهم يبدؤون المباراة أساسيين، بينما يتم نقل البقية إلى دكة البدلاء مع توضيح سبب الاستبعاد."
+                  : "To select the best 22 players for a match, the system calculates a Position Specific Index (PSI) for each player. This considers the player's attributes and how well they fit the required positions in the chosen formation. The top 22 highest-rated players for the available positions start the match, while the rest are placed on the Bench with a 'Benched Reason'."}
+              </p>
+            </section>
+
+            <section>
+              <h2 className="text-2xl font-bold mb-4 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 pb-2">
+                {isAr ? "4. الكرة الذهبية والجوائز (Ballon d'Or & Trophies)" : "4. Ballon d'Or & Trophies"}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
                 {isAr 
@@ -70,10 +81,10 @@ export default function GuidePage() {
                   : "At the end of each season, the system automatically awards trophies based on match statistics:"}
               </p>
               <ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2 ml-4">
-                <li><strong>{isAr ? "الكرة الذهبية 🏆:" : "Ballon d'Or 🏆:"}</strong> {isAr ? "تُمنح للاعب صاحب أعلى نقاط مساهمة (الأهداف × 2 + التمريرات الحاسمة × 1 + أفضل لاعب × 5)." : "Awarded to the player with the highest contribution score (Goals × 2 + Assists × 1 + MVPs × 5)."}</li>
+                <li><strong>{isAr ? "الكرة الذهبية 🏆:" : "Ballon d'Or 🏆:"}</strong> {isAr ? "تُمنح للاعب صاحب أعلى نقاط مساهمة (الأهداف × 2 + التمريرات الحاسمة × 1 + رجل المباراة × 5)." : "Awarded to the player with the highest contribution score (Goals × 2 + Assists × 1 + MVPs × 5)."}</li>
                 <li><strong>{isAr ? "الحذاء الذهبي ⚽:" : "Golden Boot ⚽:"}</strong> {isAr ? "أكثر لاعب تسجيلاً للأهداف." : "Top goal scorer."}</li>
                 <li><strong>{isAr ? "صانع الألعاب 👟:" : "Playmaker 👟:"}</strong> {isAr ? "أكثر لاعب صناعة للأهداف." : "Top assist provider."}</li>
-                <li><strong>{isAr ? "رجل المباراة 🏅:" : "MVP 🏅:"}</strong> {isAr ? "أكثر لاعب حصل على جائزة أفضل لاعب في المباريات." : "Player with the most 'Man of the Match' awards."}</li>
+                <li><strong>{isAr ? "رجل المباراة 🏅:" : "MVP 🏅:"}</strong> {isAr ? "أكثر لاعب حصل على جائزة رجل المباراة." : "Player with the most 'Man of the Match' awards."}</li>
               </ul>
             </section>
           </div>

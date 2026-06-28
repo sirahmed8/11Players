@@ -6,7 +6,7 @@ service cloud.firestore {
     // Admin check function
     function isAdmin() {
       return request.auth != null && (
-        request.auth.uid == 'G8vV7jTvd0VUeRlohrGFyARhiiw1' ||
+        request.auth.token.email == 'a7medorabe7@gmail.com' ||
         exists(/databases/$(database)/documents/admins/$(request.auth.uid))
       );
     }

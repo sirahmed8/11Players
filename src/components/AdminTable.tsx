@@ -164,7 +164,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       
       const batch = writeBatch(db);
       
-      Array.from({ length: 22 }).forEach((_, i) => {
+      Array.from({ length: 32 }).forEach((_, i) => {
         const uid = `test-player-${Date.now()}-${i}`;
         const pos = positions[Math.floor(Math.random() * positions.length)];
         const docRef = doc(db, 'players', uid);
@@ -216,7 +216,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       });
       await batch.commit();
       onRefresh();
-      toast.success(t(locale, "Successfully generated 22 players!", "تم إنشاء 22 لاعب بنجاح!"));
+      toast.success(t(locale, "Successfully generated 32 players!", "تم إنشاء 32 لاعب بنجاح!"));
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error generating players', 'حدث خطأ أثناء إنشاء اللاعبين'));
@@ -474,7 +474,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           disabled={loadingUid === 'generating-players'}
           className="rounded-lg bg-emerald-600/20 px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition-colors"
         >
-          {loadingUid === 'generating-players' ? 'Generating...' : t(locale, 'Generate 22 Test Players', 'إنشاء 22 لاعب للتجربة')}
+          {loadingUid === 'generating-players' ? 'Generating...' : t(locale, 'Generate 32 Test Players', 'إنشاء 32 لاعب للتجربة')}
         </button>
       </div>
       {/* Table */}
@@ -876,7 +876,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
             >
               <div className="p-6 text-center">
                 <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
-                  {t(locale, 'Generate 22 Random Players?', 'هل أنت متأكد من إنشاء 22 لاعب عشوائي؟')}
+                  {t(locale, 'Generate 32 Random Players?', 'هل أنت متأكد من إنشاء 32 لاعب عشوائي؟')}
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 mb-6">
                   {t(locale, 'This will add them to your live database.', 'سيتم إضافتهم إلى قاعدة البيانات الخاصة بك.')}

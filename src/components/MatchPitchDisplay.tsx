@@ -42,6 +42,13 @@ const POSITIONS: Record<PESPosition, { x: number; y: number }> = {
 export default function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick }: MatchPitchDisplayProps) {
   const theme = color === 'blue' ? 'from-blue-600 to-cyan-600 border-blue-400' : 'from-red-600 to-orange-600 border-red-400';
   
+  // Group players by assigned position to handle overlaps
+  const byPos: Record<string, AssignedPlayer[]> = {};
+  team.forEach((p) => {
+    if (!byPos[p.assignedPosition]) byPos[p.assignedPosition] = [];
+    byPos[p.assignedPosition].push(p);
+  });
+
   return (
     <div className="relative w-full max-w-md mx-auto aspect-[2/3] bg-emerald-800 rounded-xl overflow-hidden border-2 border-slate-700/50 shadow-inner">
       {/* Pitch Lines */}
@@ -58,11 +65,23 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
 
       {/* Players */}
       {team.map((p) => {
-        const pos = POSITIONS[p.assignedPosition];
-        if (!pos) return null;
+        const basePos = POSITIONS[p.assignedPosition];
+        if (!basePos) return null;
         
+        const group = byPos[p.assignedPosition];
+        const count = group.length;
+        const index = group.indexOf(p);
+        
+        let actualX = basePos.x;
+        if (count > 1) {
+          const spread = 20; // 20% gap between players sharing the same position role
+          const totalWidth = spread * (count - 1);
+          const startX = basePos.x - totalWidth / 2;
+          actualX = startX + index * spread;
+        }
+
         // Adjust Y based on reversed
-        const top = isReversed ? 100 - pos.y : pos.y;
+        const top = isReversed ? 100 - basePos.y : basePos.y;
         
         const overall = calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || '');
 
@@ -70,8 +89,8 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
           <button
             key={p.uid}
             onClick={() => onPlayerClick?.(p)}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group transition-transform hover:scale-110"
-            style={{ left: `${pos.x}%`, top: `${top}%` }}
+            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group transition-transform hover:scale-110 z-10"
+            style={{ left: `${actualX}%`, top: `${top}%` }}
           >
             {/* Player Avatar */}
             <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 overflow-hidden flex items-center justify-center bg-gradient-to-br shadow-lg ${theme}`}>
