@@ -5,9 +5,35 @@ export interface Community {
   name: string;
   description: string;
   adminUid: string;
+  communityModerators?: string[];
   isPrivate: boolean;
   password?: string;
   createdAt: string;
+}
+
+export interface CommunitySettings {
+  slowModeDelay: number; // in seconds, 0 means off
+}
+
+export interface ChatMessage {
+  id: string;
+  senderUid: string;
+  senderName: string;
+  senderPic?: string;
+  text: string;
+  imageUrl?: string;
+  timestamp: any;
+  replyToId?: string;
+  reactions?: Record<string, string>; // e.g. { "uid123": "🔥" }
+}
+
+export interface SupportThread {
+  id: string; // The user's UID who started the thread
+  userName: string;
+  userPic?: string;
+  lastMessage: string;
+  lastUpdatedAt: any;
+  unreadCount: number;
 }
 
 export interface CommunityStats {
@@ -71,6 +97,7 @@ export interface PlayerProfile {
   photoUrl: string;
   isVerifiedByAdmin: boolean;
   hasWarning: boolean;
+  isGlobalModerator?: boolean;
   form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
   // Global total stats (aggregated)
   stats: {

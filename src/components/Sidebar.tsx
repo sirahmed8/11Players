@@ -7,13 +7,13 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
 import SettingsMenu from "@/components/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { useCommunity } from "@/contexts/CommunityContext";
 
 export default function Sidebar() {
-  const { user, isAdmin, isOwner } = useAuth();
+  const { user, isAdmin, isOwner, isGlobalModerator } = useAuth();
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const pathname = usePathname();
@@ -33,11 +33,15 @@ export default function Sidebar() {
     { href: "/global", labelEn: "Global", labelAr: "عالمي", icon: <Globe className="w-5 h-5" /> },
     ...(activeCommunityId ? [
       { href: "/community", labelEn: "My Community", labelAr: "مجتمعي", icon: <Users className="w-5 h-5" /> },
+      { href: "/community-chat", labelEn: "Community Chat", labelAr: "محادثة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
       { href: "/stats", labelEn: "Stats", labelAr: "الإحصائيات", icon: <BarChart3 className="w-5 h-5" /> },
       { href: "/match", labelEn: "Next Match", labelAr: "المباراة", icon: <Swords className="w-5 h-5" /> },
+      ...(isAdmin ? [{ href: "/community-settings", labelEn: "Community Settings", labelAr: "إعدادات المجتمع", icon: <Settings2 className="w-5 h-5" /> }] : [])
     ] : []),
     ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
     { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
+    ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support", labelAr: "الدعم الفني", icon: <HeadphonesIcon className="w-5 h-5" /> }] : []),
+    ...(isOwner || isGlobalModerator ? [{ href: "/inbox", labelEn: "Inbox", labelAr: "البريد الوارد", icon: <InboxIcon className="w-5 h-5" /> }] : []),
   ];
 
   return (

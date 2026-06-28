@@ -61,7 +61,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
             </span>
             {player.playStyle && (
               <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
-                {player.playStyle.replace(/_/g, ' ')}
+                {player.playStyle.replace(/_/g, ' ').trim()}
               </span>
             )}
             {player.secondaryPosition && (

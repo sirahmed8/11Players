@@ -239,7 +239,7 @@ function PlayerProfileContent() {
           {/* Full Name & Form */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
                   {player.fullName}
                 </h2>
                 <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">

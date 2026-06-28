@@ -11,6 +11,7 @@ interface AuthContextProps {
   loading: boolean;
   isAdmin: boolean; // True if Global Owner OR Community Admin
   isOwner: boolean; // True ONLY if Global Owner
+  isGlobalModerator: boolean; // True if Global Owner OR assigned Global Moderator
   login: () => Promise<void>;
   logout: () => Promise<void>;
 }
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
+  const [isGlobalModerator, setIsGlobalModerator] = useState(false);
   const { activeCommunity, loadingCommunity } = useCommunity();
 
   // Determine if the current user is an admin of the active community
@@ -49,12 +51,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     googleName: firebaseUser.displayName || ''
                   }).catch(console.error);
                 }
+                setIsGlobalModerator(userIsOwner || !!data.isGlobalModerator);
+              } else {
+                setIsGlobalModerator(userIsOwner);
               }
             });
           });
         });
       } else {
         setIsOwner(false);
+        setIsGlobalModerator(false);
       }
       setLoading(false);
     });
@@ -73,7 +79,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, isGlobalModerator, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

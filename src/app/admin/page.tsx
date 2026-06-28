@@ -79,27 +79,6 @@ export default function AdminPage() {
     generateMasterBulkPDF(players);
   };
 
-  if (!activeCommunityId) {
-    return (
-      <ProtectedRoute adminOnly requireCommunity={false}>
-        <div className="min-h-[70vh] flex flex-col items-center justify-center p-4 text-center">
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-4">
-              {isAr ? "الرجاء اختيار مجتمع" : "Select a Community"}
-            </h2>
-            <p className="text-slate-600 dark:text-slate-400 mb-8">
-              {isAr 
-                ? "يجب عليك اختيار مجتمع من صفحة المجتمعات للوصول إلى لوحة الإدارة."
-                : "You must select a community from the Communities page to access the admin dashboard."}
-            </p>
-            <a href="/communities" className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
-              {isAr ? "الذهاب للمجتمعات" : "Go to Communities"}
-            </a>
-          </div>
-        </div>
-      </ProtectedRoute>
-    );
-  }
 
   return (
     <ProtectedRoute adminOnly requireCommunity={false}>
@@ -114,9 +93,12 @@ export default function AdminPage() {
               <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 {isAr ? "لا يوجد مجتمع محدد" : "No Community Selected"}
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 max-w-md">
+              <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
                 {isAr ? "يرجى تحديد مجتمع من قائمة المجتمعات للوصول إلى أدوات التحكم." : "Please select a community from the communities list to access admin controls."}
               </p>
+              <a href="/communities" className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+                {isAr ? "الذهاب للمجتمعات" : "Go to Communities"}
+              </a>
             </div>
           ) : (
             <>

@@ -3,34 +3,30 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Community } from "@/types";
+import { Community, CommunitySettings } from "@/types";
 
 interface CommunityContextProps {
   activeCommunityId: string | null;
   setActiveCommunityId: (id: string | null) => void;
   activeCommunity: Community | null;
+  communitySettings: CommunitySettings;
   loadingCommunity: boolean;
 }
 
 const CommunityContext = createContext<CommunityContextProps | undefined>(undefined);
 
 export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeCommunityId, setActiveCommunityIdState] = useState<string | null>(null);
+  const [activeCommunityId, setActiveCommunityIdState] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("activeCommunityId");
+    }
+    return null;
+  });
   const [activeCommunity, setActiveCommunity] = useState<Community | null>(null);
+  const [communitySettings, setCommunitySettings] = useState<CommunitySettings>({ slowModeDelay: 0 });
   const [loadingCommunity, setLoadingCommunity] = useState(true);
 
-  const [hasReadStorage, setHasReadStorage] = useState(false);
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("activeCommunityId");
-    if (saved) {
-      setActiveCommunityIdState(saved);
-    } else {
-      setLoadingCommunity(false);
-    }
-    setHasReadStorage(true);
-  }, []);
+  const [hasReadStorage, setHasReadStorage] = useState(true);
 
   const setActiveCommunityId = (id: string | null) => {
     setActiveCommunityIdState(id);
@@ -65,11 +61,32 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       setLoadingCommunity(false);
     });
 
-    return () => unsub();
+    const unsubSettings = onSnapshot(doc(db, "communities", activeCommunityId, "settings", "config"), (snap) => {
+      if (snap.exists()) {
+        setCommunitySettings(snap.data() as CommunitySettings);
+      } else {
+        setCommunitySettings({ slowModeDelay: 0 });
+      }
+    }, (err) => {
+      console.error("Failed to fetch community settings:", err);
+    });
+
+    return () => {
+      unsub();
+      unsubSettings();
+    };
   }, [activeCommunityId, hasReadStorage]);
 
   return (
-    <CommunityContext.Provider value={{ activeCommunityId, setActiveCommunityId, activeCommunity, loadingCommunity }}>
+    <CommunityContext.Provider 
+      value={{ 
+        activeCommunityId, 
+        setActiveCommunityId, 
+        activeCommunity, 
+        communitySettings,
+        loadingCommunity 
+      }}
+    >
       {children}
     </CommunityContext.Provider>
   );
