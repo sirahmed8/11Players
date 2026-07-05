@@ -12,8 +12,8 @@ interface PlayerCardCompactProps {
 }
 
 export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
-  const activeAttributes = player.approvedAttributes || player.attributes;
-  const overall = player.overallRating || calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
+  const activeAttributes = player.approvedAttributes || player.attributes || {};
+  const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
 
   return (
     <Link href={`/profile?uid=${player.uid}`} className="block w-full">

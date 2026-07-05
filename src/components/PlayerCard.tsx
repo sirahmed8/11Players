@@ -43,8 +43,8 @@ function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
-  const activeAttributes = player.approvedAttributes || player.attributes;
-  const overall = player.overallRating || calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
+  const activeAttributes = player.approvedAttributes || player.attributes || {};
+  const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
 
   const CardWrapper = player.uid === 'preview' ? 'div' : Link;
   const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };

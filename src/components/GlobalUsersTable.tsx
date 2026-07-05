@@ -61,6 +61,32 @@ export default function GlobalUsersTable() {
     }
   };
 
+  const handleDeleteAllMock = async () => {
+    if (!window.confirm(isAr ? "هل أنت متأكد من حذف جميع اللاعبين الوهميين (32 لاعب) من كافة المجتمعات والنظام؟" : "Are you sure you want to delete all dummy/mock players from all communities and system?")) return;
+    try {
+      const { writeBatch } = await import("firebase/firestore");
+      const mockUsers = users.filter(u => u.isMockData || u.uid.startsWith('dummy_') || u.uid.startsWith('test-player-') || (u.email && u.email.includes('dummy')));
+      if (mockUsers.length === 0) {
+        toast.success(isAr ? "لا يوجد لاعبين وهميين" : "No mock players found");
+        return;
+      }
+      const batch = writeBatch(db);
+      mockUsers.forEach(u => {
+        const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || []), 'comm-1782681792342'].filter(Boolean))) as string[];
+        commIds.forEach(cId => {
+          batch.delete(doc(db, "communities", cId, "players", u.uid));
+        });
+        batch.delete(doc(db, "players", u.uid));
+      });
+      await batch.commit();
+      setUsers(prev => prev.filter(u => !mockUsers.some(m => m.uid === u.uid)));
+      toast.success(isAr ? `تم حذف ${mockUsers.length} لاعب وهمي بنجاح!` : `Successfully deleted ${mockUsers.length} mock players!`);
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل حذف اللاعبين الوهميين" : "Failed to delete mock players");
+    }
+  };
+
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -107,15 +133,23 @@ export default function GlobalUsersTable() {
           </span>
         </div>
         
-        <div className="relative w-full sm:w-72">
-          <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
-            type="text" 
-            placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm"
-          />
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <button
+            onClick={handleDeleteAllMock}
+            className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 font-bold text-xs rounded-xl border border-red-500/30 transition-all active:scale-95 whitespace-nowrap"
+          >
+            🗑️ {isAr ? "حذف اللاعبين الوهميين" : "Delete Mock Players"}
+          </button>
+          <div className="relative w-full sm:w-72">
+            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input 
+              type="text" 
+              placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm"
+            />
+          </div>
         </div>
       </div>
       <div className="overflow-x-auto">

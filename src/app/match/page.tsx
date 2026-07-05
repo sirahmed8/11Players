@@ -12,9 +12,11 @@ import MatchPitchDisplay from "@/components/MatchPitchDisplay";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
+import { useRouter } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 
 export default function MatchPage() {
+  const router = useRouter();
   const { locale } = useLocale();
   const isAr = locale === "ar";
   
@@ -130,13 +132,22 @@ export default function MatchPage() {
               <p className="text-red-500 dark:text-red-400 font-bold">{error}</p>
             </div>
           ) : !matchData ? (
-            <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-              <h3 className="text-2xl font-bold mb-2 text-slate-700 dark:text-slate-300">
+            <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-4">
+              <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-300">
                 {isAr ? "لا توجد مباراة مبرمجة حالياً" : "No Match Scheduled"}
               </h3>
-              <p className="text-slate-500">
+              <p className="text-slate-500 max-w-md">
                 {isAr ? "يرجى الانتظار حتى تقوم الإدارة بتشكيل الفرق." : "Please wait for admins to generate the next match."}
               </p>
+              {isAdmin && (
+                <button
+                  onClick={() => router.push("/admin")}
+                  className="mt-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2"
+                >
+                  <span>⚽</span>
+                  <span>{isAr ? "الذهاب لتشكيل المباراة القادمة" : "Generate Next Match"}</span>
+                </button>
+              )}
             </div>
           ) : (
             <motion.div 

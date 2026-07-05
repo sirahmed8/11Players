@@ -1,6 +1,7 @@
 import { doc, collection, getDocs, addDoc, serverTimestamp, query, where, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
+import { calculateRealisticOverall } from "@/lib/overallCalculator";
 
 const ADVICE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -26,7 +27,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     const advices = [];
 
     // --- 0. Overall Rating (OVR) Based Advice ---
-    const ovr = profile.overallRating || 70;
+    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '');
     if (ovr < 70) {
       advices.push({
         title: isAr ? "نصيحة الصعود والتدريب" : "Development Phase",

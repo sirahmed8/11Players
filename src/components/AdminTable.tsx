@@ -185,7 +185,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     setLoadingUid('deleting-mock');
     setShowDeleteMockModal(false);
     try {
-      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-') || p.uid.startsWith('dummy_'));
+      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-') || p.uid.startsWith('dummy_') || (p.email && p.email.includes('dummy')));
       if (mockPlayers.length === 0) {
         toast.success(t(locale, 'No mock players found', 'لا يوجد لاعبين وهميين'));
         setLoadingUid(null);
@@ -193,8 +193,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       }
       const batch = writeBatch(db);
       mockPlayers.forEach(p => {
-        if (!activeCommunityId) return;
-        batch.delete(doc(db, 'communities', activeCommunityId, 'players', p.uid));
+        const commIds = Array.from(new Set([...(p.memberCommunities || []), ...(p.joinedCommunities || []), activeCommunityId, 'comm-1782681792342'].filter(Boolean))) as string[];
+        commIds.forEach(cId => {
+          batch.delete(doc(db, 'communities', cId, 'players', p.uid));
+        });
         batch.delete(doc(db, 'players', p.uid));
       });
       await batch.commit();

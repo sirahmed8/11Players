@@ -41,11 +41,13 @@ export default function CommunitiesPage() {
         setCommunities(data);
 
         if (user) {
-          const { doc, getDoc } = await import("firebase/firestore");
-          const userDoc = await getDoc(doc(db, "players", user.uid));
-          if (userDoc.exists()) {
-            setUserProfile(userDoc.data());
-          }
+          const { doc, onSnapshot } = await import("firebase/firestore");
+          const unsub = onSnapshot(doc(db, "players", user.uid), (userDoc) => {
+            if (userDoc.exists()) {
+              setUserProfile(userDoc.data());
+            }
+          });
+          return () => unsub();
         }
       } catch (err) {
         console.error("Failed to fetch data", err);
@@ -150,9 +152,9 @@ export default function CommunitiesPage() {
                 <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 flex-1 text-start" dir="auto">{c.description}</p>
                 
                 {(() => {
-                  const isMember = userProfile?.memberCommunities?.includes(c.id) || c.adminUid === user?.uid || isOwner;
-                  const isPending = userProfile?.pendingCommunities?.includes(c.id);
                   const isCurrent = activeCommunityId === c.id;
+                  const isMember = isCurrent || userProfile?.memberCommunities?.includes(c.id) || userProfile?.joinedCommunities?.includes(c.id) || c.adminUid === user?.uid || isOwner;
+                  const isPending = userProfile?.pendingCommunities?.includes(c.id);
 
                   return (
                     <>

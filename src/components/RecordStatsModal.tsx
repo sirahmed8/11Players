@@ -9,6 +9,7 @@ import { PlayerProfile } from '@/types';
 import { Target, Handshake, Trophy, X, CheckCircle, Shield, Check } from 'lucide-react';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { useLocale } from '@/components/ThemeProvider';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import toast from 'react-hot-toast';
 
 interface RecordStatsModalProps {
@@ -69,39 +70,52 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
     try {
       const batch = writeBatch(db);
 
-      for (const p of allPlayers) {
+      const activePlayers = allPlayers.filter(p => {
+        const pStats = stats[p.uid];
+        return pStats && (pStats.played || pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
+      });
+
+      const snaps = await Promise.all(
+        activePlayers.map(p => getDoc(doc(db, 'players', p.uid)).catch(() => null))
+      );
+
+      for (let i = 0; i < activePlayers.length; i++) {
+        const p = activePlayers[i];
         const pStats = stats[p.uid];
         if (!pStats) continue;
-        
-        if (!pStats.played && pStats.goals === 0 && pStats.assists === 0 && !pStats.mvp) {
-          continue;
-        }
 
-        const globalRef = doc(db, 'players', p.uid);
-        const globalSnap = await getDoc(globalRef);
-        const currentData = globalSnap.exists() ? globalSnap.data() : {};
+        const globalSnap = snaps[i];
+        const currentData = globalSnap && globalSnap.exists() ? globalSnap.data() : {};
         const currentStats = currentData.stats || p.stats || {};
 
         const newStats: any = { ...currentStats };
-        if (pStats.goals > 0) newStats.goals = (currentStats.goals || 0) + pStats.goals;
-        if (pStats.assists > 0) newStats.assists = (currentStats.assists || 0) + pStats.assists;
+        if (pStats.goals > 0) newStats.goals = (currentStats.goals || 0) + Number(pStats.goals);
+        if (pStats.assists > 0) newStats.assists = (currentStats.assists || 0) + Number(pStats.assists);
         if (pStats.mvp) newStats.mvp = (currentStats.mvp || 0) + 1;
         if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
 
-        batch.set(globalRef, { stats: newStats }, { merge: true });
+        const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
+        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '');
+
+        const globalRef = doc(db, 'players', p.uid);
+        batch.set(globalRef, { stats: newStats, overallRating: newOverall }, { merge: true });
         if (activeCommunityId) {
           const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-          batch.set(commRef, { stats: newStats }, { merge: true });
+          batch.set(commRef, { stats: newStats, overallRating: newOverall }, { merge: true });
         }
       }
 
       if (activeCommunityId) {
+        if (matchData.id && matchData.id !== "latest") {
+          const historyRef = doc(db, "communities", activeCommunityId, "matches", matchData.id);
+          batch.set(historyRef, { status: "finished", finishedAt: new Date().toISOString(), recordedStats: stats }, { merge: true });
+        }
         const latestMatchRef = doc(db, "communities", activeCommunityId, "matches", "latest");
-        batch.set(latestMatchRef, { status: "finished", finishedAt: new Date().toISOString() }, { merge: true });
+        batch.delete(latestMatchRef);
       }
 
       await batch.commit();
-      toast.success(isAr ? "تم حفظ إحصائيات المباراة وتحديث تصنيفات اللاعبين بنجاح!" : "Match stats & player ratings updated successfully!");
+      toast.success(isAr ? "تم حفظ إحصائيات المباراة وإنهاء المباراة بنجاح!" : "Match ended & stats recorded successfully!");
       onClose();
     } catch (e) {
       console.error("Failed to save stats:", e);
@@ -170,7 +184,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                         <span className={`px-2 py-0.5 rounded-full text-[10px] ${isBench ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'}`}>
                           {isBench ? (isAr ? 'دكة' : 'Bench') : (p.assignedPosition || p.primaryPosition)}
                         </span>
-                        <span>• OVR {p.overallRating || 70}</span>
+                        <span>• OVR {calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || '')}</span>
                       </div>
                     </div>
                   </div>

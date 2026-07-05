@@ -31,7 +31,7 @@ const ATTRIBUTES_KEYS: (keyof PlayerAttributes)[] = [
 
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
   const { locale } = useLocale();
-  const { isOwner } = useAuth();
+  const { isOwner, isAdmin } = useAuth();
   const { activeCommunityId } = useCommunity();
   const isRTL = locale === 'ar';
   
@@ -92,7 +92,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       const commIds = Array.from(new Set([...(player.memberCommunities || []), ...(player.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
 
-      if (isOwner) {
+      if (isOwner || isAdmin || !activeCommunityId) {
         const mergedAttributes = { ...player.attributes, ...attributes };
         const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '');
         const updatePayload: any = {

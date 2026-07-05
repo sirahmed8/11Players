@@ -23,7 +23,7 @@ export default function CommunityPage() {
 
 
   const filteredPlayers = React.useMemo(() => {
-    const getOvr = (p: any) => p.overallRating || calculateRealisticOverall(p.approvedAttributes || p.attributes, p.primaryPosition, p.playStyle || "");
+    const getOvr = (p: any) => calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || "");
     const query = searchQuery.toLowerCase().trim();
     if (!query) return [...players].sort((a, b) => {
       if (sortBy === "overall") {

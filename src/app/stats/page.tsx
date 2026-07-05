@@ -18,7 +18,7 @@ export default function StatsPage() {
   const isAr = locale === "ar";
 
   const getOverall = (p: PlayerProfile) => {
-    return p.overallRating || calculateRealisticOverall(p.approvedAttributes || p.attributes, p.primaryPosition, p.playStyle || "");
+    return calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || "");
   };
 
   const topScorers = React.useMemo(() => {
