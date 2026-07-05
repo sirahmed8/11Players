@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
@@ -16,9 +16,7 @@ import { getPlayerPositionRatings } from "@/lib/overallCalculator";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/SkillsChecklist";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
-import { useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Target, Handshake, Trophy, Swords } from "lucide-react";
 
 /* ── Animated Counter ── */
@@ -117,15 +115,33 @@ function PlayerProfileContent() {
     
     const unsub = onSnapshot(
       doc(db, "players", effectiveUid),
-      (snap) => {
+      async (snap) => {
         if (snap.exists()) {
           setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
+          setLoading(false);
+        } else if (user?.email && user?.uid === effectiveUid) {
+          try {
+            const q = query(collection(db, "players"), where("email", "==", user.email));
+            const querySnap = await getDocs(q);
+            if (!querySnap.empty) {
+              const existingData = querySnap.docs[0].data();
+              await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
+              setPlayer({ uid: effectiveUid, ...existingData } as PlayerProfile);
+              setLoading(false);
+              return;
+            }
+          } catch (e) {
+            console.error("Profile sync by email error:", e);
+          }
+          setPlayer(null);
+          setLoading(false);
+          router.push("/onboarding");
         } else {
           setPlayer(null);
-        }
-        setLoading(false);
-        if (!snap.exists() && user?.uid === effectiveUid) {
-          router.push("/onboarding");
+          setLoading(false);
+          if (user?.uid === effectiveUid) {
+            router.push("/onboarding");
+          }
         }
       },
       (err) => {

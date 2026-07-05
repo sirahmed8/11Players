@@ -45,7 +45,7 @@ export default function ProtectedRoute({
       router.replace("/communities");
       return;
     }
-    if (requireCommunity && !activeCommunityId && !isOwner) {
+    if (requireCommunity && !activeCommunityId) {
       toast.error(t("requireCommunity") || "Please select a community first.");
       router.replace("/communities");
       return;

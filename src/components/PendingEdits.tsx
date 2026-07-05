@@ -8,6 +8,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
@@ -15,6 +16,13 @@ export default function PendingEdits() {
   const isAr = locale === "ar";
   const [edits, setEdits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
   useEffect(() => {
     if (!activeCommunityId) return;
@@ -27,64 +35,76 @@ export default function PendingEdits() {
     return () => unsubscribe();
   }, [activeCommunityId]);
 
-  const handleApprove = async (edit: any) => {
+  const handleApprove = (edit: any) => {
     if (!activeCommunityId) return;
-    if (!confirm(isAr ? "هل أنت متأكد من الموافقة على هذا التعديل؟" : "Are you sure you want to approve this edit?")) return;
-    try {
-      const playerRef = doc(db, "players", edit.playerId);
-      const playerSnap = await getDoc(playerRef);
-      const playerData = playerSnap.exists() ? playerSnap.data() : {};
-      const pos = playerData.primaryPosition || "CMF";
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "موافقة على التعديل" : "Approve Edit",
+      message: isAr ? "هل أنت متأكد من الموافقة على هذا التعديل؟" : "Are you sure you want to approve this edit?",
+      onConfirm: async () => {
+        try {
+          const playerRef = doc(db, "players", edit.playerId);
+          const playerSnap = await getDoc(playerRef);
+          const playerData = playerSnap.exists() ? playerSnap.data() : {};
+          const pos = playerData.primaryPosition || "CMF";
 
-      const updateDataGlobal: any = {};
-      const updateDataComm: any = {};
+          const updateDataGlobal: any = {};
+          const updateDataComm: any = {};
 
-      if (edit.attributes) {
-        const mergedAttr = { ...(playerData.attributes || {}), ...edit.attributes };
-        const newOverall = calculateRealisticOverall(mergedAttr, pos, playerData.playStyle || '');
-        updateDataGlobal.attributes = mergedAttr;
-        updateDataGlobal.approvedAttributes = mergedAttr;
-        updateDataGlobal.overallRating = newOverall;
-        updateDataComm.attributes = mergedAttr;
-        updateDataComm.approvedAttributes = mergedAttr;
-        updateDataComm.overallRating = newOverall;
-      }
-      if (edit.stats) {
-        updateDataGlobal[`communityStats.${activeCommunityId}`] = edit.stats;
-        updateDataComm.stats = edit.stats;
-      }
-      
-      const batch = writeBatch(db);
-      if (Object.keys(updateDataGlobal).length > 0) {
-        batch.set(playerRef, updateDataGlobal, { merge: true });
-      }
-      if (Object.keys(updateDataComm).length > 0) {
-        const commIds = Array.from(new Set([...(playerData.memberCommunities || []), ...(playerData.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
-        for (const commId of commIds) {
-          const commPlayerRef = doc(db, `communities/${commId}/players`, edit.playerId);
-          batch.set(commPlayerRef, updateDataComm, { merge: true });
+          if (edit.attributes) {
+            const mergedAttr = { ...(playerData.attributes || {}), ...edit.attributes };
+            const newOverall = calculateRealisticOverall(mergedAttr, pos, playerData.playStyle || '');
+            updateDataGlobal.attributes = mergedAttr;
+            updateDataGlobal.approvedAttributes = mergedAttr;
+            updateDataGlobal.overallRating = newOverall;
+            updateDataComm.attributes = mergedAttr;
+            updateDataComm.approvedAttributes = mergedAttr;
+            updateDataComm.overallRating = newOverall;
+          }
+          if (edit.stats) {
+            updateDataGlobal[`communityStats.${activeCommunityId}`] = edit.stats;
+            updateDataComm.stats = edit.stats;
+          }
+          
+          const batch = writeBatch(db);
+          if (Object.keys(updateDataGlobal).length > 0) {
+            batch.set(playerRef, updateDataGlobal, { merge: true });
+          }
+          if (Object.keys(updateDataComm).length > 0) {
+            const commIds = Array.from(new Set([...(playerData.memberCommunities || []), ...(playerData.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+            for (const commId of commIds) {
+              const commPlayerRef = doc(db, `communities/${commId}/players`, edit.playerId);
+              batch.set(commPlayerRef, updateDataComm, { merge: true });
+            }
+          }
+          batch.delete(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
+          await batch.commit();
+
+          toast.success(isAr ? "تمت الموافقة على التعديل وتحديث التقييم العام بنجاح!" : "Edit & overall rating approved successfully!");
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "خطأ في الموافقة على التعديل." : "Error approving edit.");
         }
       }
-      batch.delete(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
-      await batch.commit();
-
-      toast.success(isAr ? "تمت الموافقة على التعديل وتحديث التقييم العام بنجاح!" : "Edit & overall rating approved successfully!");
-    } catch (err) {
-      console.error(err);
-      toast.error(isAr ? "خطأ في الموافقة على التعديل." : "Error approving edit.");
-    }
+    });
   };
 
-  const handleReject = async (edit: any) => {
+  const handleReject = (edit: any) => {
     if (!activeCommunityId) return;
-    if (!confirm(isAr ? "هل أنت متأكد من رفض هذا التعديل؟" : "Are you sure you want to reject this edit?")) return;
-    try {
-      await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
-      toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
-    } catch (err) {
-      console.error(err);
-      toast.error(isAr ? "خطأ في رفض التعديل." : "Error rejecting edit.");
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "رفض التعديل" : "Reject Edit",
+      message: isAr ? "هل أنت متأكد من رفض هذا التعديل؟" : "Are you sure you want to reject this edit?",
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
+          toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "خطأ في رفض التعديل." : "Error rejecting edit.");
+        }
+      }
+    });
   };
 
   if (loading || edits.length === 0) return null;
@@ -133,6 +153,13 @@ export default function PendingEdits() {
           ))}
         </AnimatePresence>
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   );
 }

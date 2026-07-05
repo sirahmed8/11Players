@@ -41,10 +41,22 @@ export default function CommunitiesPage() {
         setCommunities(data);
 
         if (user) {
-          const { doc, onSnapshot } = await import("firebase/firestore");
-          const unsub = onSnapshot(doc(db, "players", user.uid), (userDoc) => {
+          const { doc, onSnapshot, collection, query, where, getDocs, setDoc } = await import("firebase/firestore");
+          const unsub = onSnapshot(doc(db, "players", user.uid), async (userDoc) => {
             if (userDoc.exists()) {
               setUserProfile(userDoc.data());
+            } else if (user.email) {
+              try {
+                const q = query(collection(db, "players"), where("email", "==", user.email));
+                const querySnap = await getDocs(q);
+                if (!querySnap.empty) {
+                  const existingData = querySnap.docs[0].data();
+                  await setDoc(doc(db, "players", user.uid), { ...existingData, uid: user.uid }, { merge: true });
+                  setUserProfile(existingData);
+                }
+              } catch (e) {
+                console.error("Profile sync by email in communities error:", e);
+              }
             }
           });
           return () => unsub();

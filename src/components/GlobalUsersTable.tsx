@@ -8,6 +8,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import toast from "react-hot-toast";
 import { Loader2, Trash2, Search, ArrowUpDown } from "lucide-react";
 import { PlayerProfile } from "@/types";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function GlobalUsersTable() {
   const { locale } = useLocale();
@@ -17,6 +18,13 @@ export default function GlobalUsersTable() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -35,56 +43,68 @@ export default function GlobalUsersTable() {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleBanUser = async (user: PlayerProfile) => {
-    if (!window.confirm(isAr ? "هل أنت متأكد من حظر/حذف هذا المستخدم نهائياً؟" : "Are you sure you want to completely ban/delete this user?")) return;
-    try {
-      const { writeBatch } = await import("firebase/firestore");
-      const batch = writeBatch(db);
+  const handleBanUser = (user: PlayerProfile) => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "حظر / حذف مستخدم" : "Ban / Delete User",
+      message: isAr ? "هل أنت متأكد من حظر/حذف هذا المستخدم نهائياً؟" : "Are you sure you want to completely ban/delete this user?",
+      onConfirm: async () => {
+        try {
+          const { writeBatch } = await import("firebase/firestore");
+          const batch = writeBatch(db);
 
-      // Remove from all communities they are a member of
-      if (user.memberCommunities && user.memberCommunities.length > 0) {
-        user.memberCommunities.forEach(cId => {
-          batch.delete(doc(db, "communities", cId, "players", user.uid));
-        });
+          // Remove from all communities they are a member of
+          if (user.memberCommunities && user.memberCommunities.length > 0) {
+            user.memberCommunities.forEach(cId => {
+              batch.delete(doc(db, "communities", cId, "players", user.uid));
+            });
+          }
+
+          // Remove global profile
+          batch.delete(doc(db, "players", user.uid));
+          
+          await batch.commit();
+
+          setUsers(prev => prev.filter(u => u.uid !== user.uid));
+          toast.success(isAr ? "تم حذف المستخدم من النظام" : "User completely deleted");
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "فشل حذف المستخدم" : "Failed to delete user");
+        }
       }
-
-      // Remove global profile
-      batch.delete(doc(db, "players", user.uid));
-      
-      await batch.commit();
-
-      setUsers(prev => prev.filter(u => u.uid !== user.uid));
-      toast.success(isAr ? "تم حذف المستخدم من النظام" : "User completely deleted");
-    } catch (err) {
-      console.error(err);
-      toast.error(isAr ? "فشل حذف المستخدم" : "Failed to delete user");
-    }
+    });
   };
 
-  const handleDeleteAllMock = async () => {
-    if (!window.confirm(isAr ? "هل أنت متأكد من حذف جميع اللاعبين الوهميين (32 لاعب) من كافة المجتمعات والنظام؟" : "Are you sure you want to delete all dummy/mock players from all communities and system?")) return;
-    try {
-      const { writeBatch } = await import("firebase/firestore");
-      const mockUsers = users.filter(u => u.isMockData || u.uid.startsWith('dummy_') || u.uid.startsWith('test-player-') || (u.email && u.email.includes('dummy')));
-      if (mockUsers.length === 0) {
-        toast.success(isAr ? "لا يوجد لاعبين وهميين" : "No mock players found");
-        return;
+  const handleDeleteAllMock = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "حذف اللاعبين الوهميين" : "Delete Mock Players",
+      message: isAr ? "هل أنت متأكد من حذف جميع اللاعبين الوهميين (32 لاعب) من كافة المجتمعات والنظام؟" : "Are you sure you want to delete all dummy/mock players from all communities and system?",
+      onConfirm: async () => {
+        try {
+          const { writeBatch } = await import("firebase/firestore");
+          const mockUsers = users.filter(u => u.isMockData || u.uid.startsWith('dummy_') || u.uid.startsWith('test-player-') || (u.email && u.email.includes('dummy')));
+          if (mockUsers.length === 0) {
+            toast.success(isAr ? "لا يوجد لاعبين وهميين" : "No mock players found");
+            return;
+          }
+          const batch = writeBatch(db);
+          for (const u of mockUsers) {
+            const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || []), 'comm-1782681792342'].filter(Boolean))) as string[];
+            for (const commId of commIds) {
+              batch.delete(doc(db, "communities", commId as string, "players", u.uid));
+            }
+            batch.delete(doc(db, "players", u.uid));
+          }
+          await batch.commit();
+          setUsers(prev => prev.filter(u => !mockUsers.some(m => m.uid === u.uid)));
+          toast.success(isAr ? `تم حذف ${mockUsers.length} لاعب وهمي بنجاح` : `Successfully deleted ${mockUsers.length} mock players`);
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "فشل حذف اللاعبين الوهميين" : "Failed to delete mock players");
+        }
       }
-      const batch = writeBatch(db);
-      mockUsers.forEach(u => {
-        const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || []), 'comm-1782681792342'].filter(Boolean))) as string[];
-        commIds.forEach(cId => {
-          batch.delete(doc(db, "communities", cId, "players", u.uid));
-        });
-        batch.delete(doc(db, "players", u.uid));
-      });
-      await batch.commit();
-      setUsers(prev => prev.filter(u => !mockUsers.some(m => m.uid === u.uid)));
-      toast.success(isAr ? `تم حذف ${mockUsers.length} لاعب وهمي بنجاح!` : `Successfully deleted ${mockUsers.length} mock players!`);
-    } catch (err) {
-      console.error(err);
-      toast.error(isAr ? "فشل حذف اللاعبين الوهميين" : "Failed to delete mock players");
-    }
+    });
   };
 
   const handleSort = (key: string) => {
@@ -233,6 +253,13 @@ export default function GlobalUsersTable() {
           </tbody>
         </table>
       </div>
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </div>
   );
 }

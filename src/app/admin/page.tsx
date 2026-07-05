@@ -19,6 +19,7 @@ import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle } from "lucide-react";
 import toast from "react-hot-toast";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function AdminPage() {
   const { user, isOwner } = useAuth();
@@ -34,6 +35,13 @@ export default function AdminPage() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isGeneratingDummy, setIsGeneratingDummy] = useState(false);
   const [showDummyConfirm, setShowDummyConfirm] = useState(false);
+  
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
   const executeGenerateDummyPlayers = async () => {
     if (!activeCommunityId) return;
@@ -111,40 +119,51 @@ export default function AdminPage() {
     generateMasterBulkPDF(players);
   };
 
-  const handleMakeMeAdmin = async () => {
+  const handleMakeMeAdmin = () => {
     if (!activeCommunityId || !user) return;
     const isAlreadyAdmin = players.some(p => p.uid === user.uid);
 
     if (isAlreadyAdmin) {
-      if (!confirm(isAr ? "هل أنت متأكد أنك تريد إزالة نفسك كمسؤول؟" : "Are you sure you want to remove yourself as Admin?")) return;
-      try {
-        await deleteDoc(doc(db, "communities", activeCommunityId, "players", user.uid));
-        toast.success(isAr ? "تم إزالتك بنجاح" : "Successfully removed as Admin");
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to remove admin");
-      }
+      setConfirmModal({
+        isOpen: true,
+        title: isAr ? "إزالة الصلاحية" : "Remove Admin Role",
+        message: isAr ? "هل أنت متأكد أنك تريد إزالة نفسك كمسؤول؟" : "Are you sure you want to remove yourself as Admin?",
+        onConfirm: async () => {
+          try {
+            await deleteDoc(doc(db, "communities", activeCommunityId, "players", user.uid));
+            toast.success(isAr ? "تم إزالتك بنجاح" : "Successfully removed as Admin");
+          } catch (err) {
+            console.error(err);
+            toast.error("Failed to remove admin");
+          }
+        }
+      });
     } else {
-      if (!confirm(isAr ? "هل أنت متأكد أنك تريد إضافة نفسك كمسؤول؟" : "Are you sure you want to add yourself as Admin?")) return;
-      try {
-        // Look up current global player profile or create dummy structure if doesn't exist
-        const pDoc = await getDoc(doc(db, "players", user.uid));
-        const pData = pDoc.exists() ? pDoc.data() : {
-          uid: user.uid,
-          email: user.email,
-          fullName: user.displayName || 'Owner',
-          cardName: user.displayName || 'Owner',
-        };
-        await setDoc(doc(db, "communities", activeCommunityId, "players", user.uid), {
-          ...pData,
-          role: "admin",
-          joinedAt: new Date().toISOString()
-        }, { merge: true });
-        toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
-      } catch (err) {
-        console.error(err);
-        toast.error("Failed to add admin");
-      }
+      setConfirmModal({
+        isOpen: true,
+        title: isAr ? "إضافة كمسؤول" : "Add Admin Role",
+        message: isAr ? "هل أنت متأكد أنك تريد إضافة نفسك كمسؤول؟" : "Are you sure you want to add yourself as Admin?",
+        onConfirm: async () => {
+          try {
+            const pDoc = await getDoc(doc(db, "players", user.uid));
+            const pData = pDoc.exists() ? pDoc.data() : {
+              uid: user.uid,
+              email: user.email,
+              fullName: user.displayName || 'Owner',
+              cardName: user.displayName || 'Owner',
+            };
+            await setDoc(doc(db, "communities", activeCommunityId, "players", user.uid), {
+              ...pData,
+              role: "admin",
+              joinedAt: new Date().toISOString()
+            }, { merge: true });
+            toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
+          } catch (err) {
+            console.error(err);
+            toast.error("Failed to add admin");
+          }
+        }
+      });
     }
   };
 
@@ -298,6 +317,13 @@ export default function AdminPage() {
             </motion.div>
           )}
         </AnimatePresence>
+        <ConfirmModal
+          isOpen={confirmModal.isOpen}
+          onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+          onConfirm={confirmModal.onConfirm}
+          title={confirmModal.title}
+          message={confirmModal.message}
+        />
       </div>
     </ProtectedRoute>
   );

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Users, TrendingUp, ShieldCheck, Loader2, LogIn, BellRing, Sparkles, Smartphone } from "lucide-react";
@@ -47,6 +48,26 @@ export default function Home() {
           router.push(data.defaultPage);
         } else {
           router.push("/communities");
+        }
+      } else if (user?.email) {
+        const q = query(collection(db, "players"), where("email", "==", user.email));
+        const querySnap = await getDocs(q);
+        if (!querySnap.empty) {
+          const existingData = querySnap.docs[0].data();
+          await setDoc(doc(db, "players", uid), {
+            ...existingData,
+            uid: uid,
+            email: user.email,
+            googlePic: user.photoURL || existingData.googlePic || '',
+            googleName: user.displayName || existingData.googleName || ''
+          }, { merge: true });
+          if (existingData.defaultPage) {
+            router.push(existingData.defaultPage);
+          } else {
+            router.push("/communities");
+          }
+        } else {
+          router.push("/onboarding");
         }
       } else {
         router.push("/onboarding");
@@ -125,9 +146,12 @@ export default function Home() {
       
       {/* Header Controls */}
       <header className="w-full max-w-6xl flex justify-between items-center py-4 px-6 z-50 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all">
-        <h1 className="text-xl md:text-2xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
-          ⚽ 11Players
-        </h1>
+        <div className="flex items-center gap-3">
+          <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm border border-emerald-500/20" priority />
+          <h1 className="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+            11Players
+          </h1>
+        </div>
         <div className="flex gap-2 items-center">
           <SettingsMenu />
         </div>
@@ -139,8 +163,11 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="space-y-8 max-w-4xl"
+          className="space-y-8 max-w-4xl flex flex-col items-center"
         >
+          <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-3xl overflow-hidden shadow-2xl border-2 border-emerald-500/30 shadow-emerald-500/20 mb-2 animate-bounce-subtle">
+            <Image src="/logo.jpg" alt="11Players Logo" fill className="object-cover" priority />
+          </div>
           <h2 className="text-5xl md:text-7xl font-black leading-tight bg-gradient-to-br from-emerald-600 to-teal-800 dark:from-emerald-400 dark:to-teal-600 bg-clip-text text-transparent pb-2">
             {t("welcome")}
           </h2>
@@ -223,15 +250,15 @@ export default function Home() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md bg-slate-900 text-white p-4 rounded-xl border border-slate-700 shadow-2xl z-50 flex flex-col gap-3"
+            className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-5 rounded-2xl border border-slate-300 dark:border-slate-800 shadow-2xl z-50 flex flex-col gap-3.5 transition-colors duration-300"
           >
-            <p className="text-sm">
+            <p className="text-sm font-medium leading-relaxed">
               {t("privacy_banner")}
             </p>
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleAcceptCookies}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 font-bold rounded-lg text-xs transition-colors"
+                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs shadow-md shadow-emerald-600/20 transition-all active:scale-95"
               >
                 {t("accept")}
               </button>

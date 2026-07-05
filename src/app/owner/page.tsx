@@ -11,6 +11,7 @@ import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
 import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -18,6 +19,13 @@ export default function OwnerPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+  }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+
   const [editingCommunity, setEditingCommunity] = useState<string | null>(null);
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
@@ -95,15 +103,21 @@ export default function OwnerPage() {
     setCreating(false);
   };
 
-  const handleDeleteCommunity = async (id: string) => {
-    if (!window.confirm("Are you SURE you want to delete this community? ALL PLAYERS inside will be lost.")) return;
-    try {
-      await deleteDoc(doc(db, "communities", id));
-      toast.success("Community deleted");
-      fetchCommunities();
-    } catch (e) {
-      toast.error("Failed to delete");
-    }
+  const handleDeleteCommunity = (id: string) => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "حذف المجتمع" : "Delete Community",
+      message: isAr ? "هل أنت متأكد من رغبتك في حذف هذا المجتمع؟ سيتم فقدان جميع بيانات اللاعبين داخله." : "Are you SURE you want to delete this community? ALL PLAYERS inside will be lost.",
+      onConfirm: async () => {
+        try {
+          await deleteDoc(doc(db, "communities", id));
+          toast.success("Community deleted");
+          fetchCommunities();
+        } catch (e) {
+          toast.error("Failed to delete");
+        }
+      }
+    });
   };
 
   const handleEditSave = async (id: string) => {
@@ -123,75 +137,82 @@ export default function OwnerPage() {
     }
   };
 
-  const handleWipeAllData = async () => {
-    if (!window.confirm(isAr ? "تنبيه خطير! هل أنت متأكد من مسح كافة بيانات الموقع والمجتمعات واللاعبين؟" : "CRITICAL WARNING! Are you sure you want to wipe ALL site data?")) return;
-    if (!window.confirm("Final confirmation. This CANNOT be undone.")) return;
+  const handleWipeAllData = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "تنبيه خطير جداً!" : "CRITICAL WARNING!",
+      message: isAr ? "هل أنت متأكد من مسح كافة بيانات الموقع والمجتمعات واللاعبين؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to wipe ALL site data? This CANNOT be undone.",
+      onConfirm: async () => {
+        try {
+          const batch = writeBatch(db);
+          // Delete all players
+          const pSnap = await getDocs(collection(db, "players"));
+          pSnap.forEach(d => batch.delete(d.ref));
+          
+          // Delete all communities
+          const cSnap = await getDocs(collection(db, "communities"));
+          cSnap.forEach(d => batch.delete(d.ref));
 
-    try {
-      const batch = writeBatch(db);
-      // Delete all players
-      const pSnap = await getDocs(collection(db, "players"));
-      pSnap.forEach(d => batch.delete(d.ref));
-      
-      // Delete all communities
-      const cSnap = await getDocs(collection(db, "communities"));
-      cSnap.forEach(d => batch.delete(d.ref));
+          // Delete match
+          batch.delete(doc(db, "system", "latestMatch"));
 
-      // Delete match
-      batch.delete(doc(db, "system", "latestMatch"));
-
-      await batch.commit();
-      toast.success("Wipe complete.");
-      fetchCommunities();
-    } catch (e) {
-      console.error(e);
-      toast.error("Wipe failed.");
-    }
-  };
-
-  const handleGlobalResetStats = async () => {
-    if (!window.confirm(isAr ? "هل أنت متأكد من تصفير كافة إحصائيات اللاعبين وحذف جميع المباريات في كافة المجتمعات؟" : "Are you sure you want to reset ALL player stats and delete ALL matches across ALL communities?")) return;
-    
-    setLoading(true);
-    try {
-      // For each community, fetch players and matches, and reset/delete them
-      const cSnap = await getDocs(collection(db, "communities"));
-      for (const cDoc of cSnap.docs) {
-        const batch = writeBatch(db);
-        let operationsCount = 0;
-        
-        // Reset players
-        const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
-        pSnap.forEach(p => {
-          const docRef = doc(db, "communities", cDoc.id, "players", p.id);
-          batch.update(docRef, {
-            'stats.goals': 0,
-            'stats.assists': 0,
-            'stats.mvp': 0,
-            'stats.matchesPlayed': 0,
-          });
-          operationsCount++;
-        });
-
-        // Delete matches
-        const mSnap = await getDocs(collection(db, "communities", cDoc.id, "matches"));
-        mSnap.forEach(m => {
-          batch.delete(m.ref);
-          operationsCount++;
-        });
-
-        if (operationsCount > 0) {
-          // Note: Firestore batches are limited to 500 operations. 
-          // For a massive database, chunking is required, but this suffices for the scope.
           await batch.commit();
+          toast.success("Wipe complete.");
+          fetchCommunities();
+        } catch (e) {
+          console.error(e);
+          toast.error("Wipe failed.");
         }
       }
-      toast.success(isAr ? "تم تصفير جميع الإحصائيات بنجاح" : "Global stats reset successfully.");
-    } catch (e) {
-      console.error(e);
-      toast.error("Failed to reset stats globally.");
-    }
-    setLoading(false);
+    });
+  };
+
+  const handleGlobalResetStats = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "تصفير شامل للإحصائيات" : "Global Stats Reset",
+      message: isAr ? "هل أنت متأكد من تصفير كافة إحصائيات اللاعبين وحذف جميع المباريات في كافة المجتمعات؟" : "Are you sure you want to reset ALL player stats and delete ALL matches across ALL communities?",
+      onConfirm: async () => {
+        setLoading(true);
+        try {
+          // For each community, fetch players and matches, and reset/delete them
+          const cSnap = await getDocs(collection(db, "communities"));
+          for (const cDoc of cSnap.docs) {
+            const batch = writeBatch(db);
+            let operationsCount = 0;
+            
+            // Reset players
+            const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
+            pSnap.forEach(p => {
+              const docRef = doc(db, "communities", cDoc.id, "players", p.id);
+              batch.update(docRef, {
+                'stats.goals': 0,
+                'stats.assists': 0,
+                'stats.mvp': 0,
+                'stats.matchesPlayed': 0,
+              });
+              operationsCount++;
+            });
+
+            // Delete matches
+            const mSnap = await getDocs(collection(db, "communities", cDoc.id, "matches"));
+            mSnap.forEach(m => {
+              batch.delete(m.ref);
+              operationsCount++;
+            });
+
+            if (operationsCount > 0) {
+              await batch.commit();
+            }
+          }
+          toast.success(isAr ? "تم تصفير جميع الإحصائيات بنجاح" : "Global stats reset successfully.");
+        } catch (e) {
+          console.error(e);
+          toast.error("Failed to reset stats globally.");
+        }
+        setLoading(false);
+      }
+    });
   };
 
   return (
@@ -425,6 +446,14 @@ export default function OwnerPage() {
           </div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.onConfirm}
+        title={confirmModal.title}
+        message={confirmModal.message}
+      />
     </ProtectedRoute>
   );
 }
