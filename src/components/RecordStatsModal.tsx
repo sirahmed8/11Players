@@ -68,31 +68,30 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
     setSaving(true);
     try {
       const batch = writeBatch(db);
-      let updatesCount = 0;
 
       for (const p of allPlayers) {
         const pStats = stats[p.uid];
         if (!pStats) continue;
         
-        // If they didn't play at all, don't update anything
         if (!pStats.played && pStats.goals === 0 && pStats.assists === 0 && !pStats.mvp) {
           continue;
         }
 
         const globalRef = doc(db, 'players', p.uid);
-        const updateObj: any = {};
-        if (pStats.goals > 0) updateObj['stats.goals'] = increment(pStats.goals);
-        if (pStats.assists > 0) updateObj['stats.assists'] = increment(pStats.assists);
-        if (pStats.mvp) updateObj['stats.mvp'] = increment(1);
-        if (pStats.played) updateObj['stats.matchesPlayed'] = increment(1);
+        const globalSnap = await getDoc(globalRef);
+        const currentData = globalSnap.exists() ? globalSnap.data() : {};
+        const currentStats = currentData.stats || p.stats || {};
 
-        if (Object.keys(updateObj).length > 0) {
-          batch.set(globalRef, updateObj, { merge: true });
-          if (activeCommunityId) {
-            const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-            batch.set(commRef, updateObj, { merge: true });
-          }
-          updatesCount++;
+        const newStats: any = { ...currentStats };
+        if (pStats.goals > 0) newStats.goals = (currentStats.goals || 0) + pStats.goals;
+        if (pStats.assists > 0) newStats.assists = (currentStats.assists || 0) + pStats.assists;
+        if (pStats.mvp) newStats.mvp = (currentStats.mvp || 0) + 1;
+        if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
+
+        batch.set(globalRef, { stats: newStats }, { merge: true });
+        if (activeCommunityId) {
+          const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
+          batch.set(commRef, { stats: newStats }, { merge: true });
         }
       }
 

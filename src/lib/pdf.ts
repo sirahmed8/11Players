@@ -26,7 +26,7 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
     root.render(React.createElement(PDFPlayerCard, { player: profile }));
 
     // Wait for a brief moment to let React render and images load
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // Select the actual card element
     const cardElement = container.querySelector('#pdf-player-card') as HTMLElement;
@@ -34,7 +34,7 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
 
     // Capture with html2canvas
     const canvas = await html2canvas(cardElement, {
-      scale: 2, // Higher scale for better quality
+      scale: 3, // Ultra high resolution for print quality
       useCORS: true,
       allowTaint: true,
       backgroundColor: null,
@@ -120,16 +120,16 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[]): Promise<
       }));
 
       // Wait for render and images
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const tableElement = container.querySelector('#pdf-bulk-table') as HTMLElement;
       if (!tableElement) throw new Error("Bulk table element not found");
 
       const canvas = await html2canvas(tableElement, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#f8fafc', // slate-50
+        backgroundColor: '#ffffff',
       });
 
       const imgData = canvas.toDataURL('image/png');

@@ -291,16 +291,20 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     try {
       const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '');
       const batch = writeBatch(db);
-      
-      const commRef = doc(db, 'communities', activeCommunityId, 'players', attrModal.player.uid);
-      batch.set(commRef, {
-        attributes: attrModal.attributes,
-        overallRating: newOverall,
-      }, { merge: true });
+      const commIds = Array.from(new Set([...(attrModal.player.memberCommunities || []), ...(attrModal.player.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+      for (const commId of commIds) {
+        const commRef = doc(db, 'communities', commId as string, 'players', attrModal.player.uid);
+        batch.set(commRef, {
+          attributes: attrModal.attributes,
+          approvedAttributes: attrModal.attributes,
+          overallRating: newOverall,
+        }, { merge: true });
+      }
 
       const globalRef = doc(db, 'players', attrModal.player.uid);
       batch.set(globalRef, {
         attributes: attrModal.attributes,
+        approvedAttributes: attrModal.attributes,
         overallRating: newOverall,
       }, { merge: true });
 
@@ -720,7 +724,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="mx-4 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
+              className="mx-4 w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
               <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -741,7 +745,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, goals: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-all duration-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:shadow-[0_0_12px_rgba(16,185,129,0.25)] focus:bg-white dark:focus:bg-slate-900"
                   />
                 </div>
 
@@ -757,7 +761,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, assists: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-all duration-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:shadow-[0_0_12px_rgba(16,185,129,0.25)] focus:bg-white dark:focus:bg-slate-900"
                   />
                 </div>
 
@@ -773,7 +777,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) =>
                       setStatsModal((prev) => ({ ...prev, mvp: parseInt(e.target.value) || 0 }))
                     }
-                    className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-colors focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                    className="w-full rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none transition-all duration-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30 focus:shadow-[0_0_12px_rgba(16,185,129,0.25)] focus:bg-white dark:focus:bg-slate-900"
                   />
                 </div>
               </div>

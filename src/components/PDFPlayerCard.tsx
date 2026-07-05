@@ -42,18 +42,18 @@ export default function PDFPlayerCard({ player }: Props) {
   return (
     <div
       id="pdf-player-card"
-      className="relative flex flex-col w-[500px] h-[750px] overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-black p-4 font-sans shadow-2xl"
+      className="relative flex flex-col w-[500px] h-[750px] overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-950 via-slate-900 to-black p-5 font-sans shadow-2xl border-4 border-amber-500/30"
       style={{
         boxSizing: 'border-box',
+        background: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.25) 0%, rgba(16, 185, 129, 0.15) 35%, rgba(2, 6, 23, 1) 100%)'
       }}
     >
-      {/* Background Decor */}
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
-      <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-emerald-600 blur-[120px] opacity-40"></div>
-      <div className="absolute -bottom-32 -left-32 h-96 w-96 rounded-full bg-amber-600 blur-[120px] opacity-40"></div>
+      {/* Subtle styling without blur filters for 100% html2canvas compatibility */}
+      <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-amber-500/20 to-transparent rounded-full pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-full pointer-events-none"></div>
 
       {/* Card Border wrapper */}
-      <div className="relative flex flex-col flex-1 rounded-[1.5rem] border-[4px] border-amber-400 bg-black/40 backdrop-blur-sm p-6 overflow-hidden">
+      <div className="relative flex flex-col flex-1 rounded-[1.8rem] border-[3px] border-amber-400 bg-slate-950/80 p-6 overflow-hidden shadow-[inset_0_0_30px_rgba(245,158,11,0.15)]">
         
         {/* Top Section */}
         <div className="flex flex-row items-start justify-between z-10 w-full">

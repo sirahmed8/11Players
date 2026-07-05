@@ -90,6 +90,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         calculatedAge: age
       };
 
+      const commIds = Array.from(new Set([...(player.memberCommunities || []), ...(player.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+
       if (isOwner) {
         const mergedAttributes = { ...player.attributes, ...attributes };
         const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '');
@@ -99,22 +101,24 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           approvedAttributes: mergedAttributes,
           overallRating: newOverall,
         };
-        if (activeCommunityId) {
-          updatePayload[`communityStats.${activeCommunityId}`] = { ...player.communityStats?.[activeCommunityId], ...stats };
-          await setDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), {
+        for (const commId of commIds) {
+          if (commId === activeCommunityId && stats) {
+            updatePayload[`communityStats.${commId}`] = { ...player.communityStats?.[commId], ...stats };
+          }
+          await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), {
             ...dataToSave,
             attributes: mergedAttributes,
             approvedAttributes: mergedAttributes,
             overallRating: newOverall,
-            stats: { ...player.stats, ...stats }
+            ...(commId === activeCommunityId && stats ? { stats: { ...player.stats, ...stats } } : {})
           }, { merge: true });
         }
         await setDoc(doc(db, 'players', player.uid), updatePayload, { merge: true });
         toast.success(isRTL ? 'تم حفظ التعديلات وتحديث التقييم العام بنجاح' : 'Changes & Overall Rating saved successfully');
       } else {
         await setDoc(doc(db, 'players', player.uid), dataToSave, { merge: true });
-        if (activeCommunityId) {
-          await setDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), dataToSave, { merge: true });
+        for (const commId of commIds) {
+          await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), dataToSave, { merge: true });
         }
         
         if (activeCommunityId) {

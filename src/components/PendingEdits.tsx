@@ -43,8 +43,10 @@ export default function PendingEdits() {
         const mergedAttr = { ...(playerData.attributes || {}), ...edit.attributes };
         const newOverall = calculateRealisticOverall(mergedAttr, pos, playerData.playStyle || '');
         updateDataGlobal.attributes = mergedAttr;
+        updateDataGlobal.approvedAttributes = mergedAttr;
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.attributes = mergedAttr;
+        updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
       }
       if (edit.stats) {
@@ -57,8 +59,11 @@ export default function PendingEdits() {
         batch.set(playerRef, updateDataGlobal, { merge: true });
       }
       if (Object.keys(updateDataComm).length > 0) {
-        const commPlayerRef = doc(db, `communities/${activeCommunityId}/players`, edit.playerId);
-        batch.set(commPlayerRef, updateDataComm, { merge: true });
+        const commIds = Array.from(new Set([...(playerData.memberCommunities || []), ...(playerData.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+        for (const commId of commIds) {
+          const commPlayerRef = doc(db, `communities/${commId}/players`, edit.playerId);
+          batch.set(commPlayerRef, updateDataComm, { merge: true });
+        }
       }
       batch.delete(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
       await batch.commit();
