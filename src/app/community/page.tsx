@@ -23,10 +23,11 @@ export default function CommunityPage() {
 
 
   const filteredPlayers = React.useMemo(() => {
+    const getOvr = (p: any) => p.overallRating || calculateRealisticOverall(p.approvedAttributes || p.attributes, p.primaryPosition, p.playStyle || "");
     const query = searchQuery.toLowerCase().trim();
     if (!query) return [...players].sort((a, b) => {
       if (sortBy === "overall") {
-        return calculateRealisticOverall(b.attributes, b.primaryPosition, b.playStyle || "") - calculateRealisticOverall(a.attributes, a.primaryPosition, a.playStyle || "");
+        return getOvr(b) - getOvr(a);
       }
       return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
@@ -38,7 +39,7 @@ export default function CommunityPage() {
       );
     }).sort((a, b) => {
       if (sortBy === "overall") {
-        return calculateRealisticOverall(b.attributes, b.primaryPosition, b.playStyle || "") - calculateRealisticOverall(a.attributes, a.primaryPosition, a.playStyle || "");
+        return getOvr(b) - getOvr(a);
       }
       return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
@@ -53,7 +54,7 @@ export default function CommunityPage() {
           <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-black mb-2">Player Directory</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-start" dir="ltr">Live roster of all registered Elite players.</p>
+              <p className="text-slate-600 dark:text-slate-400 text-start" dir="ltr">Live roster of all registered Elite players.</p>
             </div>
             
             <div className="flex gap-4 w-full md:w-auto">
@@ -114,7 +115,7 @@ export default function CommunityPage() {
             </div>
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <p className="text-slate-500 dark:text-slate-400">No players found.</p>
+              <p className="text-slate-600 dark:text-slate-400">No players found.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

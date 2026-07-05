@@ -28,7 +28,7 @@ function calculateMainStats(attrs: PlayerProfile['attributes']) {
 // Ensure the component handles RTL and uses standard HTML <img> instead of next/image for immediate loading.
 export default function PDFPlayerCard({ player }: Props) {
   const activeAttributes = player.approvedAttributes || player.attributes;
-  const overall = calculateRealisticOverall(
+  const overall = player.overallRating || calculateRealisticOverall(
     activeAttributes,
     player.primaryPosition,
     player.playStyle || ''

@@ -96,23 +96,25 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         const updatePayload: any = {
           ...dataToSave,
           attributes: mergedAttributes,
+          approvedAttributes: mergedAttributes,
           overallRating: newOverall,
         };
         if (activeCommunityId) {
           updatePayload[`communityStats.${activeCommunityId}`] = { ...player.communityStats?.[activeCommunityId], ...stats };
-          await updateDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), {
+          await setDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), {
             ...dataToSave,
             attributes: mergedAttributes,
+            approvedAttributes: mergedAttributes,
             overallRating: newOverall,
             stats: { ...player.stats, ...stats }
-          }).catch(() => {});
+          }, { merge: true });
         }
-        await updateDoc(doc(db, 'players', player.uid), updatePayload);
+        await setDoc(doc(db, 'players', player.uid), updatePayload, { merge: true });
         toast.success(isRTL ? 'تم حفظ التعديلات وتحديث التقييم العام بنجاح' : 'Changes & Overall Rating saved successfully');
       } else {
-        await updateDoc(doc(db, 'players', player.uid), dataToSave);
+        await setDoc(doc(db, 'players', player.uid), dataToSave, { merge: true });
         if (activeCommunityId) {
-          await updateDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), dataToSave).catch(() => {});
+          await setDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), dataToSave, { merge: true });
         }
         
         if (activeCommunityId) {

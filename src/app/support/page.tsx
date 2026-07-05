@@ -143,7 +143,7 @@ export default function SupportPage() {
             </button>
             <div>
               <h1 className="text-2xl font-black text-emerald-500">{isAr ? "الدعم الفني" : "Support"}</h1>
-              <p className="text-sm text-slate-500">{isAr ? "تحدث مع المالك أو المشرفين مباشرة." : "Chat directly with the platform owner and moderators."}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">{isAr ? "تحدث مع المالك أو المشرفين مباشرة." : "Chat directly with the platform owner and moderators."}</p>
             </div>
           </div>
 
@@ -163,7 +163,7 @@ export default function SupportPage() {
                 <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
                   {isAr ? "كيف يمكننا مساعدتك؟" : "How can we help you?"}
                 </h3>
-                <p className="text-slate-500 max-w-sm mb-8 leading-relaxed">
+                <p className="text-slate-600 dark:text-slate-400 max-w-sm mb-8 leading-relaxed">
                   {isAr 
                     ? "نحن هنا للإجابة على استفساراتك ومساعدتك في أي مشكلة تواجهها في المنصة."
                     : "We are here to answer your questions and help you with any issues on the platform."}

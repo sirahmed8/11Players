@@ -12,7 +12,8 @@ interface PlayerCardCompactProps {
 }
 
 export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
-  const overall = calculateRealisticOverall(player.attributes, player.primaryPosition, player.playStyle || '');
+  const activeAttributes = player.approvedAttributes || player.attributes;
+  const overall = player.overallRating || calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '');
 
   return (
     <Link href={`/profile?uid=${player.uid}`} className="block w-full">
@@ -75,7 +76,7 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
 
         {/* Overall Rating */}
         <div className="flex-shrink-0 px-2 flex flex-col items-center justify-center border-s border-slate-200 dark:border-slate-700 pl-4">
-          <span className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider">OVR</span>
+          <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 tracking-wider">OVR</span>
           <div className="text-2xl font-black text-amber-500 drop-shadow-sm leading-none">
             {overall}
           </div>

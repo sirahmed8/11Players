@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { doc, getDoc, updateDoc, deleteDoc, writeBatch, increment } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PlayerProfile } from '@/types';
-import { Target, Handshake, Trophy, X, CheckCircle, Shield } from 'lucide-react';
+import { Target, Handshake, Trophy, X, CheckCircle, Shield, Check } from 'lucide-react';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { useLocale } from '@/components/ThemeProvider';
 import toast from 'react-hot-toast';
@@ -87,10 +87,10 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.played) updateObj['stats.matchesPlayed'] = increment(1);
 
         if (Object.keys(updateObj).length > 0) {
-          batch.update(globalRef, updateObj);
+          batch.set(globalRef, updateObj, { merge: true });
           if (activeCommunityId) {
             const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-            batch.update(commRef, updateObj);
+            batch.set(commRef, updateObj, { merge: true });
           }
           updatesCount++;
         }
@@ -98,7 +98,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
 
       if (activeCommunityId) {
         const latestMatchRef = doc(db, "communities", activeCommunityId, "matches", "latest");
-        batch.update(latestMatchRef, { status: "finished", finishedAt: new Date().toISOString() });
+        batch.set(latestMatchRef, { status: "finished", finishedAt: new Date().toISOString() }, { merge: true });
       }
 
       await batch.commit();
@@ -177,18 +177,21 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                   </div>
 
                   <div className="flex flex-wrap items-center gap-5">
-                    {/* Played Toggle */}
-                    <label className="flex items-center gap-2 cursor-pointer select-none group">
-                      <input
-                        type="checkbox"
-                        checked={pStats.played}
-                        onChange={e => updateStat(p.uid, 'played', e.target.checked)}
-                        className="w-5 h-5 rounded-md text-emerald-600 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-emerald-500/50 transition-all cursor-pointer"
-                      />
-                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        {isAr ? 'شارك' : 'Played'}
-                      </span>
-                    </label>
+                    {/* Played Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => updateStat(p.uid, 'played', !pStats.played)}
+                      className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 shadow-sm border ${
+                        pStats.played
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/40 shadow-emerald-500/10 shadow-md'
+                          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 hover:text-emerald-500'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${pStats.played ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-transparent'}`}>
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                      </div>
+                      <span>{isAr ? 'شارك' : 'Played'}</span>
+                    </button>
 
                     {/* Goals */}
                     <div className="flex items-center gap-2">
@@ -230,18 +233,21 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                       </div>
                     </div>
 
-                    {/* MVP */}
-                    <label className="flex items-center gap-2 cursor-pointer select-none group px-3 py-1.5 rounded-xl border border-transparent hover:border-amber-500/30 hover:bg-amber-500/5 transition-all">
-                      <input
-                        type="checkbox"
-                        checked={pStats.mvp}
-                        onChange={e => updateStat(p.uid, 'mvp', e.target.checked)}
-                        className="w-5 h-5 rounded-md text-amber-500 border-slate-300 dark:border-slate-600 focus:ring-2 focus:ring-amber-500/50 transition-all cursor-pointer"
-                      />
-                      <span className={`text-sm font-black flex items-center gap-1 transition-colors ${pStats.mvp ? 'text-amber-500' : 'text-slate-500 dark:text-slate-400 group-hover:text-amber-500'}`}>
-                        MVP <Trophy className="w-4 h-4" />
-                      </span>
-                    </label>
+                    {/* MVP Toggle Button */}
+                    <button
+                      type="button"
+                      onClick={() => updateStat(p.uid, 'mvp', !pStats.mvp)}
+                      className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 shadow-sm border ${
+                        pStats.mvp
+                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/40 shadow-amber-500/10 shadow-md'
+                          : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-amber-500/40 hover:text-amber-500'
+                      }`}
+                    >
+                      <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all ${pStats.mvp ? 'bg-amber-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-transparent'}`}>
+                        <Trophy className="w-3.5 h-3.5" />
+                      </div>
+                      <span>MVP</span>
+                    </button>
                   </div>
                 </motion.div>
               );

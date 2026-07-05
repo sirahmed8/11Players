@@ -15,8 +15,6 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "@/lib/firebase";
 
 export default function CommunityChatPage() {
   const { user, isAdmin } = useAuth();
@@ -132,9 +130,7 @@ export default function CommunityChatPage() {
     if (currentImage) {
       setUploadingImage(true);
       try {
-        const imageRef = ref(storage, `chats/${activeCommunityId}/${Date.now()}_${currentImage.name}`);
-        await uploadBytes(imageRef, currentImage);
-        imageUrl = await getDownloadURL(imageRef);
+        imageUrl = await uploadImageToCloudinary(currentImage);
       } catch (uploadError) {
         console.error("Storage upload error:", uploadError);
       }
