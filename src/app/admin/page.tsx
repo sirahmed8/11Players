@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminTable from "@/components/AdminTable";
-import MatchmakingModal from "@/components/MatchmakingModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
@@ -26,10 +26,10 @@ export default function AdminPage() {
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  const router = useRouter();
 
   // Matchmaking State
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);
-  const [matchmakingResult, setMatchmakingResult] = useState<any>(null);
   const [matchmakingError, setMatchmakingError] = useState("");
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isGeneratingDummy, setIsGeneratingDummy] = useState(false);
@@ -63,8 +63,8 @@ export default function AdminPage() {
       const availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
       const playerIds = availablePlayers.map((p) => p.uid);
 
-      if (playerIds.length < 22) {
-        setMatchmakingError(`Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
+      if (playerIds.length < 4) {
+        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.`);
         setMatchmakingLoading(false);
         return;
       }
@@ -78,6 +78,7 @@ export default function AdminPage() {
         success: true,
         teamA: result.teamA,
         teamB: result.teamB,
+        bench: [...(result.benchA || []), ...(result.benchB || [])],
         metrics: result.metrics,
         formation: result.formation,
         tipsAndTactics: result.tipsAndTactics,
@@ -85,16 +86,19 @@ export default function AdminPage() {
         generatedAt: new Date().toISOString(),
       };
 
-      setMatchmakingResult(matchData);
-
       // Save to Firestore
       try {
         await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), matchData);
         // Also save a historical record
         const matchId = `match_${Date.now()}`;
         await setDoc(doc(db, "communities", activeCommunityId, "matches", matchId), matchData);
+        
+        toast.success(isAr ? "تم إنشاء المباراة ونقلها لصفحة التشكيلة بنجاح!" : "Match generated successfully! Redirecting to match page...");
+        setIsConfigModalOpen(false);
+        router.push("/match");
       } catch (err) {
         console.error("Failed to save match to database:", err);
+        toast.error(isAr ? "فشل حفظ المباراة" : "Failed to save match");
       }
     } catch (error: any) {
       setMatchmakingError(error.message || "Matchmaking failed.");
@@ -242,16 +246,6 @@ export default function AdminPage() {
           </>
           )}
         </main>
-
-        {/* Matchmaking Results Modal */}
-        <AnimatePresence>
-          {matchmakingResult && (
-            <MatchmakingModal 
-              result={matchmakingResult} 
-              onClose={() => setMatchmakingResult(null)} 
-            />
-          )}
-        </AnimatePresence>
 
         <MatchConfigModal
           isOpen={isConfigModalOpen}

@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc, deleteDoc, getDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useLocale } from "@/components/ThemeProvider";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { motion, AnimatePresence } from "framer-motion";
+import { calculateRealisticOverall } from "@/lib/overallCalculator";
 
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
@@ -30,19 +31,39 @@ export default function PendingEdits() {
     if (!activeCommunityId) return;
     if (!confirm(isAr ? "هل أنت متأكد من الموافقة على هذا التعديل؟" : "Are you sure you want to approve this edit?")) return;
     try {
-      const updateData: any = {};
+      const playerRef = doc(db, "players", edit.playerId);
+      const playerSnap = await getDoc(playerRef);
+      const playerData = playerSnap.exists() ? playerSnap.data() : {};
+      const pos = playerData.primaryPosition || "CMF";
+
+      const updateDataGlobal: any = {};
+      const updateDataComm: any = {};
+
       if (edit.attributes) {
-        updateData.attributes = edit.attributes;
+        const mergedAttr = { ...(playerData.attributes || {}), ...edit.attributes };
+        const newOverall = calculateRealisticOverall(mergedAttr, pos, playerData.playStyle || '');
+        updateDataGlobal.attributes = mergedAttr;
+        updateDataGlobal.overallRating = newOverall;
+        updateDataComm.attributes = mergedAttr;
+        updateDataComm.overallRating = newOverall;
       }
       if (edit.stats) {
-        updateData[`communityStats.${activeCommunityId}`] = edit.stats;
+        updateDataGlobal[`communityStats.${activeCommunityId}`] = edit.stats;
+        updateDataComm.stats = edit.stats;
       }
       
-      if (Object.keys(updateData).length > 0) {
-        await updateDoc(doc(db, "players", edit.playerId), updateData);
+      const batch = writeBatch(db);
+      if (Object.keys(updateDataGlobal).length > 0) {
+        batch.set(playerRef, updateDataGlobal, { merge: true });
       }
-      await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
-      toast.success(isAr ? "تمت الموافقة على التعديل بنجاح!" : "Edit approved successfully!");
+      if (Object.keys(updateDataComm).length > 0) {
+        const commPlayerRef = doc(db, `communities/${activeCommunityId}/players`, edit.playerId);
+        batch.set(commPlayerRef, updateDataComm, { merge: true });
+      }
+      batch.delete(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
+      await batch.commit();
+
+      toast.success(isAr ? "تمت الموافقة على التعديل وتحديث التقييم العام بنجاح!" : "Edit & overall rating approved successfully!");
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "خطأ في الموافقة على التعديل." : "Error approving edit.");

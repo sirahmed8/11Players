@@ -109,6 +109,7 @@ export interface PlayerProfile {
   isVerifiedByAdmin: boolean;
   hasWarning: boolean;
   isGlobalModerator?: boolean;
+  overallRating?: number;
   form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
   // Global total stats (aggregated)
   stats: {

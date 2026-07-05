@@ -799,10 +799,8 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
       calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition)
   );
 
-  const activePlayers = sortedPlayers.slice(0, 32);
-
   // ── 1. Partition ──
-  let [rawA, rawB] = partitionPlayers(activePlayers);
+  let [rawA, rawB] = partitionPlayers(sortedPlayers);
 
   // ── 2. Swap-balance ──
   [rawA, rawB] = iterativeSwapBalance(rawA, rawB);
@@ -815,42 +813,61 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   const assignedA = assignPlayersToFormation(rawA, formationA);
   const assignedB = assignPlayersToFormation(rawB, formationB);
 
+  // Sort assigned players so top 11 start and the rest go to the bench
+  const sortedAssignedA = [...assignedA].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
+  const sortedAssignedB = [...assignedB].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
+
   // Split into starters (first 11) and bench
-  const teamA = assignedA.slice(0, 11);
-  const benchA = assignedA.slice(11).map(p => ({ player: p, reason: "Substitute" }));
+  const teamA = sortedAssignedA.slice(0, 11);
+  const benchA = sortedAssignedA.slice(11).map(p => ({ player: p, reason: "Substitute (Bench)" }));
   
-  const teamB = assignedB.slice(0, 11);
-  const benchB = assignedB.slice(11).map(p => ({ player: p, reason: "Substitute" }));
+  const teamB = sortedAssignedB.slice(0, 11);
+  const benchB = sortedAssignedB.slice(11).map(p => ({ player: p, reason: "Substitute (Bench)" }));
 
   // ── 5. Generate AI Manager Advices ──
   const metricsA = calculateTeamMetrics(teamA);
   const metricsB = calculateTeamMetrics(teamB);
   
-  const generateAdvice = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string) => {
-    let advice = "Manager's Tactical Brief: ";
-    if (myMetrics.speed > oppMetrics.speed + 2) {
-      advice += "Our team has a clear pace advantage. Exploit the flanks and look for through balls behind their defensive line. ";
-    } else if (myMetrics.defense > oppMetrics.defense + 2) {
-      advice += "We are defensively solid. Stay compact, absorb pressure, and hit them on the counter-attack. ";
-    } else if (myMetrics.attack > oppMetrics.attack + 2) {
-      advice += "We have superior attacking prowess. Press high up the pitch and dictate the tempo in the final third. ";
-    } else if (myMetrics.stamina > oppMetrics.stamina + 2) {
-      advice += "We have the stamina advantage. Keep a high intensity throughout the match and wear them down in the second half. ";
+  const generateAdvice = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
+    let advice = "👔 Manager's Tactical Brief: ";
+    
+    // Pace & Physicality analysis
+    if (myMetrics.speed > oppMetrics.speed + 1.5) {
+      advice += "⚡ We possess a distinct speed and acceleration advantage over their defensive unit. Direct wing play and quick transition balls behind their fullbacks will create high-probability scoring chances. ";
+    } else if (oppMetrics.speed > myMetrics.speed + 1.5) {
+      advice += "🛡️ Notice that the opponent has rapid attackers. Instruct fullbacks to hold a deeper defensive line and avoid committing too high during build-up play. ";
+    }
+
+    if (myMetrics.defense > oppMetrics.attack + 1.5) {
+      advice += "🔒 Our backline dominates their offensive rating. Maintain a compact low-mid block, force them into long-range shots, and launch rapid counter-attacks. ";
+    } else if (myMetrics.attack > oppMetrics.defense + 1.5) {
+      advice += "🔥 We hold a massive offensive mismatch. Press their center-backs aggressively in their defensive third and sustain high possession around their penalty area. ";
+    } else if (myMetrics.stamina > oppMetrics.stamina + 1.5) {
+      advice += "💪 Superior endurance and physical condition are on our side. Implement high-pressing trigger traps in the second half when their midfielders begin to fatigue. ";
     } else {
-      advice += "This is a very evenly matched game. Focus on ball retention and capitalizing on set pieces. ";
+      advice += "⚖️ This fixture is tactically knife-edged. Midfield dominance, winning second balls, and clinical execution on corner kicks will determine the winner. ";
     }
     
-    if (formation === '4-3-3') advice += "With the 4-3-3, ensure the wingers stay wide to stretch their defense.";
-    if (formation === '4-4-2') advice += "In a 4-4-2, the two strikers must link up closely and the wide midfielders should track back.";
-    if (formation === '3-5-2') advice += "Using a 3-5-2, the wing-backs are crucial. Overload the midfield but beware of counter-attacks out wide.";
-    if (formation === '4-2-3-1') advice += "The 4-2-3-1 relies on the AMF finding pockets of space. Feed the playmaker.";
-    if (formation === '5-3-2') advice += "We are playing a defensive 5-3-2. Look for the strikers holding up the ball and bringing midfielders into play.";
+    // Formation synergy & Counter-tactic
+    if (formation === '4-3-3') {
+      advice += `Our 4-3-3 provides width against their ${oppFormation}. Ensure wide forwards stay on the touchline to isolate their fullbacks 1v1, allowing our central midfielders to make late underlapping runs.`;
+    } else if (formation === '4-4-2') {
+      advice += `Playing a classic 4-4-2 against their ${oppFormation} requires tight vertical compactness. Strikers should stagger their positioning—one dropping deep to link play while the other pins their central defenders back.`;
+    } else if (formation === '3-5-2') {
+      advice += `The 3-5-2 gives us numerical superiority in central midfield over their ${oppFormation}. Wing-backs must provide relentless box-to-box work rate to prevent wide overloads.`;
+    } else if (formation === '4-2-3-1') {
+      advice += `In our 4-2-3-1, the Attacking Midfielder (AMF) is the tactical pivot. Feed vertical line-breaking passes into the AMF's feet between their midfield and defensive lines.`;
+    } else if (formation === '5-3-2') {
+      advice += `Our solid 5-3-2 setup neutralizes their ${oppFormation} goal threats. Stay disciplined in defense and release quick diagonal long balls to our two center forwards upon regaining possession.`;
+    } else {
+      advice += `Maintain strict positional discipline in our ${formation} system and support the ball carrier at all times.`;
+    }
 
     return advice;
   };
 
-  const adviceA = generateAdvice(metricsA, metricsB, formationA);
-  const adviceB = generateAdvice(metricsB, metricsA, formationB);
+  const adviceA = generateAdvice(metricsA, metricsB, formationA, formationB);
+  const adviceB = generateAdvice(metricsB, metricsA, formationB, formationA);
 
   return {
     teamA,

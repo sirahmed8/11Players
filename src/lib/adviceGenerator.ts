@@ -25,6 +25,20 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
 
     const advices = [];
 
+    // --- 0. Overall Rating (OVR) Based Advice ---
+    const ovr = profile.overallRating || 70;
+    if (ovr < 70) {
+      advices.push({
+        title: isAr ? "نصيحة الصعود والتدريب" : "Development Phase",
+        body: isAr ? "تقييمك العام في مرحلة الصعود. ركز على إتقان المهارات الأساسية: الاستلام والتسليم والتمركز السليم دون تعقيد للوصول للمستوى التالي." : "Your overall rating is developing. Master basic ball control, simple passes, and positional discipline to quickly reach the next level."
+      });
+    } else if (ovr >= 85) {
+      advices.push({
+        title: isAr ? "قيادة الفريق في الملعب" : "Pitch Leadership",
+        body: isAr ? "أنت أحد نجوم وقادة الفريق بناءً على تقييمك المرتفع. دورك الآن يشمل توجيه الزملاء، ضبط إيقاع اللعب، وحسم المواجهات المعقدة." : "As one of the highest-rated players on the pitch, your role extends to leadership—dictating tempo and guiding younger teammates."
+      });
+    }
+
     // --- 1. Position & Stat Synergies ---
     if (profile.primaryPosition === "SS" || profile.primaryPosition === "CF" || profile.primaryPosition === "LWF" || profile.primaryPosition === "RWF") {
       if ((profile.attributes?.finishing || 0) < 75) {
@@ -43,6 +57,12 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
         advices.push({
           title: isAr ? "كسر الصيام التهديفي" : "Break the Goal Drought",
           body: isAr ? "لم تسجل في مبارياتك الأخيرة. لا تتوتر! العب السهل، وحاول التمركز بشكل أفضل والتسديد من اللمسة الأولى." : "You haven't scored recently. Don't panic! Play simple, position yourself better and shoot first-time."
+        });
+      }
+      if (["LWF", "RWF"].includes(profile.primaryPosition)) {
+        advices.push({
+          title: isAr ? "استغلال مساحات الأطراف" : "Wing Play Exploitation",
+          body: isAr ? "كجناح هجومي، استخدم تنويع اللعب بين الدخول للعمق في أنصاف المساحات (Half-spaces) والركض على الخط لسحب أظهرة الخصم وتفكيك دفاعهم." : "As a winger, vary your movement between cutting inside into half-spaces and hugging the touchline to disorganize the opponent's fullbacks."
         });
       }
     }

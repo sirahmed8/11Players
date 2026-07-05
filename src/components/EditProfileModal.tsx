@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import type { PlayerProfile, PESPosition, PlayerAttributes, CommunityStats } from '@/types';
 import BackgroundRemover from '@/components/BackgroundRemover';
 import AttributeSliders from '@/components/AttributeSliders';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -90,17 +91,29 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
       };
 
       if (isOwner) {
+        const mergedAttributes = { ...player.attributes, ...attributes };
+        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '');
         const updatePayload: any = {
           ...dataToSave,
-          attributes: { ...player.attributes, ...attributes }
+          attributes: mergedAttributes,
+          overallRating: newOverall,
         };
         if (activeCommunityId) {
           updatePayload[`communityStats.${activeCommunityId}`] = { ...player.communityStats?.[activeCommunityId], ...stats };
+          await updateDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), {
+            ...dataToSave,
+            attributes: mergedAttributes,
+            overallRating: newOverall,
+            stats: { ...player.stats, ...stats }
+          }).catch(() => {});
         }
         await updateDoc(doc(db, 'players', player.uid), updatePayload);
-        toast.success(isRTL ? 'تم حفظ التعديلات بنجاح' : 'Changes saved successfully');
+        toast.success(isRTL ? 'تم حفظ التعديلات وتحديث التقييم العام بنجاح' : 'Changes & Overall Rating saved successfully');
       } else {
         await updateDoc(doc(db, 'players', player.uid), dataToSave);
+        if (activeCommunityId) {
+          await updateDoc(doc(db, 'communities', activeCommunityId, 'players', player.uid), dataToSave).catch(() => {});
+        }
         
         if (activeCommunityId) {
           const editRequestRef = doc(collection(db, `communities/${activeCommunityId}/editRequests`));

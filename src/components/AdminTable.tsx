@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { PlayerProfile } from '@/types';
 import toast from 'react-hot-toast';
 import { useCommunity } from '@/contexts/CommunityContext';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -288,13 +289,25 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!attrModal.player || !activeCommunityId) return;
     setLoadingUid('attr-' + attrModal.player.uid);
     try {
-      const docRef = doc(db, 'communities', activeCommunityId, 'players', attrModal.player.uid);
-      await updateDoc(docRef, {
+      const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '');
+      const batch = writeBatch(db);
+      
+      const commRef = doc(db, 'communities', activeCommunityId, 'players', attrModal.player.uid);
+      batch.set(commRef, {
         attributes: attrModal.attributes,
-      });
+        overallRating: newOverall,
+      }, { merge: true });
+
+      const globalRef = doc(db, 'players', attrModal.player.uid);
+      batch.set(globalRef, {
+        attributes: attrModal.attributes,
+        overallRating: newOverall,
+      }, { merge: true });
+
+      await batch.commit();
       onRefresh();
       closeAttrModal();
-      toast.success(t(locale, 'Attributes updated successfully', 'تم تحديث الطاقات بنجاح'));
+      toast.success(t(locale, 'Attributes & Overall Rating updated successfully', 'تم تحديث الطاقات والتقييم العام بنجاح'));
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error updating attributes', 'حدث خطأ أثناء تحديث الطاقات'));
@@ -307,13 +320,24 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!playerToReset || !activeCommunityId) return;
     setLoadingUid('resetting-' + playerToReset.uid);
     try {
-      const docRef = doc(db, 'communities', activeCommunityId, 'players', playerToReset.uid);
-      await updateDoc(docRef, {
+      const batch = writeBatch(db);
+      const commRef = doc(db, 'communities', activeCommunityId, 'players', playerToReset.uid);
+      batch.set(commRef, {
         'stats.goals': 0,
         'stats.assists': 0,
         'stats.mvp': 0,
         'stats.matchesPlayed': 0,
-      });
+      }, { merge: true });
+
+      const globalRef = doc(db, 'players', playerToReset.uid);
+      batch.set(globalRef, {
+        'stats.goals': 0,
+        'stats.assists': 0,
+        'stats.mvp': 0,
+        'stats.matchesPlayed': 0,
+      }, { merge: true });
+
+      await batch.commit();
       onRefresh();
       toast.success(t(locale, 'Stats reset successfully', 'تم تصفير الإحصائيات بنجاح'));
       setPlayerToReset(null);
