@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, Search, ArrowUpDown } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ConfirmModal";
 
@@ -260,13 +261,23 @@ export default function GlobalUsersTable() {
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={() => handleBanUser(u)}
-                    className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    title="Ban / Delete User"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
+                  <div className="flex items-center justify-end gap-2">
+                    <Link
+                      href={`/profile?uid=${u.uid}`}
+                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                      title={isAr ? "عرض الملف الشخصي" : "View Profile"}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>{isAr ? "الملف الشخصي" : "Profile"}</span>
+                    </Link>
+                    <button 
+                      onClick={() => handleBanUser(u)}
+                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                      title={isAr ? "حظر / حذف" : "Ban / Delete User"}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}

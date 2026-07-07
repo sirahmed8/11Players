@@ -9,7 +9,7 @@ import { useLocale, useTheme } from "@/components/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SupportThread, ChatMessage } from "@/types";
-import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, MessageSquare, Search, Sparkles, RefreshCw, ShieldCheck, CheckCheck, User, ExternalLink, Reply, SmilePlus, Trash2 } from "lucide-react";
+import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, MessageSquare, Search, Sparkles, RefreshCw, ShieldCheck, CheckCheck, User, ExternalLink, Reply, SmilePlus, Trash2, Pin, PinOff, Lock, Unlock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
@@ -222,12 +222,56 @@ export default function InboxPage() {
     });
   };
 
+  const handleTogglePinThread = async (e: React.MouseEvent, threadId: string, currentPinned?: boolean) => {
+    e.stopPropagation();
+    try {
+      await updateDoc(doc(db, "support_threads", threadId), {
+        isPinned: !currentPinned
+      });
+      toast.success(!currentPinned ? (isAr ? "تم تثبيت المحادثة" : "Chat pinned") : (isAr ? "تم إلغاء تثبيت المحادثة" : "Chat unpinned"));
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل التعديل" : "Failed to update");
+    }
+  };
+
+  const handleToggleCloseThread = async (threadId: string, currentStatus?: 'open' | 'closed') => {
+    try {
+      const nextStatus = currentStatus === 'closed' ? 'open' : 'closed';
+      await updateDoc(doc(db, "support_threads", threadId), {
+        status: nextStatus
+      });
+      toast.success(nextStatus === 'closed' ? (isAr ? "تم إغلاق المحادثة" : "Chat closed") : (isAr ? "تم فتح المحادثة" : "Chat reopened"));
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل التعديل" : "Failed to update status");
+    }
+  };
+
+  const handleDeleteThread = async (threadId: string) => {
+    if (!confirm(isAr ? "هل أنت متأكد من حذف هذه المحادثة نهائياً؟" : "Are you sure you want to permanently delete this chat?")) return;
+    try {
+      await deleteDoc(doc(db, "support_threads", threadId));
+      if (activeThreadId === threadId) {
+        setActiveThreadId(null);
+      }
+      toast.success(isAr ? "تم حذف المحادثة" : "Chat deleted");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل حذف المحادثة" : "Failed to delete chat");
+    }
+  };
+
   const activeThread = threads.find(t => t.id === activeThreadId);
   const filteredThreads = threads.filter(t => 
     t.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.id?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  ).sort((a, b) => {
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    return 0;
+  });
 
   return (
     <ProtectedRoute ownerOnly>
@@ -301,10 +345,28 @@ export default function InboxPage() {
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-0.5">
-                            <span className="font-black text-sm truncate">{thread.userName || "Player"}</span>
-                            <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
-                              {formatTime(thread.lastUpdatedAt)}
-                            </span>
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              {thread.isPinned && (
+                                <span className="text-amber-500" title={isAr ? "مثبتة" : "Pinned"}>📌</span>
+                              )}
+                              <span className="font-black text-sm truncate">{thread.userName || "Player"}</span>
+                              {thread.status === 'closed' && (
+                                <span className="text-[10px] px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold rounded-lg shrink-0">🔒 {isAr ? "مغلق" : "Closed"}</span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={(e) => handleTogglePinThread(e, thread.id, thread.isPinned)}
+                                className={`p-1 rounded-lg hover:bg-black/10 transition-colors ${thread.isPinned ? 'text-amber-500' : 'text-slate-400 opacity-0 group-hover:opacity-100'}`}
+                                title={thread.isPinned ? (isAr ? "إلغاء التثبيت" : "Unpin") : (isAr ? "تثبيت" : "Pin")}
+                              >
+                                {thread.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+                              </button>
+                              <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
+                                {formatTime(thread.lastUpdatedAt)}
+                              </span>
+                            </div>
                           </div>
                           <p className={`text-xs truncate ${isSelected ? 'text-emerald-50 font-medium' : hasUnread ? 'font-bold text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
                             {thread.lastMessage || (isAr ? 'رسالة جديدة' : 'New message')}
@@ -373,6 +435,44 @@ export default function InboxPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={(e) => handleTogglePinThread(e, activeThread!.id, activeThread!.isPinned)}
+                        className={`p-2 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+                          activeThread?.isPinned
+                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
+                            : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                        title={activeThread?.isPinned ? (isAr ? "إلغاء التثبيت" : "Unpin Chat") : (isAr ? "تثبيت المحادثة" : "Pin Chat")}
+                      >
+                        {activeThread?.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                        <span className="hidden sm:inline">{activeThread?.isPinned ? (isAr ? "مثبتة" : "Pinned") : (isAr ? "تثبيت" : "Pin")}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleToggleCloseThread(activeThread!.id, activeThread!.status)}
+                        className={`p-2 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+                          activeThread?.status === 'closed'
+                            ? 'bg-slate-500/10 border-slate-500/30 text-slate-600 dark:text-slate-400'
+                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+                        }`}
+                        title={activeThread?.status === 'closed' ? (isAr ? "فتح المحادثة" : "Reopen Chat") : (isAr ? "إغلاق المحادثة" : "Close Chat")}
+                      >
+                        {activeThread?.status === 'closed' ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
+                        <span className="hidden sm:inline">{activeThread?.status === 'closed' ? (isAr ? "إعادة فتح" : "Reopen") : (isAr ? "إغلاق" : "Close")}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteThread(activeThread!.id)}
+                        className="p-2 rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-500 text-red-500 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
+                        title={isAr ? "حذف المحادثة" : "Delete Chat"}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        <span className="hidden md:inline">{isAr ? "حذف" : "Delete"}</span>
+                      </button>
+
                       <Link
                         href={`/profile?uid=${activeThread?.id}`}
                         target="_blank"
@@ -570,6 +670,22 @@ export default function InboxPage() {
                   {/* Floating Sleek Input Bar */}
                   <div className="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-20 flex-shrink-0">
                     
+                    {activeThread?.status === 'closed' && (
+                      <div className="mb-3 p-3 bg-amber-500/15 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
+                        <span className="flex items-center gap-2">
+                          <Lock className="w-4 h-4 shrink-0" />
+                          <span>{isAr ? "تم إغلاق هذه المحادثة. يمكنك فتحها لإرسال رسائل جديدة." : "This chat is closed. Reopen to send new messages."}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleCloseThread(activeThread.id, activeThread.status)}
+                          className="px-3 py-1 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors shadow-sm shrink-0"
+                        >
+                          {isAr ? "إعادة فتح" : "Reopen"}
+                        </button>
+                      </div>
+                    )}
+
                     {/* Reply / Edit Banner */}
                     <AnimatePresence>
                       {(replyTo || editingMessage) && (

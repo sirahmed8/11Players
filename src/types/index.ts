@@ -47,6 +47,8 @@ export interface SupportThread {
   unreadCount: number;
   unreadForAdmin?: boolean;
   unreadForUser?: boolean;
+  isPinned?: boolean;
+  status?: 'open' | 'closed';
 }
 
 export interface CommunityStats {
