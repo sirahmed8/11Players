@@ -6,7 +6,8 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "cleanUrls": true
+    "cleanUrls": true,
+    "trailingSlash": true
   },
   "firestore": {
     "rules": "firestore.rules"

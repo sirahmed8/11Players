@@ -135,11 +135,10 @@ export default function Sidebar() {
   const links = [
     { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5" /> },
     ...(activeCommunityId ? [
-      { href: `/community/${activeCommunityId}`, labelEn: "Home", labelAr: "الرئيسية", icon: <Home className="w-5 h-5" /> },
-      { href: `/community/${activeCommunityId}/players`, labelEn: "Players", labelAr: "اللاعبين", icon: <Users className="w-5 h-5" /> },
-      { href: `/community/${activeCommunityId}/matches`, labelEn: "Matches", labelAr: "المباريات", icon: <Swords className="w-5 h-5" /> },
-      { href: `/community/${activeCommunityId}/stats`, labelEn: "Leaderboard", labelAr: "المتصدريين", icon: <BarChart3 className="w-5 h-5" /> },
-      { href: `/community/${activeCommunityId}/chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
+      { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
+      { href: `/match`, labelEn: "Matches", labelAr: "المباريات", icon: <Swords className="w-5 h-5" /> },
+      { href: `/stats`, labelEn: "Leaderboard", labelAr: "المتصدريين", icon: <BarChart3 className="w-5 h-5" /> },
+      { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
     ] : []),
     ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
     { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
@@ -210,8 +209,8 @@ export default function Sidebar() {
           <div className="py-6 px-4 flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
             {links.map((link) => {
               const baseHref = link.href.split("?")[0];
-              const cleanPathname = pathname.replace(/\/$/, '');
-              const isActive = cleanPathname === baseHref || (baseHref !== "/community" && cleanPathname.startsWith(baseHref + "/"));
+              const cleanPathname = pathname.replace(/\/$/, '') || '/';
+              const isActive = cleanPathname === baseHref;
               const hasUnreadDot = (link.href === "/inbox" && unreadInboxCount > 0) || (link.href === "/support" && unreadSupportCount > 0);
 
               return (
