@@ -110,22 +110,33 @@ export default function CommunitiesPage() {
 
     setActionLoading(community.id);
     try {
-      // 1. Add to community's joinRequests collection
-      await setDoc(doc(db, "communities", community.id, "joinRequests", user.uid), {
+      const cleanProfile = {
         ...userProfile,
-        requestedAt: new Date().toISOString()
-      });
+        role: "member", // Explicitly ensure they join as a regular member/user, NOT admin!
+        joinedAt: new Date().toISOString()
+      };
+      delete (cleanProfile as any).pendingCommunities;
+      delete (cleanProfile as any).memberCommunities;
+      delete (cleanProfile as any).joinedCommunities;
 
-      // 2. Add to user's global pendingCommunities
+      await setDoc(doc(db, "communities", community.id, "players", user.uid), cleanProfile, { merge: true });
       await updateDoc(doc(db, "players", user.uid), {
-        pendingCommunities: arrayUnion(community.id)
+        memberCommunities: arrayUnion(community.id),
+        joinedCommunities: arrayUnion(community.id)
       });
 
-      setUserProfile((prev: any) => ({ ...prev, pendingCommunities: [...(prev?.pendingCommunities || []), community.id] }));
-      toast.success(isAr ? "تم إرسال طلب الانضمام! في انتظار موافقة المسؤول." : "Join request sent! Waiting for admin approval.");
+      setUserProfile((prev: any) => ({
+        ...prev,
+        memberCommunities: [...(prev?.memberCommunities || []), community.id],
+        joinedCommunities: [...(prev?.joinedCommunities || []), community.id]
+      }));
+
+      setActiveCommunityId(community.id);
+      toast.success(isAr ? `تم الانضمام إلى مجتمع ${community.name} بنجاح!` : `Joined ${community.name} community successfully!`);
+      router.push("/community");
     } catch (err) {
       console.error(err);
-      toast.error(isAr ? "فشل إرسال الطلب" : "Failed to send request");
+      toast.error(isAr ? "فشل الانضمام" : "Failed to join");
     } finally {
       setActionLoading(null);
     }
@@ -142,6 +153,32 @@ export default function CommunitiesPage() {
           <p className="text-slate-500">
             {isAr ? "اختر مجتمعك المفضل للبدء" : "Select your preferred community to get started"}
           </p>
+        </div>
+
+        {/* Request Create Community CTA Banner */}
+        <div className="mb-8 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-600/15 via-teal-600/10 to-slate-900/10 border-2 border-dashed border-emerald-500/40 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:border-emerald-500/60">
+          <div className="text-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs mb-3">
+              <span>🚀</span>
+              <span>{isAr ? "خدمة خاصة" : "Special Service"}</span>
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mb-2">
+              {isAr ? "هل ترغب في إنشاء مجتمعك الخاص وإدارته؟" : "Want to create and manage your own community?"}
+            </h3>
+            <p className="text-sm text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+              {isAr ? "إذا كنت تنظم بطولات أو مباريات وترغب في إنشاء مجتمع خاص بفريقك مع صلاحيات المسؤول الكاملة، تواصل مع الدعم الفني مباشرة وسنقم بإنشائه وتخصيصه لك." : "If you organize tournaments or matches and want a dedicated community with full admin privileges, contact support directly to request your custom community setup."}
+            </p>
+          </div>
+          <button
+            onClick={() => {
+              const msg = encodeURIComponent(isAr ? "مرحباً، أرغب في إنشاء مجتمع جديد وإدارته كمسؤول." : "Hello, I would like to create and manage a new community as an admin.");
+              router.push(`/support?msg=${msg}`);
+            }}
+            className="w-full md:w-auto px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-lg shadow-emerald-600/25 active:scale-95 transition-all flex items-center justify-center gap-3 shrink-0 text-base"
+          >
+            <span>💬</span>
+            <span>{isAr ? "طلب إنشاء مجتمع" : "Request Create Community"}</span>
+          </button>
         </div>
         {loading ? (
           <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>

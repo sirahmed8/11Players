@@ -29,6 +29,16 @@ export default function SupportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const msg = params.get("msg");
+      if (msg) {
+        setText(msg);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     
     // Create/update the thread document so it shows in the Owner's Inbox
