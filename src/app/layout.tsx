@@ -29,6 +29,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="dark">
       <head>
+        <meta name="referrer" content="no-referrer" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

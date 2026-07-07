@@ -153,7 +153,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex-shrink-0 z-50">
+    <aside className="flex-shrink-0 z-50 md:w-80">
       {/* Mobile Top Bar */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 rounded-b-3xl shadow-sm">
         <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10 rounded-b-3xl" />

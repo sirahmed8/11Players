@@ -102,7 +102,7 @@ export default function PendingRequests() {
           <div key={req.id} className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-3">
               {req.googlePic && (
-                <Image src={req.googlePic} alt={req.fullName} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" width={40} height={40} />
+                <Image src={req.googlePic} alt={req.fullName} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-700" width={40} height={40} referrerPolicy="no-referrer" />
               )}
               <div>
                 <p className="font-bold text-slate-900 dark:text-white">{req.fullName}</p>

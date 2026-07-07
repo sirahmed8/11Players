@@ -285,7 +285,7 @@ export default function SupportPage() {
                         {!isMe ? (
                           <div className="w-8 h-8 flex-shrink-0">
                             {showAvatar ? (
-                              <Image src={msg.senderPic || '/logo.jpg'} alt="" className="w-full h-full rounded-full object-cover border border-slate-200 dark:border-slate-700" width={32} height={32} />
+                              <Image src={msg.senderPic || '/logo.jpg'} alt="" className="w-full h-full rounded-full object-cover border border-slate-200 dark:border-slate-700" width={32} height={32} referrerPolicy="no-referrer" />
                             ) : <div className="w-8 h-8" />}
                           </div>
                         ) : null}

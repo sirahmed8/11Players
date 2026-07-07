@@ -288,13 +288,13 @@ export default function InboxPage() {
                 </div>
 
                 <div className="relative flex items-center group">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 rtl:left-auto rtl:right-3 pointer-events-none transition-colors duration-300 group-focus-within:text-emerald-500" />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none transition-all duration-500 group-focus-within:text-emerald-500 group-focus-within:scale-110" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder={isAr ? "ابحث بالاسم أو المحادثة..." : "Search chats or names..."}
-                    className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-2.5 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 text-slate-900 dark:text-white outline-none shadow-sm focus:shadow-md"
+                    className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800/80 border-2 border-transparent transition-all duration-500 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:shadow-[0_0_20px_rgba(16,185,129,0.15)] text-slate-900 dark:text-white outline-none shadow-sm focus:shadow-lg"
                   />
                 </div>
               </div>
@@ -323,7 +323,7 @@ export default function InboxPage() {
                       >
                         <div className="relative flex-shrink-0">
                           {thread.userPic ? (
-                            <Image src={thread.userPic} alt="" className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" width={40} height={40} />
+                            <Image src={thread.userPic} alt="" className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" width={40} height={40} referrerPolicy="no-referrer" />
                           ) : (
                             <div className="w-10 h-10 rounded-2xl bg-slate-700 text-white flex items-center justify-center font-black text-sm">
                               {thread.userName?.charAt(0) || "U"}
@@ -408,7 +408,7 @@ export default function InboxPage() {
                       
                       <div className="relative">
                         {activeThread?.userPic ? (
-                          <Image src={activeThread.userPic} alt="" className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" width={40} height={40} />
+                          <Image src={activeThread.userPic} alt="" className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" width={40} height={40} referrerPolicy="no-referrer" />
                         ) : (
                           <div className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-white text-base shadow-sm">
                             {activeThread?.userName?.charAt(0) || "U"}

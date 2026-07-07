@@ -276,7 +276,7 @@ export default function CommunityChatPage() {
                       {!isMe ? (
                         <div className="w-8 h-8 flex-shrink-0">
                           {showAvatar ? (
-                            <Image src={msg.senderPic || '/placeholder.png'} alt="" className="w-full h-full rounded-full object-cover" width={32} height={32} />
+                            <Image src={msg.senderPic || '/placeholder.png'} alt="" className="w-full h-full rounded-full object-cover" width={32} height={32} referrerPolicy="no-referrer" />
                           ) : <div className="w-8 h-8" />}
                         </div>
                       ) : null}

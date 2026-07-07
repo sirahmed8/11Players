@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useRouter } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
+import PlayerRatingModal from "@/components/PlayerRatingModal";
 
 export default function MatchPage() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function MatchPage() {
   const [error, setError] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   // Match History state
   const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
@@ -218,7 +220,7 @@ export default function MatchPage() {
                         whileHover={{ scale: 1.02, y: -4 }}
                         className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-3xl p-6 border border-slate-200/80 dark:border-slate-700/80 shadow-lg hover:shadow-2xl transition-all flex flex-col justify-between relative overflow-hidden group"
                       >
-                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 via-amber-500 to-red-500" />
+
                         
                         <div>
                           <div className="flex justify-between items-center mb-4">
@@ -244,7 +246,7 @@ export default function MatchPage() {
                           )}
 
                           {/* Matchup Score Card */}
-                          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 border border-slate-100 dark:border-slate-800 my-4 flex items-center justify-between">
+                          <div className="bg-slate-50 dark:bg-slate-900/60 rounded-2xl p-4 my-4 flex items-center justify-between">
                             <div className="text-center flex-1">
                               <p className="text-sm font-black text-blue-600 dark:text-blue-400 mb-1">Team A</p>
                               <span className="text-[10px] font-mono bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 px-2 py-0.5 rounded font-bold">
@@ -277,11 +279,56 @@ export default function MatchPage() {
 
                         <button
                           onClick={() => setSelectedHistoryMatch(m)}
-                          className="w-full mt-2 py-3 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-amber-500 hover:to-orange-500 dark:from-slate-700 dark:to-slate-600 dark:hover:from-amber-500 dark:hover:to-orange-500 text-white font-bold rounded-xl shadow transition-all duration-300 flex items-center justify-center gap-2"
+                          className="w-full mt-2 py-3 bg-slate-800 hover:bg-amber-500 dark:bg-slate-700 dark:hover:bg-amber-500 text-white font-bold rounded-xl shadow transition-all duration-300 flex items-center justify-center gap-2"
                         >
                           <span>👁️</span>
                           <span>{isAr ? "عرض التفاصيل والتشكيلة" : "View Full Match details"}</span>
                         </button>
+                        {isAdmin && (
+                          <button
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (!confirm(isAr ? 'هل تريد حذف هذه المباراة نهائياً؟ سيتم حذف جميع الإحصائيات والتقييمات.' : 'Delete this match permanently? All stats and ratings will be removed.')) return;
+                              try {
+                                const { doc: fbDoc, deleteDoc, getDoc, updateDoc, increment, collection: coll, getDocs } = await import('firebase/firestore');
+                                if (m.recordedStats) {
+                                  const allPlayers = [...(m.teamA || []), ...(m.teamB || [])];
+                                  for (const p of allPlayers) {
+                                    const pStats = m.recordedStats[p.uid];
+                                    if (pStats) {
+                                      try {
+                                        const pRef = fbDoc(db, 'communities', activeCommunityId!, 'players', p.uid);
+                                        const pSnap = await getDoc(pRef);
+                                        if (pSnap.exists()) {
+                                          await updateDoc(pRef, {
+                                            'stats.goals': increment(-(Number(pStats.goals) || 0)),
+                                            'stats.assists': increment(-(Number(pStats.assists) || 0)),
+                                            'stats.yellowCards': increment(-(Number(pStats.yellowCards) || 0)),
+                                            'stats.redCards': increment(-(Number(pStats.redCards) || 0)),
+                                            'stats.mvp': increment(pStats.mvp ? -1 : 0),
+                                            'stats.matchesPlayed': increment(-1),
+                                          });
+                                        }
+                                      } catch (err) { console.error('Failed to revert stats for', p.uid, err); }
+                                    }
+                                  }
+                                }
+                                await deleteDoc(fbDoc(db, 'communities', activeCommunityId!, 'matches', m.id));
+                                try {
+                                  const ratingsSnap = await getDocs(coll(db, 'communities', activeCommunityId!, 'matches', m.id, 'ratings'));
+                                  for (const rDoc of ratingsSnap.docs) { await deleteDoc(rDoc.ref); }
+                                } catch (_) {}
+                              } catch (err) {
+                                console.error('Failed to delete match:', err);
+                                alert(isAr ? 'فشل في حذف المباراة' : 'Failed to delete match');
+                              }
+                            }}
+                            className="w-full mt-1 py-2 bg-red-600 hover:bg-red-500 text-white text-xs font-bold rounded-xl shadow transition-all duration-200 flex items-center justify-center gap-1.5"
+                          >
+                            <span>🗑️</span>
+                            <span>{isAr ? 'حذف المباراة من السجل' : 'Delete Match'}</span>
+                          </button>
+                        )}
                       </motion.div>
                     );
                   })}
@@ -504,6 +551,77 @@ export default function MatchPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Individual Player Stats */}
+              {displayMatch.recordedStats && (
+                <div className="bg-white dark:bg-slate-800/80 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-700 shadow-xl">
+                  <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span>📊</span>
+                    <span>{isAr ? 'إحصائيات اللاعبين' : 'Player Statistics'}</span>
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b-2 border-slate-200 dark:border-slate-700">
+                          <th className="text-start py-3 px-3 font-black text-slate-600 dark:text-slate-300">{isAr ? 'اللاعب' : 'Player'}</th>
+                          <th className="text-center py-3 px-2 font-black text-slate-600 dark:text-slate-300">{isAr ? 'الفريق' : 'Team'}</th>
+                          <th className="text-center py-3 px-2 font-black text-amber-600 dark:text-amber-400">⚽</th>
+                          <th className="text-center py-3 px-2 font-black text-emerald-600 dark:text-emerald-400">🅰️</th>
+                          <th className="text-center py-3 px-2 font-black text-yellow-500">🟨</th>
+                          <th className="text-center py-3 px-2 font-black text-red-500">🟥</th>
+                          <th className="text-center py-3 px-2 font-black text-purple-500">⭐</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
+                        {[...(displayMatch.teamA || []), ...(displayMatch.teamB || [])].map((p: any) => {
+                          const stats = displayMatch.recordedStats?.[p.uid];
+                          if (!stats) return null;
+                          const isTeamA = (displayMatch.teamA || []).some((t: any) => t.uid === p.uid);
+                          return (
+                            <tr key={p.uid} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+                              <td className="py-3 px-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
+                                    {(p.photoUrl || p.googlePic) ? (
+                                      <img src={p.photoUrl || p.googlePic} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                    ) : (
+                                      <span className="text-xs font-bold text-slate-500">{(p.cardName || p.fullName || '?').charAt(0)}</span>
+                                    )}
+                                  </div>
+                                  <span className="font-bold text-slate-900 dark:text-white text-xs">{p.cardName || p.fullName}</span>
+                                </div>
+                              </td>
+                              <td className="text-center py-3 px-2">
+                                <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isTeamA ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
+                                  {isTeamA ? 'A' : 'B'}
+                                </span>
+                              </td>
+                              <td className="text-center py-3 px-2 font-black text-slate-800 dark:text-slate-200">{stats.goals || 0}</td>
+                              <td className="text-center py-3 px-2 font-black text-slate-800 dark:text-slate-200">{stats.assists || 0}</td>
+                              <td className="text-center py-3 px-2 font-black text-slate-800 dark:text-slate-200">{stats.yellowCards || 0}</td>
+                              <td className="text-center py-3 px-2 font-black text-slate-800 dark:text-slate-200">{stats.redCards || 0}</td>
+                              <td className="text-center py-3 px-2">{stats.mvp ? <span className="text-amber-500 font-black">MVP</span> : <span className="text-slate-400">-</span>}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Rate Players Button */}
+              {displayMatch.recordedStats && isViewingHistory && selectedHistoryMatch?.id && (
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => setIsRatingModalOpen(true)}
+                    className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all duration-300 active:scale-95 flex items-center gap-2"
+                  >
+                    <span>⭐</span>
+                    <span>{isAr ? 'قيّم أداء اللاعبين' : 'Rate Players Performance'}</span>
+                  </button>
+                </div>
+              )}
             </motion.div>
           )}
             </>
@@ -546,6 +664,14 @@ export default function MatchPage() {
         isOpen={isRecordModalOpen} 
         onClose={() => setIsRecordModalOpen(false)} 
         matchData={matchData} 
+      />
+
+      {/* Player Rating Modal */}
+      <PlayerRatingModal
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        matchData={displayMatch}
+        matchId={selectedHistoryMatch?.id || ''}
       />
     </ProtectedRoute>
   );
