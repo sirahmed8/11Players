@@ -42,6 +42,8 @@ export interface MatchmakingResult {
   tipsAndTactics: {
     teamA: string;
     teamB: string;
+    teamA_Ar?: string;
+    teamB_Ar?: string;
   };
   metrics: {
     teamAOverall: number;
@@ -805,24 +807,25 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   // ── 2. Swap-balance ──
   [rawA, rawB] = iterativeSwapBalance(rawA, rawB);
 
-  // ── 3. Select formations ──
-  const formationA = selectBestFormation(rawA);
-  const formationB = selectBestFormation(rawB);
+  // ── 3. Sort players by overall/PSI to separate starters (top 11) from bench ──
+  const sortPool = (pool: PlayerProfile[]) => [...pool].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
+  const sortedRawA = sortPool(rawA);
+  const sortedRawB = sortPool(rawB);
 
-  // ── 4. Assign positions ──
-  const assignedA = assignPlayersToFormation(rawA, formationA);
-  const assignedB = assignPlayersToFormation(rawB, formationB);
+  const startersA = sortedRawA.slice(0, 11);
+  const benchPoolA = sortedRawA.slice(11);
+  const startersB = sortedRawB.slice(0, 11);
+  const benchPoolB = sortedRawB.slice(11);
 
-  // Sort assigned players so top 11 start and the rest go to the bench
-  const sortedAssignedA = [...assignedA].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
-  const sortedAssignedB = [...assignedB].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
+  // ── 4. Select formations for starters and assign positions ──
+  const formationA = selectBestFormation(startersA);
+  const formationB = selectBestFormation(startersB);
 
-  // Split into starters (first 11) and bench
-  const teamA = sortedAssignedA.slice(0, 11);
-  const benchA = sortedAssignedA.slice(11).map(p => ({ player: p, reason: "Substitute (Bench)" }));
-  
-  const teamB = sortedAssignedB.slice(0, 11);
-  const benchB = sortedAssignedB.slice(11).map(p => ({ player: p, reason: "Substitute (Bench)" }));
+  const teamA = assignPlayersToFormation(startersA, formationA);
+  const teamB = assignPlayersToFormation(startersB, formationB);
+
+  const benchA = benchPoolA.map(p => ({ player: p, reason: "Substitute (Bench)" }));
+  const benchB = benchPoolB.map(p => ({ player: p, reason: "Substitute (Bench)" }));
 
   // ── 5. Generate AI Manager Advices ──
   const metricsA = calculateTeamMetrics(teamA);
@@ -866,8 +869,46 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     return advice;
   };
 
+  const generateAdviceAr = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
+    let advice = "👔 ملخص تعليمات المدرب: ";
+    
+    if (myMetrics.speed > oppMetrics.speed + 1.5) {
+      advice += "⚡ نمتلك تفوقاً واضحاً في السرعة والانطلاقات مقارنة بدفاع الخصم. الاعتماد على اللعب عبر الأطراف وإرسال الكرات الطويلة خلف الأظهرة سيخلق فرصاً تهديفية محققة. ";
+    } else if (oppMetrics.speed > myMetrics.speed + 1.5) {
+      advice += "🛡️ انتبه: يمتلك الخصم مهاجمين يتميزون بالسرعة الفائقة. وجه تعليماتك للأظهرة بالبقاء في التغطية الدفاعية الخلفية وعدم التقدم المبالغ فيه أثناء بناء الهجمات. ";
+    }
+
+    if (myMetrics.defense > oppMetrics.attack + 1.5) {
+      advice += "🔒 خط دفاعنا يتفوق بشكل ساحق على هجوم الخصم. حافظ على تماسك الخطوط مع إغلاق المساحات، واجبرهم على التسديد من خارج منطقة الجزاء مع الاعتماد على الهجمات المرتدة السريعة. ";
+    } else if (myMetrics.attack > oppMetrics.defense + 1.5) {
+      advice += "🔥 نمتلك تفوقاً هجومياً كاسحاً في هذا اللقاء. اضغط بشراسة على قلوب دفاع الخصم في مناطقهم، وحافظ على الاستحواذ العالي والمستمر حول منطقة جزائهم. ";
+    } else if (myMetrics.stamina > oppMetrics.stamina + 1.5) {
+      advice += "💪 نتفوق بوضوح في اللياقة البدنية والمعدل البدني. اعتمد على مصائد الضغط العالي في الشوط الثاني عندما يبدأ لاعبو خط وسط الخصم في الشعور بالإرهاق. ";
+    } else {
+      advice += "⚖️ المواجهة متكافئة وحساسة تكتيكياً إلى حد كبير. السيطرة على خط الوسط، والفوز بالكرات الثانية، والاستغلال الأمثل للكرات الثابتة والركنيات هو ما سيحسم نتيجة اللقاء. ";
+    }
+    
+    if (formation === '4-3-3') {
+      advice += `تشكيلة 4-3-3 تمنحنا انتشاراً وعرضاً مثالياً للملعب أمام تشكيلة الخصم ${oppFormation}. تأكد من بقاء الأجنحة على الخطوط الجانبية لعزل أظهرة الخصم في مواجهات فردية، مما يسمح للاعبي الوسط بالاختراق من العمق.`;
+    } else if (formation === '4-4-2') {
+      advice += `الاعتماد على تشكيلة 4-4-2 الكلاسيكية أمام ${oppFormation} يتطلب تقارباً عمودياً وتماسكاً بين الخطوط. يجب على المهاجمين تنويع تحركاتهم—أحدهما يسقط للخلف لربط اللعب والآخر يضغط على قلوب الدفاع.`;
+    } else if (formation === '3-5-2') {
+      advice += `تشكيلة 3-5-2 تمنحنا تفوقاً عددياً في عمق خط الوسط أمام ${oppFormation}. يجب على أظهرة الجناح تقديم مجهود بدني مضاعف تغطيةً وهجوماً لمنع أي تفوق للخصم على الأطراف.`;
+    } else if (formation === '4-2-3-1') {
+      advice += `في تشكيلة 4-2-3-1، يعتبر صانع الألعاب (AMF) هو المحور التكتيكي الأهم أمام ${oppFormation}. مرر كرات عمودية كاسرة للخطوط إلى قدميه في المساحة بين خطي وسط ودفاع الخصم.`;
+    } else if (formation === '5-3-2') {
+      advice += `تشكيلة 5-3-2 الصلبة تحيد خطورة هجوم الخصم أمام ${oppFormation}. التزم بالانضباط الدفاعي الصارم مع إرسال كرات قطرية طويلة ومباشرة لثنائي الهجوم فور استرجاع الكرة.`;
+    } else {
+      advice += `حافظ على الانضباط التكتيكي والمركزية في تشكيلة ${formation} مع تقديم الدعم المستمر لحامل الكرة في جميع أرجاء الملعب.`;
+    }
+
+    return advice;
+  };
+
   const adviceA = generateAdvice(metricsA, metricsB, formationA, formationB);
   const adviceB = generateAdvice(metricsB, metricsA, formationB, formationA);
+  const adviceA_Ar = generateAdviceAr(metricsA, metricsB, formationA, formationB);
+  const adviceB_Ar = generateAdviceAr(metricsB, metricsA, formationB, formationA);
 
   return {
     teamA,
@@ -881,7 +922,9 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     tipsAndTactics: {
       teamA: adviceA,
       teamB: adviceB,
-    },
+      teamA_Ar: adviceA_Ar,
+      teamB_Ar: adviceB_Ar,
+    } as any,
     metrics: {
       teamAOverall: metricsA.overall,
       teamBOverall: metricsB.overall,

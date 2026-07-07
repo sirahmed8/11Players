@@ -40,6 +40,44 @@ const POSITIONS: Record<PESPosition, { x: number; y: number }> = {
   CF: { x: 50, y: 10 },
 };
 
+function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick }: { p: AssignedPlayer; actualX: number; top: number; theme: string; onPlayerClick?: (player: AssignedPlayer) => void }) {
+  const [imgError, setImgError] = React.useState(false);
+  const overall = calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || '');
+
+  return (
+    <button
+      onClick={() => onPlayerClick?.(p)}
+      className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group transition-transform hover:scale-110 z-10"
+      style={{ left: `${actualX}%`, top: `${top}%` }}
+    >
+      {/* Player Avatar */}
+      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 overflow-hidden flex items-center justify-center bg-gradient-to-br shadow-lg ${theme}`}>
+        {p.photoUrl && !imgError ? (
+          <Image 
+            src={p.photoUrl} 
+            alt="" 
+            className="w-full h-full object-cover" 
+            width={48} 
+            height={48} 
+            referrerPolicy="no-referrer"
+            onError={() => setImgError(true)}
+          />
+        ) : (
+          <span className="font-bold text-white text-sm">{overall}</span>
+        )}
+      </div>
+      {/* Label */}
+      <div className="mt-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] md:text-xs text-white font-bold whitespace-nowrap border border-white/10 shadow-sm">
+        {p.cardName}
+      </div>
+      {/* Position Badge */}
+      <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black px-1 rounded border border-slate-700 shadow-sm">
+        {p.assignedPosition}
+      </div>
+    </button>
+  );
+}
+
 export default function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick }: MatchPitchDisplayProps) {
   const theme = color === 'blue' ? 'from-blue-600 to-cyan-600 border-blue-400' : 'from-red-600 to-orange-600 border-red-400';
   
@@ -83,33 +121,16 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
 
         // Adjust Y based on reversed
         const top = isReversed ? 100 - basePos.y : basePos.y;
-        
-        const overall = calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || '');
 
         return (
-          <button
+          <PitchPlayerNode
             key={p.uid}
-            onClick={() => onPlayerClick?.(p)}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group transition-transform hover:scale-110 z-10"
-            style={{ left: `${actualX}%`, top: `${top}%` }}
-          >
-            {/* Player Avatar */}
-            <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 overflow-hidden flex items-center justify-center bg-gradient-to-br shadow-lg ${theme}`}>
-              {p.photoUrl ? (
-                <Image src={p.photoUrl} alt="" className="w-full h-full object-cover" width={48} height={48} />
-              ) : (
-                <span className="font-bold text-white text-sm">{overall}</span>
-              )}
-            </div>
-            {/* Label */}
-            <div className="mt-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] md:text-xs text-white font-bold whitespace-nowrap border border-white/10 shadow-sm">
-              {p.cardName}
-            </div>
-            {/* Position Badge */}
-            <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black px-1 rounded border border-slate-700 shadow-sm">
-              {p.assignedPosition}
-            </div>
-          </button>
+            p={p}
+            actualX={actualX}
+            top={top}
+            theme={theme}
+            onPlayerClick={onPlayerClick}
+          />
         );
       })}
     </div>

@@ -1,10 +1,12 @@
 'use client';
 
+import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from './FormIcon';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 interface PlayerCardProps {
   player: PlayerProfile;
@@ -24,15 +26,14 @@ function calculateMainStats(attrs?: PlayerProfile['attributes']) {
     { label: 'PAC', value: Math.round(((a.speed || 40) + (a.acceleration || 40)) / 2) },
     { label: 'SHO', value: Math.round(((a.finishing || 40) + (a.kickingPower || 40) + (a.offensiveAwareness || 40)) / 3) },
     { label: 'PAS', value: Math.round(((a.lowPass || 40) + (a.loftedPass || 40)) / 2) },
-    { label: 'DRI', value: Math.round(((a.dribbling || 40) + (a.ballControl || 40) + (a.balance || 40)) / 3) },
-    { label: 'DEF', value: Math.round(((a.defensiveAwareness || 40) + (a.ballWinning || 40) + (a.heading || 40)) / 3) },
+    { label: 'DRI', value: Math.round(((a.dribbling || 40) + (a.ballControl || 40) + (a.tightPossession || 40) + (a.balance || 40)) / 4) },
+    { label: 'DEF', value: Math.round(((a.defensiveAwareness || 40) + (a.ballWinning || 40) + (a.aggression || 40)) / 3) },
     { label: 'PHY', value: Math.round(((a.physicalContact || 40) + (a.stamina || 40) + (a.jump || 40)) / 3) },
   ];
 }
 
-import { calculateRealisticOverall } from '@/lib/overallCalculator';
-
-function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
+function formatFoot(foot?: PlayerProfile['preferredFoot']): string {
+  if (!foot) return 'Right Foot';
   switch (foot) {
     case 'Right':
       return 'Right Foot';
@@ -40,12 +41,15 @@ function getFootIndicator(foot: PlayerProfile['preferredFoot']): string {
       return 'Left Foot';
     case 'Ambidextrous':
       return 'Ambidextrous';
+    default:
+      return String(foot || 'Right Foot');
   }
 }
 
 export default function PlayerCard({ player }: PlayerCardProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
+  const [imgError, setImgError] = useState(false);
 
   const CardWrapper = player.uid === 'preview' ? 'div' : Link;
   const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
@@ -66,13 +70,15 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
           {/* Player Photo */}
           <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
-            {player.photoUrl ? (
+            {player.photoUrl && !imgError ? (
               <Image
                 src={player.photoUrl}
                 alt=""
                 className="w-full h-full object-cover"
                 width={96}
                 height={96}
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
               />
             ) : (
               <span className="text-amber-500 font-bold text-3xl opacity-50">?</span>

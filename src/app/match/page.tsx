@@ -176,7 +176,7 @@ export default function MatchPage() {
                     <div className="mb-8 p-5 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
                       <p className="text-blue-900 dark:text-blue-200 font-medium leading-relaxed">
                         <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">💡 {isAr ? 'التكتيك:' : 'Tactics:'}</span> 
-                        {matchData.tipsAndTactics.teamA}
+                        {(isAr && (matchData.tipsAndTactics as any).teamA_Ar) ? (matchData.tipsAndTactics as any).teamA_Ar : matchData.tipsAndTactics.teamA}
                       </p>
                     </div>
                   )}
@@ -231,7 +231,7 @@ export default function MatchPage() {
                     <div className="mb-8 p-5 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl">
                       <p className="text-red-900 dark:text-red-200 font-medium leading-relaxed">
                         <span className="font-bold text-red-600 dark:text-red-400 mr-2">💡 {isAr ? 'التكتيك:' : 'Tactics:'}</span> 
-                        {matchData.tipsAndTactics.teamB}
+                        {(isAr && (matchData.tipsAndTactics as any).teamB_Ar) ? (matchData.tipsAndTactics as any).teamB_Ar : matchData.tipsAndTactics.teamB}
                       </p>
                     </div>
                   )}
@@ -241,7 +241,7 @@ export default function MatchPage() {
                     team={matchData.teamB || []} 
                     teamName="Team B" 
                     color="red" 
-                    isReversed={true}
+                    isReversed={false}
                     onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
                   />
 

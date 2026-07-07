@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -14,6 +15,7 @@ interface PlayerCardCompactProps {
 export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
+  const [imgError, setImgError] = useState(false);
 
   return (
     <Link href={`/profile?uid=${player.uid}`} className="block w-full">
@@ -31,8 +33,16 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
 
         {/* Photo */}
         <div className="w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
-          {player.photoUrl ? (
-            <Image src={player.photoUrl} alt="" className="w-full h-full object-cover" width={56} height={56} />
+          {player.photoUrl && !imgError ? (
+            <Image 
+              src={player.photoUrl} 
+              alt="" 
+              className="w-full h-full object-cover" 
+              width={56} 
+              height={56} 
+              referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-emerald-600/50 dark:text-emerald-400/50 font-bold text-xl">
               {player.cardName.charAt(0).toUpperCase()}

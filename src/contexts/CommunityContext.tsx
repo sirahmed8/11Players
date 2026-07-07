@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community, CommunitySettings } from "@/types";
@@ -28,14 +28,16 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   const [hasReadStorage, setHasReadStorage] = useState(true);
 
-  const setActiveCommunityId = (id: string | null) => {
+  const setActiveCommunityId = useCallback((id: string | null) => {
     setActiveCommunityIdState(id);
-    if (id) {
-      localStorage.setItem("activeCommunityId", id);
-    } else {
-      localStorage.removeItem("activeCommunityId");
+    if (typeof window !== "undefined") {
+      if (id) {
+        localStorage.setItem("activeCommunityId", id);
+      } else {
+        localStorage.removeItem("activeCommunityId");
+      }
     }
-  };
+  }, []);
 
   // Sync active community data from Firestore
   useEffect(() => {

@@ -51,7 +51,7 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
               <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 rounded-xl">
                 <p className="text-blue-800 dark:text-blue-200 font-medium leading-relaxed">
                   <span className="font-bold text-blue-600 dark:text-blue-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
-                  {result.tipsAndTactics.teamA}
+                  {(locale === 'ar' && result.tipsAndTactics.teamA_Ar) ? result.tipsAndTactics.teamA_Ar : result.tipsAndTactics.teamA}
                 </p>
               </div>
             )}
@@ -89,7 +89,7 @@ export default function MatchmakingModal({ result, onClose }: { result: any, onC
               <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl">
                 <p className="text-red-800 dark:text-red-200 font-medium leading-relaxed">
                   <span className="font-bold text-red-600 dark:text-red-400 mr-2">💡 {t(locale, 'Tactics:', 'التكتيك:')}</span> 
-                  {result.tipsAndTactics.teamB}
+                  {(locale === 'ar' && result.tipsAndTactics.teamB_Ar) ? result.tipsAndTactics.teamB_Ar : result.tipsAndTactics.teamB}
                 </p>
               </div>
             )}
