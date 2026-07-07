@@ -5,10 +5,10 @@ import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale } from "@/components/ThemeProvider";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
-import { Send, Loader2, Image as ImageIcon, X, MessageSquare, Sparkles, ArrowLeft } from "lucide-react";
+import { Send, Loader2, Image as ImageIcon, X, MessageSquare, Sparkles, ArrowLeft, ShieldCheck, CheckCheck, Headphones, LifeBuoy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
@@ -46,10 +46,12 @@ export default function SupportPage() {
     setDoc(threadRef, {
       id: user.uid,
       userName: user.displayName || "Unknown User",
-      userPic: user.photoURL || "",
-      lastMessage: "Started a conversation...",
+      userPic: user.photoURL || "/logo.jpg",
       lastUpdatedAt: serverTimestamp(),
     }, { merge: true }).catch(console.error);
+
+    // Clear unread badge for user when opening
+    updateDoc(threadRef, { unreadForUser: false }).catch(() => {});
 
     const q = query(
       collection(db, "support_threads", user.uid, "messages"),
@@ -60,7 +62,6 @@ export default function SupportPage() {
       const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() } as ChatMessage));
       
       setMessages(prev => {
-        // Check for new messages if we already have some loaded
         if (prev.length > 0 && msgs.length > prev.length) {
           const newMsg = msgs[msgs.length - 1];
           if (newMsg.senderUid !== user.uid) {
@@ -72,7 +73,7 @@ export default function SupportPage() {
                 <img className="h-11 w-11 rounded-full object-cover border border-slate-200 dark:border-slate-700" src={newMsg.senderPic || "/logo.jpg"} alt="" />
                 <div className="flex-1 w-0">
                   <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-                    <span>💬 {newMsg.senderName || (isAr ? 'الدعم الفني' : 'Support')}</span>
+                    <span>💬 {newMsg.senderName || (isAr ? 'الدعم الفني' : '11Players Support')}</span>
                   </p>
                   <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
                     {newMsg.text || (isAr ? 'أرسل صورة' : 'Sent an image')}
@@ -92,7 +93,7 @@ export default function SupportPage() {
     });
 
     return () => unsub();
-  }, [user]);
+  }, [user, isAr]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,16 +120,18 @@ export default function SupportPage() {
       await setDoc(threadRef, {
         id: user.uid,
         userName: user.displayName || "User",
-        userPic: user.photoURL || "",
-        lastMessage: imageUrl ? (isAr ? "صورة" : "Image") : currentText,
+        userPic: user.photoURL || "/logo.jpg",
+        lastMessage: imageUrl ? (isAr ? "📷 صورة" : "📷 Image") : currentText,
         lastUpdatedAt: serverTimestamp(),
-        unreadCount: 1 // for the admin to read
+        unreadCount: 1, // for the admin to read
+        unreadForAdmin: true,
+        unreadForUser: false
       }, { merge: true });
 
       await addDoc(collection(threadRef, "messages"), {
         senderUid: user.uid,
         senderName: user.displayName || "User",
-        senderPic: user.photoURL || "",
+        senderPic: user.photoURL || "/logo.jpg",
         text: currentText,
         ...(imageUrl ? { imageUrl } : {}),
         timestamp: serverTimestamp(),
@@ -150,117 +153,177 @@ export default function SupportPage() {
     }
   };
 
+  const formatTime = (ts: any) => {
+    if (!ts) return "";
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pt-24 pb-12" dir={isAr ? "rtl" : "ltr"}>
-        <main className="max-w-3xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
-          <div className="bg-white dark:bg-slate-800 rounded-t-2xl p-6 border-b border-slate-200 dark:border-slate-700 shadow-sm flex items-center gap-3">
-            <button onClick={() => router.back()} className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-black text-emerald-500">{isAr ? "الدعم الفني" : "Support"}</h1>
-              <p className="text-sm text-slate-600 dark:text-slate-400">{isAr ? "تحدث مع المالك أو المشرفين مباشرة." : "Chat directly with the platform owner and moderators."}</p>
-            </div>
-          </div>
-
-          <div 
-            ref={scrollRef}
-            className="flex-1 bg-white dark:bg-slate-800 p-6 overflow-y-auto flex flex-col gap-4 shadow-sm"
-          >
-            {loading ? (
-              <div className="flex-1 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-              </div>
-            ) : messages.length === 0 ? (
-              <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-                <div className="w-24 h-24 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-6 shadow-sm border border-emerald-100 dark:border-emerald-800/30">
-                  <MessageSquare className="w-12 h-12 text-emerald-500" />
-                </div>
-                <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">
-                  {isAr ? "كيف يمكننا مساعدتك؟" : "How can we help you?"}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 max-w-sm mb-8 leading-relaxed">
-                  {isAr 
-                    ? "نحن هنا للإجابة على استفساراتك ومساعدتك في أي مشكلة تواجهها في المنصة."
-                    : "We are here to answer your questions and help you with any issues on the platform."}
-                </p>
-                
-                <button 
-                  onClick={() => setText(isAr ? "اريد ان انشئ المجتمع الخاص بي" : "I want to create my community")}
-                  className="bg-white dark:bg-slate-800 border-2 border-emerald-500 text-emerald-600 dark:text-emerald-400 font-bold py-3 px-6 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors shadow-sm flex items-center gap-2"
-                >
-                  <Sparkles className="w-5 h-5" />
-                  {isAr ? "اريد ان انشئ المجتمع الخاص بي" : "I want to create my community"}
+      <div className="min-h-screen bg-gradient-to-br from-slate-100 via-slate-50 to-slate-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 text-slate-900 dark:text-white pt-24 pb-12" dir={isAr ? "rtl" : "ltr"}>
+        <main className="max-w-4xl mx-auto px-2 md:px-6 h-[calc(100vh-120px)] flex flex-col">
+          
+          {/* Glassmorphic Support Chat Card */}
+          <div className="w-full h-full flex flex-col bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl rounded-3xl shadow-2xl border border-slate-200/80 dark:border-slate-800/80 overflow-hidden">
+            
+            {/* Header */}
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-6 py-4 border-b border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between z-20 shadow-sm">
+              <div className="flex items-center gap-3.5">
+                <button onClick={() => router.back()} className="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
+                  <ArrowLeft className="w-5 h-5" />
                 </button>
-              </div>
-            ) : (
-              messages.map(msg => {
-                const isMe = msg.senderUid === user?.uid;
-                return (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    key={msg.id} 
-                    className={`flex items-end gap-2 max-w-[80%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
-                  >
-                    {!isMe && msg.senderPic && (
-                      <Image src={msg.senderPic} alt="" className="w-8 h-8 rounded-full flex-shrink-0" width={32} height={32} />
-                    )}
-                    <div className={`px-4 py-2 rounded-2xl relative z-10 text-sm shadow-sm flex flex-col gap-2 ${
-                      isMe 
-                        ? 'bg-emerald-500 text-white rounded-br-sm' 
-                        : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white rounded-bl-sm border border-slate-200 dark:border-slate-600'
-                    }`}>
-                      {msg.imageUrl && (
-                        <div className="w-full max-w-sm rounded-xl overflow-hidden cursor-pointer" onClick={() => window.open(msg.imageUrl, '_blank')}>
-                          <Image src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover" width={400} height={400} />
-                        </div>
-                      )}
-                      {msg.text && <p>{msg.text}</p>}
-                    </div>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
-
-          <div className="bg-white dark:bg-slate-800 p-4 rounded-b-2xl shadow-sm border-t border-slate-200 dark:border-slate-700">
-            <form onSubmit={handleSend} className="flex gap-2 items-end">
-              <div className="flex-1 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500 transition-all p-2 flex flex-col">
                 
-                {imageFile && (
-                  <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
-                    <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" width={64} height={64} unoptimized />
-                    <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
-                      <X className="w-3 h-3" />
-                    </button>
+                <div className="relative">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+                    <Headphones className="w-6 h-6" />
                   </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-full transition-colors">
-                    <ImageIcon className="w-5 h-5" />
-                  </button>
-                  <input 
-                    type="text" 
-                    value={text}
-                    onChange={e => setText(e.target.value)}
-                    placeholder={isAr ? "اكتب رسالتك..." : "Type your message..."}
-                    disabled={uploadingImage}
-                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm p-1 disabled:opacity-50"
-                  />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h1 className="font-black text-lg text-slate-900 dark:text-white leading-tight">
+                      {isAr ? "الدعم الفني المباشر" : "11Players Official Support"}
+                    </h1>
+                    <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[10px] font-extrabold tracking-wide">
+                      {isAr ? "متصل 24/7" : "ONLINE"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                    {isAr ? "تواصل مع المالك وفريق الإشراف لحل أي استفسار بسرعة وسرية" : "Direct chat with Founders & Moderators for instant assistance"}
+                  </p>
                 </div>
               </div>
-              <button 
-                type="submit"
-                disabled={(!text.trim() && !imageFile) || uploadingImage}
-                className="px-4 py-4 h-14 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center flex-shrink-0"
-              >
-                {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
-            </form>
+
+              <div className="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{isAr ? "محادثة مشفرة" : "Verified Desk"}</span>
+              </div>
+            </div>
+
+            {/* Chat Area */}
+            <div 
+              ref={scrollRef}
+              className="flex-1 bg-gradient-to-b from-slate-50/40 via-slate-100/20 to-slate-50/40 dark:from-slate-950/60 dark:via-slate-900/40 dark:to-slate-950/60 p-4 md:p-6 overflow-y-auto flex flex-col gap-3.5"
+            >
+              {loading ? (
+                <div className="flex-1 flex flex-col items-center justify-center gap-3">
+                  <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                  <span className="text-xs font-bold text-slate-400">{isAr ? "جاري الاتصال بالدعم..." : "Connecting to support desk..."}</span>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex-1 flex flex-col items-center justify-center text-center px-4 my-auto py-8">
+                  <motion.div 
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="w-20 h-20 bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 rounded-3xl flex items-center justify-center mb-5 border border-emerald-500/30 shadow-lg ring-8 ring-emerald-500/5 animate-pulse"
+                  >
+                    <LifeBuoy className="w-10 h-10 text-emerald-500" />
+                  </motion.div>
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-white mb-2">
+                    {isAr ? "مرحباً بك في الدعم الفني لـ 11Players" : "Welcome to 11Players Help Desk"}
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 max-w-md mb-8 leading-relaxed">
+                    {isAr 
+                      ? "نحن هنا لمساعدتك في إنشاء مجتمعك الخاص، إدارة حسابك، أو الرد على أي استفسار يخص المباريات والتقييمات."
+                      : "We are here to assist you with setting up your community, managing your account, or resolving any platform questions."}
+                  </p>
+                  
+                  <motion.button 
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setText(isAr ? "أريد إنشاء المجتمع الخاص بي والدخول كمسؤول" : "I want to create my own community and become a host")}
+                    className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all flex items-center gap-2.5 text-xs md:text-sm"
+                  >
+                    <Sparkles className="w-4 h-4 animate-spin" style={{ animationDuration: '3s' }} />
+                    {isAr ? "أريد إنشاء المجتمع الخاص بي" : "I want to create my community"}
+                  </motion.button>
+                </div>
+              ) : (
+                messages.map((msg, idx) => {
+                  const isMe = msg.senderUid === user?.uid;
+                  return (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      key={msg.id || idx} 
+                      className={`flex items-end gap-2.5 max-w-[85%] md:max-w-[70%] ${isMe ? 'self-end flex-row-reverse' : 'self-start'}`}
+                    >
+                      {!isMe && (
+                        <Image 
+                          src={msg.senderPic || "/logo.jpg"} 
+                          alt="" 
+                          className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700 self-end mb-1 flex-shrink-0 shadow-sm" 
+                          width={32} 
+                          height={32} 
+                        />
+                      )}
+                      <div className={`px-4 py-3 rounded-3xl relative text-sm shadow-md flex flex-col gap-2 ${
+                        isMe 
+                          ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white rounded-br-xs shadow-emerald-500/15' 
+                          : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-xs border border-slate-200/80 dark:border-slate-700/80 shadow-sm'
+                      }`}>
+                        {msg.imageUrl && (
+                          <div className="w-full max-w-sm rounded-2xl overflow-hidden cursor-pointer shadow-sm border border-black/10" onClick={() => window.open(msg.imageUrl, '_blank')}>
+                            <Image src={msg.imageUrl} alt="Uploaded" className="w-full h-auto object-cover hover:scale-105 transition-transform duration-300" width={400} height={400} />
+                          </div>
+                        )}
+                        {msg.text && <p className="leading-relaxed break-words font-medium">{msg.text}</p>}
+                        
+                        <div className={`text-[10px] flex items-center justify-end gap-1 mt-0.5 ${isMe ? 'text-emerald-100/80' : 'text-slate-400'}`}>
+                          <span>{formatTime(msg.timestamp)}</span>
+                          {isMe && <CheckCheck className="w-3.5 h-3.5 text-emerald-200 inline" />}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Input Bar */}
+            <div className="p-3 md:p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl border-t border-slate-200/80 dark:border-slate-800/80 z-20">
+              <form onSubmit={handleSend} className="flex gap-2.5 items-end">
+                <div className="flex-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 focus-within:ring-2 focus-within:ring-emerald-500/50 focus-within:border-emerald-500 transition-all p-2 flex flex-col shadow-inner">
+                  
+                  {imageFile && (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-900 rounded-2xl relative self-start shadow-md border border-slate-200 dark:border-slate-700">
+                      <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-xl" width={64} height={64} unoptimized />
+                      <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1.5 shadow-lg hover:bg-red-600 transition-transform hover:scale-110">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </motion.div>
+                  )}
+                  
+                  <div className="flex items-center gap-2 px-2">
+                    <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-full transition-all">
+                      <ImageIcon className="w-5 h-5" />
+                    </button>
+                    <input 
+                      type="text" 
+                      value={text}
+                      onChange={e => setText(e.target.value)}
+                      placeholder={isAr ? "اكتب رسالتك للدعم الفني..." : "Type your message to support..."}
+                      disabled={uploadingImage}
+                      className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm py-1.5 px-1 font-medium disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="submit"
+                  disabled={(!text.trim() && !imageFile) || uploadingImage}
+                  className="w-12 h-12 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 disabled:opacity-40 text-white shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center flex-shrink-0"
+                >
+                  {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                </motion.button>
+              </form>
+            </div>
+
           </div>
         </main>
       </div>

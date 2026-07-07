@@ -117,7 +117,8 @@ function PlayerProfileContent() {
       doc(db, "players", effectiveUid),
       async (snap) => {
         if (snap.exists()) {
-          setPlayer({ uid: snap.id, ...snap.data() } as PlayerProfile);
+          const d = snap.data();
+          setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
           setLoading(false);
         } else if (user?.email && user?.uid === effectiveUid) {
           try {
@@ -126,7 +127,7 @@ function PlayerProfileContent() {
             if (!querySnap.empty) {
               const existingData = querySnap.docs[0].data();
               await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
-              setPlayer({ uid: effectiveUid, ...existingData } as PlayerProfile);
+              setPlayer({ uid: effectiveUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
               setLoading(false);
               return;
             }
@@ -347,13 +348,16 @@ function PlayerProfileContent() {
               🏆 {isAr ? "خزانة البطولات والجوائز" : "Trophy Cabinet"}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {player.trophies.map((trophy, i) => (
-                <div key={i} className="bg-gradient-to-br from-amber-50 dark:from-amber-500/10 to-amber-100/50 dark:to-amber-600/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform shadow-sm dark:shadow-none">
-                  <div className="text-3xl mb-2">{trophy.name.split(' ')[1] || '🏆'}</div>
-                  <div className="font-black text-amber-600 dark:text-amber-500 text-sm">{trophy.name.split(' ')[0]}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{trophy.season}</div>
-                </div>
-              ))}
+              {player.trophies.map((trophy, i) => {
+                const tName = trophy?.name || '🏆 Trophy';
+                return (
+                  <div key={i} className="bg-gradient-to-br from-amber-50 dark:from-amber-500/10 to-amber-100/50 dark:to-amber-600/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform shadow-sm dark:shadow-none">
+                    <div className="text-3xl mb-2">{tName.split(' ')[1] || '🏆'}</div>
+                    <div className="font-black text-amber-600 dark:text-amber-500 text-sm">{tName.split(' ')[0]}</div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{trophy?.season || ''}</div>
+                  </div>
+                );
+              })}
             </div>
           </motion.section>
         )}
@@ -373,7 +377,7 @@ function PlayerProfileContent() {
                 key={attr.key}
                 label={attr.label}
                 value={
-                  player.attributes[
+                  player.attributes?.[
                     attr.key as keyof typeof player.attributes
                   ] || 0
                 }
@@ -394,9 +398,9 @@ function PlayerProfileContent() {
             </h3>
             <div className="flex flex-wrap gap-2">
               {player.specialSkills.map((skillId, i) => {
-                // Find skill label or default to formatted ID
-                let label = skillId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                const skillInfo = SKILLS.find(s => s.id === skillId);
+                const sId = skillId || '';
+                let label = sId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const skillInfo = SKILLS.find(s => s.id === sId);
                 if (skillInfo) {
                   label = isAr ? skillInfo.labelAr : skillInfo.label;
                 }

@@ -81,11 +81,12 @@ export function getPlayerPositionRatings(player: {
   height?: number;
   weight?: number;
 }) {
-  const activeAttributes = player.approvedAttributes || player.attributes;
-  const primaryRating = calculateRealisticOverall(activeAttributes, player.primaryPosition, player.playStyle || '', player.height, player.weight);
+  const activeAttributes = player?.approvedAttributes || player?.attributes || ({} as any);
+  const primaryPos = player?.primaryPosition || 'CMF';
+  const primaryRating = calculateRealisticOverall(activeAttributes, primaryPos, player?.playStyle || '', player?.height, player?.weight);
   
   const ratings = [
-    { position: player.primaryPosition, rating: primaryRating, tier: 0 }
+    { position: primaryPos, rating: primaryRating, tier: 0 }
   ];
 
   if (player.secondaryPosition) {

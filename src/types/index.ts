@@ -45,6 +45,8 @@ export interface SupportThread {
   lastMessage: string;
   lastUpdatedAt: any;
   unreadCount: number;
+  unreadForAdmin?: boolean;
+  unreadForUser?: boolean;
 }
 
 export interface CommunityStats {

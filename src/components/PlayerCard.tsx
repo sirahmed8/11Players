@@ -18,14 +18,15 @@ function getAttributeColor(value: number): string {
   return 'text-red-400';
 }
 
-function calculateMainStats(attrs: PlayerProfile['attributes']) {
+function calculateMainStats(attrs?: PlayerProfile['attributes']) {
+  const a = attrs || ({} as any);
   return [
-    { label: 'PAC', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
-    { label: 'SHO', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
-    { label: 'PAS', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
-    { label: 'DRI', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
-    { label: 'DEF', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
-    { label: 'PHY', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
+    { label: 'PAC', value: Math.round(((a.speed || 40) + (a.acceleration || 40)) / 2) },
+    { label: 'SHO', value: Math.round(((a.finishing || 40) + (a.kickingPower || 40) + (a.offensiveAwareness || 40)) / 3) },
+    { label: 'PAS', value: Math.round(((a.lowPass || 40) + (a.loftedPass || 40)) / 2) },
+    { label: 'DRI', value: Math.round(((a.dribbling || 40) + (a.ballControl || 40) + (a.balance || 40)) / 3) },
+    { label: 'DEF', value: Math.round(((a.defensiveAwareness || 40) + (a.ballWinning || 40) + (a.heading || 40)) / 3) },
+    { label: 'PHY', value: Math.round(((a.physicalContact || 40) + (a.stamina || 40) + (a.jump || 40)) / 3) },
   ];
 }
 
@@ -86,7 +87,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           {/* Card Name + Form */}
           <div className="mt-1 flex items-center justify-center gap-1 w-full">
             <h3 className="text-base font-bold text-white tracking-wide truncate">
-              {player.cardName}
+              {player.cardName || player.fullName || 'PLAYER'}
             </h3>
             {player.form && (
               <div title="Current Form" className="bg-slate-900/40 rounded-full p-0.5">
@@ -97,15 +98,15 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
           {/* Physical Info & Play Style */}
           <div className="flex gap-2 text-[10px] text-amber-100/80 mt-1 uppercase font-semibold">
-            <span>{player.height} cm</span>
+            <span>{player.height || 175} cm</span>
             <span>•</span>
-            <span>{player.weight} kg</span>
+            <span>{player.weight || 70} kg</span>
             <span>•</span>
-            <span>{player.calculatedAge} y.o</span>
+            <span>{player.calculatedAge || 20} y.o</span>
             {player.playStyle && (
               <>
                 <span>•</span>
-                <span className="text-amber-300 font-bold">{player.playStyle.replace(/_/g, ' ').trim()}</span>
+                <span className="text-amber-300 font-bold">{(player.playStyle || '').replace(/_/g, ' ').trim()}</span>
               </>
             )}
           </div>
@@ -115,7 +116,7 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         <div className="flex flex-col items-center gap-1 pb-2">
           {/* Primary Position */}
           <span className="bg-amber-900/60 text-amber-100 text-sm font-bold px-3 py-0.5 rounded-md tracking-wider shadow">
-            {player.primaryPosition}
+            {player.primaryPosition || 'CMF'}
           </span>
 
           {/* Secondary + Tertiary */}
@@ -154,10 +155,10 @@ export default function PlayerCard({ player }: PlayerCardProps) {
         {/* --- Stats Footer --- */}
         <div className="grid grid-cols-4 border-t border-amber-400/30 text-center py-2 px-1">
           {[
-            { label: 'G', value: player.stats.goals },
-            { label: 'A', value: player.stats.assists },
-            { label: 'MVP', value: player.stats.mvp },
-            { label: 'MP', value: player.stats.matchesPlayed },
+            { label: 'G', value: player.stats?.goals || 0 },
+            { label: 'A', value: player.stats?.assists || 0 },
+            { label: 'MVP', value: player.stats?.mvp || 0 },
+            { label: 'MP', value: player.stats?.matchesPlayed || 0 },
           ].map((stat) => (
             <div key={stat.label} className="flex flex-col items-center">
               <span className="text-[10px] text-amber-300/60 font-medium uppercase">
