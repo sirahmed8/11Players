@@ -82,7 +82,9 @@ export default function AdminPage() {
 
       const result = balanceTeams(availablePlayers);
 
+      const matchId = `match_${Date.now()}`;
       const matchData = {
+        id: matchId,
         success: true,
         teamA: result.teamA,
         teamB: result.teamB,
@@ -98,7 +100,6 @@ export default function AdminPage() {
       try {
         await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), matchData);
         // Also save a historical record
-        const matchId = `match_${Date.now()}`;
         await setDoc(doc(db, "communities", activeCommunityId, "matches", matchId), matchData);
         
         toast.success(isAr ? "تم إنشاء المباراة ونقلها لصفحة التشكيلة بنجاح!" : "Match generated successfully! Redirecting to match page...");

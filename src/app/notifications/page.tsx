@@ -38,11 +38,6 @@ export default function NotificationsPage() {
   useEffect(() => {
     if (!user) return;
     
-    // Request notification permission for Web Notifications API
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
     // Fetch user profile and generate advice
     import("firebase/firestore").then(({ doc, getDoc }) => {
       getDoc(doc(db, "players", user.uid)).then(snap => {
@@ -60,16 +55,30 @@ export default function NotificationsPage() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserNotification));
       
-      // Check for new unread notifications and trigger Web Notification API
+      // Check for new unread notifications and trigger UI Site Notification
       if (snapshot.docChanges().length > 0) {
         snapshot.docChanges().forEach(change => {
           if (change.type === "added") {
             const data = change.doc.data();
-            if (!data.read && 'Notification' in window && Notification.permission === 'granted') {
-              new Notification(data.title, {
-                body: data.body,
-                icon: '/logo.jpg',
-              });
+            if (!data.read) {
+              toast.custom((t) => (
+                <div
+                  onClick={() => toast.dismiss(t.id)}
+                  className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/30 hover:scale-[1.02] transition-all"
+                >
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold shrink-0">
+                    🔔
+                  </div>
+                  <div className="flex-1 w-0">
+                    <p className="text-sm font-black text-slate-900 dark:text-white truncate">
+                      {data.title}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 line-clamp-2 font-medium">
+                      {data.body}
+                    </p>
+                  </div>
+                </div>
+              ), { duration: 5000, position: 'top-center' });
             }
           }
         });

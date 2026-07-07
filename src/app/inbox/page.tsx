@@ -57,11 +57,23 @@ export default function InboxPage() {
       setMessages(prev => {
         if (prev.length > 0 && msgs.length > prev.length) {
           const newMsg = msgs[msgs.length - 1];
-          if (newMsg.senderUid !== user?.uid && Notification.permission === "granted" && document.hidden) {
-            new Notification("New Support Message", {
-              body: newMsg.text || "Sent an image",
-              icon: "/logo.jpg"
-            });
+          if (newMsg.senderUid !== user?.uid) {
+            toast.custom((t) => (
+              <div
+                onClick={() => toast.dismiss(t.id)}
+                className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/30 hover:scale-[1.02] transition-all"
+              >
+                <img className="h-11 w-11 rounded-full object-cover border border-slate-200 dark:border-slate-700" src={newMsg.senderPic || "/logo.jpg"} alt="" />
+                <div className="flex-1 w-0">
+                  <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>💬 {newMsg.senderName || (isAr ? 'مستخدم' : 'User')}</span>
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
+                    {newMsg.text || (isAr ? 'أرسل صورة' : 'Sent an image')}
+                  </p>
+                </div>
+              </div>
+            ), { duration: 5000, position: 'top-center' });
           }
         }
         return msgs;
@@ -72,10 +84,6 @@ export default function InboxPage() {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }, 100);
     });
-
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
 
     return () => unsub();
   }, [activeThreadId, user?.uid]);

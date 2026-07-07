@@ -106,10 +106,10 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
       }
 
       if (activeCommunityId) {
-        if (matchData.id && matchData.id !== "latest") {
-          const historyRef = doc(db, "communities", activeCommunityId, "matches", matchData.id);
-          batch.set(historyRef, { status: "finished", finishedAt: new Date().toISOString(), recordedStats: stats }, { merge: true });
-        }
+        const targetMatchId = (matchData.id && matchData.id !== "latest") ? matchData.id : `match_${Date.now()}`;
+        const historyRef = doc(db, "communities", activeCommunityId, "matches", targetMatchId);
+        batch.set(historyRef, { ...matchData, id: targetMatchId, status: "finished", finishedAt: new Date().toISOString(), recordedStats: stats }, { merge: true });
+        
         const latestMatchRef = doc(db, "communities", activeCommunityId, "matches", "latest");
         batch.delete(latestMatchRef);
       }

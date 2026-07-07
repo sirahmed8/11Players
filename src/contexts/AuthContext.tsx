@@ -96,21 +96,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!user) return;
     
     const syncCommunity = async () => {
-      const userRef = doc(db, "users", user.uid);
+      const playerRef = doc(db, "players", user.uid);
       
       if (activeCommunityId) {
         // Save to Firestore
         try {
-          await setDoc(userRef, { lastCommunityId: activeCommunityId }, { merge: true });
+          await setDoc(playerRef, { lastCommunityId: activeCommunityId, activeCommunityId }, { merge: true });
         } catch (e) {
           console.error("Failed to save lastCommunityId:", e);
         }
       } else {
         // Load from Firestore if missing
         try {
-          const snap = await getDoc(userRef);
-          if (snap.exists() && snap.data().lastCommunityId) {
-            setActiveCommunityId(snap.data().lastCommunityId);
+          const snap = await getDoc(playerRef);
+          if (snap.exists()) {
+            const data = snap.data();
+            const commToSet = data.lastCommunityId || data.activeCommunityId || (data.memberCommunities && data.memberCommunities[0]) || (data.joinedCommunities && data.joinedCommunities[0]);
+            if (commToSet) {
+              setActiveCommunityId(commToSet);
+            }
           }
         } catch (e) {
           console.error("Failed to load lastCommunityId:", e);

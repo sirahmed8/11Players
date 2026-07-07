@@ -17,8 +17,11 @@ service cloud.firestore {
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if isAdmin() || (
         request.auth != null && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'overallRating', 'lastCommunityId', 'activeCommunityId', 'googlePic', 'googleName', 'email', 'fullName'])
+      ) || (
+        request.auth != null && 
         request.auth.uid == userId && 
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'stats', 'isMockData']))
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData']))
       );
       allow delete: if isAdmin();
     }
@@ -44,7 +47,7 @@ service cloud.firestore {
 
       match /players/{userId} {
         allow read: if true;
-        allow write: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid);
+        allow write: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid) || (request.auth != null && request.auth.uid == userId);
       }
       
       match /requests/{requestId} {

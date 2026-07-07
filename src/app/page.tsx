@@ -250,7 +250,11 @@ export default function Home() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-5 rounded-2xl border border-slate-300 dark:border-slate-800 shadow-2xl z-50 flex flex-col gap-3.5 transition-colors duration-300"
+            className={`fixed bottom-4 left-4 right-4 md:left-auto md:max-w-md p-5 rounded-2xl border shadow-2xl z-50 flex flex-col gap-3.5 transition-colors duration-300 ${
+              theme === "light"
+                ? "bg-white text-slate-900 border-slate-300 shadow-slate-200/60"
+                : "bg-slate-900 text-white border-slate-800 shadow-black/60"
+            }`}
           >
             <p className="text-sm font-medium leading-relaxed">
               {t("privacy_banner")}

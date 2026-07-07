@@ -12,6 +12,7 @@ import type { PlayerProfile, PESPosition, PlayerAttributes, CommunityStats } fro
 import BackgroundRemover from '@/components/BackgroundRemover';
 import AttributeSliders from '@/components/AttributeSliders';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { ChevronDown } from 'lucide-react';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -28,6 +29,74 @@ const ATTRIBUTES_KEYS: (keyof PlayerAttributes)[] = [
   'speed', 'acceleration', 'kickingPower', 'jump', 'physicalContact', 'balance', 'stamina',
   'defensiveAwareness', 'ballWinning', 'goalkeeping'
 ];
+
+const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }: { 
+  value: string | number; 
+  options: { value: string | number; label: string }[]; 
+  placeholder: string; 
+  onChange: (v: string) => void;
+  dropUp?: boolean;
+}) => {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const ref = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedLabel = options.find(o => String(o.value) === String(value))?.label || placeholder;
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all duration-300 flex items-center justify-between gap-2 shadow-sm ${
+          isOpen
+            ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 ring-2 ring-emerald-500/30'
+            : value
+              ? 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white hover:border-slate-300 dark:hover:border-slate-600'
+              : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'
+        }`}
+      >
+        <span className="truncate">{selectedLabel}</span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ${isOpen ? 'rotate-180 text-emerald-500' : ''}`} />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scaleY: 0.8, y: dropUp ? 4 : -4 }}
+            animate={{ opacity: 1, scaleY: 1, y: 0 }}
+            exit={{ opacity: 0, scaleY: 0.8, y: dropUp ? 4 : -4 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            style={{ transformOrigin: dropUp ? 'bottom' : 'top' }}
+            className={`absolute z-[100] ${dropUp ? 'bottom-full mb-1.5' : 'mt-1.5'} w-full max-h-48 overflow-y-auto rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-black/10 dark:shadow-black/40 custom-scrollbar p-1.5 space-y-0.5`}
+          >
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => { onChange(String(opt.value)); setIsOpen(false); }}
+                className={`w-full px-3 py-2 text-sm rounded-lg text-start transition-all duration-150 flex items-center justify-between ${
+                  String(opt.value) === String(value)
+                    ? 'bg-emerald-500 text-white font-bold shadow-sm'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/60 font-medium'
+                }`}
+              >
+                <span className="truncate">{opt.label}</span>
+                {String(opt.value) === String(value) && <span>✓</span>}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
   const { locale } = useLocale();
@@ -195,7 +264,35 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label>
-                  <input type="date" value={formData.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 [color-scheme:light] dark:[color-scheme:dark]" />
+                  <div className="flex gap-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1.5">
+                    <CustomSelect
+                      value={formData.dateOfBirth ? formData.dateOfBirth.split('-')[2] : ''}
+                      placeholder="DD"
+                      options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
+                      onChange={(v) => {
+                        const [y, m] = formData.dateOfBirth ? formData.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
+                        handleChange('dateOfBirth', `${y}-${m}-${v}`);
+                      }}
+                    />
+                    <CustomSelect
+                      value={formData.dateOfBirth ? formData.dateOfBirth.split('-')[1] : ''}
+                      placeholder="MM"
+                      options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
+                      onChange={(v) => {
+                        const [y, , d] = formData.dateOfBirth ? formData.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
+                        handleChange('dateOfBirth', `${y}-${v}-${d}`);
+                      }}
+                    />
+                    <CustomSelect
+                      value={formData.dateOfBirth ? formData.dateOfBirth.split('-')[0] : ''}
+                      placeholder="YYYY"
+                      options={Array.from({ length: 50 }, (_, i) => ({ value: new Date().getFullYear() - 10 - i, label: String(new Date().getFullYear() - 10 - i) }))}
+                      onChange={(v) => {
+                        const [, m, d] = formData.dateOfBirth ? formData.dateOfBirth.split('-') : ['', '01', '01'];
+                        handleChange('dateOfBirth', `${v}-${m}-${d}`);
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
@@ -210,36 +307,55 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Primary Position</label>
-                  <select value={formData.primaryPosition} onChange={(e) => handleChange('primaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
-                    {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={formData.primaryPosition}
+                    placeholder="Select Position"
+                    options={POSITIONS.map(p => ({ value: p, label: p }))}
+                    onChange={(v) => handleChange('primaryPosition', v)}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Secondary Position</label>
-                  <select value={formData.secondaryPosition} onChange={(e) => handleChange('secondaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
-                    {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={formData.secondaryPosition}
+                    placeholder="None"
+                    options={[{ value: '', label: 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
+                    onChange={(v) => handleChange('secondaryPosition', v)}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Tertiary Position</label>
-                  <select value={formData.tertiaryPosition} onChange={(e) => handleChange('tertiaryPosition', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
-                    {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={formData.tertiaryPosition}
+                    placeholder="None"
+                    options={[{ value: '', label: 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
+                    onChange={(v) => handleChange('tertiaryPosition', v)}
+                    dropUp={true}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Play Style</label>
-                  <select value={formData.playStyle} onChange={(e) => handleChange('playStyle', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
-                    <option value="">None</option>
-                    {PLAY_STYLES.map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={formData.playStyle}
+                    placeholder="None"
+                    options={[{ value: '', label: 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p }))]}
+                    onChange={(v) => handleChange('playStyle', v)}
+                    dropUp={true}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Preferred Foot</label>
-                  <select value={formData.preferredFoot} onChange={(e) => handleChange('preferredFoot', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
-                    <option value="Right">Right</option>
-                    <option value="Left">Left</option>
-                    <option value="Ambidextrous">Ambidextrous</option>
-                  </select>
+                  <CustomSelect
+                    value={formData.preferredFoot}
+                    placeholder="Select Foot"
+                    options={[
+                      { value: 'Right', label: 'Right' },
+                      { value: 'Left', label: 'Left' },
+                      { value: 'Ambidextrous', label: 'Ambidextrous' }
+                    ]}
+                    onChange={(v) => handleChange('preferredFoot', v)}
+                    dropUp={true}
+                  />
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Photo</label>

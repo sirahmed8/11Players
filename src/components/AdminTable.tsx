@@ -193,7 +193,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       }
       const batch = writeBatch(db);
       mockPlayers.forEach(p => {
-        const commIds = Array.from(new Set([...(p.memberCommunities || []), ...(p.joinedCommunities || []), activeCommunityId, 'comm-1782681792342'].filter(Boolean))) as string[];
+        const commIds = Array.from(new Set([...(p.memberCommunities || []), ...(p.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
         commIds.forEach(cId => {
           batch.delete(doc(db, 'communities', cId, 'players', p.uid));
         });

@@ -15,6 +15,8 @@ export default function GlobalUsersTable() {
   const isAr = locale === "ar";
   
   const [users, setUsers] = useState<PlayerProfile[]>([]);
+  const [communitiesMap, setCommunitiesMap] = useState<Record<string, string>>({});
+  const [userCommMap, setUserCommMap] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
@@ -29,8 +31,26 @@ export default function GlobalUsersTable() {
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "players"));
-      setUsers(snap.docs.map(d => ({ ...d.data() } as PlayerProfile)));
+      const [usersSnap, commsSnap] = await Promise.all([
+        getDocs(collection(db, "players")),
+        getDocs(collection(db, "communities"))
+      ]);
+      setUsers(usersSnap.docs.map(d => ({ ...d.data() } as PlayerProfile)));
+
+      const commMap: Record<string, string> = {};
+      const uCommMap: Record<string, string[]> = {};
+
+      for (const cDoc of commsSnap.docs) {
+        commMap[cDoc.id] = cDoc.data().name || cDoc.id;
+        try {
+          const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
+          pSnap.docs.forEach(pDoc => {
+            uCommMap[pDoc.id] = [...(uCommMap[pDoc.id] || []), cDoc.id];
+          });
+        } catch (e) {}
+      }
+      setCommunitiesMap(commMap);
+      setUserCommMap(uCommMap);
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "فشل جلب المستخدمين" : "Failed to fetch users");
@@ -90,7 +110,7 @@ export default function GlobalUsersTable() {
           }
           const batch = writeBatch(db);
           for (const u of mockUsers) {
-            const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || []), 'comm-1782681792342'].filter(Boolean))) as string[];
+            const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || [])].filter(Boolean))) as string[];
             for (const commId of commIds) {
               batch.delete(doc(db, "communities", commId as string, "players", u.uid));
             }
@@ -221,15 +241,22 @@ export default function GlobalUsersTable() {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-1">
-                    {u.memberCommunities && u.memberCommunities.length > 0 ? (
-                      u.memberCommunities.map(c => (
-                        <span key={c} className="text-xs bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded text-slate-600 dark:text-slate-300">
-                          {c}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="text-sm text-slate-400">-</span>
-                    )}
+                    {(() => {
+                      const commIds = Array.from(new Set([
+                        ...(u.memberCommunities || []),
+                        ...(u.joinedCommunities || []),
+                        ...(userCommMap[u.uid] || [])
+                      ].filter(Boolean)));
+                      return commIds.length > 0 ? (
+                        commIds.map(c => (
+                          <span key={c} className="text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
+                            {communitiesMap[c] || c}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-sm text-slate-400">-</span>
+                      );
+                    })()}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-right">

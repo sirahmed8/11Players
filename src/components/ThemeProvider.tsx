@@ -56,7 +56,13 @@ const LocaleContext = createContext<LocaleContextProps | undefined>(undefined);
 
 // Theme Provider Component
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme") as Theme;
+      if (savedTheme === "light" || savedTheme === "dark") return savedTheme;
+    }
+    return "dark";
+  });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as Theme;
