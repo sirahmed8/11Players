@@ -291,7 +291,7 @@ function PlayerProfileContent() {
                   </div>
                 )}
                 
-                <PlayerCard player={player} />
+                <PlayerCard player={{ ...player, photoUrl: player.photoUrl || player.googlePic || (isViewingOwnProfile ? user?.photoURL : '') || '' }} />
               </div>
 
               {/* Right Column: SVG Pitch */}

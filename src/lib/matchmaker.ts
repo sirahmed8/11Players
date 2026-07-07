@@ -216,6 +216,31 @@ const PSI_WEIGHTS: Record<PESPosition, Partial<Record<keyof PlayerAttributes, nu
  * Index 0 is always GK.
  */
 const FORMATIONS: Record<string, PESPosition[]> = {
+  // 5v5
+  '1-2-1': ['GK', 'CB', 'CMF', 'AMF', 'CF'],
+  '2-1-1': ['GK', 'CB', 'CB', 'CMF', 'CF'],
+  '1-1-2': ['GK', 'CB', 'CMF', 'LWF', 'RWF'],
+  // 6v6
+  '2-2-1': ['GK', 'CB', 'CB', 'CMF', 'AMF', 'CF'],
+  '2-1-2': ['GK', 'CB', 'CB', 'CMF', 'CF', 'CF'],
+  '1-3-1': ['GK', 'CB', 'LMF', 'CMF', 'RMF', 'CF'],
+  // 7v7
+  '2-3-1': ['GK', 'CB', 'CB', 'LMF', 'CMF', 'RMF', 'CF'],
+  '3-2-1': ['GK', 'LB', 'CB', 'RB', 'CMF', 'AMF', 'CF'],
+  '2-2-2': ['GK', 'CB', 'CB', 'CMF', 'AMF', 'CF', 'CF'],
+  // 8v8
+  '3-3-1': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'RMF', 'CF'],
+  '2-3-2': ['GK', 'CB', 'CB', 'LMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '3-2-2': ['GK', 'LB', 'CB', 'RB', 'CMF', 'AMF', 'CF', 'CF'],
+  // 9v9
+  '3-4-1': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
+  '3-3-2': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '4-3-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'CF'],
+  // 10v10
+  '4-4-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
+  '4-3-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'CF', 'CF'],
+  '3-4-2': ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'RMF', 'CF', 'CF'],
+  // 11v11
   '4-3-3':   ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
   '4-4-2':   ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF', 'CF'],
   '3-5-2':   ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
@@ -426,18 +451,33 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
  * @returns The formation name (e.g. `'4-3-3'`).
  */
 function selectBestFormation(players: PlayerProfile[]): string {
-  let bestFormation = '4-3-3'; // sensible default
+  const size = players.length;
+  let bestFormation = '';
   let bestScore = -Infinity;
 
+  // 1. Try to find formations matching exact team size
   for (const [name, slots] of Object.entries(FORMATIONS)) {
-    const score = scoreFormation(players, slots);
+    if (slots.length === size) {
+      const score = scoreFormation(players, slots);
+      if (score > bestScore) {
+        bestScore = score;
+        bestFormation = name;
+      }
+    }
+  }
+
+  if (bestFormation) return bestFormation;
+
+  // 2. Fallback for sizes < 5 or > 11: penalize size mismatch
+  for (const [name, slots] of Object.entries(FORMATIONS)) {
+    const score = scoreFormation(players, slots) - Math.abs(slots.length - size) * 100;
     if (score > bestScore) {
       bestScore = score;
       bestFormation = name;
     }
   }
 
-  return bestFormation;
+  return bestFormation || '4-3-3';
 }
 
 // ─── Positional Assignment with Backtracking ─────────────────────────────────
@@ -863,7 +903,12 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     } else if (formation === '5-3-2') {
       advice += `Our solid 5-3-2 setup neutralizes their ${oppFormation} goal threats. Stay disciplined in defense and release quick diagonal long balls to our two center forwards upon regaining possession.`;
     } else {
-      advice += `Maintain strict positional discipline in our ${formation} system and support the ball carrier at all times.`;
+      const parts = formation.split('-');
+      if (parts.length >= 3) {
+        advice += `Playing our ${formation} setup (with ${parts[0]} defenders, ${parts[1]} midfielders, and ${parts[2]} attackers) against their ${oppFormation} provides optimal balance for our squad size. Focus on maintaining compact distances between lines and executing rapid offensive transitions upon winning possession.`;
+      } else {
+        advice += `Maintain strict positional discipline in our ${formation} system and support the ball carrier at all times.`;
+      }
     }
 
     return advice;
@@ -899,7 +944,12 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     } else if (formation === '5-3-2') {
       advice += `تشكيلة 5-3-2 الصلبة تحيد خطورة هجوم الخصم أمام ${oppFormation}. التزم بالانضباط الدفاعي الصارم مع إرسال كرات قطرية طويلة ومباشرة لثنائي الهجوم فور استرجاع الكرة.`;
     } else {
-      advice += `حافظ على الانضباط التكتيكي والمركزية في تشكيلة ${formation} مع تقديم الدعم المستمر لحامل الكرة في جميع أرجاء الملعب.`;
+      const parts = formation.split('-');
+      if (parts.length >= 3) {
+        advice += `الاعتماد على تشكيلة ${formation} (تتكون من ${parts[0]} مدافعين، ${parts[1]} لاعبي وسط، و ${parts[2]} مهاجمين) أمام تشكيلة الخصم ${oppFormation} يمنحنا توازناً ممتازاً لتناسب عدد لاعبي الفريق. ركز على التقارب بين الخطوط والتحول السريع من الدفاع للهجوم فور استرجاع الكرة.`;
+      } else {
+        advice += `حافظ على الانضباط التكتيكي والمركزية في تشكيلة ${formation} مع تقديم الدعم المستمر لحامل الكرة في جميع أرجاء الملعب.`;
+      }
     }
 
     return advice;

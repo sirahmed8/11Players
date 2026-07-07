@@ -10,12 +10,15 @@ import FormIcon from './FormIcon';
 
 interface PlayerCardCompactProps {
   player: PlayerProfile;
+  recordedStats?: Record<string, any>;
 }
 
-export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
+export default function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
   const [imgError, setImgError] = useState(false);
+  const pStats = recordedStats?.[player.uid];
+  const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
 
   return (
     <Link href={`/profile?uid=${player.uid}`} className="block w-full">
@@ -33,21 +36,24 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
 
         {/* Photo */}
         <div className="w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
-          {player.photoUrl && !imgError ? (
-            <Image 
-              src={player.photoUrl} 
-              alt="" 
-              className="w-full h-full object-cover" 
-              width={56} 
-              height={56} 
-              referrerPolicy="no-referrer"
-              onError={() => setImgError(true)}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-emerald-600/50 dark:text-emerald-400/50 font-bold text-xl">
-              {player.cardName.charAt(0).toUpperCase()}
-            </div>
-          )}
+          {(() => {
+            const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
+            return displayPhoto && !imgError ? (
+              <Image 
+                src={displayPhoto} 
+                alt="" 
+                className="w-full h-full object-cover" 
+                width={56} 
+                height={56} 
+                referrerPolicy="no-referrer"
+                onError={() => setImgError(true)}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-emerald-600/50 dark:text-emerald-400/50 font-bold text-xl">
+                {player.cardName.charAt(0).toUpperCase()}
+              </div>
+            );
+          })()}
         </div>
 
         {/* Details */}
@@ -68,6 +74,13 @@ export default function PlayerCardCompact({ player }: PlayerCardCompactProps) {
             )}
           </div>
           <div className="flex flex-wrap items-center gap-2 mt-1">
+            {hasStats && (
+              <span className="text-xs font-black px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-sm flex items-center gap-1 animate-pulse">
+                {pStats.goals > 0 && <span>⚽ {pStats.goals}</span>}
+                {pStats.assists > 0 && <span>👟 {pStats.assists}</span>}
+                {pStats.mvp && <span>⭐ MOTM</span>}
+              </span>
+            )}
             <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
               {player.primaryPosition}
             </span>

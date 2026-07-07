@@ -41,15 +41,14 @@ interface StatTableProps {
   isOverall?: boolean;
   isGA?: boolean;
   isBallon?: boolean;
-  expandedTableId: string | null;
+  expandedTables: Record<string, boolean>;
   onToggle: (id: string) => void;
   isAr: boolean;
   getOverall: (p: PlayerProfile) => number;
 }
 
-function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTableId, onToggle, isAr, getOverall }: StatTableProps) {
-  const isExpanded = expandedTableId === tableId;
-  const displayData = isExpanded ? data : data.slice(0, 3);
+function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTables, onToggle, isAr, getOverall }: StatTableProps) {
+  const isExpanded = !!expandedTables[tableId];
   
   // Filter valid players with > 0 stats
   const validPlayers = data.filter((p) => {
@@ -59,8 +58,44 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
     return ((p.stats as any)?.[statKey] || 0) > 0;
   });
 
+  const topThree = validPlayers.slice(0, 3);
+  const remainingPlayers = validPlayers.slice(3);
   const hasAnyStats = validPlayers.length > 0;
-  const remainingCount = Math.max(0, validPlayers.length - 3);
+  const remainingCount = remainingPlayers.length;
+
+  const renderRow = (p: PlayerProfile, idx: number) => {
+    const photo = p.photoUrl || p.googlePic || (p as any).photoURL || (p as any).userPic || '';
+    const scoreVal = isOverall 
+      ? getOverall(p) 
+      : isGA 
+        ? (p.stats?.goals || 0) + (p.stats?.assists || 0)
+        : isBallon
+          ? ((p.stats?.goals || 0) * 2) + ((p.stats?.assists || 0) * 1) + ((p.stats?.mvp || 0) * 5)
+          : (p.stats as any)?.[statKey] || 0;
+
+    return (
+      <div 
+        key={p.uid}
+        className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+      >
+        <div className="flex items-center gap-4">
+          <span className={`font-black w-6 text-center ${idx === 0 ? 'text-amber-500 text-lg' : idx === 1 ? 'text-slate-400 text-base' : idx === 2 ? 'text-amber-700 text-base' : 'text-slate-500 text-sm'}`}>{idx + 1}</span>
+          <Link href={`/profile?uid=${p.uid}`} className="flex items-center gap-3 group">
+            <PlayerRowAvatar photoUrl={photo} cardName={p.cardName} />
+            <div>
+              <div className="font-bold group-hover:text-emerald-500 transition-colors">{p.cardName}</div>
+              <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
+                {p.primaryPosition}
+              </div>
+            </div>
+          </Link>
+        </div>
+        <div className="font-black text-xl text-slate-700 dark:text-slate-200">
+          {scoreVal}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full shadow-lg transition-all duration-300">
@@ -79,45 +114,22 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
             <p className="text-slate-500 font-semibold">{isAr ? "لا توجد إحصائيات بعد" : "No stats yet"}</p>
           </div>
         ) : (
-          <AnimatePresence initial={false}>
-            {displayData.map((p, i) => {
-              const isValid = isOverall || (isGA && ((p.stats?.goals || 0) + (p.stats?.assists || 0)) > 0) || (isBallon && (((p.stats?.goals || 0) * 2) + ((p.stats?.assists || 0) * 1) + ((p.stats?.mvp || 0) * 5)) > 0) || (!isOverall && !isGA && !isBallon && ((p.stats as any)?.[statKey] || 0) > 0);
-              if (!isValid) return null;
-
-              return (
-                <motion.div 
-                  key={p.uid}
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.25 }}
-                  className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors overflow-hidden"
+          <>
+            {topThree.map((p, idx) => renderRow(p, idx))}
+            <AnimatePresence initial={false}>
+              {isExpanded && remainingPlayers.length > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                  className="overflow-hidden divide-y divide-slate-100 dark:divide-slate-700/50 border-t border-slate-100 dark:border-slate-700/50"
                 >
-                  <div className="flex items-center gap-4">
-                    <span className={`font-black w-6 text-center ${i === 0 ? 'text-amber-500 text-lg' : i === 1 ? 'text-slate-400 text-base' : i === 2 ? 'text-amber-700 text-base' : 'text-slate-500 text-sm'}`}>{i + 1}</span>
-                    <Link href={`/profile?uid=${p.uid}`} className="flex items-center gap-3 group">
-                      <PlayerRowAvatar photoUrl={p.photoUrl} cardName={p.cardName} />
-                      <div>
-                        <div className="font-bold group-hover:text-emerald-500 transition-colors">{p.cardName}</div>
-                        <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
-                          {p.primaryPosition}
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                  <div className="font-black text-xl text-slate-700 dark:text-slate-200">
-                    {isOverall 
-                      ? getOverall(p) 
-                      : isGA 
-                        ? (p.stats?.goals || 0) + (p.stats?.assists || 0)
-                        : isBallon
-                          ? ((p.stats?.goals || 0) * 2) + ((p.stats?.assists || 0) * 1) + ((p.stats?.mvp || 0) * 5)
-                          : (p.stats as any)?.[statKey] || 0}
-                  </div>
+                  {remainingPlayers.map((p, idx) => renderRow(p, idx + 3))}
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
+              )}
+            </AnimatePresence>
+          </>
         )}
       </div>
       {data.length > 3 && hasAnyStats && remainingCount > 0 && (
@@ -137,10 +149,10 @@ export default function StatsPage() {
   const { players, loading } = usePlayers();
   const { locale } = useLocale();
   const isAr = locale === "ar";
-  const [expandedTableId, setExpandedTableId] = React.useState<string | null>(null);
+  const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({});
 
   const handleToggle = (id: string) => {
-    setExpandedTableId((prev) => (prev === id ? null : id));
+    setExpandedTables((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
   const getOverall = React.useCallback((p: PlayerProfile) => {
@@ -191,17 +203,17 @@ export default function StatsPage() {
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
               <div className="md:col-span-2 lg:col-span-3 mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <StatTable tableId="ballon" title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-                  <StatTable tableId="overall" title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                  <StatTable tableId="ballon" title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+                  <StatTable tableId="overall" title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
                 </div>
               </div>
-              <StatTable tableId="goals" title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="assists" title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="ga" title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="mvp" title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" expandedTableId={expandedTableId} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+              <StatTable tableId="goals" title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+              <StatTable tableId="assists" title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+              <StatTable tableId="ga" title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+              <StatTable tableId="mvp" title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
             </div>
           )}
         </main>

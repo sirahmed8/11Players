@@ -206,6 +206,7 @@ export default function BackgroundRemover({ onImageReady, locale = 'ar', initial
               style={{ objectFit: 'cover' }}
               sizes="(max-width: 768px) 100vw, 50vw"
               unoptimized
+              referrerPolicy="no-referrer"
             />
           )}
           <div className="relative z-10 flex flex-col items-center gap-3">
@@ -244,6 +245,7 @@ export default function BackgroundRemover({ onImageReady, locale = 'ar', initial
             style={{ objectFit: 'cover' }}
             sizes="(max-width: 768px) 100vw, 50vw"
             unoptimized
+            referrerPolicy="no-referrer"
           />
           <div className="relative z-10 flex flex-col items-center">
             <motion.div

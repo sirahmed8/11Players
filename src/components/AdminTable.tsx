@@ -520,19 +520,23 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   {/* Name */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {player.photoUrl ? (
-                        <Image
-                          src={player.photoUrl}
-                          alt={player.fullName}
-                          width={32}
-                          height={32}
-                          className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
-                        />
-                      ) : (
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                          {player.fullName.charAt(0)}
-                        </div>
-                      )}
+                      {(() => {
+                        const photo = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
+                        return photo ? (
+                          <Image
+                            src={photo}
+                            alt={player.fullName}
+                            width={32}
+                            height={32}
+                            referrerPolicy="no-referrer"
+                            className="h-8 w-8 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
+                          />
+                        ) : (
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                            {player.fullName?.charAt(0) || '?'}
+                          </div>
+                        );
+                      })()}
                       <div className="flex flex-col">
                         <span className="font-medium text-slate-900 dark:text-slate-200">
                           {player.googleName || player.email?.split('@')[0] || player.fullName}

@@ -70,19 +70,22 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
           {/* Player Photo */}
           <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
-            {player.photoUrl && !imgError ? (
-              <Image
-                src={player.photoUrl}
-                alt=""
-                className="w-full h-full object-cover"
-                width={96}
-                height={96}
-                referrerPolicy="no-referrer"
-                onError={() => setImgError(true)}
-              />
-            ) : (
-              <span className="text-amber-500 font-bold text-3xl opacity-50">?</span>
-            )}
+            {(() => {
+              const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
+              return displayPhoto && !imgError ? (
+                <Image
+                  src={displayPhoto}
+                  alt=""
+                  className="w-full h-full object-cover"
+                  width={96}
+                  height={96}
+                  referrerPolicy="no-referrer"
+                  onError={() => setImgError(true)}
+                />
+              ) : (
+                <span className="text-amber-500 font-bold text-3xl opacity-50">{player.fullName?.charAt(0) || '?'}</span>
+              );
+            })()}
           </div>
 
           {/* Overall Number */}

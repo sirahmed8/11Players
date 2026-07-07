@@ -272,7 +272,7 @@ export default function InboxPage() {
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 flex overflow-hidden">
             
             {/* Left Sidebar: Threads List */}
-            <div className={`${activeThreadId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-r border-slate-200 dark:border-slate-800 flex-col bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0`}>
+            <div className={`${activeThreadId ? 'hidden md:flex' : 'flex'} w-full md:w-80 border-e border-slate-200 dark:border-slate-800 flex-col bg-slate-50/50 dark:bg-slate-900/50 flex-shrink-0`}>
               
               <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
                 <div className="flex items-center justify-between mb-3">
@@ -287,14 +287,14 @@ export default function InboxPage() {
                   </span>
                 </div>
 
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute top-3 left-3 rtl:left-auto rtl:right-3" />
+                <div className="relative flex items-center group">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 rtl:left-auto rtl:right-3 pointer-events-none transition-colors duration-300 group-focus-within:text-emerald-500" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder={isAr ? "ابحث بالاسم أو المحادثة..." : "Search chats or names..."}
-                    className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-2 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800 border-none focus:ring-2 focus:ring-emerald-500 text-slate-900 dark:text-white outline-none"
+                    className="w-full pl-9 pr-4 rtl:pr-9 rtl:pl-4 py-2.5 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 transition-all duration-300 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 text-slate-900 dark:text-white outline-none shadow-sm focus:shadow-md"
                   />
                 </div>
               </div>

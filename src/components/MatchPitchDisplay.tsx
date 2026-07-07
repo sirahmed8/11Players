@@ -22,6 +22,7 @@ interface MatchPitchDisplayProps {
   color: 'blue' | 'red';
   isReversed?: boolean; // If true, rendering for the opposing team (flipped layout)
   onPlayerClick?: (player: AssignedPlayer) => void;
+  recordedStats?: Record<string, any>;
 }
 
 const POSITIONS: Record<PESPosition, { x: number; y: number }> = {
@@ -40,9 +41,11 @@ const POSITIONS: Record<PESPosition, { x: number; y: number }> = {
   CF: { x: 50, y: 10 },
 };
 
-function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick }: { p: AssignedPlayer; actualX: number; top: number; theme: string; onPlayerClick?: (player: AssignedPlayer) => void }) {
+function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick, recordedStats }: { p: AssignedPlayer; actualX: number; top: number; theme: string; onPlayerClick?: (player: AssignedPlayer) => void; recordedStats?: Record<string, any> }) {
   const [imgError, setImgError] = React.useState(false);
   const overall = calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || '');
+  const pStats = recordedStats?.[p.uid];
+  const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
 
   return (
     <button
@@ -50,26 +53,37 @@ function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick }: { p: Assigne
       className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center group transition-transform hover:scale-110 z-10"
       style={{ left: `${actualX}%`, top: `${top}%` }}
     >
-      {/* Player Avatar */}
-      <div className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 overflow-hidden flex items-center justify-center bg-gradient-to-br shadow-lg ${theme}`}>
-        {p.photoUrl && !imgError ? (
-          <Image 
-            src={p.photoUrl} 
-            alt="" 
-            className="w-full h-full object-cover" 
-            width={48} 
-            height={48} 
-            referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <span className="font-bold text-white text-sm">{overall}</span>
-        )}
+      <div className={`relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 shadow-lg bg-gradient-to-br ${theme} transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50`}>
+        {(() => {
+          const photo = p.photoUrl || (p as any).googlePic || (p as any).photoURL || (p as any).userPic;
+          return photo && !imgError ? (
+            <Image
+              src={photo}
+              alt={p.cardName}
+              fill
+              className="object-cover"
+              referrerPolicy="no-referrer"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white font-black text-sm md:text-base">
+              {overall}
+            </div>
+          );
+        })()}
       </div>
       {/* Label */}
       <div className="mt-1 bg-black/70 backdrop-blur-md px-2 py-0.5 rounded text-[10px] md:text-xs text-white font-bold whitespace-nowrap border border-white/10 shadow-sm">
         {p.cardName}
       </div>
+      {/* Recorded Stats Badge */}
+      {hasStats && (
+        <div className="mt-0.5 flex items-center gap-1 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-md border border-white/20 animate-pulse">
+          {pStats.goals > 0 && <span>⚽ {pStats.goals}</span>}
+          {pStats.assists > 0 && <span>👟 {pStats.assists}</span>}
+          {pStats.mvp && <span>⭐ MOTM</span>}
+        </div>
+      )}
       {/* Position Badge */}
       <div className="absolute -top-2 -right-2 bg-slate-900 text-white text-[9px] font-black px-1 rounded border border-slate-700 shadow-sm">
         {p.assignedPosition}
@@ -78,7 +92,7 @@ function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick }: { p: Assigne
   );
 }
 
-export default function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick }: MatchPitchDisplayProps) {
+export default function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick, recordedStats }: MatchPitchDisplayProps) {
   const theme = color === 'blue' ? 'from-blue-600 to-cyan-600 border-blue-400' : 'from-red-600 to-orange-600 border-red-400';
   
   // Group players by assigned position to handle overlaps
@@ -130,6 +144,7 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
             top={top}
             theme={theme}
             onPlayerClick={onPlayerClick}
+            recordedStats={recordedStats}
           />
         );
       })}

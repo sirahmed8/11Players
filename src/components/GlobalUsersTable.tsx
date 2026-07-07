@@ -224,13 +224,16 @@ export default function GlobalUsersTable() {
               <tr key={u.uid} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    {u.googlePic || u.photoUrl ? (
-                      <Image src={u.googlePic || u.photoUrl} alt={u.fullName} className="w-10 h-10 rounded-full" width={40} height={40} />
-                    ) : (
-                      <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
-                        {u.fullName.charAt(0)}
-                      </div>
-                    )}
+                    {(() => {
+                      const photo = u.photoUrl || u.googlePic || (u as any).photoURL || (u as any).userPic || '';
+                      return photo ? (
+                        <Image src={photo} alt={u.fullName} className="w-10 h-10 rounded-full object-cover" width={40} height={40} referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
+                          {u.fullName?.charAt(0) || '?'}
+                        </div>
+                      );
+                    })()}
                     <div>
                       <div className="font-bold text-slate-900 dark:text-white">{u.fullName}</div>
                       <div className="text-sm text-slate-500">{u.cardName}</div>
