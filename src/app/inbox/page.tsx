@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale, useTheme } from "@/components/ThemeProvider";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc, updateDoc, deleteDoc, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SupportThread, ChatMessage } from "@/types";
 import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, MessageSquare, Search, Sparkles, RefreshCw, ShieldCheck, CheckCheck, User, ExternalLink, Reply, SmilePlus, Trash2, Pin, PinOff, Lock, Unlock } from "lucide-react";
@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
+import ConfirmModal from "@/components/ConfirmModal";
 
 export default function InboxPage() {
   const { user, isGlobalModerator } = useAuth();
@@ -35,6 +36,7 @@ export default function InboxPage() {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [threadToDelete, setThreadToDelete] = useState<string | null>(null);
   const [reactingToMsgId, setReactingToMsgId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -235,29 +237,18 @@ export default function InboxPage() {
     }
   };
 
-  const handleToggleCloseThread = async (threadId: string, currentStatus?: 'open' | 'closed') => {
-    try {
-      const nextStatus = currentStatus === 'closed' ? 'open' : 'closed';
-      await updateDoc(doc(db, "support_threads", threadId), {
-        status: nextStatus
-      });
-      toast.success(nextStatus === 'closed' ? (isAr ? "تم إغلاق المحادثة" : "Chat closed") : (isAr ? "تم فتح المحادثة" : "Chat reopened"));
-    } catch (err) {
-      console.error(err);
-      toast.error(isAr ? "فشل التعديل" : "Failed to update status");
-    }
-  };
-
   const handleDeleteThread = async (threadId: string) => {
-    if (!confirm(isAr ? "هل أنت متأكد من حذف هذه المحادثة نهائياً؟" : "Are you sure you want to permanently delete this chat?")) return;
     try {
+      const messagesSnap = await getDocs(collection(db, "support_threads", threadId, "messages"));
+      const deletePromises = messagesSnap.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(deletePromises);
       await deleteDoc(doc(db, "support_threads", threadId));
       if (activeThreadId === threadId) {
         setActiveThreadId(null);
       }
       toast.success(isAr ? "تم حذف المحادثة" : "Chat deleted");
     } catch (err) {
-      console.error(err);
+      console.error("Delete thread error:", err);
       toast.error(isAr ? "فشل حذف المحادثة" : "Failed to delete chat");
     }
   };
@@ -363,6 +354,14 @@ export default function InboxPage() {
                               >
                                 {thread.isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
                               </button>
+                              <button
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); setThreadToDelete(thread.id); }}
+                                className="p-1 rounded-lg hover:bg-red-500/10 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                title={isAr ? "حذف" : "Delete"}
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                               <span className={`text-[10px] ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
                                 {formatTime(thread.lastUpdatedAt)}
                               </span>
@@ -451,21 +450,17 @@ export default function InboxPage() {
 
                       <button
                         type="button"
-                        onClick={() => handleToggleCloseThread(activeThread!.id, activeThread!.status)}
-                        className={`p-2 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
-                          activeThread?.status === 'closed'
-                            ? 'bg-slate-500/10 border-slate-500/30 text-slate-600 dark:text-slate-400'
-                            : 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
-                        }`}
-                        title={activeThread?.status === 'closed' ? (isAr ? "فتح المحادثة" : "Reopen Chat") : (isAr ? "إغلاق المحادثة" : "Close Chat")}
+                        onClick={() => setActiveThreadId(null)}
+                        className="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 text-xs font-bold"
+                        title={isAr ? "إغلاق نافذة المحادثة" : "Close Chat Screen"}
                       >
-                        {activeThread?.status === 'closed' ? <Unlock className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                        <span className="hidden sm:inline">{activeThread?.status === 'closed' ? (isAr ? "إعادة فتح" : "Reopen") : (isAr ? "إغلاق" : "Close")}</span>
+                        <X className="w-4 h-4" />
+                        <span className="hidden sm:inline">{isAr ? "إغلاق" : "Close"}</span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => handleDeleteThread(activeThread!.id)}
+                        onClick={() => setThreadToDelete(activeThread!.id)}
                         className="p-2 rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-500 text-red-500 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
                         title={isAr ? "حذف المحادثة" : "Delete Chat"}
                       >
@@ -670,22 +665,6 @@ export default function InboxPage() {
                   {/* Floating Sleek Input Bar */}
                   <div className="p-3 md:p-4 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 z-20 flex-shrink-0">
                     
-                    {activeThread?.status === 'closed' && (
-                      <div className="mb-3 p-3 bg-amber-500/15 border border-amber-500/30 rounded-2xl flex items-center justify-between text-xs font-bold text-amber-600 dark:text-amber-400">
-                        <span className="flex items-center gap-2">
-                          <Lock className="w-4 h-4 shrink-0" />
-                          <span>{isAr ? "تم إغلاق هذه المحادثة. يمكنك فتحها لإرسال رسائل جديدة." : "This chat is closed. Reopen to send new messages."}</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleToggleCloseThread(activeThread.id, activeThread.status)}
-                          className="px-3 py-1 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors shadow-sm shrink-0"
-                        >
-                          {isAr ? "إعادة فتح" : "Reopen"}
-                        </button>
-                      </div>
-                    )}
-
                     {/* Reply / Edit Banner */}
                     <AnimatePresence>
                       {(replyTo || editingMessage) && (
@@ -766,6 +745,14 @@ export default function InboxPage() {
           </div>
         </main>
       </div>
+
+      <ConfirmModal
+        isOpen={!!threadToDelete}
+        onClose={() => setThreadToDelete(null)}
+        onConfirm={() => threadToDelete ? handleDeleteThread(threadToDelete) : undefined}
+        title={isAr ? "حذف المحادثة" : "Delete Chat"}
+        message={isAr ? "هل أنت متأكد من رغبتك في حذف هذه المحادثة نهائياً؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to permanently delete this chat? This action cannot be undone."}
+      />
     </ProtectedRoute>
   );
 }

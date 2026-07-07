@@ -77,7 +77,7 @@ service cloud.firestore {
     match /support_threads/{threadId} {
       allow read: if isAdmin() || request.auth.uid == threadId;
       allow create: if request.auth != null && request.auth.uid == threadId;
-      allow update: if isAdmin() || request.auth.uid == threadId;
+      allow update, delete: if isAdmin() || request.auth.uid == threadId;
       
       match /messages/{messageId} {
         allow read: if isAdmin() || request.auth.uid == threadId;
