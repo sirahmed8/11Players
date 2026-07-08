@@ -89,18 +89,15 @@ function PlayerProfileContent() {
   const searchParams = useSearchParams();
   const uid = searchParams.get("uid");
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
-  const { players } = usePlayers();
+  // const { players } = usePlayers(); // Not used - we load from global doc via onSnapshot
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const effectiveUid = uid || user?.uid;
   const isViewingOwnProfile = user?.uid === effectiveUid;
 
-  const [player, setPlayer] = useState<PlayerProfile | null>(() => {
-    if (!effectiveUid) return null;
-    return players.find(p => p.uid === effectiveUid) || null;
-  });
-  const [loading, setLoading] = useState(!player);
+  const [player, setPlayer] = useState<PlayerProfile | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {

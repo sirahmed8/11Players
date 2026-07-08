@@ -102,7 +102,7 @@ export default function MatchPage() {
                   onClick={() => { setActiveTab('current'); setSelectedHistoryMatch(null); }}
                   className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                     activeTab === 'current'
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                   }`}
                 >
@@ -113,7 +113,7 @@ export default function MatchPage() {
                   onClick={() => { setActiveTab('history'); setSelectedHistoryMatch(null); }}
                   className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                     activeTab === 'history'
-                      ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                   }`}
                 >
@@ -398,7 +398,7 @@ export default function MatchPage() {
             >
               {/* Scoreboard Banner if match has recorded stats */}
               {displayMatch.recordedStats && (
-                <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-red-900 rounded-3xl p-6 lg:p-8 text-white shadow-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-red-900 rounded-3xl p-6 lg:p-8 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
                   <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
                   
                   {/* Team A Score */}
