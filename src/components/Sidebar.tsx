@@ -206,8 +206,9 @@ export default function Sidebar() {
     ...(isOwner || isGlobalModerator ? [{ href: "/inbox", labelEn: "Inbox", labelAr: "البريد الوارد", icon: <InboxIcon className="w-5 h-5" /> }] : []),
   ];
 
-  // Hide sidebar completely on Welcome page if not logged in
-  if (pathname === "/" && !user) {
+  // Hide sidebar completely when user is not logged in
+  // Public pages (welcome, guide, privacy, tos, cookie) don't need the sidebar
+  if (!authLoading && !user) {
     return null;
   }
 

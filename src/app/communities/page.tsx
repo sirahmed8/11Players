@@ -12,7 +12,7 @@ import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 
 export default function CommunitiesPage() {
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
   const { activeCommunityId, setActiveCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
@@ -23,6 +23,13 @@ export default function CommunitiesPage() {
   const [passwordInput, setPasswordInput] = useState<{ [key: string]: string }>({});
   const [userProfile, setUserProfile] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Redirect to welcome page if not logged in
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.replace("/");
+    }
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     const fetchData = async () => {
