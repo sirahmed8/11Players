@@ -113,13 +113,13 @@ export default function Home() {
     },
     {
       icon: <BellRing className="w-8 h-8 text-purple-500" />,
-      title: isAr ? "نظام الإشعارات" : "Notification System",
-      desc: isAr ? "تلقي تنبيهات وإشعارات ونصائح حول المباريات والنتائج وحالة مجتمعك بشكل فوري." : "Receive instant alerts, notifications, and advice about matches, results, and your community status."
+      title: isAr ? "النصائح والإشعارات" : "Advices & Notifications",
+      desc: isAr ? "تلقي تنبيهات وإشعارات ونصائح ذكية حول المباريات والنتائج وحالة مجتمعك بشكل فوري." : "Receive instant alerts, smart advices, and notifications about matches, results, and your community status."
     },
     {
       icon: <Sparkles className="w-8 h-8 text-rose-500" />,
-      title: isAr ? "إحصائيات متقدمة" : "Advanced Stats",
-      desc: isAr ? "احصل على تقييمات مفصلة كالمحترفين تعتمد على الطول والوزن والأداء الحقيقي على أرض الملعب." : "Get detailed pro-level ratings based on height, weight, and real performance on the pitch."
+      title: isAr ? "إحصائيات وتقييمات متقدمة" : "Advanced Stats & Ratings",
+      desc: isAr ? "احصل على تقييمات مفصلة كالمحترفين تعتمد على الطول والوزن ومراجعات الأقران." : "Get detailed pro-level stats and ratings based on height, weight, and peer reviews."
     },
     {
       icon: <Smartphone className="w-8 h-8 text-indigo-500" />,
