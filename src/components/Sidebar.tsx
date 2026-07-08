@@ -15,7 +15,7 @@ import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
 export default function Sidebar() {
-  const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading } = useAuth();
+  const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const { locale } = useLocale();
   const pathname = usePathname();
@@ -212,8 +212,9 @@ export default function Sidebar() {
   }
 
   // *** KEY FIX: Don't render sidebar content while auth is still loading ***
-  // This prevents the sidebar from flickering between states
-  if (authLoading) {
+  // Also wait for community sync to finish if logged in! This prevents flickering community tabs.
+  // BUT don't show skeleton if activeCommunityId is already present, to avoid flashing on normal reloads.
+  if (authLoading || (user && !activeCommunityId && !hasInitialCommunityLoad)) {
     return (
       <aside className="flex-shrink-0 z-50 md:w-80">
         {/* Mobile Top Bar - minimal placeholder */}
@@ -329,7 +330,7 @@ export default function Sidebar() {
               <Link
                 href="/users"
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
                   pathname.startsWith("/users")
                     ? "bg-slate-800 text-white shadow-md shadow-slate-900/20"
                     : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -344,7 +345,7 @@ export default function Sidebar() {
               <Link
                 href="/admin"
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold mt-4 ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
                   pathname.startsWith("/admin")
                     ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
                     : "text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"

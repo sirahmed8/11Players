@@ -14,6 +14,7 @@ interface AuthContextProps {
   isGlobalModerator: boolean; // True if Global Owner OR assigned Global Moderator
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  hasInitialCommunityLoad: boolean;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -136,7 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, isGlobalModerator, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, isAdmin, isOwner, isGlobalModerator, login, logout, hasInitialCommunityLoad }}>
       {children}
     </AuthContext.Provider>
   );
