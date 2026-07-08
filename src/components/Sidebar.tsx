@@ -15,8 +15,8 @@ import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
 export default function Sidebar() {
-  const { user, isAdmin, isOwner, isGlobalModerator } = useAuth();
-  const { activeCommunityId } = useCommunity();
+  const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading } = useAuth();
+  const { activeCommunityId, loadingCommunity } = useCommunity();
   const { locale } = useLocale();
   const pathname = usePathname();
   const isAr = locale === "ar";
@@ -209,6 +209,37 @@ export default function Sidebar() {
   // Hide sidebar completely on Welcome page if not logged in
   if (pathname === "/" && !user) {
     return null;
+  }
+
+  // *** KEY FIX: Don't render sidebar content while auth is still loading ***
+  // This prevents the sidebar from flickering between states
+  if (authLoading) {
+    return (
+      <aside className="flex-shrink-0 z-50 md:w-80">
+        {/* Mobile Top Bar - minimal placeholder */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 rounded-b-3xl shadow-sm">
+          <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10 rounded-b-3xl" />
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800">
+              <Menu className="w-6 h-6 text-slate-400" />
+            </div>
+            <div className="flex items-center gap-2">
+              <Image src="/logo.jpg" alt="11Players" width={32} height={32} className="rounded-lg object-cover shadow-sm" priority />
+              <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl tracking-tight">11Players</span>
+            </div>
+          </div>
+        </div>
+        {/* Desktop sidebar - skeleton */}
+        <div className="hidden md:block fixed md:sticky top-0 md:top-4 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 z-50 rounded-3xl mx-4 shadow-2xl shadow-black/20"
+          style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+        >
+          <div className="flex items-center gap-3 p-6 border-b border-slate-200/50 dark:border-slate-800/50 rounded-t-3xl">
+            <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
+            <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
+          </div>
+        </div>
+      </aside>
+    );
   }
 
   return (
