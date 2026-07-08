@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Currently, only the latest version of the 11Players platform is supported with security updates.
+The 11Players platform is continuously deployed to Firebase Hosting. The latest master branch is considered the only supported version.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -11,15 +11,15 @@ Currently, only the latest version of the 11Players platform is supported with s
 
 ## Reporting a Vulnerability
 
-Security is a top priority for 11Players. If you discover a security vulnerability within this project, please send an email to the developer or contact via the developer linktree.
+Security is a top priority for 11Players. If you discover a vulnerability or a security flaw in the platform, we encourage you to let us know immediately.
 
-**Please do not report security vulnerabilities through public GitHub issues.**
+Please report security issues by reaching out to the developer directly via [Connect with the Developer](https://linktr.ee/sir.ahmed).
 
-When reporting a vulnerability, please include the following details:
-- A description of the vulnerability.
+**Do NOT disclose security vulnerabilities publicly until we have had a chance to fix them.**
+
+When reporting a vulnerability, please provide:
+- A detailed description of the vulnerability.
 - Steps to reproduce the issue.
-- Potential impact and an assessment of the severity.
-- Any suggested mitigations or fixes if available.
+- Potential impact and an exploit scenario.
 
-### Response Timeline
-We aim to acknowledge all security reports within 48 hours and will keep you informed of our progress towards a fix and full disclosure.
+We will acknowledge receipt of your vulnerability report within 48 hours and strive to resolve it as quickly as possible.
