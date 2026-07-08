@@ -294,10 +294,10 @@ export default function OwnerPage() {
 
               <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-200 dark:border-red-800/30 flex flex-col gap-4">
                 <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
-                <button onClick={handleGlobalResetStats} className="w-full py-2 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700">
+                <button disabled={processing} onClick={handleGlobalResetStats} className="w-full py-2 bg-orange-600 disabled:opacity-50 text-white font-bold rounded-lg hover:bg-orange-700">
                   Global Stats Reset (All Communities)
                 </button>
-                <button onClick={handleWipeAllData} className="w-full py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700">
+                <button disabled={processing} onClick={handleWipeAllData} className="w-full py-2 bg-red-600 disabled:opacity-50 text-white font-bold rounded-lg hover:bg-red-700">
                   Wipe ALL Site Data
                 </button>
               </div>
@@ -442,6 +442,18 @@ export default function OwnerPage() {
         title={confirmModal.title}
         message={confirmModal.message}
       />
+
+      {processing && (
+        <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-6 shadow-lg"></div>
+          <h2 className="text-3xl font-black mb-2 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+            {isAr ? "جاري معالجة البيانات..." : "Processing Operation..."}
+          </h2>
+          <p className="text-slate-300 font-medium tracking-wide">
+            {isAr ? "الرجاء عدم إغلاق أو تحديث هذه الصفحة" : "Please do not close or refresh this page"}
+          </p>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

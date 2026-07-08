@@ -132,6 +132,65 @@ export default function Sidebar() {
     return () => unsub();
   }, [user, isOwner, isGlobalModerator, pathname, isAr]);
 
+  // Listen for Unrated Recent Matches
+  useEffect(() => {
+    if (!user || !activeCommunityId) return;
+
+    // We look for matches finished recently
+    const q = query(collection(db, "communities", activeCommunityId, "matches"), orderBy("generatedAt", "desc"), limit(3));
+    const unsub = onSnapshot(q, async (snap) => {
+      for (const docSnap of snap.docs) {
+        const matchData = docSnap.data();
+        if (matchData.status === 'finished' || matchData.recordedStats) {
+          // Check if user was in this match
+          const inTeamA = (matchData.teamA || []).some((p: any) => p.uid === user.uid);
+          const inTeamB = (matchData.teamB || []).some((p: any) => p.uid === user.uid);
+          
+          if (inTeamA || inTeamB) {
+            // Check if user already rated it
+            const { getDoc } = await import('firebase/firestore');
+            const ratingDoc = await getDoc(doc(db, 'communities', activeCommunityId, 'matches', docSnap.id, 'ratings', user.uid));
+            
+            if (!ratingDoc.exists()) {
+              const matchTime = matchData.finishedAt ? new Date(matchData.finishedAt).getTime() : Date.now();
+              // Only notify if finished in the last 2 hours to avoid spamming old matches
+              if (Date.now() - matchTime < 2 * 60 * 60 * 1000) {
+                // Show toast notification
+                toast.custom((t) => (
+                  <div
+                    onClick={() => {
+                      toast.dismiss(t.id);
+                      // Navigate to match history tab
+                      window.location.href = "/match?tab=history";
+                    }}
+                    className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-amber-500/40 hover:scale-[1.02] transition-all"
+                  >
+                    <div className="h-11 w-11 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-sm flex-shrink-0 text-xl">
+                      ⭐
+                    </div>
+                    <div className="flex-1 w-0">
+                      <p className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-between">
+                        <span>{isAr ? 'تقييم المباراة' : 'Rate Match'}</span>
+                        <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+                      </p>
+                      <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 font-medium">
+                        {isAr ? 'انتهت المباراة! اضغط هنا لتقييم أداء زملائك' : 'Match finished! Click here to rate your teammates.'}
+                      </p>
+                    </div>
+                  </div>
+                ), { duration: 8000, position: 'top-center', id: 'rate-match-toast' });
+                
+                break; // Only show for the most recent unrated match
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return () => unsub();
+  }, [user, activeCommunityId, isAr]);
+
   const links = [
     { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5" /> },
     ...(activeCommunityId ? [

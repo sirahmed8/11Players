@@ -50,6 +50,11 @@ export default function PlayerCard({ player }: PlayerCardProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
   const [imgError, setImgError] = useState(false);
+  const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [displayPhoto]);
 
   const CardWrapper = player.uid === 'preview' ? 'div' : Link;
   const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
@@ -71,14 +76,11 @@ export default function PlayerCard({ player }: PlayerCardProps) {
           {/* Player Photo */}
           <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
             {(() => {
-              const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
               return displayPhoto && !imgError ? (
-                <Image
+                <img
                   src={displayPhoto}
                   alt=""
                   className="w-full h-full object-cover"
-                  width={96}
-                  height={96}
                   referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                 />

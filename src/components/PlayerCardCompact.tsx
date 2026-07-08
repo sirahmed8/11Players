@@ -16,7 +16,13 @@ interface PlayerCardCompactProps {
 export default function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
-  const [imgError, setImgError] = useState(false);
+  const [imgError, setImgError] = React.useState(false);
+  const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
+
+  React.useEffect(() => {
+    setImgError(false);
+  }, [displayPhoto]);
+
   const pStats = recordedStats?.[player.uid];
   const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
 
@@ -27,24 +33,15 @@ export default function PlayerCardCompact({ player, recordedStats }: PlayerCardC
         whileTap={{ scale: 0.98 }}
         className="relative flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
       >
-        {/* Verification Status */}
-        <div
-          className={`absolute top-0 right-0 h-full w-1.5 ${
-            player.isVerifiedByAdmin ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-600'
-          }`}
-        />
 
         {/* Photo */}
         <div className="w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
           {(() => {
-            const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
             return displayPhoto && !imgError ? (
-              <Image 
+              <img 
                 src={displayPhoto} 
                 alt="" 
                 className="w-full h-full object-cover" 
-                width={56} 
-                height={56} 
                 referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
               />

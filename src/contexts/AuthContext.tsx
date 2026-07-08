@@ -91,6 +91,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const [hasInitialCommunityLoad, setHasInitialCommunityLoad] = useState(false);
+
   // Sync activeCommunityId with Firestore so it remembers across logins/devices
   useEffect(() => {
     if (!user) return;
@@ -101,11 +103,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (activeCommunityId) {
         // Save to Firestore
         try {
+          if (!hasInitialCommunityLoad) setHasInitialCommunityLoad(true);
           await setDoc(playerRef, { lastCommunityId: activeCommunityId, activeCommunityId }, { merge: true });
         } catch (e) {
           console.error("Failed to save lastCommunityId:", e);
         }
-      } else {
+      } else if (!hasInitialCommunityLoad) {
         // Load from Firestore if missing
         try {
           const snap = await getDoc(playerRef);
@@ -116,14 +119,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               setActiveCommunityId(commToSet);
             }
           }
+          setHasInitialCommunityLoad(true);
         } catch (e) {
           console.error("Failed to load lastCommunityId:", e);
+          setHasInitialCommunityLoad(true);
         }
       }
     };
     
     syncCommunity();
-  }, [user, activeCommunityId, setActiveCommunityId]);
+  }, [user, activeCommunityId, setActiveCommunityId, hasInitialCommunityLoad]);
 
   const login = useCallback(async () => {
     setLoading(true);

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { PESPosition } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
@@ -43,6 +42,12 @@ const POSITIONS: Record<PESPosition, { x: number; y: number }> = {
 
 function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick, recordedStats }: { p: AssignedPlayer; actualX: number; top: number; theme: string; onPlayerClick?: (player: AssignedPlayer) => void; recordedStats?: Record<string, any> }) {
   const [imgError, setImgError] = React.useState(false);
+  const photo = p.photoUrl || (p as any).googlePic || (p as any).photoURL || (p as any).userPic;
+  
+  React.useEffect(() => {
+    setImgError(false);
+  }, [photo]);
+
   const overall = calculateRealisticOverall(p.attributes, p.primaryPosition, p.playStyle || '');
   const pStats = recordedStats?.[p.uid];
   const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
@@ -55,13 +60,11 @@ function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick, recordedStats 
     >
       <div className={`relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 shadow-lg bg-gradient-to-br ${theme} transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50`}>
         {(() => {
-          const photo = p.photoUrl || (p as any).googlePic || (p as any).photoURL || (p as any).userPic;
           return photo && !imgError ? (
-            <Image
+            <img
               src={photo}
               alt={p.cardName}
-              fill
-              className="object-cover"
+              className="absolute inset-0 w-full h-full object-cover"
               referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
             />

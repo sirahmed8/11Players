@@ -97,12 +97,12 @@ export default function MatchPage() {
 
             {/* Tab Switcher */}
             <div className="flex justify-center mb-8">
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg flex gap-2">
+              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex gap-2">
                 <button
                   onClick={() => { setActiveTab('current'); setSelectedHistoryMatch(null); }}
                   className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                     activeTab === 'current'
-                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500 text-white'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                   }`}
                 >
@@ -113,7 +113,7 @@ export default function MatchPage() {
                   onClick={() => { setActiveTab('history'); setSelectedHistoryMatch(null); }}
                   className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
                     activeTab === 'history'
-                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20 scale-[1.02]'
+                      ? 'bg-amber-500 text-white'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
                   }`}
                 >
@@ -256,7 +256,7 @@ export default function MatchPage() {
 
                             <div className="px-3 flex flex-col items-center justify-center">
                               {hasScore ? (
-                                <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black text-lg px-4 py-1.5 rounded-xl shadow-md">
+                                <div className="flex items-center gap-2 bg-amber-500 text-white font-black text-lg px-4 py-1.5 rounded-xl shadow-md">
                                   <span>{scoreA}</span>
                                   <span>-</span>
                                   <span>{scoreB}</span>
@@ -297,7 +297,7 @@ export default function MatchPage() {
                                     const pStats = m.recordedStats[p.uid];
                                     if (pStats) {
                                       try {
-                                        const pRef = fbDoc(db, 'communities', activeCommunityId!, 'players', p.uid);
+                                        const pRef = fbDoc(db, 'players', p.uid);
                                         const pSnap = await getDoc(pRef);
                                         if (pSnap.exists()) {
                                           await updateDoc(pRef, {
@@ -340,7 +340,7 @@ export default function MatchPage() {
               {isViewingHistory && (
                 <div className="mb-8 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border border-amber-500/30 rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm backdrop-blur-md">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-2xl shadow-md">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white text-2xl shadow-md">
                       📜
                     </div>
                     <div>
@@ -398,8 +398,8 @@ export default function MatchPage() {
             >
               {/* Scoreboard Banner if match has recorded stats */}
               {displayMatch.recordedStats && (
-                <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-red-900 rounded-3xl p-6 lg:p-8 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent pointer-events-none" />
+                <div className="bg-slate-900 dark:bg-slate-950 rounded-3xl p-6 lg:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-slate-700">
+                  <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/5 via-transparent to-transparent pointer-events-none" />
                   
                   {/* Team A Score */}
                   <div className="flex flex-col items-center md:items-start flex-1 z-10">
@@ -440,7 +440,6 @@ export default function MatchPage() {
               <div className="grid xl:grid-cols-2 gap-10">
                 {/* Team A */}
                 <div className="bg-white dark:bg-slate-800/80 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-700 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
                   <div className="relative">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-700/50 pb-6">
                       <h3 className="text-3xl font-black text-blue-600 dark:text-blue-400">Team A</h3>
@@ -496,7 +495,6 @@ export default function MatchPage() {
 
                 {/* Team B */}
                 <div className="bg-white dark:bg-slate-800/80 rounded-3xl p-6 lg:p-8 border border-slate-200 dark:border-slate-700 shadow-xl relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-64 h-64 bg-red-500/5 dark:bg-red-500/10 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2"></div>
                   <div className="relative">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-slate-100 dark:border-slate-700/50 pb-6">
                       <h3 className="text-3xl font-black text-red-600 dark:text-red-400">Team B</h3>
@@ -615,7 +613,7 @@ export default function MatchPage() {
                 <div className="flex justify-center">
                   <button
                     onClick={() => setIsRatingModalOpen(true)}
-                    className="px-8 py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black rounded-2xl shadow-lg shadow-amber-500/20 transition-all duration-300 active:scale-95 flex items-center gap-2"
+                    className="px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl shadow-lg transition-all duration-300 active:scale-95 flex items-center gap-2"
                   >
                     <span>⭐</span>
                     <span>{isAr ? 'قيّم أداء اللاعبين' : 'Rate Players Performance'}</span>
@@ -670,8 +668,9 @@ export default function MatchPage() {
       <PlayerRatingModal
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
-        matchData={displayMatch}
         matchId={selectedHistoryMatch?.id || ''}
+        players={[...(displayMatch?.teamA || []), ...(displayMatch?.teamB || [])]}
+        isAr={isAr}
       />
     </ProtectedRoute>
   );
