@@ -18,6 +18,7 @@ export default function OwnerPage() {
   const isAr = locale === "ar";
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
   
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -143,6 +144,7 @@ export default function OwnerPage() {
       title: isAr ? "تنبيه خطير جداً!" : "CRITICAL WARNING!",
       message: isAr ? "هل أنت متأكد من مسح كافة بيانات الموقع والمجتمعات واللاعبين؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to wipe ALL site data? This CANNOT be undone.",
       onConfirm: async () => {
+        setProcessing(true);
         try {
           const batch = writeBatch(db);
           // Delete all players
@@ -159,9 +161,11 @@ export default function OwnerPage() {
           await batch.commit();
           toast.success("Wipe complete.");
           fetchCommunities();
+          setProcessing(false);
         } catch (e) {
           console.error(e);
           toast.error("Wipe failed.");
+          setProcessing(false);
         }
       }
     });
@@ -173,7 +177,7 @@ export default function OwnerPage() {
       title: isAr ? "تصفير شامل للإحصائيات" : "Global Stats Reset",
       message: isAr ? "هل أنت متأكد من تصفير كافة إحصائيات اللاعبين وحذف جميع المباريات في كافة المجتمعات؟" : "Are you sure you want to reset ALL player stats and delete ALL matches across ALL communities?",
       onConfirm: async () => {
-        setLoading(true);
+        setProcessing(true);
         try {
           // For each community, fetch players and matches, and reset/delete them
           const cSnap = await getDocs(collection(db, "communities"));
@@ -210,7 +214,7 @@ export default function OwnerPage() {
           console.error(e);
           toast.error("Failed to reset stats globally.");
         }
-        setLoading(false);
+        setProcessing(false);
       }
     });
   };
