@@ -165,7 +165,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       const commIds = getAllPlayerCommunities(player, activeCommunityId);
 
-      if (isOwner || isAdmin || !activeCommunityId) {
+      if (isOwner || isAdmin) {
         const mergedAttributes = { ...player.attributes, ...attributes };
         const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '');
         const updatePayload: any = {
@@ -194,8 +194,10 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), dataToSave, { merge: true });
         }
         
-        if (activeCommunityId) {
-          const editRequestRef = doc(collection(db, `communities/${activeCommunityId}/editRequests`));
+        const targetCommunityId = activeCommunityId || (commIds.length > 0 ? commIds[0] : null);
+        
+        if (targetCommunityId) {
+          const editRequestRef = doc(collection(db, `communities/${targetCommunityId}/editRequests`));
           await setDoc(editRequestRef, {
             playerId: player.uid,
             playerName: formData.fullName,
@@ -232,9 +234,31 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             });
           }
 
-          toast.success(isRTL ? 'تم إرسال طلب تعديل القدرات والإحصائيات للمراجعة' : 'Attributes edit request sent for review');
+          toast.success(isRTL ? 'تم حفظ المعلومات وإرسال طلب تعديل القدرات للمراجعة' : 'Info saved and attributes edit request sent for review');
         } else {
-          toast.success(isRTL ? 'تم حفظ المعلومات الأساسية' : 'Basic info saved successfully');
+          // No community at all. Owner needs to approve, we can just save it to a global 'editRequests' collection
+          const globalEditReqRef = doc(collection(db, 'editRequests'));
+          await setDoc(globalEditReqRef, {
+            playerId: player.uid,
+            playerName: formData.fullName,
+            requestedAt: new Date().toISOString(),
+            status: 'pending',
+            attributes,
+            stats
+          });
+          
+          const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+          const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
+          await setDoc(ownerNotifRef, {
+            type: 'stats',
+            title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
+            body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
+            read: false,
+            createdAt: new Date(),
+            link: '/admin?tab=edits'
+          });
+          
+          toast.success(isRTL ? 'تم إرسال طلب تعديل القدرات للإدارة' : 'Attributes edit request sent to management');
         }
       }
       onRefresh();
@@ -401,27 +425,25 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             </div>
 
             {activeCommunityId && (
-              <>
-                <CommunityStatsEditor
-                  stats={stats}
-                  onStatChange={handleStatChange}
-                  isRTL={isRTL}
-                />
-
-                <div>
-                  <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">
-                    {isRTL ? 'القدرات والمهارات' : 'Player Attributes'}
-                  </h3>
-                  <AttributeSliders
-                    attributes={attributes}
-                    onChange={setAttributes}
-                    locale={(locale as 'en' | 'ar') ?? 'ar'}
-                    primaryPosition={formData.primaryPosition}
-                    playStyle={formData.playStyle}
-                  />
-                </div>
-              </>
+              <CommunityStatsEditor
+                stats={stats}
+                onStatChange={handleStatChange}
+                isRTL={isRTL}
+              />
             )}
+
+            <div>
+              <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">
+                {isRTL ? 'القدرات والمهارات' : 'Player Attributes'}
+              </h3>
+              <AttributeSliders
+                attributes={attributes}
+                onChange={setAttributes}
+                locale={(locale as 'en' | 'ar') ?? 'ar'}
+                primaryPosition={formData.primaryPosition}
+                playStyle={formData.playStyle}
+              />
+            </div>
           </div>
           
           <div className="mt-6 flex gap-3">

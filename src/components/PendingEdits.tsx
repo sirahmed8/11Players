@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useLocale } from "@/components/ThemeProvider";
 import { useCommunity } from "@/contexts/CommunityContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
@@ -14,6 +15,7 @@ import { getAllPlayerCommunities } from "@/lib/playerUtils";
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
+  const { isOwner } = useAuth();
   const isAr = locale === "ar";
   const [edits, setEdits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,18 +28,42 @@ export default function PendingEdits() {
   }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
   useEffect(() => {
-    if (!activeCommunityId) return;
-    const q = query(collection(db, `communities/${activeCommunityId}/editRequests`), where("status", "==", "pending"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const pending = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setEdits(pending);
+    const unsubs: (() => void)[] = [];
+    let communityEdits: any[] = [];
+    let globalEdits: any[] = [];
+    
+    const merge = () => {
+      setEdits([...communityEdits, ...globalEdits]);
       setLoading(false);
-    });
-    return () => unsubscribe();
-  }, [activeCommunityId]);
+    };
+
+    if (activeCommunityId) {
+      const q = query(collection(db, `communities/${activeCommunityId}/editRequests`), where("status", "==", "pending"));
+      unsubs.push(onSnapshot(q, (snapshot) => {
+        communityEdits = snapshot.docs.map(d => ({ id: d.id, _collection: `communities/${activeCommunityId}/editRequests`, ...d.data() }));
+        merge();
+      }));
+    }
+
+    // Owner can also see global (no-community) edit requests
+    if (isOwner) {
+      const q2 = query(collection(db, 'editRequests'), where("status", "==", "pending"));
+      unsubs.push(onSnapshot(q2, (snapshot) => {
+        globalEdits = snapshot.docs.map(d => ({ id: d.id, _collection: 'editRequests', ...d.data() }));
+        merge();
+      }));
+    }
+
+    if (!activeCommunityId && !isOwner) {
+      setLoading(false);
+    }
+
+    return () => unsubs.forEach(u => u());
+  }, [activeCommunityId, isOwner]);
 
   const handleApprove = (edit: any) => {
-    if (!activeCommunityId) return;
+    const collectionPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
+    const editCommunityId = activeCommunityId || null;
     setConfirmModal({
       isOpen: true,
       title: isAr ? "موافقة على التعديل" : "Approve Edit",
@@ -62,8 +88,9 @@ export default function PendingEdits() {
             updateDataComm.approvedAttributes = mergedAttr;
             updateDataComm.overallRating = newOverall;
           }
-          if (edit.stats) {
-            updateDataGlobal[`communityStats.${activeCommunityId}`] = edit.stats;
+          const resolvedCommId = editCommunityId || null;
+          if (edit.stats && resolvedCommId) {
+            updateDataGlobal[`communityStats.${resolvedCommId}`] = edit.stats;
             updateDataComm.stats = edit.stats;
           }
           
@@ -72,13 +99,13 @@ export default function PendingEdits() {
             batch.set(playerRef, updateDataGlobal, { merge: true });
           }
           if (Object.keys(updateDataComm).length > 0) {
-            const commIds = getAllPlayerCommunities(playerData, activeCommunityId);
+            const commIds = getAllPlayerCommunities(playerData, resolvedCommId);
             for (const commId of commIds) {
               const commPlayerRef = doc(db, `communities/${commId}/players`, edit.playerId);
               batch.set(commPlayerRef, updateDataComm, { merge: true });
             }
           }
-          batch.delete(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
+          batch.delete(doc(db, collectionPath, edit.id));
           await batch.commit();
 
           toast.success(isAr ? "تمت الموافقة على التعديل وتحديث التقييم العام بنجاح!" : "Edit & overall rating approved successfully!");
@@ -91,14 +118,14 @@ export default function PendingEdits() {
   };
 
   const handleReject = (edit: any) => {
-    if (!activeCommunityId) return;
+    const collPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
     setConfirmModal({
       isOpen: true,
       title: isAr ? "رفض التعديل" : "Reject Edit",
       message: isAr ? "هل أنت متأكد من رفض هذا التعديل؟" : "Are you sure you want to reject this edit?",
       onConfirm: async () => {
         try {
-          await deleteDoc(doc(db, `communities/${activeCommunityId}/editRequests`, edit.id));
+          await deleteDoc(doc(db, collPath, edit.id));
           toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
         } catch (err) {
           console.error(err);
