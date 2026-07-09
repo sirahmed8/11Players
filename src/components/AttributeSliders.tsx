@@ -225,7 +225,7 @@ export default React.memo(function AttributeSliders({
       {/* Overall Rating Card */}
       <motion.div
         layout
-        className="bg-slate-800/60 backdrop-blur rounded-2xl p-5 border border-slate-700/50 text-center"
+        className="bg-slate-100 dark:bg-slate-800/60 backdrop-blur rounded-2xl p-5 border border-slate-200 dark:border-slate-700/50 text-center"
       >
         <p className="text-sm text-slate-400 font-medium mb-1">{txt.overall}</p>
         <motion.div
@@ -265,16 +265,16 @@ export default React.memo(function AttributeSliders({
           return (
             <motion.div
               key={key}
-              className="bg-slate-800/40 rounded-xl p-3 border border-slate-700/30 hover:border-emerald-600/30 transition-colors"
+              className="bg-slate-100 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/30 hover:border-emerald-500/40 dark:hover:border-emerald-600/30 transition-colors"
               whileHover={{ scale: 1.005 }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
                     <span className="text-base">{ATTRIBUTE_ICONS[key]}</span>
-                    <span className="text-sm font-semibold text-slate-200">{label}</span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{label}</span>
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-0.5 max-w-[200px] sm:max-w-[300px]">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-500 mt-0.5 max-w-[200px] sm:max-w-[300px]">
                     {description}
                   </span>
                 </div>
@@ -309,22 +309,41 @@ export default React.memo(function AttributeSliders({
         })}
       </div>
 
-      {/* Custom slider thumb styles */}
+      {/* Custom slider thumb & track styles */}
       <style jsx>{`
+        .slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          outline: none;
+          border: none;
+        }
+        /* Webkit (Chrome, Safari, Edge) */
+        .slider-thumb::-webkit-slider-runnable-track {
+          height: 8px;
+          border-radius: 999px;
+        }
         .slider-thumb::-webkit-slider-thumb {
           -webkit-appearance: none;
           appearance: none;
-          width: 20px;
-          height: 20px;
+          width: 22px;
+          height: 22px;
           border-radius: 50%;
           background: #10b981;
           cursor: pointer;
-          border: 3px solid #0f172a;
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
-          transition: box-shadow 0.2s;
+          border: 3px solid #065f46;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+          margin-top: -7px;
+          transition: box-shadow 0.2s, transform 0.15s;
         }
         .slider-thumb::-webkit-slider-thumb:hover {
-          box-shadow: 0 0 14px rgba(16, 185, 129, 0.7);
+          box-shadow: 0 0 16px rgba(16, 185, 129, 0.8);
+          transform: scale(1.15);
+        }
+        /* Firefox */
+        .slider-thumb::-moz-range-track {
+          height: 8px;
+          border-radius: 999px;
+          background: rgba(100, 116, 139, 0.3);
         }
         .slider-thumb::-moz-range-thumb {
           width: 20px;
@@ -332,8 +351,13 @@ export default React.memo(function AttributeSliders({
           border-radius: 50%;
           background: #10b981;
           cursor: pointer;
-          border: 3px solid #0f172a;
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+          border: 3px solid #065f46;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.5);
+        }
+        .slider-thumb::-moz-range-progress {
+          background: #10b981;
+          height: 8px;
+          border-radius: 999px;
         }
       `}</style>
     </div>

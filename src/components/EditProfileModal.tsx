@@ -128,7 +128,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
   };
 
-  const [attributes, setAttributes] = useState<PlayerAttributes>(player.attributes || defaultAttributes);
+  // Merge player attributes with defaults so every key has a value (min 40)
+  const [attributes, setAttributes] = useState<PlayerAttributes>({ ...defaultAttributes, ...(player.attributes || {}) });
   
   const [stats, setStats] = useState<CommunityStats>(
     (activeCommunityId && player.communityStats && player.communityStats[activeCommunityId]) 
@@ -152,16 +153,23 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const birthDate = new Date(formData.dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
+      // Safe age calculation
+      let age = player.calculatedAge || 20;
+      if (formData.dateOfBirth) {
+        const birthDate = new Date(formData.dateOfBirth);
+        if (!isNaN(birthDate.getTime())) {
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+          const monthDiff = today.getMonth() - birthDate.getMonth();
+          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
+        }
+      }
 
-      const dataToSave = {
-        ...formData,
-        calculatedAge: age
-      };
+      const dataToSave: Record<string, any> = {};
+      // Only include defined fields to avoid overwriting with undefined
+      Object.entries({ ...formData, calculatedAge: age }).forEach(([k, v]) => {
+        if (v !== undefined && v !== null) dataToSave[k] = v;
+      });
 
       const commIds = getAllPlayerCommunities(player, activeCommunityId);
 
