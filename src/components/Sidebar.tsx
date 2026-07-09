@@ -243,10 +243,9 @@ export default function Sidebar() {
     return null;
   }
 
-  // *** KEY FIX: Don't render sidebar content while auth is still loading ***
-  // Also wait for community sync to finish if logged in! This prevents flickering community tabs.
-  // BUT don't show skeleton if activeCommunityId is already present, to avoid flashing on normal reloads.
-  if (authLoading || (user && !activeCommunityId && !hasInitialCommunityLoad)) {
+  // Show skeleton only while Firebase auth is resolving.
+  // activeCommunityId is read from localStorage synchronously, so no flicker needed for that.
+  if (authLoading) {
     return (
       <aside className="flex-shrink-0 z-50 md:w-80">
         {/* Mobile Top Bar - minimal placeholder */}

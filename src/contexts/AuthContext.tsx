@@ -97,15 +97,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const playerRef = doc(db, "players", user.uid);
       
       if (activeCommunityId) {
-        // Save to Firestore
+        // Already have a community ID (from localStorage or context) — mark as loaded immediately
+        // to prevent flickering, then persist to Firestore in the background
+        if (!hasInitialCommunityLoad) setHasInitialCommunityLoad(true);
         try {
-          if (!hasInitialCommunityLoad) setHasInitialCommunityLoad(true);
           await setDoc(playerRef, { lastCommunityId: activeCommunityId, activeCommunityId }, { merge: true });
         } catch (e) {
           console.error("Failed to save lastCommunityId:", e);
         }
       } else if (!hasInitialCommunityLoad) {
-        // Load from Firestore if missing
+        // Only try to load from Firestore if we have NO community yet
         try {
           const snap = await getDoc(playerRef);
           if (snap.exists()) {
