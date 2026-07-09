@@ -30,12 +30,14 @@ export default function ProtectedRoute({
   const isFullyLoaded = !loading && !loadingCommunity;
 
   useEffect(() => {
-    if (!isFullyLoaded) return;
-    
-    if (!user) {
+    // If auth is loaded and there is no user, kick immediately
+    if (!loading && !user) {
       router.replace("/");
       return;
     }
+
+    if (!isFullyLoaded) return;
+    
     if (ownerOnly && !isOwner) {
       router.replace("/communities");
       return;
@@ -50,7 +52,12 @@ export default function ProtectedRoute({
       router.replace("/communities");
       return;
     }
-  }, [user, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router, t]);
+  }, [user, loading, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router, t]);
+
+  // Not authenticated — redirect is handled in useEffect, render nothing while redirecting
+  if (!loading && !user) {
+    return null;
+  }
 
   // Loading spinner
   if (!isFullyLoaded) {
@@ -66,11 +73,6 @@ export default function ProtectedRoute({
         </p>
       </div>
     );
-  }
-
-  // Not authenticated — redirect is handled in useEffect, render nothing while redirecting
-  if (!user) {
-    return null;
   }
 
   // Admin-only route but user is not admin

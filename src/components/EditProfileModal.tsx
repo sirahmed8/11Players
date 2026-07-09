@@ -101,7 +101,7 @@ const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }:
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
   const { locale } = useLocale();
   const { isOwner, isAdmin } = useAuth();
-  const { activeCommunityId } = useCommunity();
+  const { activeCommunityId, activeCommunity } = useCommunity();
   const isRTL = locale === 'ar';
   
   const [formData, setFormData] = useState({
@@ -200,7 +200,35 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             attributes,
             stats
           });
-          toast.success(isRTL ? 'تم إرسال طلب تعديل القدرات والإحصائيات للمراجعة' : 'Attributes and stats edit request sent for approval');
+
+          // Notify Community Admin
+          if (activeCommunity?.adminUid) {
+            const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`));
+            await setDoc(adminNotifRef, {
+              type: 'stats',
+              title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
+              body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
+              read: false,
+              createdAt: new Date(),
+              link: '/admin?tab=edits'
+            });
+          }
+
+          // Notify Global Owner (if different from admin)
+          const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+          if (activeCommunity?.adminUid !== ownerUid) {
+            const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
+            await setDoc(ownerNotifRef, {
+              type: 'stats',
+              title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
+              body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
+              read: false,
+              createdAt: new Date(),
+              link: '/admin?tab=edits'
+            });
+          }
+
+          toast.success(isRTL ? 'تم إرسال طلب تعديل القدرات والإحصائيات للمراجعة' : 'Attributes edit request sent for review');
         } else {
           toast.success(isRTL ? 'تم حفظ المعلومات الأساسية' : 'Basic info saved successfully');
         }

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 
@@ -49,6 +49,20 @@ export default function AdviceNotification() {
           
           const randomAdvice = advices[Math.floor(Math.random() * advices.length)];
           setAdvice(randomAdvice);
+          
+          // Save the advice to Firestore notifications so it persists
+          try {
+            await addDoc(collection(db, "users", user.uid, "notifications"), {
+              type: "advices",
+              title: isAr ? "نصيحة المدرب" : "Coach Advice",
+              body: randomAdvice,
+              read: false,
+              createdAt: serverTimestamp(),
+              link: "/profile"
+            });
+          } catch (e) {
+            console.error("Failed to save advice to notifications", e);
+          }
           
           // Delay showing advice slightly for better UX
           setTimeout(() => {

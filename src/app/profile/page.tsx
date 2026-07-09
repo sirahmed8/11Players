@@ -76,11 +76,15 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
   );
 }
 
+import ProtectedRoute from "@/components/ProtectedRoute";
+
 export default function PlayerProfilePage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">Loading...</div>}>
-      <PlayerProfileContent />
-    </Suspense>
+    <ProtectedRoute>
+      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">Loading...</div>}>
+        <PlayerProfileContent />
+      </Suspense>
+    </ProtectedRoute>
   );
 }
 

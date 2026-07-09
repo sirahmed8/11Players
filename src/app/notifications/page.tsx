@@ -201,7 +201,7 @@ export default function NotificationsPage() {
                    typeFilter === "admin" ? (isAr ? "المسؤول" : "Admin") :
                    typeFilter === "owner" ? (isAr ? "المالك" : "Owner") :
                    typeFilter === "updates" ? (isAr ? "تحديثات" : "Updates") :
-                   typeFilter === "stats" ? (isAr ? "إحصائيات" : "Stats") :
+                   typeFilter === "stats" ? (isAr ? "طلبات تحديث القدرات" : "Stats Update Requests") :
                    typeFilter === "trophies" ? (isAr ? "ألقاب" : "Trophies") : ""}
                 </span>
                 <motion.div animate={{ rotate: isTypeDropdownOpen ? 180 : 0 }}>
@@ -228,7 +228,7 @@ export default function NotificationsPage() {
                          t === "admin" ? (isAr ? "المسؤول" : "Admin") :
                          t === "owner" ? (isAr ? "المالك" : "Owner") :
                          t === "updates" ? (isAr ? "تحديثات" : "Updates") :
-                         t === "stats" ? (isAr ? "إحصائيات" : "Stats") :
+                         t === "stats" ? (isAr ? "طلبات تحديث القدرات" : "Stats Update Requests") :
                          t === "trophies" ? (isAr ? "ألقاب" : "Trophies") : ""}
                       </button>
                     ))}

@@ -208,7 +208,12 @@ export default function Sidebar() {
 
   // Hide sidebar completely when user is not logged in
   // Public pages (welcome, guide, privacy, tos, cookie) don't need the sidebar
-  if (!authLoading && !user) {
+  if (!user && !authLoading) {
+    return null;
+  }
+  
+  // Hide sidebar on Welcome page completely if there is no user (even during loading)
+  if (pathname === "/" && !user) {
     return null;
   }
 
