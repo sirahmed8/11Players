@@ -105,7 +105,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     }
 
     if (profile.primaryPosition === "GK") {
-      if ((profile.attributes?.goalkeeping || 0) < 70) {
+      if ((profile.attributes?.gkReflexes || 0) < 70) {
         advices.push({
           title: isAr ? "نصيحة لحارس المرمى" : "Goalkeeper Advice",
           body: isAr ? "ردود أفعالك تحتاج للتطوير. ركز على تدريبات الرشاقة والقفز لتحسين تغطيتك للمرمى ومجاراة التسديدات المباغتة." : "Your reflexes need development. Focus on agility and jumping drills to improve goal coverage against sudden shots."

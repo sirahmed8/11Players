@@ -65,7 +65,9 @@ export default function CommunityChatPage() {
                 onClick={() => toast.dismiss(t.id)}
                 className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/30 hover:scale-[1.02] transition-all"
               >
-                <img className="h-11 w-11 rounded-full object-cover border border-slate-200 dark:border-slate-700" src={newMsg.senderPic || "/logo.jpg"} alt="" />
+                <div className="relative h-11 w-11 shrink-0">
+                  <Image className="rounded-full object-cover border border-slate-200 dark:border-slate-700" src={newMsg.senderPic || "/logo.jpg"} alt="" fill sizes="44px" />
+                </div>
                 <div className="flex-1 w-0">
                   <p className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
                     <span>💬 {newMsg.senderName}</span>
@@ -88,7 +90,7 @@ export default function CommunityChatPage() {
     });
 
     return () => unsub();
-  }, [activeCommunityId, router, user?.uid]);
+  }, [activeCommunityId, router, user?.uid, isAr]);
 
   useEffect(() => {
     // Cooldown timer

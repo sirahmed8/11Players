@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { doc, onSnapshot, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
@@ -581,7 +582,9 @@ export default function MatchPage() {
                                 <div className="flex items-center gap-2">
                                   <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0 flex items-center justify-center">
                                     {(p.photoUrl || p.googlePic) ? (
-                                      <img src={p.photoUrl || p.googlePic} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                      <div className="relative w-full h-full">
+                                        <Image src={p.photoUrl || p.googlePic} alt="" fill sizes="32px" className="object-cover" />
+                                      </div>
                                     ) : (
                                       <span className="text-xs font-bold text-slate-500">{(p.cardName || p.fullName || '?').charAt(0)}</span>
                                     )}

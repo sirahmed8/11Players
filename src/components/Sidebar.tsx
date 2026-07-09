@@ -66,7 +66,9 @@ export default function Sidebar() {
               }}
               className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/40 hover:scale-[1.02] transition-all"
             >
-              <img className="h-11 w-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" src={latestUnreadThread.userPic || "/logo.jpg"} alt="" />
+              <div className="relative h-11 w-11 shrink-0">
+                <Image src={latestUnreadThread.userPic || "/logo.jpg"} alt="" fill sizes="44px" className="rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" />
+              </div>
               <div className="flex-1 w-0">
                 <p className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-between">
                   <span>💬 {latestUnreadThread.userName || (isAr ? 'رسالة دعم جديدة' : 'New Support Message')}</span>
@@ -121,6 +123,18 @@ export default function Sidebar() {
                   </div>
                 </div>
               ), { duration: 6000, position: 'top-center' });
+
+              // Save to notifications collection
+              import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
+                setDoc(doc(db, "users", user.uid, "notifications", `support-${msgTime}`), {
+                  type: "admin",
+                  title: isAr ? 'رد من الدعم الفني' : 'Support Desk Reply',
+                  body: data.lastMessage || (isAr ? 'تم الرد على استفسارك' : 'New reply on your ticket'),
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: "/support"
+                }, { merge: true }).catch(console.error);
+              });
             }
           }
         } else {
@@ -180,6 +194,18 @@ export default function Sidebar() {
                   </div>
                 ), { duration: 8000, position: 'top-center', id: 'rate-match-toast' });
                 
+                // Save to notifications collection
+                import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
+                  setDoc(doc(db, "users", user.uid, "notifications", `rate-match-${docSnap.id}`), {
+                    type: "match",
+                    title: isAr ? 'تقييم المباراة' : 'Rate Match',
+                    body: isAr ? 'انتهت المباراة! اضغط هنا لتقييم أداء زملائك' : 'Match finished! Click here to rate your teammates.',
+                    read: false,
+                    createdAt: serverTimestamp(),
+                    link: "/match?tab=history"
+                  }, { merge: true }).catch(console.error);
+                });
+                
                 break; // Only show for the most recent unrated match
               }
             }
@@ -212,8 +238,8 @@ export default function Sidebar() {
     return null;
   }
   
-  // Hide sidebar on Welcome page completely if there is no user (even during loading)
-  if (pathname === "/" && !user) {
+  // Hide sidebar on Welcome page completely
+  if (pathname === "/") {
     return null;
   }
 

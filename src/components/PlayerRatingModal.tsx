@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '@/lib/firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -89,7 +90,9 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
                         {p.photoUrl || p.googlePic ? (
-                          <img src={p.photoUrl || p.googlePic} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          <div className="relative w-full h-full">
+                            <Image src={p.photoUrl || p.googlePic} alt="" fill sizes="40px" className="object-cover" />
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">
                             {(p.cardName || p.fullName || '?').charAt(0)}

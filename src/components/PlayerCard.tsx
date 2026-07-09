@@ -46,7 +46,7 @@ function formatFoot(foot?: PlayerProfile['preferredFoot']): string {
   }
 }
 
-export default function PlayerCard({ player }: PlayerCardProps) {
+const PlayerCard = React.memo(function PlayerCard({ player }: PlayerCardProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
   const [imgError, setImgError] = useState(false);
@@ -74,13 +74,15 @@ export default function PlayerCard({ player }: PlayerCardProps) {
 
 
           {/* Player Photo */}
-          <div className="w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
+          <div className="relative w-24 h-24 rounded-full border-[3px] border-amber-300/80 overflow-hidden bg-amber-800/30 shadow-inner mt-3 flex items-center justify-center">
             {(() => {
               return displayPhoto && !imgError ? (
-                <img
+                <Image
                   src={displayPhoto}
                   alt=""
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="96px"
+                  style={{ objectFit: 'cover' }}
                   referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                 />
@@ -184,4 +186,6 @@ export default function PlayerCard({ player }: PlayerCardProps) {
       </motion.div>
     </CardWrapper>
   );
-}
+});
+
+export default PlayerCard;

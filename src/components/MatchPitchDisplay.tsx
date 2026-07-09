@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { PESPosition } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
@@ -61,10 +62,12 @@ function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick, recordedStats 
       <div className={`relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden border-2 shadow-lg bg-gradient-to-br ${theme} transition-all duration-300 group-hover:scale-105 group-hover:shadow-cyan-500/50`}>
         {(() => {
           return photo && !imgError ? (
-            <img
+            <Image
               src={photo}
               alt={p.cardName}
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="56px"
+              style={{ objectFit: 'cover' }}
               referrerPolicy="no-referrer"
               onError={() => setImgError(true)}
             />
@@ -95,7 +98,7 @@ function PitchPlayerNode({ p, actualX, top, theme, onPlayerClick, recordedStats 
   );
 }
 
-export default function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick, recordedStats }: MatchPitchDisplayProps) {
+const MatchPitchDisplay = React.memo(function MatchPitchDisplay({ team, teamName, color, isReversed, onPlayerClick, recordedStats }: MatchPitchDisplayProps) {
   const theme = color === 'blue' ? 'from-blue-600 to-cyan-600 border-blue-400' : 'from-red-600 to-orange-600 border-red-400';
   
   // Group players by assigned position to handle overlaps
@@ -153,4 +156,6 @@ export default function MatchPitchDisplay({ team, teamName, color, isReversed, o
       })}
     </div>
   );
-}
+});
+
+export default MatchPitchDisplay;

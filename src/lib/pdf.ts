@@ -3,7 +3,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import PDFPlayerCard from '@/components/PDFPlayerCard';
 import PDFBulkTable from '@/components/PDFBulkTable';
-import html2canvas from 'html2canvas';
 
 export async function generateProfilePDF(profile: PlayerProfile): Promise<void> {
   if (typeof window === "undefined") {
@@ -31,6 +30,8 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
     // Select the actual card element
     const cardElement = container.querySelector('#pdf-player-card') as HTMLElement;
     if (!cardElement) throw new Error("Card element not found");
+
+    const html2canvas = (await import('html2canvas')).default;
 
     // Capture with html2canvas
     const canvas = await html2canvas(cardElement, {
@@ -124,6 +125,8 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[]): Promise<
 
       const tableElement = container.querySelector('#pdf-bulk-table') as HTMLElement;
       if (!tableElement) throw new Error("Bulk table element not found");
+
+      const html2canvas = (await import('html2canvas')).default;
 
       const canvas = await html2canvas(tableElement, {
         scale: 3,

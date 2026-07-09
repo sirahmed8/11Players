@@ -44,12 +44,21 @@ function generateRandomAttributes(position: PESPosition) {
     stamina: randomInt(60, 85),
     defensiveAwareness: randomInt(50, 75),
     ballWinning: randomInt(50, 75),
-    goalkeeping: 40,
+    aggression: randomInt(50, 75),
+    gkAwareness: 40,
+    gkCatching: 40,
+    gkClearing: 40,
+    gkReflexes: 40,
+    gkReach: 40,
   };
 
   // Adjust based on position
   if (position === 'GK') {
-    attr.goalkeeping = randomInt(70, 90);
+    attr.gkAwareness = randomInt(70, 90);
+    attr.gkCatching = randomInt(70, 90);
+    attr.gkClearing = randomInt(70, 90);
+    attr.gkReflexes = randomInt(70, 90);
+    attr.gkReach = randomInt(70, 90);
     attr.jump = randomInt(70, 90);
     attr.defensiveAwareness = randomInt(70, 90);
   } else if (['CB', 'LB', 'RB'].includes(position)) {

@@ -175,7 +175,12 @@ function PlayerProfileContent() {
     { key: "stamina", label: isAr ? "اللياقة البدنية" : "Stamina" },
     { key: "defensiveAwareness", label: isAr ? "الوعي الدفاعي" : "Defensive Awareness" },
     { key: "ballWinning", label: isAr ? "افتكاك الكرة" : "Ball Winning" },
-    { key: "goalkeeping", label: isAr ? "حراسة المرمى" : "Goalkeeping" },
+    { key: "aggression", label: isAr ? "الشراسة" : "Aggression" },
+    { key: "gkAwareness", label: isAr ? "وعي حارس المرمى" : "GK Awareness" },
+    { key: "gkCatching", label: isAr ? "الإمساك بالكرة" : "GK Catching" },
+    { key: "gkClearing", label: isAr ? "إبعاد الكرة" : "GK Clearing" },
+    { key: "gkReflexes", label: isAr ? "ردود الفعل" : "GK Reflexes" },
+    { key: "gkReach", label: isAr ? "التغطية والوصول" : "GK Reach" },
   ];
 
   if (loading) {

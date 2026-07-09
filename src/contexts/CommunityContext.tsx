@@ -77,7 +77,7 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       unsub();
       unsubSettings();
     };
-  }, [activeCommunityId, hasReadStorage]);
+  }, [activeCommunityId, hasReadStorage, setActiveCommunityId]);
 
   return (
     <CommunityContext.Provider 

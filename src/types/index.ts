@@ -81,7 +81,12 @@ export interface PlayerAttributes {
   stamina: number;            // 40-99
   defensiveAwareness: number; // 40-99
   ballWinning: number;        // 40-99
-  goalkeeping: number;        // 40-99
+  aggression: number;         // 40-99
+  gkAwareness: number;        // 40-99
+  gkCatching: number;         // 40-99
+  gkClearing: number;         // 40-99
+  gkReflexes: number;         // 40-99
+  gkReach: number;            // 40-99
 }
 
 export interface PlayerProfile {

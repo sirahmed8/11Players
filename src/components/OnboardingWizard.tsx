@@ -8,13 +8,12 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocale } from '@/components/ThemeProvider';
 import type { PESPosition, PlayerAttributes, PlayerProfile } from '@/types';
-import SVGPitchPicker from '@/components/SVGPitchPicker';
-import AttributeSliders from '@/components/AttributeSliders';
-import SkillsChecklist from '@/components/SkillsChecklist';
-import BackgroundRemover from '@/components/BackgroundRemover';
-import PlayerCard from '@/components/PlayerCard';
-import PlayerStylePicker from '@/components/PlayerStylePicker';
+import Step2Positions from './onboarding/Step2Positions';
+import Step3Attributes from './onboarding/Step3Attributes';
+import Step4PhotoSubmit from './onboarding/Step4PhotoSubmit';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import Step1PersonalInfo from './onboarding/Step1PersonalInfo';
+import { WizardState } from './onboarding/types';
 
 /* ──────────────────────────────────────────────
    Translations
@@ -109,29 +108,12 @@ const t = {
 /* ──────────────────────────────────────────────
    Wizard State
    ────────────────────────────────────────────── */
-interface WizardState {
-  firstName: string;
-  lastName: string;
-  cardName: string;
-  dateOfBirth: string;
-  calculatedAge: number;
-  height: number;
-  weight: number;
-  preferredFoot: 'Right' | 'Left' | 'Ambidextrous';
-  primaryPosition: PESPosition | null;
-  secondaryPosition: PESPosition | null;
-  tertiaryPosition: PESPosition | null;
-  attributes: PlayerAttributes;
-  specialSkills: string[];
-  playStyle: string;
-  photoUrl: string;
-}
-
 const DEFAULT_ATTRIBUTES: PlayerAttributes = {
   offensiveAwareness: 40, ballControl: 40, dribbling: 40, lowPass: 40, loftedPass: 40,
   finishing: 40, heading: 40, speed: 40, acceleration: 40, kickingPower: 40,
   jump: 40, physicalContact: 40, balance: 40, stamina: 40,
-  defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40,
+  defensiveAwareness: 40, ballWinning: 40, aggression: 40,
+  gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40,
 };
 
 const INITIAL_STATE: WizardState = {
@@ -228,93 +210,6 @@ export default function OnboardingWizard() {
     setState((prev) => ({ ...prev, primaryPosition: positions.primary, secondaryPosition: positions.secondary, tertiaryPosition: positions.tertiary }));
     setErrors((prev) => { const next = { ...prev }; delete next['positions']; return next; });
   }, []);
-
-  /* ── Custom Select Dropdown ── */
-  const CustomSelect = ({ value, options, placeholder, onChange }: { value: string | number; options: { value: string | number; label: string }[]; placeholder: string; onChange: (v: string) => void }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const ref = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      const handleClickOutside = (e: MouseEvent) => {
-        if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
-      };
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
-
-    const selectedLabel = options.find(o => String(o.value) === String(value))?.label || placeholder;
-
-    return (
-      <div ref={ref} className="relative flex-1">
-        <button
-          type="button"
-          onClick={() => setIsOpen(!isOpen)}
-          className={`w-full py-2.5 px-2 rounded-lg text-center cursor-pointer font-medium text-sm transition-all duration-200 flex items-center justify-center gap-1 ${
-            isOpen
-              ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
-              : value
-                ? 'bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-700'
-                : 'bg-slate-50 dark:bg-slate-700/50 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'
-          }`}
-        >
-          {selectedLabel}
-          <ChevronDown className={`w-3 h-3 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-        </button>
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, scaleY: 0.8, y: -4 }}
-              animate={{ opacity: 1, scaleY: 1, y: 0 }}
-              exit={{ opacity: 0, scaleY: 0.8, y: -4 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              style={{ transformOrigin: 'top' }}
-              className="absolute z-50 mt-1 w-full max-h-40 overflow-y-auto rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl shadow-black/10 dark:shadow-black/30 custom-scrollbar"
-            >
-              {options.map((opt) => (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => { onChange(String(opt.value)); setIsOpen(false); }}
-                  className={`w-full px-3 py-2 text-sm text-center transition-colors ${
-                    String(opt.value) === String(value)
-                      ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 font-semibold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
-  };
-
-  /* ── Number Input Component ── */
-  const NumberInput = ({ value, onChange, min, max, label, error }: any) => (
-    <div className="space-y-1.5">
-      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{label} *</label>
-      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${error ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
-        <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
-          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-        />
-        <div className={`absolute flex flex-col border-slate-200 dark:border-slate-700 h-full overflow-hidden ${isRTL ? 'left-0 border-r rounded-l-[10px]' : 'right-0 border-l rounded-r-[10px]'}`}>
-          <button type="button" onClick={() => onChange(Math.min(max, value + 1))} className="flex-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center">
-            <ChevronUp className="w-4 h-4" />
-          </button>
-          <div className="w-full h-px bg-slate-200 dark:bg-slate-700" />
-          <button type="button" onClick={() => onChange(Math.max(min, value - 1))} className="flex-1 px-2 hover:bg-slate-100 dark:hover:bg-slate-700/50 text-slate-500 dark:text-slate-400 hover:text-emerald-500 transition-colors flex items-center justify-center">
-            <ChevronDown className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
-    </div>
-  );
 
   /* ── Validation ── */
   const validateStep = useCallback((step: number): boolean => {
@@ -502,192 +397,48 @@ export default function OnboardingWizard() {
             
             {/* ═══ STEP 1: Bio Data ═══ */}
             {currentStep === 1 && (
-              <div className="space-y-6">
-                <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📋 {txt.step1}</h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.firstName} *</label>
-                      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.firstName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
-                        <input
-                          type="text" value={state.firstName} onChange={(e) => handleFieldChange('firstName', e.target.value)} placeholder={txt.firstNamePlaceholder}
-                          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
-                        />
-                      </div>
-                      {errors.firstName && <p className="text-xs text-red-400">{errors.firstName}</p>}
-                    </div>
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.lastName} *</label>
-                      <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.lastName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
-                        <input
-                          type="text" value={state.lastName} onChange={(e) => handleFieldChange('lastName', e.target.value)} placeholder={txt.lastNamePlaceholder}
-                          className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
-                        />
-                      </div>
-                      {errors.lastName && <p className="text-xs text-red-400">{errors.lastName}</p>}
-                    </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
-                    <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
-                      <input
-                        type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
-                        className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"
-                        dir="ltr"
-                      />
-                    </div>
-                    {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>
-                    <div className={`flex gap-1.5 rounded-xl bg-white dark:bg-slate-800/60 border-2 transition-all duration-300 ${errors.dateOfBirth ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'} p-1.5`}>
-                      <CustomSelect
-                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[2] : ''}
-                        placeholder="DD"
-                        options={Array.from({ length: 31 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
-                        onChange={(v) => {
-                          const [y, m] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${m}-${v}`);
-                        }}
-                      />
-                      <CustomSelect
-                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[1] : ''}
-                        placeholder="MM"
-                        options={Array.from({ length: 12 }, (_, i) => ({ value: String(i + 1).padStart(2, '0'), label: String(i + 1).padStart(2, '0') }))}
-                        onChange={(v) => {
-                          const [y, , d] = state.dateOfBirth ? state.dateOfBirth.split('-') : [new Date().getFullYear().toString(), '', '01'];
-                          handleFieldChange('dateOfBirth', `${y}-${v}-${d}`);
-                        }}
-                      />
-                      <CustomSelect
-                        value={state.dateOfBirth ? state.dateOfBirth.split('-')[0] : ''}
-                        placeholder="YYYY"
-                        options={Array.from({ length: 50 }, (_, i) => ({ value: new Date().getFullYear() - 10 - i, label: String(new Date().getFullYear() - 10 - i) }))}
-                        onChange={(v) => {
-                          const [, m, d] = state.dateOfBirth ? state.dateOfBirth.split('-') : ['', '01', '01'];
-                          handleFieldChange('dateOfBirth', `${v}-${m}-${d}`);
-                        }}
-                      />
-                    </div>
-                    {state.calculatedAge > 0 && <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">{txt.age}: {state.calculatedAge}</p>}
-                    {errors.dateOfBirth && <p className="text-xs text-red-400">{errors.dateOfBirth}</p>}
-                  </div>
-                  
-                  <NumberInput value={state.height} onChange={(v: number) => handleFieldChange('height', v)} min={100} max={250} label={txt.height} error={errors.height} />
-                  <NumberInput value={state.weight} onChange={(v: number) => handleFieldChange('weight', v)} min={30} max={200} label={txt.weight} error={errors.weight} />
-
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.preferredFoot} *</label>
-                    <div className="flex gap-2">
-                      {(['Right', 'Left', 'Ambidextrous'] as const).map((foot) => {
-                        const isSelected = state.preferredFoot === foot;
-                        const label = foot === 'Right' ? txt.footRight : foot === 'Left' ? txt.footLeft : txt.footAmbidextrous;
-                        return (
-                          <motion.button
-                            key={foot} whileTap={{ scale: 0.95 }} onClick={() => handleFieldChange('preferredFoot', foot)}
-                            className={`flex-1 py-2.5 px-3 rounded-xl text-sm font-semibold border transition-all duration-300 ${isSelected ? 'bg-emerald-100 dark:bg-emerald-600/20 text-emerald-700 dark:text-emerald-300 border-emerald-500/50 shadow-lg shadow-emerald-500/20 dark:shadow-emerald-900/20' : 'bg-white dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border-slate-300 dark:border-slate-700/40 hover:border-slate-400 dark:hover:border-slate-600'}`}
-                          >
-                            {foot === 'Right' ? '🦶' : foot === 'Left' ? '🦶' : '🦶🦶'} {label}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <Step1PersonalInfo
+                state={state}
+                errors={errors}
+                txt={txt}
+                handleFieldChange={handleFieldChange}
+                isRTL={isRTL}
+              />
             )}
 
             {/* ═══ STEP 2: Positions ═══ */}
             {currentStep === 2 && (
-              <div className="space-y-4">
-                <SVGPitchPicker 
-                  onPositionsSelected={handlePositionsSelected} 
-                  locale={(locale as 'en' | 'ar') ?? 'ar'} 
-                  initialPositions={[state.primaryPosition, state.secondaryPosition, state.tertiaryPosition].filter(Boolean) as any[]}
-                />
-                <AnimatePresence>
-                  {state.primaryPosition && state.secondaryPosition && state.tertiaryPosition && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="text-center">
-                      <span className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-sm font-semibold px-4 py-2 rounded-full">✅ {txt.positionsConfirmed}</span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-                {errors.positions && <p className="text-center text-sm text-red-400">{errors.positions}</p>}
-              </div>
+              <Step2Positions
+                state={state}
+                errors={errors}
+                txt={txt}
+                handlePositionsSelected={handlePositionsSelected}
+                locale={(locale as 'en' | 'ar') ?? 'ar'}
+              />
             )}
 
             {/* ═══ STEP 3: Attributes & Skills ═══ */}
             {currentStep === 3 && (
-              <div className="space-y-8">
-                <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">⚡ {txt.attrSkillsTitle}</h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.attrSkillsSubtitle}</p>
-                </div>
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-emerald-400">{txt.playStyleTitle}</h3>
-                  <PlayerStylePicker 
-                    selectedStyle={state.playStyle} 
-                    onStyleSelect={(s) => handleFieldChange('playStyle', s)} 
-                    locale={(locale as 'en' | 'ar') ?? 'ar'} 
-                    primaryPosition={state.primaryPosition}
-                  />
-                  {errors.playStyle && <p className="text-sm text-red-400">{errors.playStyle}</p>}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 border-t border-slate-300 dark:border-slate-700/50 pt-8">
-                  <div className="col-span-1 lg:col-span-2 bg-amber-50 dark:bg-amber-500/10 border-l-4 border-amber-500 p-4 rounded-r-xl shadow-sm mb-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-1">
-                        <svg className="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-amber-800 dark:text-amber-300 mb-1">
-                          {locale === 'ar' ? "كن أميناً في تقييم مهاراتك" : "Be Honest With Your Ratings"}
-                        </h4>
-                        <p className="text-sm text-amber-700 dark:text-amber-400/80 text-start" dir="auto">
-                          {locale === 'ar' 
-                            ? "تقييمك الدقيق لمهاراتك يضمن لك وللجميع تجربة لعب عادلة ومتوازنة في المباريات. النظام سيكتشف التلاعب وسيقوم مديرو المجتمع بمراجعة وتعديل أي تقييمات غير واقعية بناءً على أدائك الفعلي في الملعب." 
-                            : "Accurate evaluation of your skills ensures a fair and balanced playing experience for everyone in matches. The system detects anomalies and community admins will review and adjust unrealistic ratings based on your real-life performance."}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <AttributeSliders 
-                    attributes={state.attributes} 
-                    onChange={(a) => setState(prev => ({...prev, attributes: a}))} 
-                    locale={(locale as 'en' | 'ar') ?? 'ar'} 
-                    primaryPosition={state.primaryPosition}
-                    playStyle={state.playStyle}
-                  />
-                  <SkillsChecklist selectedSkills={state.specialSkills} onSkillsChange={(s) => setState(prev => ({...prev, specialSkills: s}))} locale={(locale as 'en' | 'ar') ?? 'ar'} />
-                </div>
-              </div>
+              <Step3Attributes
+                state={state}
+                errors={errors}
+                txt={txt}
+                handleFieldChange={handleFieldChange}
+                setState={setState}
+                locale={(locale as 'en' | 'ar') ?? 'ar'}
+              />
             )}
 
             {/* ═══ STEP 4: Photo & Submit ═══ */}
             {currentStep === 4 && (
               <div className="space-y-6">
-                <div className="text-center mb-2">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📸 {txt.photoTitle}</h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.photoSubtitle}</p>
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                  <BackgroundRemover 
-                    onImageReady={(url) => handleFieldChange('photoUrl', url)} 
-                    locale={(locale as 'en' | 'ar') ?? 'ar'} 
-                    initialImageUrl={state.photoUrl}
-                  />
-                  <div className="flex flex-col items-center gap-4">
-                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">{txt.previewCard}</h3>
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}>
-                      <PlayerCard player={previewProfile} />
-                    </motion.div>
-                  </div>
-                </div>
+                <Step4PhotoSubmit
+                  state={state}
+                  txt={txt}
+                  handleFieldChange={handleFieldChange}
+                  previewProfile={previewProfile}
+                  locale={(locale as 'en' | 'ar') ?? 'ar'}
+                />
                 <AnimatePresence>
                   {submitMessage && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-3 rounded-xl border ${submitMessage.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-500/10 border-red-400 dark:border-red-500/30 text-red-700 dark:text-red-300'}`}>

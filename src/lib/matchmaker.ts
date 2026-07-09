@@ -11,6 +11,7 @@
  */
 
 import type { PESPosition, PlayerAttributes, PlayerProfile } from '@/types';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 // ─── Exported Types ──────────────────────────────────────────────────────────
 
@@ -97,7 +98,11 @@ const VETERAN_AGE_THRESHOLD = 32;
  */
 const PSI_WEIGHTS: Record<PESPosition, Partial<Record<keyof PlayerAttributes, number>>> = {
   GK: {
-    goalkeeping: 0.50,
+    gkReflexes: 0.15,
+    gkAwareness: 0.15,
+    gkCatching: 0.10,
+    gkClearing: 0.05,
+    gkReach: 0.05,
     jump: 0.15,
     physicalContact: 0.15,
     defensiveAwareness: 0.10,
@@ -393,9 +398,9 @@ export function calculateTeamMetrics(team: PlayerProfile[]): TeamMetrics {
     const a = p.approvedAttributes || p.attributes;
     if (!a) continue;
 
-    // Overall is the straight mean of all 10 attributes
-    const allAttrs = Object.values(a).map(val => Number(val) || 40);
-    overalls.push(mean(allAttrs));
+    // Overall uses positional weights
+    const playerOverall = calculateRealisticOverall(a, p.primaryPosition || 'CMF', p.playStyle || '');
+    overalls.push(playerOverall);
     speeds.push(mean([a.speed || 40, a.acceleration || 40]));
     staminas.push(a.stamina || 40);
     defenses.push(mean([a.defensiveAwareness || 40, a.ballWinning || 40]));
@@ -661,8 +666,10 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
 
   // Sort by overall ability (descending) for serpentine draft
   const sorted = [...players].sort((a, b) => {
-    const overallA = mean(Object.values(a.approvedAttributes || a.attributes));
-    const overallB = mean(Object.values(b.approvedAttributes || b.attributes));
+    const attrsA = a.approvedAttributes || a.attributes || {};
+    const attrsB = b.approvedAttributes || b.attributes || {};
+    const overallA = calculateRealisticOverall(attrsA, a.primaryPosition || 'CMF', a.playStyle || '');
+    const overallB = calculateRealisticOverall(attrsB, b.primaryPosition || 'CMF', b.playStyle || '');
     return overallB - overallA;
   });
 

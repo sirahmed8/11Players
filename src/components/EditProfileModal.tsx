@@ -11,7 +11,9 @@ import toast from 'react-hot-toast';
 import type { PlayerProfile, PESPosition, PlayerAttributes, CommunityStats } from '@/types';
 import BackgroundRemover from '@/components/BackgroundRemover';
 import AttributeSliders from '@/components/AttributeSliders';
+import CommunityStatsEditor from '@/components/CommunityStatsEditor';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getAllPlayerCommunities } from '@/lib/playerUtils';
 import { ChevronDown } from 'lucide-react';
 
 interface EditProfileModalProps {
@@ -27,7 +29,8 @@ const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying
 const ATTRIBUTES_KEYS: (keyof PlayerAttributes)[] = [
   'offensiveAwareness', 'ballControl', 'dribbling', 'lowPass', 'loftedPass', 'finishing', 'heading',
   'speed', 'acceleration', 'kickingPower', 'jump', 'physicalContact', 'balance', 'stamina',
-  'defensiveAwareness', 'ballWinning', 'goalkeeping'
+  'defensiveAwareness', 'ballWinning', 'aggression',
+  'gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach'
 ];
 
 const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }: { 
@@ -121,7 +124,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const defaultAttributes: PlayerAttributes = {
     offensiveAwareness: 40, ballControl: 40, dribbling: 40, lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
     speed: 40, acceleration: 40, kickingPower: 40, jump: 40, physicalContact: 40, balance: 40, stamina: 40,
-    defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40
+    defensiveAwareness: 40, ballWinning: 40, aggression: 40,
+    gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
   };
 
   const [attributes, setAttributes] = useState<PlayerAttributes>(player.attributes || defaultAttributes);
@@ -159,7 +163,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         calculatedAge: age
       };
 
-      const commIds = Array.from(new Set([...(player.memberCommunities || []), ...(player.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+      const commIds = getAllPlayerCommunities(player, activeCommunityId);
 
       if (isOwner || isAdmin || !activeCommunityId) {
         const mergedAttributes = { ...player.attributes, ...attributes };
@@ -398,19 +402,11 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
             {activeCommunityId && (
               <>
-                <div>
-                  <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">
-                    {isRTL ? 'إحصائيات المجتمع' : 'Community Stats'}
-                  </h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {['goals', 'assists', 'mvp', 'matchesPlayed'].map(statKey => (
-                      <div key={statKey}>
-                        <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300 capitalize">{statKey}</label>
-                        <input type="number" min="0" value={stats[statKey as keyof CommunityStats] as number || 0} onChange={(e) => handleStatChange(statKey as keyof CommunityStats, parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <CommunityStatsEditor
+                  stats={stats}
+                  onStatChange={handleStatChange}
+                  isRTL={isRTL}
+                />
 
                 <div>
                   <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">

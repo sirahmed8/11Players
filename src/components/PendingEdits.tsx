@@ -9,6 +9,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
+import { getAllPlayerCommunities } from "@/lib/playerUtils";
 
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
@@ -71,7 +72,7 @@ export default function PendingEdits() {
             batch.set(playerRef, updateDataGlobal, { merge: true });
           }
           if (Object.keys(updateDataComm).length > 0) {
-            const commIds = Array.from(new Set([...(playerData.memberCommunities || []), ...(playerData.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+            const commIds = getAllPlayerCommunities(playerData, activeCommunityId);
             for (const commId of commIds) {
               const commPlayerRef = doc(db, `communities/${commId}/players`, edit.playerId);
               batch.set(commPlayerRef, updateDataComm, { merge: true });

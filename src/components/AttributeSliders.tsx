@@ -30,7 +30,12 @@ const translations = {
     stamina: 'Stamina',
     defensiveAwareness: 'Defensive Awareness',
     ballWinning: 'Ball Winning',
-    goalkeeping: 'Goalkeeping',
+    aggression: 'Aggression',
+    gkAwareness: 'GK Awareness',
+    gkCatching: 'GK Catching',
+    gkClearing: 'GK Clearing',
+    gkReflexes: 'GK Reflexes',
+    gkReach: 'GK Reach',
   },
   ar: {
     title: 'سمات اللاعب',
@@ -52,7 +57,12 @@ const translations = {
     stamina: 'اللياقة البدنية',
     defensiveAwareness: 'الوعي الدفاعي',
     ballWinning: 'افتكاك الكرة',
-    goalkeeping: 'حراسة المرمى',
+    aggression: 'الشراسة',
+    gkAwareness: 'وعي حارس المرمى',
+    gkCatching: 'الإمساك بالكرة',
+    gkClearing: 'إبعاد الكرة',
+    gkReflexes: 'ردود الفعل',
+    gkReach: 'التغطية والوصول',
   },
 } as const;
 
@@ -74,7 +84,12 @@ const descriptions = {
     stamina: 'Fitness to maintain performance throughout the match.',
     defensiveAwareness: 'Defensive positioning and reading the game.',
     ballWinning: 'Ability to tackle and win the ball back.',
-    goalkeeping: 'Overall goalkeeping ability (GK only).',
+    aggression: 'Aggression in challenging for the ball.',
+    gkAwareness: 'Goalkeeper positioning and reading the game.',
+    gkCatching: 'Ability to catch the ball securely.',
+    gkClearing: 'Ability to clear the ball out of danger.',
+    gkReflexes: 'Quick reactions to make saves.',
+    gkReach: 'Ability to reach distant shots.',
   },
   ar: {
     offensiveAwareness: 'التمركز والوعي الهجومي.',
@@ -93,7 +108,12 @@ const descriptions = {
     stamina: 'اللياقة للحفاظ على الأداء طوال المباراة.',
     defensiveAwareness: 'التمركز والوعي الدفاعي وقراءة اللعب.',
     ballWinning: 'القدرة على قطع الكرة وافتكاكها.',
-    goalkeeping: 'القدرات العامة لحارس المرمى.',
+    aggression: 'الشراسة في الضغط وافتكاك الكرة.',
+    gkAwareness: 'تمركز حارس المرمى وقراءة اللعب.',
+    gkCatching: 'القدرة على الإمساك بالكرة بثبات.',
+    gkClearing: 'القدرة على إبعاد الكرة عن منطقة الخطر.',
+    gkReflexes: 'سرعة رد الفعل في التصديات.',
+    gkReach: 'القدرة على الوصول للتسديدات البعيدة.',
   },
 } as const;
 
@@ -106,7 +126,8 @@ const ATTRIBUTE_KEYS: AttrKey[] = [
   'offensiveAwareness', 'ballControl', 'dribbling', 'lowPass', 'loftedPass',
   'finishing', 'heading', 'speed', 'acceleration', 'kickingPower',
   'jump', 'physicalContact', 'balance', 'stamina',
-  'defensiveAwareness', 'ballWinning', 'goalkeeping'
+  'defensiveAwareness', 'ballWinning', 'aggression',
+  'gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach'
 ];
 
 import { 
@@ -132,7 +153,12 @@ const ATTRIBUTE_ICONS: Record<AttrKey, React.ReactNode> = {
   stamina: <HeartPulse className="w-4 h-4 text-emerald-500" />,
   defensiveAwareness: <Shield className="w-4 h-4 text-blue-500" />,
   ballWinning: <Axe className="w-4 h-4 text-blue-500" />,
-  goalkeeping: <Hand className="w-4 h-4 text-amber-500" />,
+  aggression: <Axe className="w-4 h-4 text-red-500" />,
+  gkAwareness: <Brain className="w-4 h-4 text-amber-500" />,
+  gkCatching: <Hand className="w-4 h-4 text-amber-500" />,
+  gkClearing: <Footprints className="w-4 h-4 text-amber-500" />,
+  gkReflexes: <Zap className="w-4 h-4 text-amber-500" />,
+  gkReach: <Target className="w-4 h-4 text-amber-500" />,
 };
 
 /* ──────────────────────────────────────────────
@@ -168,7 +194,7 @@ interface AttributeSlidersProps {
 /* ──────────────────────────────────────────────
    Component
    ────────────────────────────────────────────── */
-export default function AttributeSliders({
+export default React.memo(function AttributeSliders({
   attributes,
   onChange,
   locale = 'ar',
@@ -312,4 +338,4 @@ export default function AttributeSliders({
       `}</style>
     </div>
   );
-}
+});

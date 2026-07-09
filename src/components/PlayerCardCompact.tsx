@@ -13,7 +13,7 @@ interface PlayerCardCompactProps {
   recordedStats?: Record<string, any>;
 }
 
-export default function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
+const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
   const [imgError, setImgError] = React.useState(false);
@@ -35,13 +35,15 @@ export default function PlayerCardCompact({ player, recordedStats }: PlayerCardC
       >
 
         {/* Photo */}
-        <div className="w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
+        <div className="relative w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
           {(() => {
             return displayPhoto && !imgError ? (
-              <img 
+              <Image 
                 src={displayPhoto} 
                 alt="" 
-                className="w-full h-full object-cover" 
+                fill
+                sizes="56px"
+                style={{ objectFit: 'cover' }}
                 referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
               />
@@ -104,4 +106,6 @@ export default function PlayerCardCompact({ player, recordedStats }: PlayerCardC
       </motion.div>
     </Link>
   );
-}
+});
+
+export default PlayerCardCompact;

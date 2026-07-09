@@ -11,19 +11,36 @@ service cloud.firestore {
       );
     }
 
+    // Community Admin check for a specific player
+    function isPlayerCommAdmin(userId) {
+      let playerDoc = get(/databases/$(database)/documents/players/$(userId)).data;
+      let commId = playerDoc.activeCommunityId;
+      return commId != null && get(/databases/$(database)/documents/communities/$(commId)).data.adminUid == request.auth.uid;
+    }
+
     // Players collection
     match /players/{userId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if isAdmin() || (
-        request.auth != null && 
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'overallRating', 'lastCommunityId', 'activeCommunityId', 'googlePic', 'googleName', 'email', 'fullName'])
+        request.auth != null && request.auth.uid == userId && 
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating']))
       ) || (
-        request.auth != null && 
-        request.auth.uid == userId && 
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData']))
+        isPlayerCommAdmin(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'overallRating', 'attributes', 'approvedAttributes'])
       );
       allow delete: if isAdmin();
+    }
+
+    // Users collection (for notifications)
+    match /users/{userId} {
+      allow read, write: if isAdmin() || (request.auth != null && request.auth.uid == userId);
+      
+      match /notifications/{notificationId} {
+        allow read: if request.auth != null && request.auth.uid == userId;
+        allow create: if request.auth != null; // System/anyone can send notification to user inbox
+        allow update, delete: if request.auth != null && request.auth.uid == userId;
+      }
     }
 
     // Profile edits (pending approvals)
@@ -33,20 +50,20 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
     }
 
-    // System configuration (like matchmaking)
+    // System configuration
     match /system/{docId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow write: if isAdmin();
     }
 
     // Communities
     match /communities/{communityId} {
-      allow read: if true;
+      allow read: if request.auth != null;
       allow create: if isAdmin();
       allow update, delete: if isAdmin() || (request.auth != null && request.auth.uid == resource.data.adminUid);
 
       match /players/{userId} {
-        allow read: if true;
+        allow read: if request.auth != null;
         allow write: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid) || (request.auth != null && request.auth.uid == userId);
       }
       
@@ -55,20 +72,26 @@ service cloud.firestore {
         allow create: if request.auth != null && request.auth.uid == requestId;
         allow update, delete: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid) || (request.auth != null && request.auth.uid == requestId);
       }
+      
+      match /editRequests/{editId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid) || (request.auth != null && resource.data.playerId == request.auth.uid);
+      }
 
       match /matches/{matchId} {
-        allow read: if true;
+        allow read: if request.auth != null;
         allow write: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid);
       }
 
       match /settings/{docId} {
-        allow read: if true;
+        allow read: if request.auth != null;
         allow write: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid);
       }
 
       match /chats/{chatId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null;
+        allow read: if request.auth != null && exists(/databases/$(database)/documents/communities/$(communityId)/players/$(request.auth.uid));
+        allow create: if request.auth != null && exists(/databases/$(database)/documents/communities/$(communityId)/players/$(request.auth.uid));
         allow update, delete: if isAdmin() || (request.auth != null && request.auth.uid == get(/databases/$(database)/documents/communities/$(communityId)).data.adminUid) || (request.auth != null && resource.data.senderUid == request.auth.uid);
       }
     }

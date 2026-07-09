@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Loader2, Trash2, Search, ArrowUpDown, Eye } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ConfirmModal";
+import { getAllPlayerCommunities } from '@/lib/playerUtils';
 
 export default function GlobalUsersTable() {
   const { locale } = useLocale();
@@ -111,7 +112,7 @@ export default function GlobalUsersTable() {
           }
           const batch = writeBatch(db);
           for (const u of mockUsers) {
-            const commIds = Array.from(new Set([...(u.memberCommunities || []), ...(u.joinedCommunities || [])].filter(Boolean))) as string[];
+            const commIds = getAllPlayerCommunities(u);
             for (const commId of commIds) {
               batch.delete(doc(db, "communities", commId as string, "players", u.uid));
             }
@@ -250,7 +251,7 @@ export default function GlobalUsersTable() {
                         ...(u.memberCommunities || []),
                         ...(u.joinedCommunities || []),
                         ...(userCommMap[u.uid] || [])
-                      ].filter(Boolean)));
+                      ].filter(Boolean))) as string[];
                       return commIds.length > 0 ? (
                         commIds.map(c => (
                           <span key={c} className="text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">

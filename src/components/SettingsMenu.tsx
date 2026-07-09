@@ -104,7 +104,9 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
                 <>
                   <div className="px-4 py-3 flex items-center gap-3">
                     {user.photoURL ? (
-                      <img src={user.photoURL} alt="Profile" className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />
+                      <div className="relative w-10 h-10 shrink-0">
+                        <Image src={user.photoURL} alt="Profile" fill sizes="40px" className="rounded-full object-cover border border-slate-200 dark:border-slate-700" referrerPolicy="no-referrer" />
+                      </div>
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
                         <User className="w-5 h-5 text-slate-500 dark:text-slate-400" />

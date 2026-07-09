@@ -11,9 +11,11 @@ import { useLocale } from '@/components/ThemeProvider';
 import AttributeSliders from '@/components/AttributeSliders';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PlayerProfile } from '@/types';
+import { PESPosition } from '@/types';
 import toast from 'react-hot-toast';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getAllPlayerCommunities } from '@/lib/playerUtils';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -91,7 +93,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
       speed: 40, acceleration: 40, kickingPower: 40, jump: 40,
       physicalContact: 40, balance: 40, stamina: 40,
-      defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40
+      defensiveAwareness: 40, ballWinning: 40, aggression: 40,
+      gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
     },
   });
   const [editModal, setEditModal] = useState<{ open: boolean; player: PlayerProfile | null }>({
@@ -193,7 +196,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       }
       const batch = writeBatch(db);
       mockPlayers.forEach(p => {
-        const commIds = Array.from(new Set([...(p.memberCommunities || []), ...(p.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+        const commIds = getAllPlayerCommunities(p, activeCommunityId);
         commIds.forEach(cId => {
           batch.delete(doc(db, 'communities', cId, 'players', p.uid));
         });
@@ -282,7 +285,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
         speed: 40, acceleration: 40, kickingPower: 40, jump: 40,
         physicalContact: 40, balance: 40, stamina: 40,
-        defensiveAwareness: 40, ballWinning: 40, goalkeeping: 40
+        defensiveAwareness: 40, ballWinning: 40, aggression: 40,
+      gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
       },
     });
   };
@@ -293,7 +297,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     try {
       const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '');
       const batch = writeBatch(db);
-      const commIds = Array.from(new Set([...(attrModal.player.memberCommunities || []), ...(attrModal.player.joinedCommunities || []), activeCommunityId].filter(Boolean))) as string[];
+      const commIds = getAllPlayerCommunities(attrModal.player, activeCommunityId);
       for (const commId of commIds) {
         const commRef = doc(db, 'communities', commId as string, 'players', attrModal.player.uid);
         batch.set(commRef, {
