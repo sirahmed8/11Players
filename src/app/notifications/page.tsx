@@ -4,13 +4,12 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
 import { db } from "@/lib/firebase";
-import { collection, query, orderBy, onSnapshot, writeBatch, doc, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, writeBatch, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown } from "lucide-react";
+import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown, Trash2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { generatePersonalizedAdvices } from "@/lib/adviceGenerator";
 
 type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
 
@@ -18,9 +17,9 @@ interface UserNotification {
   id: string;
   title: string;
   body: string;
-  type: NotificationType;
   read: boolean;
   createdAt: any;
+  type: NotificationType;
   link?: string;
 }
 
@@ -37,15 +36,6 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     if (!user) return;
-    
-    // Fetch user profile and generate advice
-    import("firebase/firestore").then(({ doc, getDoc }) => {
-      getDoc(doc(db, "players", user.uid)).then(snap => {
-        if (snap.exists()) {
-          generatePersonalizedAdvices(user.uid, snap.data() as any, isAr);
-        }
-      });
-    });
 
     const q = query(
       collection(db, "users", user.uid, "notifications"),
@@ -54,36 +44,6 @@ export default function NotificationsPage() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserNotification));
-      
-      // Check for new unread notifications and trigger UI Site Notification
-      if (snapshot.docChanges().length > 0) {
-        snapshot.docChanges().forEach(change => {
-          if (change.type === "added") {
-            const data = change.doc.data();
-            if (!data.read) {
-              toast.custom((t) => (
-                <div
-                  onClick={() => toast.dismiss(t.id)}
-                  className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/30 hover:scale-[1.02] transition-all"
-                >
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold shrink-0">
-                    🔔
-                  </div>
-                  <div className="flex-1 w-0">
-                    <p className="text-sm font-black text-slate-900 dark:text-white truncate">
-                      {data.title}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 line-clamp-2 font-medium">
-                      {data.body}
-                    </p>
-                  </div>
-                </div>
-              ), { duration: 5000, position: 'top-center' });
-            }
-          }
-        });
-      }
-
       setNotifications(notifs);
       setLoading(false);
     }, (error) => {
@@ -92,14 +52,26 @@ export default function NotificationsPage() {
     });
 
     return () => unsubscribe();
-  }, [user, isAr]);
+  }, [user]);
 
   const markAsRead = async (id: string) => {
     if (!user) return;
     try {
       await updateDoc(doc(db, "users", user.uid, "notifications", id), { read: true });
     } catch (error) {
-      console.error("Error marking as read:", error);
+      console.error("Failed to mark as read:", error);
+    }
+  };
+
+  const deleteNotification = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, "users", user.uid, "notifications", id));
+      toast.success(isAr ? "تم حذف الإشعار" : "Notification deleted");
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+      toast.error(isAr ? "فشل حذف الإشعار" : "Failed to delete notification");
     }
   };
 
@@ -292,10 +264,19 @@ export default function NotificationsPage() {
                           )}
                         </div>
                         {!notif.read && (
-                          <div className="flex-shrink-0 self-center">
+                          <div className="flex-shrink-0 self-center mr-3 rtl:mr-0 rtl:ml-3">
                             <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-sm shadow-emerald-500/50" />
                           </div>
                         )}
+                        <div className="flex-shrink-0 self-center">
+                          <button
+                            onClick={(e) => deleteNotification(notif.id, e)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-colors"
+                            title={isAr ? "حذف الإشعار" : "Delete notification"}
+                          >
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        </div>
                       </div>
                     </motion.li>
                   ))}

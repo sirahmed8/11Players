@@ -20,7 +20,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       const lastAdvice = snap.docs[0].data();
       const lastTime = lastAdvice.createdAt?.toMillis ? lastAdvice.createdAt.toMillis() : Date.now();
       if (Date.now() - lastTime < ADVICE_COOLDOWN_MS) {
-        return; // Too soon to generate more advices
+        return []; // Too soon to generate more advices
       }
     }
 
@@ -207,7 +207,9 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       });
     }
 
+    return selectedAdvices;
   } catch (err) {
     console.error("Failed to generate advice:", err);
+    return [];
   }
 }

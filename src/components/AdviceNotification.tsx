@@ -15,60 +15,29 @@ export default function AdviceNotification() {
 
   useEffect(() => {
     if (!user) return;
-    
     const fetchProfileAndGenerateAdvice = async () => {
       const lastShown = sessionStorage.getItem("adviceLastShown");
       const now = Date.now();
-      // Show advice once every 10 minutes to avoid spamming but allow frequency
+      // Show advice check once every 10 minutes to avoid spamming Firestore reads on navigation
       if (lastShown && now - parseInt(lastShown) < 600000) return;
       
       try {
         const playerDoc = await getDoc(doc(db, "players", user.uid));
         if (playerDoc.exists()) {
-          const data = playerDoc.data();
-          const position = data.primaryPosition || "Player";
-          const stats = data.stats || {};
+          const { generatePersonalizedAdvices } = await import("@/lib/adviceGenerator");
+          const generated = await generatePersonalizedAdvices(user.uid, playerDoc.data() as any, isAr);
           
-          const advices = [
-            isAr ? `تذكر يا ${position}، التمركز الصحيح هو نصف الدفاع!` : `Remember ${position}, good positioning is half the defense!`,
-            isAr ? `أرقامك في التصاعد! استمر في العمل الجاد.` : `Your stats are looking great! Keep up the hard work.`,
-            isAr ? `كـ ${position}، التواصل مع زملائك في الملعب يصنع الفارق.` : `As a ${position}, communication on the pitch makes all the difference.`,
-            isAr ? `لا تنسى الإحماء جيداً قبل المباراة القادمة.` : `Don't forget to warm up properly before your next match.`,
-            isAr ? `الراحة الكافية لا تقل أهمية عن التدريب الشاق.` : `Adequate rest is just as important as hard training.`,
-            isAr ? `شرب الماء بانتظام يحافظ على لياقتك طوال الـ 90 دقيقة.` : `Staying hydrated keeps you fit for the full 90 minutes.`,
-            isAr ? `الرؤية الجيدة للملعب تأتي من رفع رأسك أثناء الاستحواذ.` : `Good pitch vision comes from keeping your head up while in possession.`,
-            isAr ? `العمل الجماعي دائماً يتفوق على المهارات الفردية.` : `Teamwork always beats individual skills.`
-          ];
-          
-          if (stats.goals > 10) {
-            advices.push(isAr ? `هداف رائع! حافظ على هذا المعدل التهديفي العالي.` : `Incredible goalscorer! Maintain that high scoring rate.`);
-          }
-          if (stats.assists > 10) {
-            advices.push(isAr ? `صانع ألعاب من طراز رفيع! تمريراتك الحاسمة مذهلة.` : `Top class playmaker! Your assists are amazing.`);
-          }
-          
-          const randomAdvice = advices[Math.floor(Math.random() * advices.length)];
-          setAdvice(randomAdvice);
-          
-          // Save the advice to Firestore notifications so it persists
-          try {
-            await addDoc(collection(db, "users", user.uid, "notifications"), {
-              type: "advices",
-              title: isAr ? "نصيحة المدرب" : "Coach Advice",
-              body: randomAdvice,
-              read: false,
-              createdAt: serverTimestamp(),
-              link: "/profile"
-            });
-          } catch (e) {
-            console.error("Failed to save advice to notifications", e);
-          }
-          
-          // Delay showing advice slightly for better UX
-          setTimeout(() => {
-            setIsVisible(true);
+          if (generated && generated.length > 0) {
+            setAdvice(generated[0].body);
+            // Delay showing advice slightly for better UX
+            setTimeout(() => {
+              setIsVisible(true);
+              sessionStorage.setItem("adviceLastShown", Date.now().toString());
+            }, 1000);
+          } else {
+            // Either on 24h cooldown or failed
             sessionStorage.setItem("adviceLastShown", Date.now().toString());
-          }, 1000);
+          }
         }
       } catch (err) {
         console.error("Failed to generate advice", err);
