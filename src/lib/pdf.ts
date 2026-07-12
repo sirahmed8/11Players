@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import PDFPlayerCard from '@/components/PDFPlayerCard';
 import PDFBulkTable from '@/components/PDFBulkTable';
 
-export async function generateProfilePDF(profile: PlayerProfile): Promise<void> {
+export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 'ar' = 'en'): Promise<void> {
   if (typeof window === "undefined") {
     console.log("PDF generation skipped on server-side execution");
     return;
@@ -22,7 +22,7 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
 
     // Render the React component
     const root = createRoot(container);
-    root.render(React.createElement(PDFPlayerCard, { player: profile }));
+    root.render(React.createElement(PDFPlayerCard, { player: profile, locale }));
 
     // Wait for a brief moment to let React render and images load
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -82,7 +82,7 @@ export async function generateProfilePDF(profile: PlayerProfile): Promise<void> 
   }
 }
 
-export async function generateMasterBulkPDF(profiles: PlayerProfile[]): Promise<void> {
+export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: 'en' | 'ar' = 'en'): Promise<void> {
   if (typeof window === "undefined") {
     console.log("PDF generation skipped on server-side execution");
     return;
@@ -117,7 +117,8 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[]): Promise<
       root.render(React.createElement(PDFBulkTable, {
         profiles: pageProfiles,
         pageIndex: i,
-        totalPages: totalPages
+        totalPages: totalPages,
+        locale
       }));
 
       // Wait for render and images

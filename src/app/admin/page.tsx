@@ -117,7 +117,7 @@ export default function AdminPage() {
   };
 
   const handleBulkPdf = () => {
-    generateMasterBulkPDF(players);
+    generateMasterBulkPDF(players, isAr ? 'ar' : 'en');
   };
 
   const handleMakeMeAdmin = () => {

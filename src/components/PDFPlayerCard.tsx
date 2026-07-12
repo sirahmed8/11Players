@@ -4,20 +4,22 @@ import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 interface Props {
   player: PlayerProfile;
+  locale?: 'en' | 'ar';
 }
 
 function calculateMainStats(attrs: PlayerProfile['attributes']) {
   return [
-    { label: 'PAC', nameAr: 'السرعة', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
-    { label: 'SHO', nameAr: 'التسديد', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
-    { label: 'PAS', nameAr: 'التمرير', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
-    { label: 'DRI', nameAr: 'المراوغة', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
-    { label: 'DEF', nameAr: 'الدفاع', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
-    { label: 'PHY', nameAr: 'البدنية', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
+    { labelEn: 'PAC', labelAr: 'السرعة', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
+    { labelEn: 'SHO', labelAr: 'التسديد', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
+    { labelEn: 'PAS', labelAr: 'التمرير', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
+    { labelEn: 'DRI', labelAr: 'المراوغة', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
+    { labelEn: 'DEF', labelAr: 'الدفاع', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
+    { labelEn: 'PHY', labelAr: 'البدنية', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
   ];
 }
 
-export default function PDFPlayerCard({ player }: Props) {
+export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
+  const isAr = locale === 'ar';
   const activeAttributes = player.approvedAttributes || player.attributes || {
     speed: 70, acceleration: 70, finishing: 65, kickingPower: 70,
     offensiveAwareness: 68, lowPass: 72, loftedPass: 70,
@@ -32,185 +34,257 @@ export default function PDFPlayerCard({ player }: Props) {
     player.playStyle || ''
   );
 
-  const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text || '');
-  const nameDir = isArabic(player.cardName) ? 'rtl' : 'ltr';
-
   const stats = calculateMainStats(activeAttributes);
   const pStats = player.stats || { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 };
+
+  const footText = isAr
+    ? (player.preferredFoot === 'Left' ? 'قدم يسرى' : 'قدم يمنى')
+    : (player.preferredFoot === 'Left' ? 'LEFT FOOT' : 'RIGHT FOOT');
 
   return (
     <div
       id="pdf-player-card"
+      dir={isAr ? 'rtl' : 'ltr'}
       style={{
-        width: '520px',
-        height: '760px',
+        width: '540px',
+        height: '780px',
         boxSizing: 'border-box',
         backgroundColor: '#070b14',
-        backgroundImage: 'linear-gradient(145deg, #0f172a 0%, #070b14 60%, #1e1b4b 100%)',
         color: '#ffffff',
-        fontFamily: 'sans-serif',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         padding: '24px',
         position: 'relative',
         overflow: 'hidden',
-        borderRadius: '32px',
+        borderRadius: '36px',
         border: '3px solid #f59e0b',
       }}
     >
-      {/* Decorative Golden Corner Accents */}
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '180px', height: '180px', background: 'radial-gradient(circle, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0) 70%)' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '180px', height: '180px', background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(0,0,0,0) 70%)' }} />
+      {/* Decorative Metallic Corner Glows */}
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '220px', height: '220px', background: 'radial-gradient(circle, rgba(245,158,11,0.22) 0%, rgba(0,0,0,0) 70%)' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '220px', height: '220px', background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(0,0,0,0) 70%)' }} />
 
-      {/* Card Inner Frame */}
+      {/* Card Rounded Inner Frame */}
       <div
         style={{
           width: '100%',
           height: '100%',
           boxSizing: 'border-box',
-          border: '2px solid rgba(245, 158, 11, 0.5)',
-          borderRadius: '24px',
-          padding: '20px',
+          border: '2px solid rgba(245, 158, 11, 0.45)',
+          borderRadius: '28px',
+          padding: '24px 22px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+          backgroundColor: '#0d1322',
         }}
       >
         {/* Top Header Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', paddingBottom: '12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 900, color: '#f59e0b', letterSpacing: '2px' }}>11PLAYERS</span>
-            <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', padding: '2px 8px', borderRadius: '6px' }}>ELITE</span>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderBottom: '1px solid rgba(245, 158, 11, 0.25)',
+            paddingBottom: '14px',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '15px', fontWeight: 900, color: '#f59e0b', letterSpacing: '1.5px', lineHeight: 1 }}>
+              11PLAYERS
+            </span>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                color: '#fbbf24',
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                lineHeight: 1,
+              }}
+            >
+              {isAr ? 'نخبة' : 'ELITE'}
+            </span>
           </div>
-          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>SEASON 2026</span>
+          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.5px' }}>
+            {isAr ? 'موسم 2026' : 'SEASON 2026'}
+          </span>
         </div>
 
-        {/* Hero Section: Rating, Position, Photo */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 8px' }}>
-          {/* Left Badge: OVR & Position */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '110px' }}>
-            <span style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: '#ffffff', textShadow: '0 2px 10px rgba(245,158,11,0.4)' }}>
+        {/* Hero Section: OVR Badge Left/Right + Large Portrait Card */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '10px 4px' }}>
+          {/* Rating & Position Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '130px' }}>
+            <span
+              style={{
+                fontSize: '72px',
+                fontWeight: 900,
+                lineHeight: 0.9,
+                color: '#ffffff',
+              }}
+            >
               {overall}
             </span>
-            <span style={{ fontSize: '24px', fontWeight: 900, color: '#fbbf24', marginTop: '4px', letterSpacing: '1px' }}>
+            <span
+              style={{
+                fontSize: '26px',
+                fontWeight: 900,
+                color: '#fbbf24',
+                marginTop: '6px',
+                letterSpacing: '1px',
+              }}
+            >
               {player.primaryPosition || 'CMF'}
             </span>
             {player.playStyle && (
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 10px', borderRadius: '12px', marginTop: '6px' }}>
+              <span
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  color: '#34d399',
+                  backgroundColor: 'rgba(16,185,129,0.18)',
+                  padding: '5px 12px',
+                  borderRadius: '9999px',
+                  marginTop: '10px',
+                  display: 'inline-block',
+                  textAlign: 'center',
+                  lineHeight: 1.2,
+                }}
+              >
                 {player.playStyle}
               </span>
             )}
           </div>
 
-          {/* Right Portrait */}
-          <div style={{ position: 'relative', width: '160px', height: '160px' }}>
-            <div
-              style={{
-                width: '160px',
-                height: '160px',
-                borderRadius: '50%',
-                border: '4px solid #f59e0b',
-                overflow: 'hidden',
-                backgroundColor: '#1e293b',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {player.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={player.photoUrl}
-                  alt={player.cardName}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  crossOrigin="anonymous"
-                />
-              ) : (
-                <span style={{ fontSize: '56px', fontWeight: 900, color: '#f59e0b' }}>
-                  {player.cardName?.charAt(0) || '11'}
-                </span>
-              )}
-            </div>
+          {/* Large Premium Player Portrait Frame */}
+          <div
+            style={{
+              width: '190px',
+              height: '210px',
+              borderRadius: '24px',
+              border: '3px solid #f59e0b',
+              overflow: 'hidden',
+              backgroundColor: '#1e293b',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+            }}
+          >
+            {player.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={player.photoUrl}
+                alt={player.cardName}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }}
+                crossOrigin="anonymous"
+              />
+            ) : (
+              <span style={{ fontSize: '64px', fontWeight: 900, color: '#f59e0b' }}>
+                {player.cardName?.charAt(0) || '11'}
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Player Name & Bio Banner */}
-        <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '14px' }}>
+        {/* Player Name & Info Bar */}
+        <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '16px' }}>
           <h1
-            dir={nameDir}
             style={{
-              fontSize: '32px',
+              fontSize: '34px',
               fontWeight: 900,
               textTransform: 'uppercase',
               color: '#ffffff',
-              margin: '0 0 6px 0',
+              margin: '0 0 8px 0',
               letterSpacing: '1px',
             }}
           >
             {player.cardName}
           </h1>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '13px', fontWeight: 700, color: '#cbd5e1' }}>
-            <span>{player.calculatedAge || 20} YRS</span>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              gap: '16px',
+              fontSize: '13px',
+              fontWeight: 800,
+              color: '#cbd5e1',
+            }}
+          >
+            <span>{player.calculatedAge || 20} {isAr ? 'سنة' : 'YRS'}</span>
             <span style={{ color: '#f59e0b' }}>•</span>
-            <span>{player.height || 175} CM</span>
+            <span>{player.height || 175} {isAr ? 'سم' : 'CM'}</span>
             <span style={{ color: '#f59e0b' }}>•</span>
-            <span>{player.preferredFoot === 'Left' ? 'LEFT FOOT' : 'RIGHT FOOT'}</span>
+            <span>{footText}</span>
           </div>
         </div>
 
-        {/* Attributes Grid (2x3) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '8px 0' }}>
-          {stats.map((s) => (
+        {/* Attributes Grid (2 columns x 3 rows, beautifully rounded) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', padding: '4px 0' }}>
+          {stats.map((s, idx) => (
             <div
-              key={s.label}
+              key={idx}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: 'rgba(30, 41, 59, 0.7)',
-                border: '1px solid rgba(245, 158, 11, 0.2)',
-                borderRadius: '12px',
-                padding: '10px 14px',
+                backgroundColor: 'rgba(30, 41, 59, 0.85)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
+                borderRadius: '16px',
+                padding: '12px 18px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>{s.value}</span>
-                <span style={{ fontSize: '13px', fontWeight: 800, color: '#e2e8f0' }}>{s.label}</span>
-              </div>
-              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>{s.nameAr}</span>
+              <span style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24' }}>
+                {s.value}
+              </span>
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc' }}>
+                {isAr ? s.labelAr : s.labelEn}
+              </span>
             </div>
           ))}
         </div>
 
-        {/* Bottom Match Career Performance Bar */}
+        {/* Career Stats Footer Bar */}
         <div
           style={{
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'center',
-            backgroundColor: '#0f172a',
-            border: '1px solid rgba(245, 158, 11, 0.3)',
-            borderRadius: '14px',
-            padding: '12px 8px',
+            backgroundColor: '#0a0f1d',
+            border: '1px solid rgba(245, 158, 11, 0.35)',
+            borderRadius: '18px',
+            padding: '14px 10px',
           }}
         >
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#10b981' }}>{pStats.goals || 0}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>GOALS</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#10b981' }}>{pStats.goals || 0}</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+              {isAr ? 'أهداف' : 'GOALS'}
+            </div>
           </div>
-          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#38bdf8' }}>{pStats.assists || 0}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>ASSISTS</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#38bdf8' }}>{pStats.assists || 0}</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+              {isAr ? 'تمريرات' : 'ASSISTS'}
+            </div>
           </div>
-          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>{pStats.mvp || 0}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>MVP</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24' }}>{pStats.mvp || 0}</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+              {isAr ? 'أفضل لاعب' : 'MVP'}
+            </div>
           </div>
-          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 900, color: '#e2e8f0' }}>{pStats.matchesPlayed || 0}</div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>MATCHES</div>
+            <div style={{ fontSize: '20px', fontWeight: 900, color: '#e2e8f0' }}>{pStats.matchesPlayed || 0}</div>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+              {isAr ? 'مباريات' : 'MATCHES'}
+            </div>
           </div>
         </div>
       </div>

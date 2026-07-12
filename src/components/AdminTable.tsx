@@ -687,7 +687,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                       {/* PDF Export */}
                       <button
-                        onClick={() => generateProfilePDF(player)}
+                        onClick={() => generateProfilePDF(player, locale === 'ar' ? 'ar' : 'en')}
                         className="rounded-lg bg-blue-50 dark:bg-blue-600/20 p-2 text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-100 dark:hover:bg-blue-600/40 hover:text-blue-700 dark:hover:text-blue-300"
                         title={t(locale, 'Export PDF', 'تصدير PDF')}
                       >

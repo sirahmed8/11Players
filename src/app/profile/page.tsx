@@ -444,7 +444,7 @@ function PlayerProfileContent() {
             )}
             {canExport && (
               <button
-                onClick={() => generateProfilePDF(player)}
+                onClick={() => generateProfilePDF(player, isAr ? 'ar' : 'en')}
                 className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95"
               >
                 📄 {isAr ? "تصدير ملف PDF" : "Export PDF"}
