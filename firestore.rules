@@ -50,6 +50,13 @@ service cloud.firestore {
       allow update, delete: if isAdmin() || (request.auth != null && resource.data.uid == request.auth.uid);
     }
 
+    // Global profile & stats edit requests
+    match /editRequests/{editId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if isAdmin() || (request.auth != null && resource.data.playerId == request.auth.uid);
+    }
+
     // System configuration
     match /system/{docId} {
       allow read: if request.auth != null;

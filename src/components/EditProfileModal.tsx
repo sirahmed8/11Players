@@ -188,76 +188,82 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         await setDoc(doc(db, 'players', player.uid), updatePayload, { merge: true });
         toast.success(isRTL ? 'تم حفظ التعديلات وتحديث التقييم العام بنجاح' : 'Changes & Overall Rating saved successfully');
       } else {
-        await setDoc(doc(db, 'players', player.uid), dataToSave, { merge: true });
-        for (const commId of commIds) {
-          await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), dataToSave, { merge: true });
+        try {
+          await setDoc(doc(db, 'players', player.uid), dataToSave, { merge: true });
+          for (const commId of commIds) {
+            await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), dataToSave, { merge: true });
+          }
+        } catch (e) {
+          console.warn("Safe profile write fallback to editRequest:", e);
         }
         
         const targetCommunityId = activeCommunityId || (commIds.length > 0 ? commIds[0] : null);
-        
+        const editPayload = {
+          playerId: player.uid,
+          playerName: formData.fullName || player.fullName,
+          cardName: formData.cardName || player.cardName,
+          photoUrl: formData.photoUrl || player.photoUrl || '',
+          requestedAt: new Date().toISOString(),
+          status: 'pending',
+          profileData: dataToSave,
+          attributes,
+          stats
+        };
+
+        const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+
         if (targetCommunityId) {
           const editRequestRef = doc(collection(db, `communities/${targetCommunityId}/editRequests`));
-          await setDoc(editRequestRef, {
-            playerId: player.uid,
-            playerName: formData.fullName,
-            requestedAt: new Date().toISOString(),
-            status: 'pending',
-            attributes,
-            stats
-          });
+          await setDoc(editRequestRef, editPayload);
 
-          // Notify Community Admin
-          if (activeCommunity?.adminUid) {
-            const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`));
-            await setDoc(adminNotifRef, {
-              type: 'stats',
-              title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
-              body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
-              read: false,
-              createdAt: new Date(),
-              link: '/admin?tab=edits'
-            });
+          try {
+            if (activeCommunity?.adminUid) {
+              const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`));
+              await setDoc(adminNotifRef, {
+                type: 'stats',
+                title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
+                body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل على ملفه الشخصي وقدراته للمراجعة.` : `${formData.fullName} submitted profile & stats edits for your review.`,
+                read: false,
+                createdAt: new Date(),
+                link: '/admin?tab=edits'
+              });
+            }
+
+            if (activeCommunity?.adminUid !== ownerUid) {
+              const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
+              await setDoc(ownerNotifRef, {
+                type: 'stats',
+                title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
+                body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
+                read: false,
+                createdAt: new Date(),
+                link: '/admin?tab=edits'
+              });
+            }
+          } catch (notifErr) {
+            console.warn("Notification send warning:", notifErr);
           }
 
-          // Notify Global Owner (if different from admin)
-          const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
-          if (activeCommunity?.adminUid !== ownerUid) {
+          toast.success(isRTL ? 'تم إرسال طلب التعديل إلى مسؤول المجتمع للمراجعة والموافقة بنجاح!' : 'Profile & stats edit request sent to your community admin for review!');
+        } else {
+          const globalEditReqRef = doc(collection(db, 'editRequests'));
+          await setDoc(globalEditReqRef, editPayload);
+
+          try {
             const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
             await setDoc(ownerNotifRef, {
               type: 'stats',
-              title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
-              body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
+              title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
+              body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
               read: false,
               createdAt: new Date(),
               link: '/admin?tab=edits'
             });
+          } catch (notifErr) {
+            console.warn("Notification send warning:", notifErr);
           }
 
-          toast.success(isRTL ? 'تم حفظ المعلومات وإرسال طلب تعديل القدرات للمراجعة' : 'Info saved and attributes edit request sent for review');
-        } else {
-          // No community at all. Owner needs to approve, we can just save it to a global 'editRequests' collection
-          const globalEditReqRef = doc(collection(db, 'editRequests'));
-          await setDoc(globalEditReqRef, {
-            playerId: player.uid,
-            playerName: formData.fullName,
-            requestedAt: new Date().toISOString(),
-            status: 'pending',
-            attributes,
-            stats
-          });
-          
-          const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
-          const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
-          await setDoc(ownerNotifRef, {
-            type: 'stats',
-            title: isRTL ? 'طلب تحديث قدرات جديد' : 'New Stats Update Request',
-            body: isRTL ? `لقد طلب ${formData.fullName} تحديث قدراته.` : `${formData.fullName} has requested a stats update.`,
-            read: false,
-            createdAt: new Date(),
-            link: '/admin?tab=edits'
-          });
-          
-          toast.success(isRTL ? 'تم إرسال طلب تعديل القدرات للإدارة' : 'Attributes edit request sent to management');
+          toast.success(isRTL ? 'تم إرسال طلب التعديل إلى الإدارة للمراجعة والموافقة بنجاح!' : 'Profile & stats edit request sent to management for review!');
         }
       }
       onRefresh();
