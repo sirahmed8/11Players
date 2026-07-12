@@ -92,19 +92,20 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             <span style={{ fontSize: '16px', fontWeight: 900, color: '#f59e0b', letterSpacing: '2px' }}>
               11PLAYERS
             </span>
-            {/* ELITE Badge - Optically Centered with transform */}
+            {/* ELITE Badge - Optically Centered with translateY(-2.5px) */}
             <div
               style={{
-                padding: '4px 14px',
+                height: '24px',
+                padding: '0 14px',
                 backgroundColor: 'rgba(245, 158, 11, 0.22)',
                 border: '1px solid rgba(245, 158, 11, 0.45)',
-                borderRadius: '9999px',
-                display: 'inline-flex',
+                borderRadius: '12px',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-1px)' }}>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-2.5px)' }}>
                 {isAr ? 'نخبة' : 'ELITE'}
               </span>
             </div>
@@ -143,24 +144,25 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             {player.playStyle && (
               <div
                 style={{
-                  padding: '5px 14px',
+                  height: '26px',
+                  padding: '0 16px',
                   backgroundColor: 'rgba(16, 185, 129, 0.2)',
                   border: '1px solid rgba(16, 185, 129, 0.45)',
-                  borderRadius: '9999px',
-                  display: 'inline-flex',
+                  borderRadius: '13px',
+                  display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginTop: '10px',
                 }}
               >
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', transform: 'translateY(-1px)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', transform: 'translateY(-2.5px)' }}>
                   {player.playStyle}
                 </span>
               </div>
             )}
           </div>
 
-          {/* Large Premium Player Portrait Frame (Rounded Shield Box) */}
+          {/* Large Premium Player Portrait Frame using background-image to avoid html2canvas object-fit stretching */}
           <div
             style={{
               width: '200px',
@@ -174,22 +176,13 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
               justifyContent: 'center',
               boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
               position: 'relative',
+              backgroundImage: player.photoUrl ? `url("${player.photoUrl}")` : undefined,
+              backgroundSize: 'cover',
+              backgroundPosition: 'center 20%',
+              backgroundRepeat: 'no-repeat',
             }}
           >
-            {player.photoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={player.photoUrl}
-                alt={player.cardName}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  objectPosition: 'center 28%',
-                }}
-                crossOrigin="anonymous"
-              />
-            ) : (
+            {!player.photoUrl && (
               <span style={{ fontSize: '64px', fontWeight: 900, color: '#f59e0b' }}>
                 {player.cardName?.charAt(0) || '11'}
               </span>

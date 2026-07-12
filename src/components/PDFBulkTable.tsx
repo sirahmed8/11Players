@@ -68,16 +68,17 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
             </span>
             <div
               style={{
-                padding: '4px 14px',
+                height: '24px',
+                padding: '0 14px',
                 backgroundColor: 'rgba(245, 158, 11, 0.2)',
                 border: '1px solid rgba(245, 158, 11, 0.45)',
-                borderRadius: '9999px',
-                display: 'inline-flex',
+                borderRadius: '12px',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-1px)' }}>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-2.5px)' }}>
                 {isAr ? 'قائمة النخبة الرسمية' : 'ULTIMATE TEAM ROSTER'}
               </span>
             </div>
@@ -89,16 +90,17 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
             </span>
             <div
               style={{
-                padding: '5px 16px',
+                height: '26px',
+                padding: '0 16px',
                 backgroundColor: 'rgba(30, 41, 59, 0.9)',
                 border: '1px solid rgba(245, 158, 11, 0.4)',
-                borderRadius: '9999px',
-                display: 'inline-flex',
+                borderRadius: '13px',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <span style={{ fontSize: '12px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-1px)' }}>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-2.5px)' }}>
                 {isAr ? `صفحة ${pageIndex + 1} من ${totalPages}` : `PAGE ${pageIndex + 1} OF ${totalPages}`}
               </span>
             </div>
@@ -185,18 +187,18 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                     <td style={{ padding: '10px 14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         {p.photoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={p.photoUrl}
-                            alt=""
+                          <div
                             style={{
                               width: '38px',
                               height: '38px',
                               borderRadius: '10px',
-                              objectFit: 'cover',
                               border: '2px solid #f59e0b',
+                              backgroundImage: `url("${p.photoUrl}")`,
+                              backgroundSize: 'cover',
+                              backgroundPosition: 'center 20%',
+                              backgroundRepeat: 'no-repeat',
+                              flexShrink: 0,
                             }}
-                            crossOrigin="anonymous"
                           />
                         ) : (
                           <div
@@ -212,6 +214,7 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                               color: '#fbbf24',
                               fontWeight: 900,
                               fontSize: '15px',
+                              flexShrink: 0,
                             }}
                           >
                             {p.cardName?.charAt(0) || '11'}
@@ -227,7 +230,8 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                     <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       <div
                         style={{
-                          padding: '3px 10px',
+                          height: '24px',
+                          padding: '0 10px',
                           backgroundColor: 'rgba(245, 158, 11, 0.22)',
                           border: '1px solid rgba(245, 158, 11, 0.5)',
                           borderRadius: '8px',
@@ -236,7 +240,7 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                           justifyContent: 'center',
                         }}
                       >
-                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#fbbf24', transform: 'translateY(-1px)' }}>
+                        <span style={{ fontSize: '15px', fontWeight: 900, color: '#fbbf24', transform: 'translateY(-2.5px)' }}>
                           {overall}
                         </span>
                       </div>
@@ -246,15 +250,16 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                     <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       <div
                         style={{
-                          padding: '3px 10px',
+                          height: '22px',
+                          padding: '0 10px',
                           backgroundColor: 'rgba(51, 65, 85, 0.8)',
-                          borderRadius: '9999px',
+                          borderRadius: '11px',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#cbd5e1', transform: 'translateY(-1px)' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#cbd5e1', transform: 'translateY(-2.5px)' }}>
                           {p.primaryPosition || 'CMF'}
                         </span>
                       </div>
@@ -274,10 +279,11 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                     <td style={{ padding: '10px 14px', textAlign: 'center' }}>
                       <div
                         style={{
-                          padding: '3px 12px',
+                          height: '24px',
+                          padding: '0 12px',
                           backgroundColor: p.isVerifiedByAdmin ? 'rgba(16, 185, 129, 0.2)' : 'rgba(148, 163, 184, 0.15)',
                           border: p.isVerifiedByAdmin ? '1px solid rgba(16, 185, 129, 0.45)' : '1px solid rgba(148, 163, 184, 0.3)',
-                          borderRadius: '9999px',
+                          borderRadius: '12px',
                           display: 'inline-flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -288,7 +294,7 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                             fontSize: '11px',
                             fontWeight: 800,
                             color: p.isVerifiedByAdmin ? '#34d399' : '#94a3b8',
-                            transform: 'translateY(-1px)',
+                            transform: 'translateY(-2.5px)',
                           }}
                         >
                           {statusLabel}
