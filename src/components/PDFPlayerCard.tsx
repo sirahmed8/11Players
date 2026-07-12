@@ -92,20 +92,19 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             <span style={{ fontSize: '16px', fontWeight: 900, color: '#f59e0b', letterSpacing: '2px' }}>
               11PLAYERS
             </span>
-            {/* Perfectly Vertically & Horizontally Centered ELITE Badge */}
+            {/* ELITE Badge - Optically Centered with transform */}
             <div
               style={{
-                height: '24px',
-                padding: '0 12px',
+                padding: '4px 14px',
                 backgroundColor: 'rgba(245, 158, 11, 0.22)',
-                border: '1px solid rgba(245, 158, 11, 0.4)',
-                borderRadius: '12px',
-                display: 'flex',
+                border: '1px solid rgba(245, 158, 11, 0.45)',
+                borderRadius: '9999px',
+                display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', lineHeight: 1 }}>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', transform: 'translateY(-1px)' }}>
                 {isAr ? 'نخبة' : 'ELITE'}
               </span>
             </div>
@@ -135,7 +134,7 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
                 fontSize: '28px',
                 fontWeight: 900,
                 color: '#fbbf24',
-                marginTop: '4px',
+                marginTop: '6px',
                 letterSpacing: '1.5px',
               }}
             >
@@ -144,18 +143,17 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             {player.playStyle && (
               <div
                 style={{
-                  height: '26px',
-                  padding: '0 14px',
+                  padding: '5px 14px',
                   backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                  border: '1px solid rgba(16, 185, 129, 0.4)',
-                  borderRadius: '13px',
-                  display: 'flex',
+                  border: '1px solid rgba(16, 185, 129, 0.45)',
+                  borderRadius: '9999px',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginTop: '10px',
                 }}
               >
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', transform: 'translateY(-1px)' }}>
                   {player.playStyle}
                 </span>
               </div>
@@ -187,7 +185,7 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
                   width: '100%',
                   height: '100%',
                   objectFit: 'cover',
-                  objectPosition: 'center 28%', // Better framing for player face/chest
+                  objectPosition: 'center 28%',
                 }}
                 crossOrigin="anonymous"
               />
@@ -232,42 +230,25 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
           </div>
         </div>
 
-        {/* EA FC Ultimate Team Styled Attributes Grid (2x3) */}
+        {/* EA FC Ultimate Team Styled Attributes Grid (2x3) - Clean Baseline Alignment */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           {stats.map((s, idx) => (
             <div
               key={idx}
               style={{
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'flex-start',
-                gap: '16px',
+                alignItems: 'baseline',
+                justifyContent: 'space-between',
                 backgroundColor: 'rgba(30, 41, 59, 0.9)',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
+                border: '1px solid rgba(245, 158, 11, 0.35)',
                 borderRadius: '16px',
-                padding: '12px 20px',
+                padding: '14px 22px',
               }}
             >
-              {/* Highlighted Attribute Rating Box */}
-              <div
-                style={{
-                  minWidth: '42px',
-                  height: '36px',
-                  backgroundColor: 'rgba(245, 158, 11, 0.18)',
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid rgba(245, 158, 11, 0.4)',
-                }}
-              >
-                <span style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>
-                  {s.value}
-                </span>
-              </div>
-
-              {/* Attribute Name Perfectly Aligned */}
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '24px', fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>
+                {s.value}
+              </span>
+              <span style={{ fontSize: '16px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
                 {isAr ? s.labelAr : s.labelEn}
               </span>
             </div>
