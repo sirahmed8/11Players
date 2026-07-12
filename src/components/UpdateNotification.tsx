@@ -13,10 +13,19 @@ export default function UpdateNotification() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
+    const checkShouldShow = () => {
+      const dismissed = localStorage.getItem("11players_last_update_dismissed");
+      if (dismissed) {
+        const timeSince = Date.now() - parseInt(dismissed, 10);
+        // If dismissed or refreshed in the last 6 hours, do not show again
+        if (timeSince < 6 * 60 * 60 * 1000) return false;
+      }
+      return true;
+    };
+
     // 1. Listen for Service Worker updates
     navigator.serviceWorker.ready.then((registration) => {
-      // Check if there is already a waiting worker
-      if (registration.waiting) {
+      if (registration.waiting && checkShouldShow()) {
         setShowUpdate(true);
       }
 
@@ -25,25 +34,14 @@ export default function UpdateNotification() {
         if (!newWorker) return;
 
         newWorker.addEventListener("statechange", () => {
-          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller && checkShouldShow()) {
             setShowUpdate(true);
           }
         });
       });
     });
 
-    // 2. Check for updates periodically when user switches tabs back to the app
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        navigator.serviceWorker.getRegistration().then((reg) => {
-          reg?.update();
-        });
-      }
-    };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // 3. Catch dynamic import / chunk load errors after deploy
+    // 2. Catch dynamic import / chunk load errors after deploy
     const handleWindowError = (event: ErrorEvent) => {
       if (
         event.message &&
@@ -51,20 +49,24 @@ export default function UpdateNotification() {
           event.message.includes("ChunkLoadError") ||
           event.message.includes("Failed to fetch dynamically imported module"))
       ) {
-        setShowUpdate(true);
+        if (checkShouldShow()) setShowUpdate(true);
       }
     };
 
     window.addEventListener("error", handleWindowError);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("error", handleWindowError);
     };
   }, []);
 
+  const handleDismiss = () => {
+    localStorage.setItem("11players_last_update_dismissed", Date.now().toString());
+    setShowUpdate(false);
+  };
+
   const handleRefresh = () => {
-    // Tell waiting service worker to skipWaiting if any
+    localStorage.setItem("11players_last_update_dismissed", Date.now().toString());
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.getRegistration().then((reg) => {
         reg?.waiting?.postMessage({ type: "SKIP_WAITING" });
@@ -102,7 +104,7 @@ export default function UpdateNotification() {
               </div>
 
               <button
-                onClick={() => setShowUpdate(false)}
+                onClick={handleDismiss}
                 className="text-slate-400 hover:text-white p-1 rounded-lg transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -111,7 +113,7 @@ export default function UpdateNotification() {
 
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
-                onClick={() => setShowUpdate(false)}
+                onClick={handleDismiss}
                 className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white transition-colors"
               >
                 {isAr ? "لاحقاً" : "Later"}

@@ -43,7 +43,11 @@ export default function NotificationsPage() {
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserNotification));
+      let notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserNotification));
+      try {
+        const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+        notifs = notifs.filter(n => !deletedIds.includes(n.id));
+      } catch (e) {}
       setNotifications(notifs);
       setLoading(false);
     }, (error) => {
@@ -67,6 +71,12 @@ export default function NotificationsPage() {
     e.stopPropagation();
     if (!user) return;
     try {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+      if (!deletedIds.includes(id)) {
+        deletedIds.push(id);
+        localStorage.setItem('11players_deleted_notifs', JSON.stringify(deletedIds));
+      }
       await deleteDoc(doc(db, "users", user.uid, "notifications", id));
       toast.success(isAr ? "تم حذف الإشعار" : "Notification deleted");
     } catch (error) {
@@ -234,14 +244,16 @@ export default function NotificationsPage() {
                   {filteredNotifs.map(notif => (
                     <motion.li
                       key={notif.id}
+                      layout
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className={`p-4 sm:p-6 transition-colors ${!notif.read ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}`}
+                      exit={{ opacity: 0, x: -30, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className={`p-4 sm:p-6 transition-colors overflow-hidden ${!notif.read ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}`}
                       onClick={() => !notif.read && markAsRead(notif.id)}
                     >
-                      <div className="flex gap-4">
-                        <div className={`mt-1 flex-shrink-0 p-2 rounded-full ${!notif.read ? "bg-white dark:bg-slate-800 shadow-sm" : "bg-slate-100 dark:bg-slate-800"}`}>
+                      <div className="flex items-start gap-4">
+                        <div className={`mt-0.5 w-10 h-10 flex items-center justify-center shrink-0 rounded-full aspect-square ${!notif.read ? "bg-white dark:bg-slate-800 shadow-sm" : "bg-slate-100 dark:bg-slate-800"}`}>
                           {getIconForType(notif.type)}
                         </div>
                         <div className="flex-1 min-w-0">

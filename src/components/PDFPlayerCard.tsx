@@ -6,153 +6,212 @@ interface Props {
   player: PlayerProfile;
 }
 
-function getAttributeColor(value: number): string {
-  if (value >= 90) return 'text-emerald-400';
-  if (value >= 75) return 'text-green-400';
-  if (value >= 60) return 'text-yellow-400';
-  if (value >= 45) return 'text-orange-400';
-  return 'text-red-400';
-}
-
 function calculateMainStats(attrs: PlayerProfile['attributes']) {
   return [
-    { label: 'PAC', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
-    { label: 'SHO', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
-    { label: 'PAS', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
-    { label: 'DRI', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
-    { label: 'DEF', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
-    { label: 'PHY', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
+    { label: 'PAC', nameAr: 'السرعة', value: Math.round((attrs.speed + attrs.acceleration) / 2) },
+    { label: 'SHO', nameAr: 'التسديد', value: Math.round((attrs.finishing + attrs.kickingPower + attrs.offensiveAwareness) / 3) },
+    { label: 'PAS', nameAr: 'التمرير', value: Math.round((attrs.lowPass + attrs.loftedPass) / 2) },
+    { label: 'DRI', nameAr: 'المراوغة', value: Math.round((attrs.dribbling + attrs.ballControl + attrs.balance) / 3) },
+    { label: 'DEF', nameAr: 'الدفاع', value: Math.round((attrs.defensiveAwareness + attrs.ballWinning + attrs.heading) / 3) },
+    { label: 'PHY', nameAr: 'البدنية', value: Math.round((attrs.physicalContact + attrs.stamina + attrs.jump) / 3) },
   ];
 }
 
-// Ensure the component handles RTL and uses standard HTML <img> instead of next/image for immediate loading.
 export default function PDFPlayerCard({ player }: Props) {
-  const activeAttributes = player.approvedAttributes || player.attributes || {};
+  const activeAttributes = player.approvedAttributes || player.attributes || {
+    speed: 70, acceleration: 70, finishing: 65, kickingPower: 70,
+    offensiveAwareness: 68, lowPass: 72, loftedPass: 70,
+    dribbling: 72, ballControl: 74, balance: 70,
+    defensiveAwareness: 60, ballWinning: 62, heading: 65,
+    physicalContact: 68, stamina: 75, jump: 68
+  };
+
   const overall = calculateRealisticOverall(
     activeAttributes,
     player.primaryPosition || 'CMF',
     player.playStyle || ''
   );
 
-  const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text);
+  const isArabic = (text: string) => /[\u0600-\u06FF]/.test(text || '');
   const nameDir = isArabic(player.cardName) ? 'rtl' : 'ltr';
 
   const stats = calculateMainStats(activeAttributes);
+  const pStats = player.stats || { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 };
 
   return (
     <div
       id="pdf-player-card"
-      className="relative flex flex-col w-[500px] h-[750px] overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-950 via-slate-900 to-black p-5 font-sans shadow-2xl border-4 border-amber-500/30"
       style={{
+        width: '520px',
+        height: '760px',
         boxSizing: 'border-box',
-        background: 'radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.25) 0%, rgba(16, 185, 129, 0.15) 35%, rgba(2, 6, 23, 1) 100%)'
+        backgroundColor: '#070b14',
+        backgroundImage: 'linear-gradient(145deg, #0f172a 0%, #070b14 60%, #1e1b4b 100%)',
+        color: '#ffffff',
+        fontFamily: 'sans-serif',
+        padding: '24px',
+        position: 'relative',
+        overflow: 'hidden',
+        borderRadius: '32px',
+        border: '3px solid #f59e0b',
       }}
     >
-      {/* Subtle styling without blur filters for 100% html2canvas compatibility */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-amber-500/20 to-transparent rounded-full pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-emerald-500/20 to-transparent rounded-full pointer-events-none"></div>
+      {/* Decorative Golden Corner Accents */}
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '180px', height: '180px', background: 'radial-gradient(circle, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0) 70%)' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '180px', height: '180px', background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(0,0,0,0) 70%)' }} />
 
-      {/* Card Border wrapper */}
-      <div className="relative flex flex-col flex-1 rounded-[1.8rem] border-[3px] border-amber-400 bg-slate-950/80 p-6 overflow-hidden shadow-[inset_0_0_30px_rgba(245,158,11,0.15)]">
-        
-        {/* Top Section */}
-        <div className="flex flex-row items-start justify-between z-10 w-full">
-          {/* Rating & Position */}
-          <div className="flex flex-col items-center">
-            <span className="text-7xl font-black text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">{overall}</span>
-            <span className="text-2xl font-bold text-amber-400 tracking-wider drop-shadow-md">{player.primaryPosition}</span>
+      {/* Card Inner Frame */}
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          boxSizing: 'border-box',
+          border: '2px solid rgba(245, 158, 11, 0.5)',
+          borderRadius: '24px',
+          padding: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          backgroundColor: 'rgba(15, 23, 42, 0.85)',
+        }}
+      >
+        {/* Top Header Row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(245, 158, 11, 0.3)', paddingBottom: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 900, color: '#f59e0b', letterSpacing: '2px' }}>11PLAYERS</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', padding: '2px 8px', borderRadius: '6px' }}>ELITE</span>
           </div>
-          
-          {/* Player Image */}
-          <div className="flex flex-col items-center">
-            <div className="w-48 h-48 rounded-full border-4 border-amber-400 overflow-hidden shadow-[0_0_20px_rgba(251,191,36,0.4)] bg-slate-800 flex items-center justify-center">
+          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>SEASON 2026</span>
+        </div>
+
+        {/* Hero Section: Rating, Position, Photo */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 8px' }}>
+          {/* Left Badge: OVR & Position */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '110px' }}>
+            <span style={{ fontSize: '64px', fontWeight: 900, lineHeight: 1, color: '#ffffff', textShadow: '0 2px 10px rgba(245,158,11,0.4)' }}>
+              {overall}
+            </span>
+            <span style={{ fontSize: '24px', fontWeight: 900, color: '#fbbf24', marginTop: '4px', letterSpacing: '1px' }}>
+              {player.primaryPosition || 'CMF'}
+            </span>
+            {player.playStyle && (
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#34d399', backgroundColor: 'rgba(16,185,129,0.15)', padding: '3px 10px', borderRadius: '12px', marginTop: '6px' }}>
+                {player.playStyle}
+              </span>
+            )}
+          </div>
+
+          {/* Right Portrait */}
+          <div style={{ position: 'relative', width: '160px', height: '160px' }}>
+            <div
+              style={{
+                width: '160px',
+                height: '160px',
+                borderRadius: '50%',
+                border: '4px solid #f59e0b',
+                overflow: 'hidden',
+                backgroundColor: '#1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               {player.photoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={player.photoUrl}
                   alt={player.cardName}
-                  className="w-full h-full object-cover"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   crossOrigin="anonymous"
                 />
               ) : (
-                <span className="text-amber-500 font-bold text-6xl opacity-50">?</span>
+                <span style={{ fontSize: '56px', fontWeight: 900, color: '#f59e0b' }}>
+                  {player.cardName?.charAt(0) || '11'}
+                </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* Name */}
-        <div className="mt-4 flex flex-col items-center border-b-2 border-amber-400/50 pb-3 z-10 w-full">
+        {/* Player Name & Bio Banner */}
+        <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '14px' }}>
           <h1
             dir={nameDir}
-            className="text-5xl font-black tracking-widest text-white uppercase drop-shadow-lg text-center"
+            style={{
+              fontSize: '32px',
+              fontWeight: 900,
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              margin: '0 0 6px 0',
+              letterSpacing: '1px',
+            }}
           >
             {player.cardName}
           </h1>
-          <div className="flex gap-3 text-sm text-amber-200 mt-2 font-bold tracking-widest uppercase">
-            <span>{player.calculatedAge} YRS</span>
-            <span>|</span>
-            <span>{player.height} CM</span>
-            <span>|</span>
-            <span>{player.weight} KG</span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '13px', fontWeight: 700, color: '#cbd5e1' }}>
+            <span>{player.calculatedAge || 20} YRS</span>
+            <span style={{ color: '#f59e0b' }}>•</span>
+            <span>{player.height || 175} CM</span>
+            <span style={{ color: '#f59e0b' }}>•</span>
+            <span>{player.preferredFoot === 'Left' ? 'LEFT FOOT' : 'RIGHT FOOT'}</span>
           </div>
         </div>
 
-        {/* Attributes Grid */}
-        <div className="mt-6 flex flex-row w-full justify-between px-4 z-10">
-          <div className="flex flex-col gap-3 w-[45%]">
-            {stats.slice(0, 3).map((s) => (
-              <div key={s.label} className="flex flex-row items-center justify-between text-2xl font-bold">
-                <span className="text-white drop-shadow-md w-12">{s.value}</span>
-                <span className={`tracking-wider ${getAttributeColor(s.value)} drop-shadow-sm`}>{s.label}</span>
+        {/* Attributes Grid (2x3) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '8px 0' }}>
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                backgroundColor: 'rgba(30, 41, 59, 0.7)',
+                border: '1px solid rgba(245, 158, 11, 0.2)',
+                borderRadius: '12px',
+                padding: '10px 14px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>{s.value}</span>
+                <span style={{ fontSize: '13px', fontWeight: 800, color: '#e2e8f0' }}>{s.label}</span>
               </div>
-            ))}
-          </div>
-          <div className="w-[2px] bg-amber-400/30"></div>
-          <div className="flex flex-col gap-3 w-[45%]">
-            {stats.slice(3, 6).map((s) => (
-              <div key={s.label} className="flex flex-row items-center justify-between text-2xl font-bold">
-                <span className="text-white drop-shadow-md w-12">{s.value}</span>
-                <span className={`tracking-wider ${getAttributeColor(s.value)} drop-shadow-sm`}>{s.label}</span>
-              </div>
-            ))}
-          </div>
+              <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>{s.nameAr}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Playstyle & Special Skills */}
-        <div className="mt-auto flex flex-col gap-3 z-10 w-full border-t border-amber-400/30 pt-4">
-          <div className="flex flex-row justify-between text-sm uppercase">
-            <div className="flex flex-col gap-1 w-1/2 pr-2">
-              <span className="text-amber-400 font-bold tracking-wider">Playstyle</span>
-              <span className="text-white font-semibold">{player.playStyle ? player.playStyle.replace(/_/g, ' ') : 'N/A'}</span>
-            </div>
-            <div className="flex flex-col gap-1 w-1/2 pl-2 border-l border-amber-400/30">
-              <span className="text-amber-400 font-bold tracking-wider">Preferred Foot</span>
-              <span className="text-white font-semibold">
-                {player.preferredFoot === 'Right' ? 'Right' : player.preferredFoot === 'Left' ? 'Left' : 'Ambidextrous'}
-              </span>
-            </div>
+        {/* Bottom Match Career Performance Bar */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-around',
+            alignItems: 'center',
+            backgroundColor: '#0f172a',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            borderRadius: '14px',
+            padding: '12px 8px',
+          }}
+        >
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#10b981' }}>{pStats.goals || 0}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>GOALS</div>
           </div>
-
-          <div className="flex flex-col gap-1 mt-2">
-            <span className="text-amber-400 font-bold tracking-wider text-sm uppercase">Special Skills</span>
-            <div className="flex flex-wrap gap-2">
-              {player.specialSkills && player.specialSkills.length > 0 ? (
-                player.specialSkills.map((skill, idx) => (
-                  <span key={idx} className="bg-amber-500/20 text-amber-100 border border-amber-500/50 px-2 py-1 rounded-md text-xs font-semibold whitespace-nowrap">
-                    {skill}
-                  </span>
-                ))
-              ) : (
-                <span className="text-slate-400 text-xs italic">No special skills</span>
-              )}
-            </div>
+          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#38bdf8' }}>{pStats.assists || 0}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>ASSISTS</div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center z-10 opacity-60">
-          <span className="text-amber-400 text-xs tracking-widest font-black uppercase">11PLAYERS ULTIMATE TEAM</span>
+          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#fbbf24' }}>{pStats.mvp || 0}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>MVP</div>
+          </div>
+          <div style={{ width: '1px', height: '28px', backgroundColor: 'rgba(255,255,255,0.1)' }} />
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ fontSize: '18px', fontWeight: 900, color: '#e2e8f0' }}>{pStats.matchesPlayed || 0}</div>
+            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, textTransform: 'uppercase' }}>MATCHES</div>
+          </div>
         </div>
       </div>
     </div>

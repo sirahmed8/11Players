@@ -106,6 +106,8 @@ export interface PlayerProfile {
   tertiaryPosition: PESPosition;
   memberCommunities?: string[];
   pendingCommunities?: string[];
+  lastCommunityId?: string;
+  activeCommunityId?: string;
   attributes: PlayerAttributes;
   selfAttributes?: PlayerAttributes;
   approvedAttributes?: PlayerAttributes;

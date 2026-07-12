@@ -11,12 +11,12 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages }: Props)
   return (
     <div
       id="pdf-bulk-table"
-      className="w-[1123px] h-[794px] bg-white flex flex-col p-10 font-sans shadow-2xl relative overflow-hidden"
-      style={{ boxSizing: 'border-box' }}
+      className="w-[1123px] h-[794px] flex flex-col p-10 font-sans relative overflow-hidden"
+      style={{ boxSizing: 'border-box', backgroundColor: '#ffffff', color: '#0f172a' }}
     >
-      {/* Subtle border and accents without blur for 100% html2canvas reliability */}
-      <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-r from-emerald-600 via-amber-500 to-emerald-600"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-2 bg-slate-900"></div>
+      {/* Explicit solid colors for 100% html2canvas reliability */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '16px', backgroundColor: '#059669' }}></div>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '8px', backgroundColor: '#0f172a' }}></div>
 
       <div className="flex flex-row justify-between items-end border-b-2 border-slate-200 pb-4 mb-6 z-10 mt-2">
         <div>

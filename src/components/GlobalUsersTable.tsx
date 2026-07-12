@@ -43,11 +43,18 @@ export default function GlobalUsersTable() {
       const uCommMap: Record<string, string[]> = {};
 
       for (const cDoc of commsSnap.docs) {
-        commMap[cDoc.id] = cDoc.data().name || cDoc.id;
+        const cData = cDoc.data();
+        commMap[cDoc.id] = cData.name || cDoc.id;
+        if (cData.adminUid) {
+          uCommMap[cData.adminUid] = Array.from(new Set([...(uCommMap[cData.adminUid] || []), cDoc.id]));
+        }
+        if (cData.ownerUid) {
+          uCommMap[cData.ownerUid] = Array.from(new Set([...(uCommMap[cData.ownerUid] || []), cDoc.id]));
+        }
         try {
           const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
           pSnap.docs.forEach(pDoc => {
-            uCommMap[pDoc.id] = [...(uCommMap[pDoc.id] || []), cDoc.id];
+            uCommMap[pDoc.id] = Array.from(new Set([...(uCommMap[pDoc.id] || []), cDoc.id]));
           });
         } catch (e) {}
       }
@@ -247,10 +254,13 @@ export default function GlobalUsersTable() {
                 <td className="px-6 py-4">
                   <div className="flex flex-wrap gap-1">
                     {(() => {
+                      const activeLocalComm = typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null;
                       const commIds = Array.from(new Set([
                         ...(u.memberCommunities || []),
                         ...(u.joinedCommunities || []),
-                        ...(userCommMap[u.uid] || [])
+                        ...(userCommMap[u.uid] || []),
+                        ...((u as any).lastCommunityId ? [(u as any).lastCommunityId] : []),
+                        ...((activeLocalComm && (userCommMap[u.uid] || u.memberCommunities?.includes(activeLocalComm))) ? [activeLocalComm] : [])
                       ].filter(Boolean))) as string[];
                       return commIds.length > 0 ? (
                         commIds.map(c => (

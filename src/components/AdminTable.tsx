@@ -414,6 +414,20 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         'stats.matchesPlayed': increment(1),
       }).catch(err => console.error("Global stat update failed (might not exist):", err));
 
+      try {
+        const notifRef = doc(db, 'users', statsModal.player.uid, 'notifications', `stat_update_${Date.now()}`);
+        await setDoc(notifRef, {
+          title: "⚽ تحديث الإحصائيات! / Stats Updated!",
+          body: `تم تحديث إحصائياتك من قبل المسؤول (+${statsModal.goals} أهداف, +${statsModal.assists} تمريرات حاسمة) • Your stats were updated by admin`,
+          type: "stats",
+          read: false,
+          link: `/profile?uid=${statsModal.player.uid}`,
+          createdAt: new Date().toISOString()
+        });
+      } catch (nErr) {
+        console.error("Failed to notify player:", nErr);
+      }
+
       closeStatsModal();
       onRefresh();
     } catch (err) {

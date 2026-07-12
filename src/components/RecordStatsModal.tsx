@@ -103,6 +103,18 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
           const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
           batch.set(commRef, { stats: newStats, overallRating: newOverall }, { merge: true });
         }
+
+        if (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp || pStats.played) {
+          const notifRef = doc(db, 'users', p.uid, 'notifications', `match_stat_${Date.now()}_${p.uid}`);
+          batch.set(notifRef, {
+            title: "⚽ تحديث إحصائيات المباراة! / Match Stats Recorded!",
+            body: `تم تسجيل إحصائيات مباراتك الجديدة: ${pStats.goals || 0} أهداف, ${pStats.assists || 0} تمريرات حاسمة • New match stats recorded`,
+            type: "stats",
+            read: false,
+            link: `/profile?uid=${p.uid}`,
+            createdAt: new Date().toISOString()
+          });
+        }
       }
 
       if (activeCommunityId) {
