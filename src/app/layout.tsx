@@ -9,6 +9,7 @@ import Footer from "@/components/Footer";
 import Sidebar from "@/components/Sidebar";
 import InstallPWA from "@/components/InstallPWA";
 import RouteGuard from "@/components/RouteGuard";
+import UpdateNotification from "@/components/UpdateNotification";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/next";
 
@@ -77,6 +78,7 @@ export default function RootLayout({
                         </div>
                       </div>
                     </RouteGuard>
+                  <UpdateNotification />
                   <Toaster 
                     position="bottom-center"
                     toastOptions={{

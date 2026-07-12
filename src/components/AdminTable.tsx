@@ -65,9 +65,9 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
     case 'isVerifiedByAdmin':
       return player.isVerifiedByAdmin ? 1 : 0;
     case 'stats.goals':
-      return player.stats.goals;
+      return player.stats?.goals || 0;
     case 'stats.assists':
-      return player.stats.assists;
+      return player.stats?.assists || 0;
     default:
       return '';
   }
@@ -623,12 +623,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                   {/* Goals */}
                   <td className="px-4 py-3">
-                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats.goals}</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats?.goals || 0}</span>
                   </td>
 
                   {/* Assists */}
                   <td className="px-4 py-3">
-                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats.assists}</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-200">{player.stats?.assists || 0}</span>
                   </td>
 
                   {/* Actions */}
