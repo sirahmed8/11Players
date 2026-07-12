@@ -133,7 +133,7 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: '
         scale: 3,
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff',
+        backgroundColor: null,
       });
 
       const imgData = canvas.toDataURL('image/png');
