@@ -52,26 +52,26 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
         backgroundColor: '#070b14',
         color: '#ffffff',
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        padding: '24px',
+        padding: '22px',
         position: 'relative',
         overflow: 'hidden',
         borderRadius: '36px',
         border: '3px solid #f59e0b',
       }}
     >
-      {/* Decorative Metallic Corner Glows */}
-      <div style={{ position: 'absolute', top: 0, right: 0, width: '220px', height: '220px', background: 'radial-gradient(circle, rgba(245,158,11,0.22) 0%, rgba(0,0,0,0) 70%)' }} />
-      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '220px', height: '220px', background: 'radial-gradient(circle, rgba(16,185,129,0.18) 0%, rgba(0,0,0,0) 70%)' }} />
+      {/* Subtle Ambient Corner Glows */}
+      <div style={{ position: 'absolute', top: 0, right: 0, width: '240px', height: '240px', background: 'radial-gradient(circle, rgba(245,158,11,0.2) 0%, rgba(0,0,0,0) 70%)' }} />
+      <div style={{ position: 'absolute', bottom: 0, left: 0, width: '240px', height: '240px', background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(0,0,0,0) 70%)' }} />
 
-      {/* Card Rounded Inner Frame */}
+      {/* Outer Card Gold Frame with Rounded Corners */}
       <div
         style={{
           width: '100%',
           height: '100%',
           boxSizing: 'border-box',
           border: '2px solid rgba(245, 158, 11, 0.45)',
-          borderRadius: '28px',
-          padding: '24px 22px',
+          borderRadius: '26px',
+          padding: '22px 24px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
@@ -88,81 +88,85 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             paddingBottom: '14px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '15px', fontWeight: 900, color: '#f59e0b', letterSpacing: '1.5px', lineHeight: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '16px', fontWeight: 900, color: '#f59e0b', letterSpacing: '2px' }}>
               11PLAYERS
             </span>
-            <span
+            {/* Perfectly Vertically & Horizontally Centered ELITE Badge */}
+            <div
               style={{
-                fontSize: '11px',
-                fontWeight: 800,
-                backgroundColor: 'rgba(245, 158, 11, 0.2)',
-                color: '#fbbf24',
-                padding: '4px 10px',
-                borderRadius: '9999px',
-                display: 'inline-flex',
+                height: '24px',
+                padding: '0 12px',
+                backgroundColor: 'rgba(245, 158, 11, 0.22)',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+                borderRadius: '12px',
+                display: 'flex',
                 alignItems: 'center',
-                lineHeight: 1,
+                justifyContent: 'center',
               }}
             >
-              {isAr ? 'نخبة' : 'ELITE'}
-            </span>
+              <span style={{ fontSize: '11px', fontWeight: 900, color: '#fbbf24', letterSpacing: '1px', lineHeight: 1 }}>
+                {isAr ? 'نخبة' : 'ELITE'}
+              </span>
+            </div>
           </div>
-          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.5px' }}>
+          <span style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800, letterSpacing: '1px' }}>
             {isAr ? 'موسم 2026' : 'SEASON 2026'}
           </span>
         </div>
 
-        {/* Hero Section: OVR Badge Left/Right + Large Portrait Card */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', padding: '10px 4px' }}>
-          {/* Rating & Position Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '130px' }}>
+        {/* Hero Section: Rating + Large Rounded Player Frame */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px', padding: '6px 4px' }}>
+          {/* OVR + POS + PlayStyle Left Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '135px' }}>
             <span
               style={{
-                fontSize: '72px',
+                fontSize: '76px',
                 fontWeight: 900,
                 lineHeight: 0.9,
                 color: '#ffffff',
+                textShadow: '0 4px 12px rgba(245,158,11,0.3)',
               }}
             >
               {overall}
             </span>
             <span
               style={{
-                fontSize: '26px',
+                fontSize: '28px',
                 fontWeight: 900,
                 color: '#fbbf24',
-                marginTop: '6px',
-                letterSpacing: '1px',
+                marginTop: '4px',
+                letterSpacing: '1.5px',
               }}
             >
               {player.primaryPosition || 'CMF'}
             </span>
             {player.playStyle && (
-              <span
+              <div
                 style={{
-                  fontSize: '11px',
-                  fontWeight: 800,
-                  color: '#34d399',
-                  backgroundColor: 'rgba(16,185,129,0.18)',
-                  padding: '5px 12px',
-                  borderRadius: '9999px',
+                  height: '26px',
+                  padding: '0 14px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                  border: '1px solid rgba(16, 185, 129, 0.4)',
+                  borderRadius: '13px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   marginTop: '10px',
-                  display: 'inline-block',
-                  textAlign: 'center',
-                  lineHeight: 1.2,
                 }}
               >
-                {player.playStyle}
-              </span>
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
+                  {player.playStyle}
+                </span>
+              </div>
             )}
           </div>
 
-          {/* Large Premium Player Portrait Frame */}
+          {/* Large Premium Player Portrait Frame (Rounded Shield Box) */}
           <div
             style={{
-              width: '190px',
-              height: '210px',
+              width: '200px',
+              height: '215px',
               borderRadius: '24px',
               border: '3px solid #f59e0b',
               overflow: 'hidden',
@@ -170,7 +174,8 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.6)',
+              position: 'relative',
             }}
           >
             {player.photoUrl ? (
@@ -178,7 +183,12 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
               <img
                 src={player.photoUrl}
                 alt={player.cardName}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center 10%' }}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  objectPosition: 'center 28%', // Better framing for player face/chest
+                }}
                 crossOrigin="anonymous"
               />
             ) : (
@@ -189,8 +199,8 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
           </div>
         </div>
 
-        {/* Player Name & Info Bar */}
-        <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '16px' }}>
+        {/* Player Name & Info Row */}
+        <div style={{ textAlign: 'center', borderBottom: '1px solid rgba(255,255,255,0.12)', paddingBottom: '14px' }}>
           <h1
             style={{
               fontSize: '34px',
@@ -198,7 +208,7 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
               textTransform: 'uppercase',
               color: '#ffffff',
               margin: '0 0 8px 0',
-              letterSpacing: '1px',
+              letterSpacing: '1.5px',
             }}
           >
             {player.cardName}
@@ -222,25 +232,42 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
           </div>
         </div>
 
-        {/* Attributes Grid (2 columns x 3 rows, beautifully rounded) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', padding: '4px 0' }}>
+        {/* EA FC Ultimate Team Styled Attributes Grid (2x3) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
           {stats.map((s, idx) => (
             <div
               key={idx}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between',
-                backgroundColor: 'rgba(30, 41, 59, 0.85)',
-                border: '1px solid rgba(245, 158, 11, 0.25)',
+                justifyContent: 'flex-start',
+                gap: '16px',
+                backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
                 borderRadius: '16px',
-                padding: '12px 18px',
+                padding: '12px 20px',
               }}
             >
-              <span style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24' }}>
-                {s.value}
-              </span>
-              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc' }}>
+              {/* Highlighted Attribute Rating Box */}
+              <div
+                style={{
+                  minWidth: '42px',
+                  height: '36px',
+                  backgroundColor: 'rgba(245, 158, 11, 0.18)',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid rgba(245, 158, 11, 0.4)',
+                }}
+              >
+                <span style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24', lineHeight: 1 }}>
+                  {s.value}
+                </span>
+              </div>
+
+              {/* Attribute Name Perfectly Aligned */}
+              <span style={{ fontSize: '15px', fontWeight: 800, color: '#f8fafc', letterSpacing: '0.5px' }}>
                 {isAr ? s.labelAr : s.labelEn}
               </span>
             </div>
@@ -256,33 +283,33 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
             backgroundColor: '#0a0f1d',
             border: '1px solid rgba(245, 158, 11, 0.35)',
             borderRadius: '18px',
-            padding: '14px 10px',
+            padding: '14px 8px',
           }}
         >
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#10b981' }}>{pStats.goals || 0}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '4px' }}>
               {isAr ? 'أهداف' : 'GOALS'}
             </div>
           </div>
           <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#38bdf8' }}>{pStats.assists || 0}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '4px' }}>
               {isAr ? 'تمريرات' : 'ASSISTS'}
             </div>
           </div>
           <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#fbbf24' }}>{pStats.mvp || 0}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '4px' }}>
               {isAr ? 'أفضل لاعب' : 'MVP'}
             </div>
           </div>
           <div style={{ width: '1px', height: '32px', backgroundColor: 'rgba(255,255,255,0.12)' }} />
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', flex: 1 }}>
             <div style={{ fontSize: '20px', fontWeight: 900, color: '#e2e8f0' }}>{pStats.matchesPlayed || 0}</div>
-            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '2px' }}>
+            <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800, marginTop: '4px' }}>
               {isAr ? 'مباريات' : 'MATCHES'}
             </div>
           </div>

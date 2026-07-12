@@ -38,7 +38,7 @@ export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 
       scale: 3, // Ultra high resolution for print quality
       useCORS: true,
       allowTaint: true,
-      backgroundColor: '#090d16',
+      backgroundColor: null,
     });
 
     const imgData = canvas.toDataURL('image/png');
