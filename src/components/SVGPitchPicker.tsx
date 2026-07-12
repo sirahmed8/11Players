@@ -78,7 +78,7 @@ interface SVGPitchPickerProps {
 /* ──────────────────────────────────────────────
    Component
    ────────────────────────────────────────────── */
-export default function SVGPitchPicker({ onPositionsSelected, locale = 'ar', initialPositions = [] }: SVGPitchPickerProps) {
+const SVGPitchPicker = React.memo(function SVGPitchPicker({ onPositionsSelected, locale = 'ar', initialPositions = [] }: SVGPitchPickerProps) {
   const [selections, setSelections] = useState<PESPosition[]>(initialPositions);
   const txt = t[locale];
 
@@ -324,4 +324,6 @@ export default function SVGPitchPicker({ onPositionsSelected, locale = 'ar', ini
       </AnimatePresence>
     </div>
   );
-}
+});
+
+export default SVGPitchPicker;

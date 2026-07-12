@@ -14,6 +14,7 @@ import Step4PhotoSubmit from './onboarding/Step4PhotoSubmit';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import Step1PersonalInfo from './onboarding/Step1PersonalInfo';
 import { WizardState } from './onboarding/types';
+import { calculateAge } from '@/lib/playerUtils';
 
 /* ──────────────────────────────────────────────
    Translations
@@ -129,16 +130,6 @@ const TOTAL_STEPS = 4;
 /* ──────────────────────────────────────────────
    Helpers
    ────────────────────────────────────────────── */
-function calculateAge(dob: string): number {
-  if (!dob) return 0;
-  const birthDate = new Date(dob);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const monthDiff = today.getMonth() - birthDate.getMonth();
-  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
-  return age;
-}
-
 const slideVariants = {
   enter: (direction: number) => ({ x: direction > 0 ? 300 : -300, opacity: 0 }),
   center: { x: 0, opacity: 1 },

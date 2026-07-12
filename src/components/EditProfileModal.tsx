@@ -13,7 +13,7 @@ import BackgroundRemover from '@/components/BackgroundRemover';
 import AttributeSliders from '@/components/AttributeSliders';
 import CommunityStatsEditor from '@/components/CommunityStatsEditor';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
-import { getAllPlayerCommunities } from '@/lib/playerUtils';
+import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
 import { ChevronDown } from 'lucide-react';
 
 interface EditProfileModalProps {
@@ -153,17 +153,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Safe age calculation
-      let age = player.calculatedAge || 20;
-      if (formData.dateOfBirth) {
-        const birthDate = new Date(formData.dateOfBirth);
-        if (!isNaN(birthDate.getTime())) {
-          const today = new Date();
-          age = today.getFullYear() - birthDate.getFullYear();
-          const monthDiff = today.getMonth() - birthDate.getMonth();
-          if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) age--;
-        }
-      }
+      // Clean age calculation via shared utility
+      const age = calculateAge(formData.dateOfBirth || player.dateOfBirth);
 
       const dataToSave: Record<string, any> = {};
       // Only include defined fields to avoid overwriting with undefined

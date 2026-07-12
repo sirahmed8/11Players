@@ -1,6 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, X } from "lucide-react";
+import React, { useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -12,13 +10,13 @@ export default function AdviceNotification() {
   const { user } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
-  const [advice, setAdvice] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
 
   // Track which notification IDs we've already toasted so we don't re-toast on re-render
   const notifiedIds = useRef<Set<string>>(new Set());
   // Record time when this component mounted — only toast notifications newer than this
   const mountedAt = useRef<number>(Date.now());
+  // Track last toast timestamp to prevent stacking multiple toasts at the exact same moment
+  const lastToastTime = useRef<number>(0);
 
   // --- Global notification toaster (app-wide listener) ---
   useEffect(() => {
@@ -30,6 +28,8 @@ export default function AdviceNotification() {
     );
 
     const unsub = onSnapshot(q, (snapshot) => {
+      let toastedInThisBatch = 0;
+
       snapshot.docChanges().forEach((change) => {
         if (change.type !== "added") return;
         const notif = change.doc.data();
@@ -50,7 +50,11 @@ export default function AdviceNotification() {
 
         if (createdAt && createdAt < mountedAt.current - 5000) return; // 5s tolerance
 
-        if (!notif.read) {
+        // Limit to showing at most 1 toast per batch so multiple simultaneous notifications don't stack
+        if (!notif.read && toastedInThisBatch === 0 && Date.now() - lastToastTime.current > 3000) {
+          toastedInThisBatch++;
+          lastToastTime.current = Date.now();
+
           const icon = notif.type === "advices" ? "💡" :
                        notif.type === "stats" ? "📊" :
                        notif.type === "admin" ? "🛡️" :
@@ -92,7 +96,7 @@ export default function AdviceNotification() {
     return () => unsub();
   }, [user, isAr]);
 
-  // --- Advice generator (once per 24h, shows green coach popup) ---
+  // --- Advice generator (once per 24h) ---
   useEffect(() => {
     if (!user) return;
     const fetchProfileAndGenerateAdvice = async () => {
@@ -105,18 +109,8 @@ export default function AdviceNotification() {
         const playerDoc = await getDoc(doc(db, "players", user.uid));
         if (playerDoc.exists()) {
           const { generatePersonalizedAdvices } = await import("@/lib/adviceGenerator");
-          const generated = await generatePersonalizedAdvices(user.uid, playerDoc.data() as any, isAr);
-          
-          if (generated && generated.length > 0) {
-            setAdvice(generated[0].body);
-            setTimeout(() => {
-              setIsVisible(true);
-              sessionStorage.setItem("adviceLastShown", Date.now().toString());
-            }, 2000); // Delay slightly so it doesn't clash with notification toasts
-          } else {
-            // On cooldown — mark session so we don't re-check every navigation
-            sessionStorage.setItem("adviceLastShown", Date.now().toString());
-          }
+          await generatePersonalizedAdvices(user.uid, playerDoc.data() as any, isAr);
+          sessionStorage.setItem("adviceLastShown", Date.now().toString());
         }
       } catch (err) {
         console.error("Failed to generate advice", err);
@@ -126,40 +120,5 @@ export default function AdviceNotification() {
     fetchProfileAndGenerateAdvice();
   }, [user, isAr]);
 
-  return (
-    <AnimatePresence>
-      {isVisible && advice && (
-        <motion.div
-          initial={{ opacity: 0, y: -50, scale: 0.9 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.9 }}
-          className="fixed top-20 right-4 md:top-24 md:right-8 z-50 max-w-sm w-[calc(100vw-2rem)] md:w-full"
-          dir={isAr ? "rtl" : "ltr"}
-        >
-          <div className="bg-emerald-600 text-white rounded-2xl shadow-2xl p-4 pr-12 rtl:pr-4 rtl:pl-12 relative overflow-hidden border border-emerald-400/30">
-            <div className="absolute -right-6 -top-6 rtl:-left-6 rtl:-right-auto opacity-20">
-              <Sparkles className="w-24 h-24" />
-            </div>
-            
-            <button 
-              onClick={() => setIsVisible(false)}
-              className="absolute top-3 rtl:left-3 ltr:right-3 bg-emerald-700/50 hover:bg-emerald-700 p-1 rounded-full transition-colors z-10"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            
-            <div className="flex gap-3 relative z-10">
-              <div className="bg-emerald-500 rounded-full p-2 h-fit flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-emerald-100" />
-              </div>
-              <div>
-                <h4 className="font-bold text-emerald-100 text-sm mb-1">{isAr ? "نصيحة المدرب" : "Coach Advice"}</h4>
-                <p className="text-sm leading-relaxed font-medium">{advice}</p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+  return null;
 }
