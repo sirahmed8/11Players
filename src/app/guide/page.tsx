@@ -31,8 +31,65 @@ export default function GuidePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-8 max-w-6xl mx-auto">
-        <SiteSkeletonLoader variant="cards" />
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+        <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+          {/* Sidebar Skeleton */}
+          <div className="w-full lg:w-64 flex-shrink-0">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
+              {/* Title */}
+              <div className="h-6 w-36 bg-slate-200 dark:bg-slate-700 rounded-lg mb-5 animate-pulse" />
+              {/* Nav items */}
+              <div className="flex flex-row lg:flex-col gap-2">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl animate-pulse ${i === 0 ? "bg-emerald-500/20" : "bg-slate-100 dark:bg-slate-800"}`}
+                  >
+                    <div className={`w-5 h-5 rounded-md flex-shrink-0 ${i === 0 ? "bg-emerald-400/50" : "bg-slate-300 dark:bg-slate-600"}`} />
+                    <div className={`h-3.5 rounded-md ${i === 0 ? "bg-emerald-400/50 w-20" : "bg-slate-300 dark:bg-slate-600 w-16"}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Content Panel Skeleton */}
+          <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-800 space-y-6">
+            {/* Page title */}
+            <div className="space-y-3 animate-pulse">
+              <div className="h-8 w-64 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+              <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="h-4 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+            </div>
+            {/* Section heading */}
+            <div className="space-y-2 animate-pulse">
+              <div className="h-6 w-80 bg-emerald-200 dark:bg-emerald-900/40 rounded-xl" />
+              <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+            </div>
+            {/* Highlight box */}
+            <div className="h-14 w-full bg-amber-100 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/40 rounded-xl animate-pulse" />
+            {/* More text lines */}
+            <div className="space-y-2 animate-pulse">
+              <div className="h-5 w-48 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+              <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="h-4 w-5/6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="h-4 w-2/3 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+            </div>
+            {/* Content cards row */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 animate-pulse">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-20 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700" />
+              ))}
+            </div>
+            {/* Another section */}
+            <div className="space-y-2 animate-pulse">
+              <div className="h-5 w-40 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+              <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="h-4 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
