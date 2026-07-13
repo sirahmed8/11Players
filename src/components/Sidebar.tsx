@@ -14,6 +14,8 @@ import { collection, query, orderBy, limit, onSnapshot, doc } from "firebase/fir
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
+const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie"];
+
 export default function Sidebar() {
   const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
   const { activeCommunityId, loadingCommunity } = useCommunity();
@@ -240,17 +242,16 @@ export default function Sidebar() {
     ...(isOwner || isGlobalModerator ? [{ href: "/inbox", labelEn: "Inbox", labelAr: "البريد الوارد", icon: <InboxIcon className="w-5 h-5" /> }] : []),
   ];
 
+  // Public pages should not reserve sidebar/top-bar space while auth resolves.
+  if (PUBLIC_ROUTES.includes(pathname)) {
+    return null;
+  }
+
   // Hide sidebar completely when user is not logged in
-  // Public pages (welcome, guide, privacy, tos, cookie) don't need the sidebar
   if (!user && !authLoading) {
     return null;
   }
   
-  // Hide sidebar on Welcome page completely
-  if (pathname === "/") {
-    return null;
-  }
-
   // Show skeleton only while Firebase auth is resolving.
   // activeCommunityId is read from localStorage synchronously, so no flicker needed for that.
   if (authLoading) {

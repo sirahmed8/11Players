@@ -12,7 +12,31 @@ import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
 import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+
+function OwnerCommunitiesSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {[...Array(3)].map((_, i) => (
+        <div
+          key={i}
+          className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 overflow-hidden"
+        >
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div className="min-w-0 flex-1 space-y-2.5">
+              <div className="h-5 w-40 max-w-[75%] rounded-lg bg-slate-200 dark:bg-slate-700" />
+              <div className="h-3.5 w-56 max-w-full rounded-md bg-slate-200/80 dark:bg-slate-800" />
+              <div className="h-3.5 w-72 max-w-full rounded-md bg-slate-200/70 dark:bg-slate-800" />
+            </div>
+            <div className="flex gap-2 self-end sm:self-auto">
+              <div className="h-9 w-16 rounded-xl bg-slate-200 dark:bg-slate-700" />
+              <div className="h-9 w-16 rounded-xl bg-slate-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -307,7 +331,7 @@ export default function OwnerPage() {
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <h2 className="text-xl font-bold mb-4">{isAr ? "المجتمعات الحالية" : "Active Communities"}</h2>
-                {loading ? <SiteSkeletonLoader variant="list" /> : (
+                {loading ? <OwnerCommunitiesSkeleton /> : (
                   <div className="space-y-4">
                     {communities.map(c => (
                       <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">

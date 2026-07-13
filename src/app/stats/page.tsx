@@ -8,7 +8,6 @@ import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ThemeProvider";
 import { User } from "lucide-react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
 
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
@@ -99,7 +98,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 flex flex-col h-fit self-start transition-all duration-300">
+    <div className="bg-white dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 flex flex-col h-fit self-start">
       <div className="bg-slate-100 dark:bg-slate-900 p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <h3 className="font-black text-lg text-emerald-600 dark:text-emerald-400">{title}</h3>
         {hasAnyStats && (
@@ -117,19 +116,17 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
         ) : (
           <>
             {topThree.map((p, idx) => renderRow(p, idx))}
-            <AnimatePresence initial={false}>
-              {isExpanded && remainingPlayers.length > 0 && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: 'auto', opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                  className="overflow-hidden divide-y divide-slate-100 dark:divide-slate-700/50 border-t border-slate-100 dark:border-slate-700/50"
-                >
+            {remainingPlayers.length > 0 && (
+              <div
+                className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
+                  isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <div className="overflow-hidden divide-y divide-slate-100 dark:divide-slate-700/50 border-t border-slate-100 dark:border-slate-700/50">
                   {remainingPlayers.map((p, idx) => renderRow(p, idx + 3))}
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>
