@@ -175,14 +175,14 @@ export default function PendingEdits() {
           await deleteDoc(doc(db, collPath, edit.id));
           // Notify player about rejection
           try {
-            await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
-              type: 'system',
-              title: isAr ? 'تحديث بشأن طلب التعديل' : 'Profile Edit Update',
-              body: isAr ? 'لم تتم الموافقة على طلب تعديل ملفك الشخصي في الوقت الحالي.' : 'Your requested profile edit was not approved at this time.',
-              read: false,
-              createdAt: new Date(),
-              link: '/profile'
-            });
+              await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
+                type: 'system',
+                title: isAr ? 'تم رفض التعديل - تقديم التماس؟' : 'Edit Rejected - Want to Appeal?',
+                body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك في محادثة الدعم الفني؟' : 'Your requested profile edit was not approved. Want to make an appeal in Support Chat?',
+                read: false,
+                createdAt: new Date(),
+                link: '/support'
+              });
           } catch (e) {
             console.warn(e);
           }

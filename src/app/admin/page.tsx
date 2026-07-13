@@ -17,9 +17,10 @@ import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Target, AlertTriangle } from "lucide-react";
+import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, Sparkles, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ConfirmModal";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function AdminPage() {
   const { user, isOwner } = useAuth();
@@ -191,79 +192,176 @@ export default function AdminPage() {
             </div>
           ) : (
             <>
-              <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
-                <div>
-                  <h2 className="text-3xl font-black mb-2 text-slate-900 dark:text-white">{isAr ? "أدوات التحكم" : "Platform Controls"}</h2>
-                  <p className="text-slate-500 dark:text-slate-400" dir={isAr ? "rtl" : "ltr"}>{isAr ? "إدارة اللاعبين، تحديث الإحصائيات، وتشكيل الفرق." : "Manage players, update stats, and run matchmaking."}</p>
+              <div className="mb-10">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-3">
+                  <div>
+                    <h2 className="text-3xl font-black mb-1.5 text-slate-900 dark:text-white flex items-center gap-2.5">
+                      <span>{isAr ? "أدوات التحكم وإدارة المنصة" : "Platform Control Center"}</span>
+                      <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
+                        {isAr ? "الإدارة الشاملة" : "EXECUTIVE"}
+                      </span>
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium" dir={isAr ? "rtl" : "ltr"}>
+                      {isAr
+                        ? "تنظيم البطولات وتشكيل الفرق بالذكاء الاصطناعي وتصدير التقارير الرسمية وإدارة الصلاحيات."
+                        : "AI Matchmaking, official roster exports, squad synchronization, and platform permissions."}
+                    </p>
+                  </div>
                 </div>
-                
-                <div className="flex flex-wrap gap-4 w-full md:w-auto">
-              <button
-                onClick={handleBulkPdf}
-                className="px-4 py-2 bg-slate-800 text-white hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 font-bold rounded-lg shadow-sm whitespace-nowrap"
-              >
-                {isAr ? "تصدير بطاقات الجميع PDF" : "Export Bulk PDF"}
-              </button>
-              {(isOwner || players.length === 0) && (
-                <button
-                  onClick={handleMakeMeAdmin}
-                  className={`px-4 py-2 ${user && players.some(p => p.uid === user.uid) ? 'bg-red-600 hover:bg-red-500' : 'bg-amber-600 hover:bg-amber-500'} text-white font-bold rounded-lg shadow-sm whitespace-nowrap`}
-                >
-                  {user && players.some(p => p.uid === user.uid) 
-                    ? (isAr ? "إزالة نفسي كمسؤول" : "Remove me as Admin")
-                    : (isAr ? "تعيين كمسؤول (تزامن)" : "Make me Admin")}
-                </button>
+
+                {/* Organized Luxury Control Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                  {/* Card 1: Matchmaking Engine (Primary CTA) */}
+                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-900/90 dark:to-teal-950 text-white p-6 shadow-xl flex flex-col justify-between border border-emerald-400/30">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-md">
+                          <Swords className="w-6 h-6 text-white" />
+                        </div>
+                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-white/20">
+                          {isAr ? "محرك الفرق AI" : "AI ENGINE"}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black mb-1">{isAr ? "تشكيل وتوزيع الفرق" : "Squad Matchmaking"}</h3>
+                      <p className="text-emerald-100 text-xs leading-relaxed mb-6">
+                        {isAr
+                          ? "توزيع متوازن عادل للفرق بناءً على التقييم الواقعي (OVR) ومراكز اللعب والتناغم."
+                          : "Balanced AI team generation based on realistic OVR ratings, positions, and chemistry."}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      <button
+                        onClick={() => setIsConfigModalOpen(true)}
+                        disabled={matchmakingLoading}
+                        className="w-full py-3.5 px-5 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
+                      >
+                        <Swords className="w-5 h-5 text-emerald-600" />
+                        <span>{matchmakingLoading ? (isAr ? "جارٍ التشكيل..." : "Generating Squads...") : (isAr ? "بدء تشكيل الفرق الآن" : "Run AI Matchmaking")}</span>
+                      </button>
+
+                      <button
+                        onClick={async () => {
+                          if (!user || !activeCommunityId) return;
+                          const isExcluded = players.find(p => p.uid === user.uid)?.isExcludedFromMatchmaking;
+                          const docRef = doc(db, 'communities', activeCommunityId, 'players', user.uid);
+                          await setDoc(docRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
+                          const globalDocRef = doc(db, 'players', user.uid);
+                          await setDoc(globalDocRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
+                          toast.success(isExcluded ? (isAr ? "تم إضافتك للتشكيل" : "Included in matchmaking") : (isAr ? "تم استبعادك" : "Excluded from matchmaking"));
+                        }}
+                        className="w-full py-2.5 px-4 bg-black/20 hover:bg-black/30 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        {players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking ? (
+                          <>
+                            <UserCheck className="w-4 h-4 text-emerald-300" />
+                            <span>{isAr ? "تضمين حسابي في التشكيل القادم" : "Include me in next match"}</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserX className="w-4 h-4 text-amber-300" />
+                            <span>{isAr ? "استبعاد حسابي مؤقتاً من التشكيل" : "Exclude me from next match"}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Card 2: Official Reports & Bulk PDF */}
+                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                          <FileDown className="w-6 h-6" />
+                        </div>
+                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
+                          {isAr ? "تصدير رسمي" : "REPORTS"}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+                        {isAr ? "بطاقات وقوائم جميع اللاعبين" : "Master Roster PDF"}
+                      </h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
+                        {isAr
+                          ? "تصدير كتيب احترافي يشمل جميع بطاقات اللاعبين مع الإحصائيات والتقييمات بجودة عالية للطباعة."
+                          : "Export a high-definition official PDF catalogue containing all player cards and stats."}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleBulkPdf}
+                      className="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-black rounded-2xl shadow-md transition-all flex items-center justify-center gap-2.5"
+                    >
+                      <FileDown className="w-5 h-5 text-amber-400" />
+                      <span>{isAr ? "تصدير الكتيب الشامل PDF" : "Export Master Roster PDF"}</span>
+                    </button>
+                  </div>
+
+                  {/* Card 3: System Testing & Admin Actions */}
+                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                          <Sparkles className="w-6 h-6" />
+                        </div>
+                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                          {isAr ? "أدوات المحاكاة" : "TOOLS"}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+                        {isAr ? "المحاكاة والصلاحيات" : "Simulation & Roles"}
+                      </h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
+                        {isAr
+                          ? "إنشاء لاعبين وهميين لاختبار تشكيل الفرق أو تعديل صلاحيات المسؤول في المجتمع."
+                          : "Generate dummy players to test match balancing or toggle your admin sync status."}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2.5">
+                      <button
+                        onClick={handleGenerateDummyPlayers}
+                        disabled={isGeneratingDummy}
+                        className="w-full py-3 px-4 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 font-black rounded-xl transition-all flex items-center justify-center gap-2 text-xs disabled:opacity-50 border border-indigo-200/60 dark:border-indigo-500/20"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        <span>{isGeneratingDummy ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "إنشاء 32 لاعب وهمي للتجربة" : "Generate 32 Dummy Players")}</span>
+                      </button>
+
+                      {(isOwner || players.length === 0) && (
+                        <button
+                          onClick={handleMakeMeAdmin}
+                          className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          <ShieldCheck className="w-4 h-4 text-amber-500" />
+                          <span>
+                            {user && players.some(p => p.uid === user.uid)
+                              ? (isAr ? "إلغاء صلاحية المسؤول لحسابي" : "Remove me as Admin")
+                              : (isAr ? "مزامنة صلاحية المسؤول لحسابي" : "Sync Admin Permissions")}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {matchmakingError && (
+                <div className="mb-8 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-xl font-medium">
+                  {matchmakingError}
+                </div>
               )}
-              <button
-                onClick={handleGenerateDummyPlayers}
-                disabled={isGeneratingDummy}
-                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg shadow-sm disabled:opacity-50 whitespace-nowrap"
-              >
-                {isGeneratingDummy ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "إنشاء 32 لاعب وهمي" : "Generate 32 Players")}
-              </button>
-              <button
-                onClick={async () => {
-                  if (!user || !activeCommunityId) return;
-                  const isExcluded = players.find(p => p.uid === user.uid)?.isExcludedFromMatchmaking;
-                  const docRef = doc(db, 'communities', activeCommunityId, 'players', user.uid);
-                  await setDoc(docRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
-                  const globalDocRef = doc(db, 'players', user.uid);
-                  await setDoc(globalDocRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
-                  toast.success(isExcluded ? (isAr ? "تم إضافتك للتشكيل" : "Included in matchmaking") : (isAr ? "تم استبعادك" : "Excluded from matchmaking"));
-                }}
-                className={`px-4 py-2 ${players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-red-600 hover:bg-red-500'} text-white font-bold rounded-lg shadow-sm whitespace-nowrap`}
-              >
-                {players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking 
-                  ? (isAr ? "تضمين في التشكيل" : "Include in Match")
-                  : (isAr ? "استبعاد من التشكيل" : "Exclude from Match")}
-              </button>
-              <button
-                onClick={() => setIsConfigModalOpen(true)}
-                disabled={matchmakingLoading}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-lg disabled:opacity-50 whitespace-nowrap"
-              >
-                {matchmakingLoading ? (isAr ? "جارٍ الإنشاء..." : "Generating...") : (isAr ? "تشكيل الفرق" : "Run Matchmaking")}
-              </button>
-            </div>
-          </div>
 
-          {matchmakingError && (
-            <div className="mb-8 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-xl font-medium">
-              {matchmakingError}
-            </div>
-          )}
+              <PendingRequests />
+              <PendingEdits />
 
-          <PendingRequests />
-          <PendingEdits />
-
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-            </div>
-          ) : (
-            <AdminTable players={players} onRefresh={() => {}} />
-          )}
-          </>
+              {loading ? (
+                <SiteSkeletonLoader variant="cards" />
+              ) : (
+                <AdminTable players={players} onRefresh={() => {}} />
+              )}
+            </>
           )}
         </main>
 

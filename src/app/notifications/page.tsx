@@ -269,8 +269,17 @@ export default function NotificationsPage() {
                             {notif.body}
                           </p>
                           {notif.link && (
-                            <Link href={notif.link} className="inline-flex items-center gap-1 mt-3 text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300">
-                              {isAr ? "عرض التفاصيل" : "View Details"}
+                            <Link
+                              href={notif.link}
+                              className={`inline-flex items-center gap-1.5 mt-3 px-3.5 py-1.5 rounded-xl text-sm font-black transition-all shadow-sm ${
+                                notif.link.includes('/support')
+                                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-amber-500/20'
+                                  : 'text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300'
+                              }`}
+                            >
+                              {notif.link.includes('/support')
+                                ? (isAr ? "⚖️ تقديم التماس في الدعم الفني" : "⚖️ Make an Appeal in Support")
+                                : (isAr ? "عرض التفاصيل" : "View Details")}
                               <ArrowRight className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
                             </Link>
                           )}

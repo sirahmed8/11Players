@@ -124,17 +124,21 @@ export default function Sidebar() {
                 </div>
               ), { duration: 6000, position: 'top-center' });
 
-              // Save to notifications collection
-              import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
-                setDoc(doc(db, "users", user.uid, "notifications", `support-${msgTime}`), {
-                  type: "admin",
-                  title: isAr ? 'رد من الدعم الفني' : 'Support Desk Reply',
-                  body: data.lastMessage || (isAr ? 'تم الرد على استفسارك' : 'New reply on your ticket'),
-                  read: false,
-                  createdAt: serverTimestamp(),
-                  link: "/support"
-                }, { merge: true }).catch(console.error);
-              });
+              const notifId = `support-${msgTime}`;
+              const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+              if (!deletedIds.includes(notifId) && !localStorage.getItem(`created_${notifId}`)) {
+                localStorage.setItem(`created_${notifId}`, 'true');
+                import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
+                  setDoc(doc(db, "users", user.uid, "notifications", notifId), {
+                    type: "admin",
+                    title: isAr ? 'رد من الدعم الفني' : 'Support Desk Reply',
+                    body: data.lastMessage || (isAr ? 'تم الرد على استفسارك' : 'New reply on your ticket'),
+                    read: false,
+                    createdAt: serverTimestamp(),
+                    link: "/support"
+                  }, { merge: true }).catch(console.error);
+                });
+              }
             }
           }
         } else {
@@ -194,17 +198,21 @@ export default function Sidebar() {
                   </div>
                 ), { duration: 8000, position: 'top-center', id: 'rate-match-toast' });
                 
-                // Save to notifications collection
-                import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
-                  setDoc(doc(db, "users", user.uid, "notifications", `rate-match-${docSnap.id}`), {
-                    type: "match",
-                    title: isAr ? 'تقييم المباراة' : 'Rate Match',
-                    body: isAr ? 'انتهت المباراة! اضغط هنا لتقييم أداء زملائك' : 'Match finished! Click here to rate your teammates.',
-                    read: false,
-                    createdAt: serverTimestamp(),
-                    link: "/match?tab=history"
-                  }, { merge: true }).catch(console.error);
-                });
+                const rateNotifId = `rate-match-${docSnap.id}`;
+                const deletedNotifs: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+                if (!deletedNotifs.includes(rateNotifId) && !localStorage.getItem(`created_${rateNotifId}`)) {
+                  localStorage.setItem(`created_${rateNotifId}`, 'true');
+                  import('firebase/firestore').then(({ setDoc, doc, serverTimestamp }) => {
+                    setDoc(doc(db, "users", user.uid, "notifications", rateNotifId), {
+                      type: "match",
+                      title: isAr ? 'تقييم المباراة' : 'Rate Match',
+                      body: isAr ? 'انتهت المباراة! اضغط هنا لتقييم أداء زملائك' : 'Match finished! Click here to rate your teammates.',
+                      read: false,
+                      createdAt: serverTimestamp(),
+                      link: "/match?tab=history"
+                    }, { merge: true }).catch(console.error);
+                  });
+                }
                 
                 break; // Only show for the most recent unrated match
               }

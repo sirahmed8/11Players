@@ -98,7 +98,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full shadow-lg transition-all duration-300">
+    <div className="bg-white dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 flex flex-col h-fit self-start transition-all duration-300">
       <div className="bg-slate-100 dark:bg-slate-900 p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <h3 className="font-black text-lg text-emerald-600 dark:text-emerald-400">{title}</h3>
         {hasAnyStats && (

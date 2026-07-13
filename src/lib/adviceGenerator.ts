@@ -3,7 +3,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 
-const ADVICE_COOLDOWN_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ADVICE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes per user request
 
 export async function generatePersonalizedAdvices(userUid: string, profile: PlayerProfile, isAr: boolean) {
   try {

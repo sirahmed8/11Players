@@ -18,6 +18,7 @@ import Link from "next/link";
 import { SKILLS } from "@/components/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Target, Handshake, Trophy, Swords } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -184,18 +185,7 @@ function PlayerProfileContent() {
   ];
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 gap-4">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-          className="w-16 h-16 rounded-full border-4 border-emerald-500/30 border-t-emerald-500"
-        />
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          {isAr ? "جارٍ التحميل..." : "Loading..."}
-        </p>
-      </div>
-    );
+    return <SiteSkeletonLoader variant="profile" />;
   }
 
   if (!player) {
@@ -297,7 +287,7 @@ function PlayerProfileContent() {
                   </div>
                 )}
                 
-                <PlayerCard player={{ ...player, photoUrl: player.photoUrl || player.googlePic || (isViewingOwnProfile ? user?.photoURL : '') || '' }} />
+                <PlayerCard player={player} />
               </div>
 
               {/* Right Column: SVG Pitch */}
