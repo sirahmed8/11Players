@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 import { Loader2, Trash2, Search, ArrowUpDown, Eye } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ConfirmModal";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
 
 export default function GlobalUsersTable() {
@@ -167,7 +168,7 @@ export default function GlobalUsersTable() {
   }, [users, searchQuery, sortConfig]);
 
   if (loading) {
-    return <div className="flex justify-center p-8"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>;
+    return <SiteSkeletonLoader variant="table" />;
   }
 
   return (

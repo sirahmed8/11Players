@@ -47,7 +47,7 @@ export default function AdviceNotification() {
 
         if (createdAt && createdAt < mountedAt.current - 5000) return;
 
-        if (!notif.read && toastedInThisBatch === 0 && Date.now() - lastToastTime.current > 2500) {
+        if (!notif.read && toastedInThisBatch === 0 && Date.now() - lastToastTime.current > 4000) {
           toastedInThisBatch++;
           lastToastTime.current = Date.now();
 
@@ -107,11 +107,15 @@ export default function AdviceNotification() {
     return () => unsub();
   }, [user, isAr]);
 
-  // --- Advice generator (every 10 minutes) ---
+  // --- Advice generator (after 1m then every 10 minutes while user is active on site) ---
   useEffect(() => {
     if (!user) return;
 
     const fetchProfileAndGenerateAdvice = async () => {
+      // Only generate if user is actively viewing the site
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
       try {
         const playerDoc = await getDoc(doc(db, "players", user.uid));
         if (playerDoc.exists()) {
@@ -123,10 +127,18 @@ export default function AdviceNotification() {
       }
     };
 
-    fetchProfileAndGenerateAdvice();
-    const interval = setInterval(fetchProfileAndGenerateAdvice, 10 * 60 * 1000); // Check every 10m
+    const initialTimeout = setTimeout(() => {
+      fetchProfileAndGenerateAdvice();
+    }, 60 * 1000); // 1 minute after entering site
 
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      fetchProfileAndGenerateAdvice();
+    }, 10 * 60 * 1000); // Check every 10 minutes while on site
+
+    return () => {
+      clearTimeout(initialTimeout);
+      clearInterval(interval);
+    };
   }, [user, isAr]);
 
   return null;

@@ -12,6 +12,7 @@ import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
 import { getAllPlayerCommunities } from "@/lib/playerUtils";
 import { Edit3, Check, X } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
@@ -195,7 +196,8 @@ export default function PendingEdits() {
     });
   };
 
-  if (loading || edits.length === 0) return null;
+  if (loading) return <SiteSkeletonLoader variant="list" />;
+  if (edits.length === 0) return null;
 
   return (
     <div className="mb-8 p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-2xl shadow-sm">

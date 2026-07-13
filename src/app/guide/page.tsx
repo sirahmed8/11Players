@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocale } from "@/components/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Target, Shuffle, Star, Rocket, Globe, Scale, CheckCircle2, BarChart3, Trophy } from "lucide-react";
 import { PLAYER_STYLES } from "@/components/PlayerStylePicker";
 import { SKILLS } from "@/components/SkillsChecklist";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 type Tab = 'overview' | 'positions' | 'playstyles' | 'skills' | 'features';
 
@@ -13,6 +14,12 @@ export default function GuidePage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoading(false), 350);
+    return () => clearTimeout(t);
+  }, []);
 
   const tabs: { id: Tab; label: string; Icon: React.FC<any>; color: string }[] = [
     { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-emerald-500" },
@@ -21,6 +28,14 @@ export default function GuidePage() {
     { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", Icon: Star, color: "text-amber-500" },
     { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 px-4 py-8 max-w-6xl mx-auto">
+        <SiteSkeletonLoader variant="cards" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>

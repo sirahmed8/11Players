@@ -178,23 +178,37 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       });
     }
 
-    // --- 5. Overall General Tips (Fallback) ---
-    if (advices.length === 0) {
-      advices.push(
-        {
-          title: isAr ? "نصيحة عامة" : "General Advice",
-          body: isAr ? "أرقامك متوازنة! تذكر أن التواصل مع زملائك في الملعب نصف الطريق للفوز بالبطولات." : "Your stats are balanced! Remember that communicating with your teammates on the pitch is half the battle won."
-        },
-        {
-          title: isAr ? "الراحة والتعافي" : "Rest & Recovery",
-          body: isAr ? "التعافي الجيد هو سر الأداء الثابت. احرص على النوم الجيد والإطالات بعد كل مباراة تتجاوز 60 دقيقة." : "Good recovery is the secret to consistency. Ensure you sleep well and stretch after every 60+ min game."
-        }
-      );
-    }
+    // --- 5. Overall General & Tactical Tips ---
+    advices.push(
+      {
+        title: isAr ? "التمركز والضغط الذكي" : "Smart Pressing & Positioning",
+        body: isAr ? "لا تركض خلف الكرة بعشوائية! اغلق مسارات التمرير أولاً واضغط في التوقيت الذي يستلم فيه الخصم ظهره للملعب." : "Don't press blindly! Cut off passing lanes first and trigger your press when the opponent receives with their back turned."
+      },
+      {
+        title: isAr ? "إدارة اللياقة البدنية" : "Stamina Management",
+        body: isAr ? "وزع مجهودك البدني على مدار شوطي المباراة. الانطلاق في الأوقات الحاسمة أفضل من الركض المستمر دون فاعلية." : "Pace your energy across both halves. Explosive sprints at decisive moments beat constant ineffective jogging."
+      },
+      {
+        title: isAr ? "اتخاذ القرار السريع" : "Quick Decision Making",
+        body: isAr ? "ارفع رأسك وامسح الملعب قبل أن تصلك الكرة، لتعرف خيارك الأول والبديل قبل اللمسة الأولى." : "Scan the pitch before receiving the ball so you know your first and second options before taking a touch."
+      },
+      {
+        title: isAr ? "استغلال الكرات الثابتة" : "Set-Piece Threat",
+        body: isAr ? "الركنيات والضربات الحرة تصنع الفارق في المباريات المعقدة. ركز في التمركز والتحرك الخادع للهروب من الرقابة." : "Set pieces break deadlocks in tight games. Focus on sharp decoy runs to lose your marker inside the box."
+      },
+      {
+        title: isAr ? "نصيحة عامة في اللعب الجماعي" : "Team Chemistry Advice",
+        body: isAr ? "أرقامك متوازنة! تذكر أن التواصل الإيجابي وتشجيع الزملاء في الملعب يرفع الروح المعنوية ويحسم المباريات الصعبة." : "Your stats look solid! Remember that positive communication and encouraging teammates lifts team morale and wins tough games."
+      },
+      {
+        title: isAr ? "الراحة والتعافي البدني" : "Rest & Recovery",
+        body: isAr ? "التعافي الجيد هو سر الأداء الثابت. احرص على النوم الكافي والإطالات العضلية بعد المباريات القوية." : "Proper recovery is the secret to consistency. Prioritize hydration, sleep, and stretching after intense matches."
+      }
+    );
 
-    // Select 2 random advices from the generated pool so it feels dynamic
+    // Select 1 random advice from the generated pool so the user receives exactly one notification
     const shuffled = advices.sort(() => 0.5 - Math.random());
-    const selectedAdvices = shuffled.slice(0, 2);
+    const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {
       await addDoc(notificationsRef, {

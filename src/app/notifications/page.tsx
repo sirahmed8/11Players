@@ -11,6 +11,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import ConfirmModal from "@/components/ConfirmModal";
 
 type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
 
@@ -32,6 +33,7 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+  const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   
   const isAr = locale === "ar";
 
@@ -102,6 +104,26 @@ export default function NotificationsPage() {
     }
   };
 
+  const deleteAllNotifications = async () => {
+    if (!user || notifications.length === 0) return;
+    try {
+      const batch = writeBatch(db);
+      const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+      notifications.forEach(n => {
+        batch.delete(doc(db, "users", user.uid, "notifications", n.id));
+        if (!deletedIds.includes(n.id)) deletedIds.push(n.id);
+      });
+      localStorage.setItem('11players_deleted_notifs', JSON.stringify(deletedIds));
+      await batch.commit();
+      setNotifications([]);
+      setConfirmDeleteAll(false);
+      toast.success(isAr ? "تم حذف جميع الإشعارات بنجاح" : "All notifications deleted");
+    } catch (error) {
+      console.error("Error deleting all notifications:", error);
+      toast.error(isAr ? "فشل حذف الإشعارات" : "Failed to delete notifications");
+    }
+  };
+
   const getIconForType = (type: NotificationType) => {
     switch (type) {
       case "match": return <Trophy className="w-5 h-5 text-amber-500" />;
@@ -148,6 +170,14 @@ export default function NotificationsPage() {
               >
                 <CheckCircle2 className="w-4 h-4" />
                 {isAr ? "تحديد الكل كمقروء" : "Mark all as read"}
+              </button>
+              <button
+                onClick={() => setConfirmDeleteAll(true)}
+                disabled={notifications.length === 0}
+                className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 ${notifications.length === 0 ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed" : "bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300"}`}
+              >
+                <Trash2 className="w-4 h-4" />
+                {isAr ? "حذف الكل" : "Delete All"}
               </button>
             </div>
           </div>
@@ -303,6 +333,14 @@ export default function NotificationsPage() {
               </ul>
             )}
           </div>
+          <ConfirmModal
+            isOpen={confirmDeleteAll}
+            onClose={() => setConfirmDeleteAll(false)}
+            onConfirm={deleteAllNotifications}
+            title={isAr ? "حذف جميع الإشعارات" : "Delete All Notifications"}
+            message={isAr ? "هل أنت متأكد من رغبتك في حذف جميع الإشعارات؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to delete all notifications? This action cannot be undone."}
+            isDestructive={true}
+          />
         </main>
       </div>
     </ProtectedRoute>

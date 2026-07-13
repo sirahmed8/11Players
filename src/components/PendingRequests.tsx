@@ -8,6 +8,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
 import toast from "react-hot-toast";
 import { Check, X, Loader2 } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function PendingRequests() {
   const { activeCommunityId } = useCommunity();
@@ -87,7 +88,7 @@ export default function PendingRequests() {
   };
 
   if (loading) {
-    return <div className="flex justify-center p-4"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
+    return <SiteSkeletonLoader variant="list" />;
   }
 
   if (requests.length === 0) return null;
