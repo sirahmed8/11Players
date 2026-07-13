@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import GlobalUsersTable from "@/components/GlobalUsersTable";
 import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
 import ConfirmModal from "@/components/ConfirmModal";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
@@ -306,7 +307,7 @@ export default function OwnerPage() {
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <h2 className="text-xl font-bold mb-4">{isAr ? "المجتمعات الحالية" : "Active Communities"}</h2>
-                {loading ? <p>Loading...</p> : (
+                {loading ? <SiteSkeletonLoader variant="list" /> : (
                   <div className="space-y-4">
                     {communities.map(c => (
                       <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">

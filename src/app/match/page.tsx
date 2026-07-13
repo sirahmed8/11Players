@@ -16,6 +16,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { useRouter } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function MatchPage() {
   const router = useRouter();
@@ -194,9 +195,7 @@ export default function MatchPage() {
               className="space-y-6"
             >
               {historyLoading ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-                </div>
+                <SiteSkeletonLoader variant="match" />
               ) : historyMatches.length === 0 ? (
                 <div className="text-center py-20 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl flex flex-col items-center gap-4">
                   <span className="text-6xl mb-2">📜</span>
@@ -365,9 +364,7 @@ export default function MatchPage() {
               )}
 
               {loading && !isViewingHistory ? (
-                <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
-                </div>
+                <SiteSkeletonLoader variant="match" />
               ) : error && !isViewingHistory ? (
                 <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-red-200 dark:border-red-900">
                   <p className="text-red-500 dark:text-red-400 font-bold">{error}</p>

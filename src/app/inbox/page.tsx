@@ -13,6 +13,7 @@ import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, MessageSquare, Search,
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import ConfirmModal from "@/components/ConfirmModal";
 
@@ -301,7 +302,7 @@ export default function InboxPage() {
 
               <div className="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60 p-2 space-y-1">
                 {loadingThreads ? (
-                  <div className="p-8 flex justify-center items-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>
+                  <SiteSkeletonLoader variant="list" />
                 ) : filteredThreads.length === 0 ? (
                   <div className="p-8 text-center text-slate-400 text-xs font-bold">{isAr ? "لا توجد رسائل دعم فني." : "No support chats found."}</div>
                 ) : (
@@ -484,10 +485,7 @@ export default function InboxPage() {
                   {/* Messages Scroll Area */}
                   <div ref={scrollRef} className="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col gap-4">
                     {loadingMessages ? (
-                      <div className="flex-1 flex flex-col justify-center items-center gap-3">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
-                        <span className="text-xs font-bold text-slate-400">{isAr ? "جاري جلب الرسائل..." : "Fetching messages..."}</span>
-                      </div>
+                      <SiteSkeletonLoader variant="list" />
                     ) : messages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center text-slate-400 text-center p-8">
                         <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-3 border border-slate-200 dark:border-slate-700">

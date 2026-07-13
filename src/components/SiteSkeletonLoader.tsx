@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale } from "@/components/ThemeProvider";
 
 interface Props {
-  variant?: "page" | "cards" | "profile" | "table";
+  variant?: "page" | "cards" | "profile" | "table" | "list" | "match";
 }
 
 export default function SiteSkeletonLoader({ variant = "page" }: Props) {
@@ -60,6 +60,83 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
             <div className="space-y-2">
               <div className="w-2/3 h-5 bg-slate-300 dark:bg-slate-700 rounded" />
               <div className="w-1/3 h-4 bg-slate-300 dark:bg-slate-700 rounded" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (variant === "list") {
+    return (
+      <div className="space-y-4 w-full p-4 animate-pulse">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="h-20 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-4 flex items-center justify-between shadow-sm relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 dark:via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-2xl bg-slate-200 dark:bg-slate-700" />
+              <div className="space-y-2">
+                <div className="w-40 h-5 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                <div className="w-64 h-3.5 bg-slate-100 dark:bg-slate-800 rounded-lg" />
+              </div>
+            </div>
+            <div className="w-20 h-8 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (variant === "table") {
+    return (
+      <div className="space-y-4 w-full p-4 animate-pulse">
+        <div className="h-12 w-full bg-slate-200 dark:bg-slate-800 rounded-2xl" />
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="h-16 rounded-2xl bg-white dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 p-4 flex items-center justify-between shadow-sm relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 dark:via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700" />
+              <div className="w-32 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+            </div>
+            <div className="flex gap-4">
+              <div className="w-12 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              <div className="w-12 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (variant === "match") {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full p-4 animate-pulse">
+        {[0, 1].map((teamIdx) => (
+          <div
+            key={teamIdx}
+            className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 p-6 shadow-xl relative overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 dark:via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="w-36 h-7 bg-slate-200 dark:bg-slate-700 rounded-xl" />
+              <div className="w-16 h-8 bg-amber-500/20 rounded-xl" />
+            </div>
+            <div className="space-y-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-14 rounded-2xl bg-slate-100 dark:bg-slate-900/60 p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700" />
+                    <div className="w-28 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
+                  </div>
+                  <div className="w-10 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                </div>
+              ))}
             </div>
           </div>
         ))}

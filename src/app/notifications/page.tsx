@@ -10,6 +10,7 @@ import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown, Tra
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
 
@@ -222,10 +223,7 @@ export default function NotificationsPage() {
 
           <div className="bg-white/60 dark:bg-slate-900/60 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl">
             {loading ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
-                <p className="mt-4 text-slate-500 font-medium">{isAr ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p>
-              </div>
+              <SiteSkeletonLoader variant="list" />
             ) : filteredNotifs.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center px-4">
                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">

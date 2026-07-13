@@ -10,6 +10,7 @@ import { Community } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function CommunitiesPage() {
   const { user, isOwner, loading: authLoading } = useAuth();
@@ -188,7 +189,7 @@ export default function CommunitiesPage() {
           </button>
         </div>
         {loading ? (
-          <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
+          <SiteSkeletonLoader variant="cards" />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {communities.map((c) => (

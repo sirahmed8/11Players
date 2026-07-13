@@ -13,6 +13,7 @@ import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, Reply, SmilePlus, Tras
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
@@ -245,7 +246,7 @@ export default function CommunityChatPage() {
             className="flex-1 bg-slate-100 dark:bg-slate-900/50 p-4 md:p-6 overflow-y-auto flex flex-col gap-6"
           >
             {loading ? (
-              <div className="flex-1 flex justify-center items-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
+              <SiteSkeletonLoader variant="list" />
             ) : messages.length === 0 ? (
               <div className="flex-1 flex justify-center items-center text-slate-400">
                 {isAr ? "كن أول من يرسل رسالة!" : "Be the first to send a message!"}

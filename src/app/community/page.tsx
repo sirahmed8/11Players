@@ -10,6 +10,7 @@ import PlayerCardCompact from "@/components/PlayerCardCompact";
 import ConfirmModal from "@/components/ConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ChevronDown, LogOut } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -145,9 +146,7 @@ export default function CommunityPage() {
 
           {/* Directory Grid */}
           {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
-            </div>
+            <SiteSkeletonLoader variant="cards" />
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
               <p className="text-slate-600 dark:text-slate-400">No players found.</p>

@@ -8,6 +8,7 @@ import { PlayerProfile } from "@/types";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 
 import { ChevronDown, Loader2 } from "lucide-react";
+import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GlobalLeaderboardPage() {
@@ -91,7 +92,7 @@ export default function GlobalLeaderboardPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-emerald-500" /></div>
+          <SiteSkeletonLoader variant="cards" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedPlayers.map((p) => (
