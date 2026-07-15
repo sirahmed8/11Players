@@ -159,15 +159,158 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
   );
 };
 
+type PenaltyState = {
+  active: boolean;
+  kicks: number; // per team (1-5)
+  kingKeeper: string | null;
+  challengerKeeper: string | null;
+  results: { team: 'king' | 'challenger'; scored: boolean }[];
+  suddenDeath: boolean;
+  done: boolean;
+  winner: 'king' | 'challenger' | null;
+};
+
+const DEFAULT_PENALTY: PenaltyState = {
+  active: false,
+  kicks: 3,
+  kingKeeper: null,
+  challengerKeeper: null,
+  results: [],
+  suddenDeath: false,
+  done: false,
+  winner: null,
+};
+
 const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolean }) => {
-  // activeTeams[0] is always considered the "King" (current winner), activeTeams[1] is the "Challenger"
   const [activeTeams, setActiveTeams] = useState<[TurfTeam, TurfTeam]>([teams[0], teams[1]]);
   const [waitingTeams, setWaitingTeams] = useState<TurfTeam[]>(teams.slice(2));
   const [currentStreak, setCurrentStreak] = useState(0);
-  const [matchHistory, setMatchHistory] = useState<{ winner: string, loser: string | 'draw', streak: number }[]>([]);
+  const [matchHistory, setMatchHistory] = useState<{ winner: string, loser: string | 'draw', streak: number, pens?: string }[]>([]);
+  const [penalty, setPenalty] = useState<PenaltyState>(DEFAULT_PENALTY);
+  const [showSetup, setShowSetup] = useState(false); // Penalty setup screen
+
+  const [king, challenger] = activeTeams;
+
+  // --- Penalty logic helpers ---
+  const kingScore = penalty.results.filter(r => r.team === 'king' && r.scored).length;
+  const challengerScore = penalty.results.filter(r => r.team === 'challenger' && r.scored).length;
+  const kingTotal = penalty.results.filter(r => r.team === 'king').length;
+  const challengerTotal = penalty.results.filter(r => r.team === 'challenger').length;
+
+  const checkPenaltyDone = (results: PenaltyState['results'], kicks: number, suddenDeath: boolean) => {
+    const kS = results.filter(r => r.team === 'king' && r.scored).length;
+    const cS = results.filter(r => r.team === 'challenger' && r.scored).length;
+    const kT = results.filter(r => r.team === 'king').length;
+    const cT = results.filter(r => r.team === 'challenger').length;
+    const remaining_k = kicks - kT;
+    const remaining_c = kicks - cT;
+
+    if (!suddenDeath) {
+      // Early win: team mathematically can't be caught
+      if (kT === kicks && cT === kicks) {
+        if (kS > cS) return { done: true, winner: 'king' as const };
+        if (cS > kS) return { done: true, winner: 'challenger' as const };
+        // Tied after all kicks -> sudden death
+        return { done: false, suddenDeath: true };
+      }
+      // King takes all their kicks early win check
+      if (kS > cS + remaining_c) return { done: true, winner: 'king' as const };
+      if (cS > kS + remaining_k) return { done: true, winner: 'challenger' as const };
+    } else {
+      // Sudden death: each team takes 1 kick per round
+      if (kT === cT && kT > 0) {
+        // Both have taken same number in SD
+        const sdStart = kicks; // rounds done before SD
+        const sdKings = results.slice(sdStart * 2).filter(r => r.team === 'king');
+        const sdChallengers = results.slice(sdStart * 2).filter(r => r.team === 'challenger');
+        const lastRound = Math.min(sdKings.length, sdChallengers.length);
+        if (lastRound > 0) {
+          const lastKingScored = sdKings[lastRound - 1]?.scored;
+          const lastChallengerScored = sdChallengers[lastRound - 1]?.scored;
+          if (lastKingScored && !lastChallengerScored) return { done: true, winner: 'king' as const };
+          if (!lastKingScored && lastChallengerScored) return { done: true, winner: 'challenger' as const };
+          // both scored or both missed -> continue SD
+        }
+      }
+    }
+    return { done: false };
+  };
+
+  // Who kicks next?
+  const nextKicker = (): 'king' | 'challenger' | null => {
+    if (penalty.done) return null;
+    const kicks = penalty.kicks;
+    const results = penalty.results;
+    const kT = results.filter(r => r.team === 'king').length;
+    const cT = results.filter(r => r.team === 'challenger').length;
+
+    if (!penalty.suddenDeath) {
+      // Alternate: king, challenger, king, challenger...
+      // Position in sequence: kT + cT kicks taken total
+      const total = kT + cT;
+      // King kicks at even positions (0,2,4...) = positions where total % 2 == 0
+      if (total % 2 === 0 && kT < kicks) return 'king';
+      if (total % 2 === 1 && cT < kicks) return 'challenger';
+      if (kT < kicks) return 'king';
+      if (cT < kicks) return 'challenger';
+    } else {
+      // Sudden death: king kicks then challenger alternates
+      const sdResults = results.slice(kicks * 2);
+      const sdKings = sdResults.filter(r => r.team === 'king').length;
+      const sdChall = sdResults.filter(r => r.team === 'challenger').length;
+      if (sdKings === sdChall) return 'king';
+      return 'challenger';
+    }
+    return null;
+  };
+
+  const recordKick = (scored: boolean) => {
+    const kicker = nextKicker();
+    if (!kicker) return;
+    const newResults = [...penalty.results, { team: kicker, scored }];
+    const { done, winner, suddenDeath } = checkPenaltyDone(newResults, penalty.kicks, penalty.suddenDeath || false) as any;
+
+    if (done && winner) {
+      const winTeam = winner === 'king' ? king : challenger;
+      const loseTeam = winner === 'king' ? challenger : king;
+      const kS2 = newResults.filter(r => r.team === 'king' && r.scored).length;
+      const cS2 = newResults.filter(r => r.team === 'challenger' && r.scored).length;
+      setPenalty(prev => ({ ...prev, results: newResults, done: true, winner, suddenDeath: suddenDeath || prev.suddenDeath }));
+      // Auto-resolve after brief display
+      setTimeout(() => {
+        resolvePenaltyWinner(winner, winTeam, loseTeam, `${kS2}-${cS2}`);
+      }, 2000);
+    } else {
+      setPenalty(prev => ({ ...prev, results: newResults, suddenDeath: suddenDeath || prev.suddenDeath }));
+    }
+  };
+
+  const resolvePenaltyWinner = (winner: 'king' | 'challenger', winTeam: TurfTeam, loseTeam: TurfTeam, score: string) => {
+    const newStreak = winner === 'king' ? currentStreak + 1 : 1;
+    setMatchHistory(prev => [...prev, {
+      winner: winTeam.name,
+      loser: loseTeam.name,
+      streak: newStreak,
+      pens: `pens ${score}`
+    }]);
+
+    let nextWaiting = [...waitingTeams];
+    nextWaiting.push(loseTeam);
+    const nextChallenger = nextWaiting.length > 0 ? nextWaiting.shift()! : loseTeam;
+    setActiveTeams([winTeam, nextChallenger]);
+    setWaitingTeams(nextWaiting);
+    setCurrentStreak(newStreak);
+    setPenalty(DEFAULT_PENALTY);
+    setShowSetup(false);
+  };
 
   const handleResult = (result: 'king_wins' | 'challenger_wins' | 'draw') => {
-    const [king, challenger] = activeTeams;
+    if (result === 'draw') {
+      // Trigger penalty setup instead of immediate rotation
+      setShowSetup(true);
+      return;
+    }
+
     let nextKing: TurfTeam;
     let nextWaiting = [...waitingTeams];
     let newStreak = 0;
@@ -177,29 +320,21 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
       nextWaiting.push(challenger);
       newStreak = currentStreak + 1;
       setMatchHistory(prev => [...prev, { winner: king.name, loser: challenger.name, streak: newStreak }]);
-    } else if (result === 'challenger_wins') {
+    } else {
       nextKing = challenger;
       nextWaiting.push(king);
       newStreak = 1;
       setMatchHistory(prev => [...prev, { winner: challenger.name, loser: king.name, streak: newStreak }]);
-    } else {
-      // Draw: The challenger stays, King leaves (or vice versa, but usually King leaves if they draw to give others a chance)
-      nextKing = challenger;
-      nextWaiting.push(king);
-      newStreak = 0;
-      setMatchHistory(prev => [...prev, { winner: 'Draw', loser: 'draw', streak: 0 }]);
     }
 
-    if (nextWaiting.length > 0) {
-      const nextChallenger = nextWaiting.shift()!;
-      setActiveTeams([nextKing, nextChallenger]);
-      setWaitingTeams(nextWaiting);
-    } else {
-      // If only 2 teams total
-      setActiveTeams([nextKing, nextWaiting.pop() || (result === 'king_wins' ? challenger : king)]);
-    }
+    const nextChallenger = nextWaiting.length > 0 ? nextWaiting.shift()! : (result === 'king_wins' ? challenger : king);
+    setActiveTeams([nextKing, nextChallenger]);
+    setWaitingTeams(nextWaiting);
     setCurrentStreak(newStreak);
   };
+
+  const kicker = nextKicker();
+  const kickerTeam = kicker === 'king' ? king : challenger;
 
   return (
     <motion.div
@@ -219,39 +354,270 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
         )}
       </div>
 
+      {/* Current Match */}
       <div className="grid grid-cols-3 gap-4 items-center bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl">
         <div className="text-center">
           <div className="text-xs font-bold text-amber-500 mb-1">{isAr ? 'الملك' : 'King'}</div>
-          <div className="font-black text-slate-900 dark:text-white text-lg">{activeTeams[0].name}</div>
+          <div className="font-black text-slate-900 dark:text-white text-lg">{king.name}</div>
         </div>
         <div className="text-center font-black text-slate-400">VS</div>
         <div className="text-center">
           <div className="text-xs font-bold text-blue-500 mb-1">{isAr ? 'المتحدي' : 'Challenger'}</div>
-          <div className="font-black text-slate-900 dark:text-white text-lg">{activeTeams[1].name}</div>
+          <div className="font-black text-slate-900 dark:text-white text-lg">{challenger.name}</div>
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <button
-          onClick={() => handleResult('king_wins')}
-          className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black transition-colors"
-        >
-          {isAr ? `فوز ${activeTeams[0].name}` : `${activeTeams[0].name} Wins`}
-        </button>
-        <button
-          onClick={() => handleResult('draw')}
-          className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-black transition-colors"
-        >
-          {isAr ? 'تعادل' : 'Draw'}
-        </button>
-        <button
-          onClick={() => handleResult('challenger_wins')}
-          className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-black transition-colors"
-        >
-          {isAr ? `فوز ${activeTeams[1].name}` : `${activeTeams[1].name} Wins`}
-        </button>
-      </div>
+      {/* Result Buttons (hidden during penalty) */}
+      {!showSetup && !penalty.active && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => handleResult('king_wins')}
+            className="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black transition-colors"
+          >
+            {isAr ? `فوز ${king.name}` : `${king.name} Wins`}
+          </button>
+          <button
+            onClick={() => handleResult('draw')}
+            className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-black transition-colors"
+          >
+            ⚖️ {isAr ? 'تعادل ← ركلات' : 'Draw → Pens'}
+          </button>
+          <button
+            onClick={() => handleResult('challenger_wins')}
+            className="flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-black transition-colors"
+          >
+            {isAr ? `فوز ${challenger.name}` : `${challenger.name} Wins`}
+          </button>
+        </div>
+      )}
 
+      {/* ─── Penalty Shootout Setup ─── */}
+      <AnimatePresence>
+        {showSetup && !penalty.active && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="border border-amber-400/40 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl p-5 space-y-5">
+              <div className="flex items-center justify-between">
+                <div className="font-black text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                  🥅 {isAr ? 'إعداد ركلات الترجيح' : 'Penalty Shootout Setup'}
+                </div>
+                <button
+                  onClick={() => setShowSetup(false)}
+                  className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <X className="w-4 h-4 text-slate-500" />
+                </button>
+              </div>
+
+              {/* Format selector */}
+              <div>
+                <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                  {isAr ? 'عدد الركلات لكل فريق' : 'Kicks per team'}
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setPenalty(p => ({ ...p, kicks: n }))}
+                      className={`flex-1 py-3 rounded-xl font-black text-sm transition-all ${
+                        penalty.kicks === n
+                          ? 'bg-amber-500 text-white shadow-md'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      }`}
+                    >
+                      {n}v{n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* King Keeper selector */}
+              <div>
+                <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                  🥅 {isAr ? `حارس ${king.name} (الملك)` : `${king.name} Keeper (King)`}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {king.players.map(p => (
+                    <button
+                      key={p.uid}
+                      onClick={() => setPenalty(prev => ({ ...prev, kingKeeper: p.uid }))}
+                      className={`px-3 py-2 rounded-xl font-bold text-sm transition-all ${
+                        penalty.kingKeeper === p.uid
+                          ? 'bg-amber-500 text-white'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/20'
+                      }`}
+                    >
+                      {p.cardName || p.fullName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Challenger Keeper selector */}
+              <div>
+                <div className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">
+                  🥅 {isAr ? `حارس ${challenger.name} (المتحدي)` : `${challenger.name} Keeper (Challenger)`}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {challenger.players.map(p => (
+                    <button
+                      key={p.uid}
+                      onClick={() => setPenalty(prev => ({ ...prev, challengerKeeper: p.uid }))}
+                      className={`px-3 py-2 rounded-xl font-bold text-sm transition-all ${
+                        penalty.challengerKeeper === p.uid
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-blue-900/20'
+                      }`}
+                    >
+                      {p.cardName || p.fullName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!penalty.kingKeeper || !penalty.challengerKeeper) return;
+                  setPenalty(p => ({ ...p, active: true }));
+                  setShowSetup(false);
+                }}
+                disabled={!penalty.kingKeeper || !penalty.challengerKeeper}
+                className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg transition-all"
+              >
+                {isAr ? '🚀 ابدأ ركلات الترجيح' : '🚀 Start Penalty Shootout'}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Live Penalty Shootout ─── */}
+      <AnimatePresence>
+        {penalty.active && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="border border-blue-400/40 bg-blue-50/50 dark:bg-blue-900/10 rounded-2xl p-5 space-y-4"
+          >
+            <div className="flex items-center justify-between">
+              <div className="font-black text-lg text-slate-900 dark:text-white">
+                {penalty.suddenDeath
+                  ? (isAr ? '⚡ ركلة مفاجئة' : '⚡ Sudden Death')
+                  : (isAr ? `🥅 ركلات ${penalty.kicks}×${penalty.kicks}` : `🥅 ${penalty.kicks}v${penalty.kicks} Pens`)}
+              </div>
+              {/* Scoreboard */}
+              <div className="flex items-center gap-3 bg-slate-900 dark:bg-slate-700 rounded-xl px-4 py-2">
+                <span className="text-amber-400 font-black text-xl">{kingScore}</span>
+                <span className="text-slate-500 font-black">–</span>
+                <span className="text-blue-400 font-black text-xl">{challengerScore}</span>
+              </div>
+            </div>
+
+            {/* Kick dots */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* King kicks */}
+              <div>
+                <div className="text-xs font-bold text-amber-500 mb-2 text-center">{king.name}</div>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {Array.from({ length: penalty.kicks }).map((_, i) => {
+                    const kick = penalty.results.filter(r => r.team === 'king')[i];
+                    return (
+                      <div
+                        key={i}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
+                          !kick
+                            ? 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-400'
+                            : kick.scored
+                            ? 'border-emerald-500 bg-emerald-500 text-white'
+                            : 'border-red-500 bg-red-500 text-white'
+                        }`}
+                      >
+                        {!kick ? i + 1 : kick.scored ? '⚽' : '✗'}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Challenger kicks */}
+              <div>
+                <div className="text-xs font-bold text-blue-500 mb-2 text-center">{challenger.name}</div>
+                <div className="flex flex-wrap gap-1.5 justify-center">
+                  {Array.from({ length: penalty.kicks }).map((_, i) => {
+                    const kick = penalty.results.filter(r => r.team === 'challenger')[i];
+                    return (
+                      <div
+                        key={i}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black border-2 transition-all ${
+                          !kick
+                            ? 'border-slate-300 dark:border-slate-600 bg-transparent text-slate-400'
+                            : kick.scored
+                            ? 'border-emerald-500 bg-emerald-500 text-white'
+                            : 'border-red-500 bg-red-500 text-white'
+                        }`}
+                      >
+                        {!kick ? i + 1 : kick.scored ? '⚽' : '✗'}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Winner Banner */}
+            {penalty.done && penalty.winner && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-center py-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl text-white font-black text-xl"
+              >
+                🏆 {penalty.winner === 'king' ? king.name : challenger.name} {isAr ? 'يفوز بالركلات!' : 'wins on pens!'}
+              </motion.div>
+            )}
+
+            {/* Next kicker prompt */}
+            {!penalty.done && kicker && (
+              <div className="text-center">
+                <div className={`text-sm font-black mb-3 ${kicker === 'king' ? 'text-amber-600 dark:text-amber-400' : 'text-blue-600 dark:text-blue-400'}`}>
+                  {isAr ? `دور ${kickerTeam.name}` : `${kickerTeam.name}'s turn`}
+                  {kicker === 'king' && penalty.challengerKeeper && (
+                    <span className="text-slate-500 font-normal text-xs block">
+                      {isAr ? `ضد الحارس: ` : `vs keeper: `}
+                      {challenger.players.find(p => p.uid === penalty.challengerKeeper)?.cardName || ''}
+                    </span>
+                  )}
+                  {kicker === 'challenger' && penalty.kingKeeper && (
+                    <span className="text-slate-500 font-normal text-xs block">
+                      {isAr ? `ضد الحارس: ` : `vs keeper: `}
+                      {king.players.find(p => p.uid === penalty.kingKeeper)?.cardName || ''}
+                    </span>
+                  )}
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => recordKick(true)}
+                    className="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black text-lg transition-all hover:scale-105 active:scale-95"
+                  >
+                    ⚽ {isAr ? 'هدف!' : 'Goal!'}
+                  </button>
+                  <button
+                    onClick={() => recordKick(false)}
+                    className="flex-1 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-black text-lg transition-all hover:scale-105 active:scale-95"
+                  >
+                    ✗ {isAr ? 'تصدى / خطأ' : 'Miss / Saved'}
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Waiting teams */}
       {waitingTeams.length > 0 && (
         <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
           <div className="text-xs font-bold text-slate-500 mb-2">{isAr ? 'في الانتظار:' : 'Waiting:'}</div>
@@ -264,9 +630,25 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
           </div>
         </div>
       )}
+
+      {/* Match History */}
+      {matchHistory.length > 0 && (
+        <div className="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-2">
+          <div className="text-xs font-bold text-slate-500 mb-2">{isAr ? 'سجل النتائج:' : 'Match Log:'}</div>
+          {[...matchHistory].reverse().slice(0, 5).map((h, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <Trophy className="w-3 h-3 text-amber-400 shrink-0" />
+              <span className="font-bold">{h.winner}</span>
+              {h.pens && <span className="text-blue-500 font-bold">({h.pens})</span>}
+              {h.streak > 1 && <span className="text-amber-500 font-bold">🔥×{h.streak}</span>}
+            </div>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 };
+
 
 export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatchDisplayProps) {
   const [showFixtures, setShowFixtures] = useState(true);
