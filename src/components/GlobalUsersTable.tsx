@@ -41,7 +41,7 @@ export default function GlobalUsersTable() {
   }>({ open: false, user: null });
 
   const fetchUsers = useCallback(async () => {
-    setLoading(true);
+    setLoading(users.length === 0);
     try {
       const [usersSnap, commsSnap] = await Promise.all([
         getDocs(collection(db, "players")),

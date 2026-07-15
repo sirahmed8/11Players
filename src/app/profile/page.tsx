@@ -476,11 +476,19 @@ function PlayerProfileContent() {
 
           {user?.uid && user.uid !== effectiveUid && (
             <button
-              onClick={() => setIsSuggestModalOpen(true)}
-              className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-800/40 active:scale-95 flex items-center gap-2.5"
+              onClick={() => (isAdmin || isOwner) ? setIsEditModalOpen(true) : setIsSuggestModalOpen(true)}
+              className={`px-8 py-4 rounded-2xl text-white font-black text-lg transition-all active:scale-95 flex items-center gap-2.5 ${
+                isAdmin || isOwner 
+                  ? "bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30"
+                  : "bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/20"
+              }`}
             >
               <Sparkles className="w-5 h-5" />
-              <span>{isAr ? "اقترح تعديل طاقات وتصنيف اللاعب" : "Suggest Rating & Abilities"}</span>
+              <span>
+                {isAdmin || isOwner 
+                  ? (isAr ? "تعديل التقييم والطاقات" : "Edit Rating & Abilities") 
+                  : (isAr ? "اقترح تعديل طاقات وتصنيف اللاعب" : "Suggest Rating & Abilities")}
+              </span>
             </button>
           )}
 

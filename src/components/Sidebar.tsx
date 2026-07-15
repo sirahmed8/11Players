@@ -10,7 +10,7 @@ import SettingsMenu from "@/components/SettingsMenu";
 import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunity } from "@/contexts/CommunityContext";
-import { collection, query, orderBy, limit, onSnapshot, doc } from "firebase/firestore";
+import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
@@ -26,6 +26,7 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
+  const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
   const lastNotifiedTimeRef = useRef<number>(0);
 
   // Close sidebar on route change for mobile
@@ -34,6 +35,16 @@ export default function Sidebar() {
   }, [pathname]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
+
+  // Listen for Personal Notifications
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "users", user.uid, "notifications"), where("read", "==", false));
+    const unsub = onSnapshot(q, (snap) => {
+      setUnreadNotifsCount(snap.docs.length);
+    });
+    return () => unsub();
+  }, [user]);
 
   // Listen for Global Chat Notifications (Admin/Moderator Inbox)
   useEffect(() => {
@@ -342,7 +353,9 @@ export default function Sidebar() {
               const baseHref = link.href.split("?")[0];
               const cleanPathname = pathname.replace(/\/$/, '') || '/';
               const isActive = cleanPathname === baseHref;
-              const hasUnreadDot = (link.href === "/inbox" && unreadInboxCount > 0) || (link.href === "/support" && unreadSupportCount > 0);
+              const hasUnreadDot = (link.href === "/inbox" && unreadInboxCount > 0) || 
+                                   (link.href === "/support" && unreadSupportCount > 0) || 
+                                   (link.href === "/notifications" && unreadNotifsCount > 0);
 
               return (
                 <Link

@@ -57,8 +57,6 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
     );
   }, [attributes, primaryPosition, playStyle, player]);
 
-  if (!isOpen) return null;
-
   const handleSubmit = async () => {
     if (!user) {
       toast.error(isAr ? "يجب تسجيل الدخول لإرسال اقتراح" : "Must be logged in to suggest ratings");
@@ -121,13 +119,14 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" dir={isAr ? "rtl" : "ltr"}>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
-        >
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" dir={isAr ? "rtl" : "ltr"}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            className="relative w-full max-w-4xl max-h-[90vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          >
           {/* Header */}
           <div className="p-6 bg-gradient-to-r from-amber-500 via-emerald-600 to-teal-700 text-white flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -173,36 +172,6 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
                 </div>
               </div>
             </div>
-
-            {/* Quick Position & Style Selectors */}
-            <div className="flex flex-wrap gap-3 items-center">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">{isAr ? "المركز الأساسي" : "Primary Pos"}</label>
-                <select
-                  value={primaryPosition}
-                  onChange={(e) => setPrimaryPosition(e.target.value as PESPosition)}
-                  className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                >
-                  {POSITIONS.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-500 dark:text-slate-400 mb-1">{isAr ? "أسلوب اللعب" : "Play Style"}</label>
-                <select
-                  value={playStyle}
-                  onChange={(e) => setPlayStyle(e.target.value)}
-                  className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500"
-                >
-                  <option value="">{isAr ? "بدون أسلوب" : "None"}</option>
-                  {PLAY_STYLES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </div>
 
           {/* Body Content: Sliders */}
@@ -244,8 +213,9 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
               <span>{submitting ? (isAr ? "جاري الإرسال..." : "Submitting...") : (isAr ? "إرسال الاقتراح للمسؤول" : "Submit Suggestion")}</span>
             </button>
           </div>
-        </motion.div>
-      </div>
+          </motion.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 }

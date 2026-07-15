@@ -19,6 +19,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
 import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal';
+import CustomSelect from '@/components/CustomSelect';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -742,47 +743,42 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                     {t(locale, 'Primary Position', 'المركز الأساسي')}
                   </label>
-                  <select
+                  <CustomSelect
                     value={attrModal.primaryPosition || attrModal.player.primaryPosition || 'CMF'}
-                    onChange={(e) => setAttrModal(prev => ({ ...prev, primaryPosition: e.target.value as PESPosition }))}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                  >
-                    {POSITIONS.map(pos => (
-                      <option key={pos} value={pos}>{pos}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAttrModal(prev => ({ ...prev, primaryPosition: val as PESPosition }))}
+                    options={POSITIONS.map(p => ({ value: p, label: p }))}
+                    className="w-full text-xs"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                     {t(locale, 'Secondary Position', 'المركز الثانوي')}
                   </label>
-                  <select
+                  <CustomSelect
                     value={attrModal.secondaryPosition !== undefined ? attrModal.secondaryPosition : (attrModal.player.secondaryPosition || '')}
-                    onChange={(e) => setAttrModal(prev => ({ ...prev, secondaryPosition: e.target.value as any }))}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                  >
-                    <option value="">{t(locale, 'None', 'بدون')}</option>
-                    {POSITIONS.map(pos => (
-                      <option key={pos} value={pos}>{pos}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAttrModal(prev => ({ ...prev, secondaryPosition: val as any }))}
+                    options={[
+                      { value: '', label: t(locale, 'None', 'بدون') },
+                      ...POSITIONS.map(p => ({ value: p, label: p }))
+                    ]}
+                    className="w-full text-xs"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                     {t(locale, 'Play Style', 'أسلوب اللعب')}
                   </label>
-                  <select
+                  <CustomSelect
                     value={attrModal.playStyle !== undefined ? attrModal.playStyle : (attrModal.player.playStyle || '')}
-                    onChange={(e) => setAttrModal(prev => ({ ...prev, playStyle: e.target.value }))}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
-                  >
-                    <option value="">{t(locale, 'None', 'بدون')}</option>
-                    {PLAY_STYLES.map(style => (
-                      <option key={style} value={style}>{style}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setAttrModal(prev => ({ ...prev, playStyle: val }))}
+                    options={[
+                      { value: '', label: t(locale, 'None', 'بدون') },
+                      ...PLAY_STYLES.map(s => ({ value: s, label: s }))
+                    ]}
+                    className="w-full text-xs"
+                  />
                 </div>
               </div>
 
