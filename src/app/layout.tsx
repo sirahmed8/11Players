@@ -78,10 +78,10 @@ export default function RootLayout({
                           <Footer />
                         </div>
                       </div>
+                      <UpdateNotification />
+                      <SiteRatingModal />
                     </RouteGuard>
-                  <UpdateNotification />
-                  <SiteRatingModal />
-                  <Toaster 
+                  <Toaster
                     position="bottom-center"
                     toastOptions={{
                       style: {

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateDoc, doc, setDoc, collection } from 'firebase/firestore';
+import { updateDoc, doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
@@ -224,7 +224,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
                 body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل على ملفه الشخصي وقدراته للمراجعة.` : `${formData.fullName} submitted profile & stats edits for your review.`,
                 read: false,
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 link: '/admin?tab=edits'
               });
             }
@@ -236,7 +236,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
                 body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
                 read: false,
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 link: '/admin?tab=edits'
               });
             }
@@ -256,7 +256,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
               body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
               read: false,
-              createdAt: new Date(),
+              createdAt: serverTimestamp(),
               link: '/admin?tab=edits'
             });
           } catch (notifErr) {

@@ -217,7 +217,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
         body: ad.body,
         read: false,
         createdAt: serverTimestamp(),
-        link: "/profile"
+        link: "/profile?uid=" + userUid
       });
     }
 

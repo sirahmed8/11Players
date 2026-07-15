@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useLocale } from "@/components/ThemeProvider";
-import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, arrayUnion } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, arrayUnion, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import toast from "react-hot-toast";
@@ -94,7 +94,7 @@ export default function OwnerPage() {
         adminUid: newCommAdmin,
         isPrivate,
         password: isPrivate ? password : null,
-        createdAt: new Date().toISOString()
+        createdAt: serverTimestamp()
       });
 
       // Add admin to the community's players

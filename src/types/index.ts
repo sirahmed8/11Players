@@ -113,6 +113,8 @@ export interface PlayerProfile {
   approvedAttributes?: PlayerAttributes;
   peerReviews?: { reviewerUid: string; reviewerName: string; timestamp: string; ratings: Partial<PlayerAttributes>; }[];
   averagePeerAttributes?: Partial<PlayerAttributes>;
+  peerRatingAvg?: number;    // Community peer rating average (1-10 scale), updated daily
+  peerRatingCount?: number;  // Total number of peer ratings received
   isMockData?: boolean;
   specialSkills: string[];
   playStyle?: string;

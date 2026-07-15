@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { doc, getDoc, updateDoc, deleteDoc, writeBatch, increment } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, deleteDoc, writeBatch, increment, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { PlayerProfile } from '@/types';
 import { Target, Handshake, Trophy, X, CheckCircle, Shield, Check } from 'lucide-react';
@@ -95,7 +95,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
 
         const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
-        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '');
+        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge);
 
         const globalRef = doc(db, 'players', p.uid);
         batch.set(globalRef, { stats: newStats, overallRating: newOverall }, { merge: true });
@@ -107,12 +107,14 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp || pStats.played) {
           const notifRef = doc(db, 'users', p.uid, 'notifications', `match_stat_${Date.now()}_${p.uid}`);
           batch.set(notifRef, {
-            title: "⚽ تحديث إحصائيات المباراة! / Match Stats Recorded!",
-            body: `تم تسجيل إحصائيات مباراتك الجديدة: ${pStats.goals || 0} أهداف, ${pStats.assists || 0} تمريرات حاسمة • New match stats recorded`,
+            title: isAr ? "⚽ تحديث إحصائيات المباراة!" : "⚽ Match Stats Recorded!",
+            body: isAr
+              ? `تم تسجيل إحصائيات مباراتك الجديدة: ${pStats.goals || 0} أهداف، ${pStats.assists || 0} تمريرات حاسمة`
+              : `New match stats recorded: ${pStats.goals || 0} goals, ${pStats.assists || 0} assists`,
             type: "stats",
             read: false,
             link: `/profile?uid=${p.uid}`,
-            createdAt: new Date().toISOString()
+            createdAt: serverTimestamp()
           });
         }
       }

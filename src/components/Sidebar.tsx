@@ -173,14 +173,14 @@ export default function Sidebar() {
             
             if (!ratingDoc.exists()) {
               const matchTime = matchData.finishedAt ? new Date(matchData.finishedAt).getTime() : Date.now();
-              // Only notify if finished in the last 2 hours to avoid spamming old matches
-              if (Date.now() - matchTime < 2 * 60 * 60 * 1000) {
+              // Notify for matches finished in the last 24 hours (not just 2)
+              if (Date.now() - matchTime < 24 * 60 * 60 * 1000) {
                 // Show toast notification
                 toast.custom((t) => (
                   <div
                     onClick={() => {
                       toast.dismiss(t.id);
-                      // Navigate to match history tab
+                      // Navigate to match history tab — ?tab=history now parsed by match page
                       window.location.href = "/match?tab=history";
                     }}
                     className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-amber-500/40 hover:scale-[1.02] transition-all"
@@ -199,7 +199,7 @@ export default function Sidebar() {
                     </div>
                   </div>
                 ), { duration: 8000, position: 'top-center', id: 'rate-match-toast' });
-                
+
                 const rateNotifId = `rate-match-${docSnap.id}`;
                 const deletedNotifs: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
                 if (!deletedNotifs.includes(rateNotifId) && !localStorage.getItem(`created_${rateNotifId}`)) {
@@ -215,7 +215,7 @@ export default function Sidebar() {
                     }, { merge: true }).catch(console.error);
                   });
                 }
-                
+
                 break; // Only show for the most recent unrated match
               }
             }

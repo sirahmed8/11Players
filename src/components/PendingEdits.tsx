@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, deleteDoc, getDoc, writeBatch, setDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, deleteDoc, getDoc, writeBatch, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useLocale } from "@/components/ThemeProvider";
@@ -127,8 +127,8 @@ export default function PendingEdits() {
           title: isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!',
           body: isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي والموافقة عليه بنجاح.' : 'Your requested profile/attributes updates have been approved and applied.',
           read: false,
-          createdAt: new Date(),
-          link: '/profile'
+          createdAt: serverTimestamp(),
+          link: '/profile?uid=' + edit.playerId
         });
       } catch (err) {
         console.warn("Player notification send warning:", err);
@@ -181,7 +181,7 @@ export default function PendingEdits() {
                 title: isAr ? 'تم رفض التعديل - تقديم التماس؟' : 'Edit Rejected - Want to Appeal?',
                 body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك في محادثة الدعم الفني؟' : 'Your requested profile edit was not approved. Want to make an appeal in Support Chat?',
                 read: false,
-                createdAt: new Date(),
+                createdAt: serverTimestamp(),
                 link: '/support'
               });
           } catch (e) {

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
@@ -29,6 +29,27 @@ export default function AdminPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
+
+  // Auto-run daily peer rating aggregation on first admin visit each day
+  useEffect(() => {
+    if (!activeCommunityId || !user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { runDailyRatingAggregation } = await import("@/lib/ratingAggregator");
+        const result = await runDailyRatingAggregation(activeCommunityId);
+        if (!cancelled && result.updatedCount > 0) {
+          toast.success(isAr
+            ? `تم تحديث تقييمات ${result.updatedCount} لاعب`
+            : `Updated peer ratings for ${result.updatedCount} players`);
+        }
+      } catch (err) {
+        // Silent fail — aggregation is best-effort background work
+        console.warn("Daily aggregation skipped:", err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [activeCommunityId, user, isAr]);
 
   // Matchmaking State
   const [matchmakingLoading, setMatchmakingLoading] = useState(false);

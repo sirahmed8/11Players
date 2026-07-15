@@ -99,6 +99,19 @@ const PlayerCard = React.memo(function PlayerCard({ player }: PlayerCardProps) {
             {overall}
           </div>
 
+          {/* Peer Rating Badge */}
+          {player.peerRatingAvg && player.peerRatingAvg > 0 && (
+            <div className="mt-1 flex items-center gap-1 bg-slate-900/40 rounded-full px-2 py-0.5">
+              <span className="text-amber-300 text-[10px]">⭐</span>
+              <span className="text-[10px] font-bold text-amber-200">
+                {player.peerRatingAvg.toFixed(1)}
+              </span>
+              {player.peerRatingCount && (
+                <span className="text-[9px] text-amber-200/60">({player.peerRatingCount})</span>
+              )}
+            </div>
+          )}
+
           {/* Card Name + Form */}
           <div className="mt-1 flex items-center justify-center gap-1 w-full">
             <h3 className="text-base font-bold text-white tracking-wide truncate">

@@ -13,16 +13,17 @@ import MatchPitchDisplay from "@/components/MatchPitchDisplay";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function MatchPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { locale } = useLocale();
   const isAr = locale === "ar";
-  
+
   const { isAdmin } = useAuth();
   const { activeCommunityId } = useCommunity();
   
@@ -33,8 +34,10 @@ export default function MatchPage() {
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
-  // Match History state
-  const [activeTab, setActiveTab] = useState<'current' | 'history'>('current');
+  // Match History state — respect ?tab=history from query string (e.g. rate-match toast)
+  const [activeTab, setActiveTab] = useState<'current' | 'history'>(() => {
+    return searchParams.get('tab') === 'history' ? 'history' : 'current';
+  });
   const [historyMatches, setHistoryMatches] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedHistoryMatch, setSelectedHistoryMatch] = useState<any>(null);

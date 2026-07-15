@@ -102,6 +102,12 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
           <div className="text-2xl font-black text-amber-500 drop-shadow-sm leading-none">
             {overall}
           </div>
+          {player.peerRatingAvg && player.peerRatingAvg > 0 && (
+            <div className="flex items-center gap-0.5 mt-0.5">
+              <span className="text-[9px] text-amber-400">⭐</span>
+              <span className="text-[10px] font-bold text-amber-300">{player.peerRatingAvg.toFixed(1)}</span>
+            </div>
+          )}
         </div>
       </motion.div>
     </Link>

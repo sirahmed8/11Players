@@ -33,12 +33,13 @@ export function calculateRealisticOverall(
   position: PESPosition,
   playStyle: string,
   height?: number,
-  weight?: number
+  weight?: number,
+  age?: number
 ): number {
   if (!attributes) return 40;
 
   const weights = POSITION_WEIGHTS[position] || POSITION_WEIGHTS.CF;
-  
+
   let totalScore = 0;
   for (const [key, weight] of Object.entries(weights)) {
     const attrValue = attributes[key as keyof PlayerAttributes] || 40;
@@ -52,16 +53,38 @@ export function calculateRealisticOverall(
   if (height && weight && height > 0) {
     const heightM = height / 100;
     const bmi = weight / (heightM * heightM);
-    
-    // Different positions benefit differently from BMI/Height
+
     if (['CB', 'DMF', 'GK'].includes(position)) {
-      if (height >= 185) finalOverall += 1; // Tall advantage for defense/GK
-      if (bmi >= 24 && bmi <= 27) finalOverall += 1; // Strong build advantage
+      if (height >= 185) finalOverall += 1;
+      if (bmi >= 24 && bmi <= 27) finalOverall += 1;
     } else if (['LWF', 'RWF', 'LMF', 'RMF', 'SS'].includes(position)) {
-      if (bmi >= 20 && bmi <= 23) finalOverall += 1; // Lean build advantage for wingers
-      if (weight > 85) finalOverall -= 1; // Heavy penalty for wingers
+      if (bmi >= 20 && bmi <= 23) finalOverall += 1;
+      if (weight > 85) finalOverall -= 1;
     } else if (['CF'].includes(position)) {
-      if (height >= 185 && bmi >= 24) finalOverall += 1; // Target man advantage
+      if (height >= 185 && bmi >= 24) finalOverall += 1;
+    }
+  }
+
+  // Age modifier — realistic physical development curve
+  if (age && age > 0) {
+    if (age >= 17 && age <= 22) {
+      // Young players: stamina & speed ceiling slightly higher (potential indicator)
+      if (['LWF', 'RWF', 'LMF', 'RMF', 'SS', 'CF'].includes(position)) {
+        if ((attributes.speed || 40) >= 80 || (attributes.acceleration || 40) >= 80) {
+          finalOverall += 1; // Pace potential bonus
+        }
+      }
+    } else if (age >= 33) {
+      // Veteran players: slight stamina reality check
+      if ((attributes.stamina || 40) > 75) {
+        finalOverall -= 1;
+      }
+      // But experience bonus for playmakers and defenders
+      if (['CMF', 'AMF', 'DMF', 'CB'].includes(position)) {
+        if ((attributes.defensiveAwareness || 40) >= 80 || (attributes.lowPass || 40) >= 80) {
+          finalOverall += 1; // Veteran IQ bonus
+        }
+      }
     }
   }
 
@@ -80,23 +103,29 @@ export function getPlayerPositionRatings(player: {
   playStyle?: string;
   height?: number;
   weight?: number;
+  calculatedAge?: number;
 }) {
   const activeAttributes = player?.approvedAttributes || player?.attributes || ({} as any);
   const primaryPos = player?.primaryPosition || 'CMF';
-  const primaryRating = calculateRealisticOverall(activeAttributes, primaryPos, player?.playStyle || '', player?.height, player?.weight);
-  
+  const primaryRating = calculateRealisticOverall(activeAttributes, primaryPos, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge);
+
   const ratings = [
     { position: primaryPos, rating: primaryRating, tier: 0 }
   ];
 
+  // Secondary: recalculate for the actual secondary position (not copy primary)
   if (player.secondaryPosition) {
-    ratings.push({ position: player.secondaryPosition, rating: primaryRating, tier: 1 });
+    const secondaryRating = calculateRealisticOverall(activeAttributes, player.secondaryPosition, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge);
+    // Secondary position is usually less comfortable, so apply a small penalty
+    const adjustedSecondary = Math.max(40, secondaryRating - 1);
+    ratings.push({ position: player.secondaryPosition, rating: adjustedSecondary, tier: 1 });
   }
 
+  // Tertiary: recalculate with a larger penalty for lower familiarity
   if (player.tertiaryPosition) {
-    let tertiary = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player.playStyle || '', player.height, player.weight) - 2;
-    if (tertiary < 40) tertiary = 40;
-    ratings.push({ position: player.tertiaryPosition, rating: tertiary, tier: 2 });
+    let tertiaryRating = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge) - 3;
+    if (tertiaryRating < 40) tertiaryRating = 40;
+    ratings.push({ position: player.tertiaryPosition, rating: tertiaryRating, tier: 2 });
   }
 
   return ratings;

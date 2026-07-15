@@ -147,7 +147,15 @@ export default function StatsPage() {
   const { players, loading } = usePlayers();
   const { locale } = useLocale();
   const isAr = locale === "ar";
-  const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({});
+  // All tables expanded by default — avoids the "loads 2 then the rest" perception on mobile
+  const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({
+    ballon: true,
+    overall: true,
+    goals: true,
+    assists: true,
+    ga: true,
+    mvp: true,
+  });
 
   const handleToggle = (id: string) => {
     setExpandedTables((prev) => ({ ...prev, [id]: !prev[id] }));

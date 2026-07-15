@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
 import { generateDummyPlayersForCommunity } from '@/lib/dummyData';
@@ -295,7 +295,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!attrModal.player || !activeCommunityId) return;
     setLoadingUid('attr-' + attrModal.player.uid);
     try {
-      const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '');
+      const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '', attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge);
       const batch = writeBatch(db);
       const commIds = getAllPlayerCommunities(attrModal.player, activeCommunityId);
       for (const commId of commIds) {
@@ -417,12 +417,16 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       try {
         const notifRef = doc(db, 'users', statsModal.player.uid, 'notifications', `stat_update_${Date.now()}`);
         await setDoc(notifRef, {
-          title: "⚽ تحديث الإحصائيات! / Stats Updated!",
-          body: `تم تحديث إحصائياتك من قبل المسؤول (+${statsModal.goals} أهداف, +${statsModal.assists} تمريرات حاسمة) • Your stats were updated by admin`,
+          title: t(locale, "⚽ Stats Updated!", "⚽ تحديث الإحصائيات!"),
+          body: t(
+            locale,
+            `Your stats were updated by admin (+${statsModal.goals} goals, +${statsModal.assists} assists)`,
+            `تم تحديث إحصائياتك من قبل المسؤول (+${statsModal.goals} أهداف، +${statsModal.assists} تمريرات حاسمة)`
+          ),
           type: "stats",
           read: false,
           link: `/profile?uid=${statsModal.player.uid}`,
-          createdAt: new Date().toISOString()
+          createdAt: serverTimestamp()
         });
       } catch (nErr) {
         console.error("Failed to notify player:", nErr);
