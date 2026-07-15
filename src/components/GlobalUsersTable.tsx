@@ -13,6 +13,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import GlobalUserRow from "@/components/GlobalUserRow";
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
+import ManageUserCommunitiesModal from "@/components/ManageUserCommunitiesModal";
 
 export default function GlobalUsersTable() {
   const { locale } = useLocale();
@@ -33,6 +34,11 @@ export default function GlobalUsersTable() {
     message: string;
     onConfirm: () => Promise<void> | void;
   }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
+
+  const [manageCommModal, setManageCommModal] = useState<{
+    open: boolean;
+    user: PlayerProfile | null;
+  }>({ open: false, user: null });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -268,6 +274,7 @@ export default function GlobalUsersTable() {
                 communitiesMap={communitiesMap}
                 userCommMap={userCommMap}
                 onBanUser={handleBanUser}
+                onManageCommunities={(user) => setManageCommModal({ open: true, user })}
               />
             ))}
             {filteredUsers.length === 0 && (
@@ -310,6 +317,13 @@ export default function GlobalUsersTable() {
         onConfirm={confirmModal.onConfirm}
         title={confirmModal.title}
         message={confirmModal.message}
+      />
+      <ManageUserCommunitiesModal
+        user={manageCommModal.user}
+        isOpen={manageCommModal.open}
+        onClose={() => setManageCommModal({ open: false, user: null })}
+        communitiesMap={communitiesMap}
+        onRefresh={fetchUsers}
       />
     </div>
   );

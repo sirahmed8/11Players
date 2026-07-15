@@ -1,4 +1,5 @@
 import { PlayerProfile } from '@/types';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 /**
  * Returns a unique array of community IDs the player belongs to.
@@ -30,3 +31,23 @@ export function calculateAge(birthDate: Date | string | number | undefined | nul
   }
   return age;
 }
+
+/**
+ * Computes exact realistic overall rating using all active attributes and physical/consensus modifiers.
+ * Guarantees 100% parity between sorting and PlayerCard display.
+ */
+export function getPlayerOverall(player: Partial<PlayerProfile>): number {
+  if (!player) return 40;
+  const activeAttributes = (player.approvedAttributes || player.attributes || {}) as import('@/types').PlayerAttributes;
+  return calculateRealisticOverall(
+    activeAttributes,
+    player.primaryPosition || 'CMF',
+    player.playStyle || '',
+    player.height,
+    player.weight,
+    player.calculatedAge || calculateAge(player.dateOfBirth),
+    player.peerRatingAvg,
+    player.peerRatingCount
+  );
+}
+

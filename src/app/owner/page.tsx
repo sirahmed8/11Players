@@ -264,23 +264,23 @@ export default function OwnerPage() {
                 <form onSubmit={handleCreateCommunity} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الاسم" : "Name"}</label>
-                    <div className="relative group">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Elite League..." />
+                    <div className="relative w-full">
+                      <Users className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Elite League..." />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
-                    <div className="relative group">
-                      <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                      <input required value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="The best community for..." />
+                    <div className="relative w-full">
+                      <FileText className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input required value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="The best community for..." />
                     </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "معرف المسؤول (UID)" : "Admin UID (User ID)"}</label>
-                    <div className="relative group">
-                      <UserCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="e.g. 8xJ9..." />
+                    <div className="relative w-full">
+                      <UserCheck className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="e.g. 8xJ9..." />
                     </div>
                   </div>
                   <div className="p-4 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700">
@@ -304,9 +304,9 @@ export default function OwnerPage() {
                     <div className="overflow-hidden">
                       <div className="pt-1 pb-1">
                         <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                        <div className="relative group">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                          <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-800 transition-all outline-none" placeholder="Secret..." />
+                        <div className="relative w-full">
+                          <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                          <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
                         </div>
                       </div>
                     </div>

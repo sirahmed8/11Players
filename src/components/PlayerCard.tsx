@@ -121,6 +121,16 @@ const PlayerCard = React.memo(function PlayerCard({ player }: PlayerCardProps) {
             </div>
           )}
 
+          {/* Match Star Rating Badge */}
+          {player.matchStarRatingAvg && player.matchStarRatingAvg > 0 && (
+            <div className="mt-0.5 flex items-center gap-1 bg-amber-500/20 rounded-full px-2 py-0.5">
+              <span className="text-amber-300 text-[10px]">{'★'.repeat(Math.round(player.matchStarRatingAvg))}</span>
+              <span className="text-[10px] font-bold text-amber-300">
+                {player.matchStarRatingAvg.toFixed(1)}
+              </span>
+            </div>
+          )}
+
           {/* Card Name + Form */}
           <div className="mt-1 flex items-center justify-center gap-1 w-full">
             <h3 className="text-base font-bold text-white tracking-wide truncate">

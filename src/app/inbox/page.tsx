@@ -288,14 +288,14 @@ export default function InboxPage() {
                   </span>
                 </div>
 
-                <div className="relative flex items-center group">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 pointer-events-none transition-all duration-500 group-focus-within:text-emerald-500 group-focus-within:scale-110" />
+                <div className="relative w-full">
+                  <Search className="w-5 h-5 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={e => setSearchQuery(e.target.value)}
                     placeholder={isAr ? "ابحث بالاسم أو المحادثة..." : "Search chats or names..."}
-                    className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 text-xs font-bold rounded-2xl bg-slate-100 dark:bg-slate-800/80 border-2 border-transparent transition-all duration-500 focus:bg-white dark:focus:bg-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/20 focus:shadow-[0_0_20px_rgba(16,185,129,0.15)] text-slate-900 dark:text-white outline-none shadow-sm focus:shadow-lg"
+                    className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-xs font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                   />
                 </div>
               </div>

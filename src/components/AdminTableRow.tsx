@@ -9,6 +9,7 @@ interface AdminTableRowProps {
   player: PlayerProfile;
   locale: string;
   loadingUid: string | null;
+  isOwner?: boolean;
   onToggleWarning: (player: PlayerProfile) => void;
   onToggleVerify: (player: PlayerProfile) => void;
   onOpenEditModal: (player: PlayerProfile) => void;
@@ -17,6 +18,7 @@ interface AdminTableRowProps {
   onGeneratePDF: (player: PlayerProfile) => void;
   onOpenResetModal: (player: PlayerProfile) => void;
   onOpenDeleteModal: (player: PlayerProfile) => void;
+  onOpenManageCommunitiesModal?: (player: PlayerProfile) => void;
 }
 
 const t = (locale: string, en: string, ar: string) => (locale === "ar" ? ar : en);
@@ -25,6 +27,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
   player,
   locale,
   loadingUid,
+  isOwner,
   onToggleWarning,
   onToggleVerify,
   onOpenEditModal,
@@ -33,6 +36,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
   onGeneratePDF,
   onOpenResetModal,
   onOpenDeleteModal,
+  onOpenManageCommunitiesModal,
 }: AdminTableRowProps) {
   const photo = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || "";
 
@@ -154,6 +158,19 @@ const AdminTableRow = React.memo(function AdminTableRow({
       {/* Actions */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-2">
+          {/* Manage Communities (Owner/Admin) */}
+          {onOpenManageCommunitiesModal && (
+            <button
+              onClick={() => onOpenManageCommunitiesModal(player)}
+              className="rounded-lg bg-blue-50 dark:bg-blue-600/20 p-2 text-blue-600 dark:text-blue-400 transition-colors hover:bg-blue-100 dark:hover:bg-blue-600/40 hover:text-blue-700 dark:hover:text-blue-300"
+              title={t(locale, "Manage Communities", "إدارة المجتمعات")}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+              </svg>
+            </button>
+          )}
+
           {/* Edit Profile */}
           <button
             onClick={() => onOpenEditModal(player)}

@@ -17,6 +17,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import TurfMatchDisplay from "@/components/TurfMatchDisplay";
 
 export default function MatchPage() {
   const router = useRouter();
@@ -397,6 +398,12 @@ export default function MatchPage() {
               className="space-y-10"
               dir={isAr ? 'rtl' : 'ltr'}
             >
+              {/* Turf / Casual Match Display */}
+              {displayMatch.matchMode === 'turf' && displayMatch.turfResult && (
+                <TurfMatchDisplay turfResult={displayMatch.turfResult} isAr={isAr} />
+              )}
+              {displayMatch.matchMode !== 'turf' && (
+              <React.Fragment>
               {/* Scoreboard Banner if match has recorded stats */}
               {displayMatch.recordedStats && (
                 <div className="bg-slate-900 dark:bg-slate-950 rounded-3xl p-6 lg:p-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden border border-slate-700">
@@ -623,10 +630,14 @@ export default function MatchPage() {
                   </button>
                 </div>
               )}
+              </React.Fragment>
+              )}
             </motion.div>
           )}
             </>
           )}
+
+
 
         </main>
       </div>

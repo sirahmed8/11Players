@@ -15,8 +15,10 @@ import type { PlayerProfile } from '@/types';
 import { PESPosition } from '@/types';
 import toast from 'react-hot-toast';
 import { useCommunity } from '@/contexts/CommunityContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
+import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -47,7 +49,14 @@ interface AttrModal {
   open: boolean;
   player: PlayerProfile | null;
   attributes: PlayerProfile['attributes'];
+  primaryPosition?: PESPosition;
+  secondaryPosition?: PESPosition | '';
+  tertiaryPosition?: PESPosition | '';
+  playStyle?: string;
 }
+
+const POSITIONS: PESPosition[] = ['CF', 'SS', 'LWF', 'RWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
+const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner', 'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank', 'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up', 'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
 
 const t = (locale: string, en: string, ar: string) => (locale === 'ar' ? ar : en);
 
@@ -77,6 +86,11 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
 export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const { locale } = useLocale();
   const { activeCommunityId } = useCommunity();
+  const { isOwner } = useAuth();
+  const [manageCommModal, setManageCommModal] = useState<{ open: boolean; player: PlayerProfile | null }>({
+    open: false,
+    player: null,
+  });
   const [sortKey, setSortKey] = useState<SortKey>('fullName');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -282,6 +296,10 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       open: true,
       player,
       attributes: { ...player.attributes },
+      primaryPosition: player.primaryPosition || 'CMF',
+      secondaryPosition: player.secondaryPosition || '',
+      tertiaryPosition: player.tertiaryPosition || '',
+      playStyle: player.playStyle || '',
     });
   };
 
@@ -295,7 +313,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         speed: 40, acceleration: 40, kickingPower: 40, jump: 40,
         physicalContact: 40, balance: 40, stamina: 40,
         defensiveAwareness: 40, ballWinning: 40, aggression: 40,
-      gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
+        gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
       },
     });
   };
@@ -304,24 +322,29 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!attrModal.player || !activeCommunityId) return;
     setLoadingUid('attr-' + attrModal.player.uid);
     try {
-      const newOverall = calculateRealisticOverall(attrModal.attributes, attrModal.player.primaryPosition || 'CMF', attrModal.player.playStyle || '', attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge);
+      const pos = attrModal.primaryPosition || attrModal.player.primaryPosition || 'CMF';
+      const secPos = attrModal.secondaryPosition !== undefined ? attrModal.secondaryPosition : (attrModal.player.secondaryPosition || '');
+      const tertPos = attrModal.tertiaryPosition !== undefined ? attrModal.tertiaryPosition : (attrModal.player.tertiaryPosition || '');
+      const style = attrModal.playStyle !== undefined ? attrModal.playStyle : (attrModal.player.playStyle || '');
+      const newOverall = calculateRealisticOverall(attrModal.attributes, pos, style, attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge);
       const batch = writeBatch(db);
       const commIds = getAllPlayerCommunities(attrModal.player, activeCommunityId);
-      for (const commId of commIds) {
-        const commRef = doc(db, 'communities', commId as string, 'players', attrModal.player.uid);
-        batch.set(commRef, {
-          attributes: attrModal.attributes,
-          approvedAttributes: attrModal.attributes,
-          overallRating: newOverall,
-        }, { merge: true });
-      }
-
-      const globalRef = doc(db, 'players', attrModal.player.uid);
-      batch.set(globalRef, {
+      const updatePayload = {
         attributes: attrModal.attributes,
         approvedAttributes: attrModal.attributes,
         overallRating: newOverall,
-      }, { merge: true });
+        primaryPosition: pos,
+        secondaryPosition: secPos,
+        tertiaryPosition: tertPos,
+        playStyle: style,
+      };
+      for (const commId of commIds) {
+        const commRef = doc(db, 'communities', commId as string, 'players', attrModal.player.uid);
+        batch.set(commRef, updatePayload, { merge: true });
+      }
+
+      const globalRef = doc(db, 'players', attrModal.player.uid);
+      batch.set(globalRef, updatePayload, { merge: true });
 
       await batch.commit();
       onRefresh();
@@ -553,6 +576,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   onGeneratePDF={(p) => generateProfilePDF(p, locale === 'ar' ? 'ar' : 'en')}
                   onOpenResetModal={(p) => setPlayerToReset(p)}
                   onOpenDeleteModal={(p) => setPlayerToDelete(p)}
+                  isOwner={isOwner}
+                  onOpenManageCommunitiesModal={isOwner ? (p) => setManageCommModal({ open: true, player: p }) : undefined}
                 />
               ))}
             </AnimatePresence>
@@ -708,9 +733,58 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
               <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                {t(locale, 'Edit Attributes', 'تعديل الطاقات')}
+                {t(locale, 'Edit Attributes & Positions', 'تعديل الطاقات والمراكز')}
               </h2>
               <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{attrModal.player.fullName}</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    {t(locale, 'Primary Position', 'المركز الأساسي')}
+                  </label>
+                  <select
+                    value={attrModal.primaryPosition || attrModal.player.primaryPosition || 'CMF'}
+                    onChange={(e) => setAttrModal(prev => ({ ...prev, primaryPosition: e.target.value as PESPosition }))}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                  >
+                    {POSITIONS.map(pos => (
+                      <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    {t(locale, 'Secondary Position', 'المركز الثانوي')}
+                  </label>
+                  <select
+                    value={attrModal.secondaryPosition !== undefined ? attrModal.secondaryPosition : (attrModal.player.secondaryPosition || '')}
+                    onChange={(e) => setAttrModal(prev => ({ ...prev, secondaryPosition: e.target.value as any }))}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                  >
+                    <option value="">{t(locale, 'None', 'بدون')}</option>
+                    {POSITIONS.map(pos => (
+                      <option key={pos} value={pos}>{pos}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    {t(locale, 'Play Style', 'أسلوب اللعب')}
+                  </label>
+                  <select
+                    value={attrModal.playStyle !== undefined ? attrModal.playStyle : (attrModal.player.playStyle || '')}
+                    onChange={(e) => setAttrModal(prev => ({ ...prev, playStyle: e.target.value }))}
+                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+                  >
+                    <option value="">{t(locale, 'None', 'بدون')}</option>
+                    {PLAY_STYLES.map(style => (
+                      <option key={style} value={style}>{style}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
               <div className="w-full flex justify-center py-2 overflow-x-hidden">
                 <div className="w-full max-w-full">
@@ -718,8 +792,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     attributes={attrModal.attributes}
                     onChange={(attr) => setAttrModal(prev => ({ ...prev, attributes: attr }))}
                     locale={(locale as 'en' | 'ar') ?? 'ar'}
-                    primaryPosition={attrModal.player?.primaryPosition}
-                    playStyle={attrModal.player?.playStyle}
+                    primaryPosition={attrModal.primaryPosition || attrModal.player?.primaryPosition}
+                    playStyle={attrModal.playStyle !== undefined ? attrModal.playStyle : attrModal.player?.playStyle}
                   />
                 </div>
               </div>
@@ -934,6 +1008,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           </div>
         )}
       </AnimatePresence>
+      <ManageUserCommunitiesModal
+        user={manageCommModal.player}
+        isOpen={manageCommModal.open}
+        onClose={() => setManageCommModal({ open: false, player: null })}
+        onRefresh={onRefresh}
+      />
     </>
   );
 }

@@ -9,10 +9,11 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import ConfirmModal from "@/components/ConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LogOut, Users, Activity } from "lucide-react";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/CommunityPulseFeed";
-import { calculateRealisticOverall } from "@/lib/overallCalculator";
+import { getPlayerOverall } from "@/lib/playerUtils";
+import OvrExplanationModal from "@/components/OvrExplanationModal";
 import { deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
@@ -30,14 +31,14 @@ export default function CommunityPage() {
   const [sortBy, setSortBy] = useState<"overall" | "goals" | "assists" | "mvp">("overall");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [isOvrInfoOpen, setIsOvrInfoOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"directory" | "pulse">("directory");
 
   const filteredPlayers = React.useMemo(() => {
-    const getOvr = (p: any) => calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || "");
     const query = searchQuery.toLowerCase().trim();
     if (!query) return [...players].sort((a, b) => {
       if (sortBy === "overall") {
-        return getOvr(b) - getOvr(a);
+        return getPlayerOverall(b) - getPlayerOverall(a);
       }
       return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
@@ -49,7 +50,7 @@ export default function CommunityPage() {
       );
     }).sort((a, b) => {
       if (sortBy === "overall") {
-        return getOvr(b) - getOvr(a);
+        return getPlayerOverall(b) - getPlayerOverall(a);
       }
       return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
@@ -89,14 +90,14 @@ export default function CommunityPage() {
             </div>
             
             <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-              <div className="relative flex-1 md:w-72 flex items-center bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl transition-all duration-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/25 focus-within:shadow-lg focus-within:shadow-emerald-500/10 transform focus-within:-translate-y-0.5 group shadow-sm">
-                <Search className="absolute left-3.5 rtl:left-auto rtl:right-3.5 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 group-focus-within:scale-110 transition-all duration-300 pointer-events-none" />
+              <div className="relative flex-1 md:w-72">
+                <Search className="w-5 h-5 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search by name or position..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent border-0 rounded-2xl pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 text-sm font-bold focus:outline-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500"
+                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                 />
               </div>
 
@@ -138,7 +139,16 @@ export default function CommunityPage() {
             </div>
 
             {activeTab === "directory" && (
-              <div className="flex justify-end w-full sm:w-auto">
+              <div className="flex items-center gap-2 justify-end w-full sm:w-auto">
+                <button
+                  onClick={() => setIsOvrInfoOpen(true)}
+                  className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3 py-2 rounded-xl shadow-sm text-xs font-bold transition-all shrink-0"
+                  title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
+                >
+                  <HelpCircle className="w-4 h-4" />
+                  <span className="hidden sm:inline">{isAr ? "كيف يحسب الـ OVR؟" : "OVR Formula"}</span>
+                </button>
+
                 <div className="relative">
                   <button 
                     onClick={() => setIsSortOpen(!isSortOpen)}
@@ -210,6 +220,11 @@ export default function CommunityPage() {
           onConfirm={handleLeaveCommunity}
           title={isAr ? "مغادرة المجتمع" : "Leave Community"}
           message={isAr ? "هل أنت متأكد من رغبتك في مغادرة هذا المجتمع؟ سيتم إزالتك من قائمة لاعبي هذا المجتمع." : "Are you sure you want to leave this community? You will be removed from this community roster."}
+        />
+
+        <OvrExplanationModal
+          isOpen={isOvrInfoOpen}
+          onClose={() => setIsOvrInfoOpen(false)}
         />
       </div>
     </ProtectedRoute>

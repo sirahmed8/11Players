@@ -17,8 +17,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Target, Handshake, Trophy, Swords } from "lucide-react";
+import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import OvrExplanationModal from "@/components/OvrExplanationModal";
+import SuggestPeerRatingModal from "@/components/SuggestPeerRatingModal";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -105,6 +107,8 @@ function PlayerProfileContent() {
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isOvrInfoOpen, setIsOvrInfoOpen] = useState(false);
+  const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
 
   useEffect(() => {
     if (!effectiveUid) {
@@ -254,7 +258,15 @@ function PlayerProfileContent() {
       label: isAr ? "المباريات" : "Matches",
       value: player.stats?.matchesPlayed || 0,
     },
+    ...(player.matchStarRatingAvg
+      ? [{
+          icon: <span className="text-amber-400 text-lg">⭐</span>,
+          label: isAr ? "تقييم الأداء" : "Match Perf.",
+          value: `${player.matchStarRatingAvg.toFixed(1)}/5${player.matchStarRatingCount ? ` (${player.matchStarRatingCount})` : ''}`,
+        }]
+      : []),
   ];
+
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
@@ -269,12 +281,20 @@ function PlayerProfileContent() {
         >
           {/* Full Name & Form */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-3xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
-                  {player.fullName}
-                </h2>
-              </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <h2 className="text-3xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
+                {player.fullName}
+              </h2>
+              <button
+                onClick={() => setIsOvrInfoOpen(true)}
+                className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3 py-1.5 rounded-xl shadow-sm text-xs font-bold transition-all"
+                title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span>{isAr ? "كيف يحسب التقييم؟" : "OVR Formula"}</span>
+              </button>
             </div>
+          </div>
 
             <div className="flex flex-col lg:flex-row gap-8 w-full justify-center lg:justify-between items-center lg:items-start bg-white dark:bg-slate-800/30 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none">
               {/* Left Column: Card & Form */}
@@ -340,12 +360,16 @@ function PlayerProfileContent() {
               >
                 <div className="text-3xl mb-2 flex justify-center">{stat.icon}</div>
                 <div className="text-3xl font-black text-slate-800 dark:text-white">
-                  <AnimatedCounter value={stat.value} />
+                  {typeof stat.value === 'number'
+                    ? <AnimatedCounter value={stat.value} />
+                    : <span>{stat.value}</span>
+                  }
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
                   {stat.label}
                 </div>
               </motion.div>
+
             ))}
           </div>
         </motion.section>
@@ -433,32 +457,43 @@ function PlayerProfileContent() {
           </motion.section>
         )}
 
-        {/* Export PDF & Edit Profile */}
-        {(canExport || user?.uid === effectiveUid) && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex flex-wrap justify-center gap-4"
-          >
-            {user?.uid === effectiveUid && (
-              <button
-                onClick={() => setIsEditModalOpen(true)}
-                className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm dark:shadow-none rounded-2xl text-slate-800 dark:text-white font-black text-lg transition-all active:scale-95"
-              >
-                ✏️ {isAr ? "تعديل الملف الشخصي" : "Edit Profile"}
-              </button>
-            )}
-            {canExport && (
-              <button
-                onClick={() => generateProfilePDF(player, isAr ? 'ar' : 'en')}
-                className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95"
-              >
-                📄 {isAr ? "تصدير ملف PDF" : "Export PDF"}
-              </button>
-            )}
-          </motion.div>
-        )}
+        {/* Export PDF, Edit Profile, Suggest Rating */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="flex flex-wrap justify-center gap-4"
+        >
+          {user?.uid === effectiveUid && (
+            <button
+              onClick={() => setIsEditModalOpen(true)}
+              className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm dark:shadow-none rounded-2xl text-slate-800 dark:text-white font-black text-lg transition-all active:scale-95 flex items-center gap-2"
+            >
+              <span>✏️</span>
+              <span>{isAr ? "تعديل الملف الشخصي" : "Edit Profile"}</span>
+            </button>
+          )}
+
+          {user?.uid && user.uid !== effectiveUid && (
+            <button
+              onClick={() => setIsSuggestModalOpen(true)}
+              className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-800/40 active:scale-95 flex items-center gap-2.5"
+            >
+              <Sparkles className="w-5 h-5" />
+              <span>{isAr ? "اقترح تعديل طاقات وتصنيف اللاعب" : "Suggest Rating & Abilities"}</span>
+            </button>
+          )}
+
+          {canExport && (
+            <button
+              onClick={() => generateProfilePDF(player, isAr ? 'ar' : 'en')}
+              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95 flex items-center gap-2"
+            >
+              <span>📄</span>
+              <span>{isAr ? "تصدير ملف PDF" : "Export PDF"}</span>
+            </button>
+          )}
+        </motion.div>
       </main>
 
       <EditProfileModal
@@ -466,6 +501,17 @@ function PlayerProfileContent() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onRefresh={() => {}} // Data updates automatically via onSnapshot
+      />
+
+      <SuggestPeerRatingModal
+        player={player}
+        isOpen={isSuggestModalOpen}
+        onClose={() => setIsSuggestModalOpen(false)}
+      />
+
+      <OvrExplanationModal
+        isOpen={isOvrInfoOpen}
+        onClose={() => setIsOvrInfoOpen(false)}
       />
     </div>
   );

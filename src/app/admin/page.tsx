@@ -10,6 +10,7 @@ import AdminTable from "@/components/AdminTable";
 import { AnimatePresence, motion } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
 import { balanceTeams } from "@/lib/matchmaker";
+import { generateTurfMatch } from "@/lib/turfMatchmaker";
 import { generateDummyPlayersForCommunity } from "@/lib/dummyData";
 import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
@@ -102,21 +103,45 @@ export default function AdminPage() {
       // Small delay to show loading state
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      const result = balanceTeams(availablePlayers);
-
       const matchId = `match_${Date.now()}`;
-      const matchData = {
-        id: matchId,
-        success: true,
-        teamA: result.teamA,
-        teamB: result.teamB,
-        bench: [...(result.benchA || []), ...(result.benchB || [])],
-        metrics: result.metrics,
-        formation: result.formation,
-        tipsAndTactics: result.tipsAndTactics,
-        config, // Save the match config!
-        generatedAt: new Date().toISOString(),
-      };
+      let matchData: object;
+
+      if (config.matchMode === 'turf') {
+        // ── Turf / Casual Mode ──
+        const turfConfig = {
+          numTeams: config.numTeams || 2,
+          playersPerTeam: config.playersPerTeam || 6,
+          gkMode: config.gkMode || 'rotating',
+          gkRotationInterval: config.gkRotationInterval || 'per_match',
+          matchType: (config.matchType as 'league' | 'knockout') || 'league',
+          matchDurationMins: config.matchDurationMins || 20,
+        };
+        const turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        matchData = {
+          id: matchId,
+          success: true,
+          matchMode: 'turf',
+          turfResult,
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      } else {
+        // ── Standard 11v11 Mode ──
+        const result = balanceTeams(availablePlayers);
+        matchData = {
+          id: matchId,
+          success: true,
+          matchMode: 'standard',
+          teamA: result.teamA,
+          teamB: result.teamB,
+          bench: [...(result.benchA || []), ...(result.benchB || [])],
+          metrics: result.metrics,
+          formation: result.formation,
+          tipsAndTactics: result.tipsAndTactics,
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      }
 
       // Save to Firestore
       try {

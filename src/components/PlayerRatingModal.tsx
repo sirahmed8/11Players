@@ -88,12 +88,41 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
   
   // Store detailed ability ratings per player: { [playerId]: { offensiveAwareness: 75, ... } }
   const [abilityRatings, setAbilityRatings] = useState<Record<string, Partial<PlayerAttributes>>>({});
+  // Store 1-5 star ratings per player: { [playerId]: 1-5 }
+  const [starRatings, setStarRatings] = useState<Record<string, number>>({});
   const [expandedPlayerId, setExpandedPlayerId] = useState<string | null>(null);
   const [activeTabByPlayer, setActiveTabByPlayer] = useState<Record<string, string>>({});
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+  // ── Inline star rating picker ──
+  const StarPicker = ({ playerId, value, onChange }: { playerId: string; value: number; onChange: (s: number) => void }) => {
+    const [hovered, setHovered] = React.useState(0);
+    return (
+      <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+        {[1, 2, 3, 4, 5].map(star => (
+          <button
+            key={star}
+            type="button"
+            onMouseEnter={() => setHovered(star)}
+            onMouseLeave={() => setHovered(0)}
+            onClick={() => onChange(star)}
+            className="text-2xl transition-transform hover:scale-125 focus:outline-none"
+          >
+            <span className={(hovered || value) >= star ? 'text-amber-400' : 'text-slate-300 dark:text-slate-600'}>
+              ★
+            </span>
+          </button>
+        ))}
+        {value > 0 && (
+          <span className="text-xs font-black text-amber-500 ml-1">{value}/5</span>
+        )}
+      </div>
+    );
+  };
+
 
   useEffect(() => {
     if (!isOpen || !user || !activeCommunityId || !matchId) return;
@@ -128,6 +157,10 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
               };
             }
             setAbilityRatings(converted);
+          }
+          // Load star ratings
+          if (data.starRatings) {
+            setStarRatings(data.starRatings);
           }
         }
       } catch (err) {
@@ -171,8 +204,55 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
         ratedBy: user.uid,
         raterName: raterDisplayName,
         abilityRatings,
+        starRatings,
         timestamp: serverTimestamp()
       });
+
+      // 1b. Save individual star ratings to playerMatchRatings and aggregate rolling average
+      for (const [targetPlayerId, stars] of Object.entries(starRatings)) {
+        if (!stars || stars < 1) continue;
+        try {
+          // Save individual star rating
+          const starRef = doc(db, 'communities', activeCommunityId, 'playerMatchRatings', `${matchId}_${user.uid}_${targetPlayerId}`);
+          await setDoc(starRef, {
+            matchId,
+            raterUid: user.uid,
+            raterName: raterDisplayName,
+            ratedUid: targetPlayerId,
+            stars,
+            timestamp: serverTimestamp()
+          });
+
+          // Aggregate rolling average star rating for this player
+          const allStarsQuery = query(
+            collection(db, 'communities', activeCommunityId, 'playerMatchRatings'),
+            where('ratedUid', '==', targetPlayerId)
+          );
+          const allStarsSnap = await getDocs(allStarsQuery);
+          const allStarValues = allStarsSnap.docs.map(d => d.data().stars as number).filter(s => s >= 1 && s <= 5);
+          if (allStarValues.length > 0) {
+            const avgStars = allStarValues.reduce((a, b) => a + b, 0) / allStarValues.length;
+            const roundedAvg = Math.round(avgStars * 10) / 10;
+            const targetPlayer = players.find(p => p.uid === targetPlayerId);
+            if (targetPlayer) {
+              // Update global player doc
+              const playerRef = doc(db, 'players', targetPlayerId);
+              await setDoc(playerRef, {
+                matchStarRatingAvg: roundedAvg,
+                matchStarRatingCount: allStarValues.length
+              }, { merge: true });
+              // Update community player doc too
+              const commPlayerRef = doc(db, `communities/${activeCommunityId}/players`, targetPlayerId);
+              await setDoc(commPlayerRef, {
+                matchStarRatingAvg: roundedAvg,
+                matchStarRatingCount: allStarValues.length
+              }, { merge: true });
+            }
+          }
+        } catch (starErr) {
+          console.warn('Could not save star rating:', starErr);
+        }
+      }
 
       // 2. Save individual peer rating records & aggregate Peer Rating Proposals in editRequests
       for (const [targetPlayerId, attrs] of Object.entries(abilityRatings)) {
@@ -264,6 +344,7 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
 
   const editablePlayers = players.filter(p => p.uid !== user?.uid);
   const ratedCount = Object.keys(abilityRatings).filter(pid => getPlayerOverallAverage(pid) > 0).length;
+  const starRatedCount = Object.keys(starRatings).filter(pid => starRatings[pid] > 0).length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
@@ -348,10 +429,21 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
                             {p.primaryPosition || 'CMF'}
                           </span>
                         </div>
+                        {/* Star Rating Row */}
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold shrink-0">
+                            {isAr ? 'أداء في المباراة:' : 'Match Perf:'}
+                          </span>
+                          <StarPicker
+                            playerId={p.uid}
+                            value={starRatings[p.uid] || 0}
+                            onChange={(s) => setStarRatings(prev => ({ ...prev, [p.uid]: s }))}
+                          />
+                        </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                           {isExpanded
                             ? (isAr ? 'حرك المؤشر لتقييم كل مهارة وقدرة (40 - 99)' : 'Drag sliders to rate specific abilities (40 - 99)')
-                            : (isAr ? 'انقر لفتح وتقييم القدرات التفصيلية من الوعي الهجومي حتى حراسة المرمى' : 'Click to rate detailed abilities from Offensive Awareness to GK Reach')}
+                            : (isAr ? 'انقر لفتح وتقييم القدرات التفصيلية من الوعي الهجومي حتى حراسة المرمى' : 'Click to expand and rate detailed abilities')}
                         </p>
                       </div>
 
@@ -440,8 +532,11 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
         {/* Footer */}
         {!submitted && !isLoading && (
           <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between gap-4">
-            <div className="text-xs text-slate-500 dark:text-slate-400">
-              {isAr ? `تم تقييم ${ratedCount} من أصل ${editablePlayers.length} لاعبين` : `Rated ${ratedCount} of ${editablePlayers.length} teammates`}
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5">
+              <div>{isAr ? `تم تقييم ${ratedCount} لاعبين بالطاقات` : `${ratedCount} players rated (abilities)`}</div>
+              {starRatedCount > 0 && (
+                <div className="text-amber-500 font-bold">{isAr ? `${starRatedCount} لاعبين تم تقييمهم بنجوم الأداء ⭐` : `${starRatedCount} players rated with ⭐ stars`}</div>
+              )}
             </div>
             <button
               onClick={handleSubmit}

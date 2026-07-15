@@ -48,6 +48,9 @@ const ATTRIBUTE_LABELS: Record<keyof PlayerAttributes, { en: string; ar: string 
   gkReach: { en: 'GK Reach', ar: 'مدى الوصول والارتماء' }
 };
 
+const POSITIONS: PESPosition[] = ['CF', 'SS', 'LWF', 'RWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
+const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner', 'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank', 'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up', 'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
+
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
@@ -130,6 +133,9 @@ export default function PendingEdits() {
       fullName: edit.profileData?.fullName || edit.playerName || fetchedCurrent.fullName || "",
       cardName: edit.profileData?.cardName || edit.cardName || fetchedCurrent.cardName || "",
       primaryPosition: edit.profileData?.primaryPosition || fetchedCurrent.primaryPosition || "CMF",
+      secondaryPosition: edit.profileData?.secondaryPosition || fetchedCurrent.secondaryPosition || "",
+      tertiaryPosition: edit.profileData?.tertiaryPosition || fetchedCurrent.tertiaryPosition || "",
+      playStyle: edit.profileData?.playStyle || fetchedCurrent.playStyle || "",
       height: edit.profileData?.height || fetchedCurrent.height || 175,
       weight: edit.profileData?.weight || fetchedCurrent.weight || 70,
       profileData: { ...(fetchedCurrent || {}), ...(edit.profileData || {}) },
@@ -146,15 +152,15 @@ export default function PendingEdits() {
 
   // Dynamically calculate predicted overall based on current review sliders (`see what it will be`)
   const predictedOverall = useMemo(() => {
-    if (!reviewFormData.attributes || !reviewFormData.primaryPosition) {
+    if (!reviewFormData.attributes) {
       return currentPlayerData?.overallRating || 70;
     }
     return calculateRealisticOverall(
       reviewFormData.attributes,
       reviewFormData.primaryPosition as PESPosition,
-      reviewFormData.profileData?.playStyle || currentPlayerData?.playStyle || ""
+      reviewFormData.playStyle || reviewFormData.profileData?.playStyle || currentPlayerData?.playStyle || ""
     );
-  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.profileData?.playStyle, currentPlayerData]);
+  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.playStyle, reviewFormData.profileData?.playStyle, currentPlayerData]);
 
   const applyApproval = async (edit: any, modifiedData?: any) => {
     const collectionPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
@@ -170,10 +176,12 @@ export default function PendingEdits() {
       const targetStats = modifiedData?.stats || edit.stats;
 
       const pos = modifiedData?.primaryPosition || targetProfileData.primaryPosition || playerData.primaryPosition || "CMF";
-      const style = targetProfileData.playStyle || playerData.playStyle || "";
+      const secPos = modifiedData?.secondaryPosition !== undefined ? modifiedData.secondaryPosition : (targetProfileData.secondaryPosition || playerData.secondaryPosition || "");
+      const tertPos = modifiedData?.tertiaryPosition !== undefined ? modifiedData.tertiaryPosition : (targetProfileData.tertiaryPosition || playerData.tertiaryPosition || "");
+      const style = modifiedData?.playStyle !== undefined ? modifiedData.playStyle : (targetProfileData.playStyle || playerData.playStyle || "");
 
-      const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos };
-      const updateDataComm: any = { ...targetProfileData, primaryPosition: pos };
+      const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
+      const updateDataComm: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
 
       if (targetAttributes) {
         const mergedAttr = { ...(playerData.attributes || {}), ...targetAttributes };
@@ -184,7 +192,7 @@ export default function PendingEdits() {
         updateDataComm.attributes = mergedAttr;
         updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
-      } else if (Object.keys(targetProfileData).length > 0) {
+      } else if (Object.keys(targetProfileData).length > 0 || modifiedData?.playStyle !== undefined || modifiedData?.primaryPosition !== undefined) {
         const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style);
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.overallRating = newOverall;
@@ -555,8 +563,73 @@ export default function PendingEdits() {
                         })}
                         className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
                       >
-                        {['CF', 'SS', 'LWF', 'RWF', 'AMF', 'LMF', 'RMF', 'CMF', 'DMF', 'LB', 'RB', 'CB', 'GK'].map(pos => (
+                        {POSITIONS.map(pos => (
                           <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                          {isAr ? "المركز الثانوي (Secondary)" : "Secondary Position"}
+                        </label>
+                        <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.secondaryPosition || (isAr ? 'لا يوجد' : 'None')}</span></div>
+                        <select
+                          value={reviewFormData.secondaryPosition || ""}
+                          onChange={e => setReviewFormData({
+                            ...reviewFormData,
+                            secondaryPosition: e.target.value,
+                            profileData: { ...reviewFormData.profileData, secondaryPosition: e.target.value }
+                          })}
+                          className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                        >
+                          <option value="">{isAr ? "بدون (None)" : "None"}</option>
+                          {POSITIONS.map(pos => (
+                            <option key={pos} value={pos}>{pos}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                          {isAr ? "المركز الثالث (Tertiary)" : "Tertiary Position"}
+                        </label>
+                        <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.tertiaryPosition || (isAr ? 'لا يوجد' : 'None')}</span></div>
+                        <select
+                          value={reviewFormData.tertiaryPosition || ""}
+                          onChange={e => setReviewFormData({
+                            ...reviewFormData,
+                            tertiaryPosition: e.target.value,
+                            profileData: { ...reviewFormData.profileData, tertiaryPosition: e.target.value }
+                          })}
+                          className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                        >
+                          <option value="">{isAr ? "بدون (None)" : "None"}</option>
+                          {POSITIONS.map(pos => (
+                            <option key={pos} value={pos}>{pos}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        {isAr ? "أسلوب اللعب (Play Style)" : "Play Style"}
+                      </label>
+                      <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.playStyle || (isAr ? 'لا يوجد' : 'None')}</span></div>
+                      <select
+                        value={reviewFormData.playStyle || ""}
+                        onChange={e => setReviewFormData({
+                          ...reviewFormData,
+                          playStyle: e.target.value,
+                          profileData: { ...reviewFormData.profileData, playStyle: e.target.value }
+                        })}
+                        className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                      >
+                        <option value="">{isAr ? "بدون (None)" : "None"}</option>
+                        {PLAY_STYLES.map(style => (
+                          <option key={style} value={style}>{style}</option>
                         ))}
                       </select>
                     </div>

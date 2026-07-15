@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/components/ThemeProvider';
+import { Users, RotateCw, Trophy, Timer, Shuffle } from 'lucide-react';
 
 export interface MatchConfig {
   date: string;
@@ -8,6 +9,14 @@ export interface MatchConfig {
   location: string;
   cost: string;
   notes: string;
+  // Turf / Casual mode fields
+  matchMode?: 'standard' | 'turf';
+  numTeams?: number;              // 2, 3, 4+
+  playersPerTeam?: number;        // 4 to 10
+  gkMode?: 'fixed' | 'rotating'; // GK rotation style
+  gkRotationInterval?: 'per_match' | 'per_goal';
+  matchType?: 'league' | 'knockout';
+  matchDurationMins?: number;     // Duration per match
 }
 
 interface MatchConfigModalProps {
@@ -20,12 +29,21 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
   const { locale } = useLocale();
   const isAr = locale === 'ar';
 
+  const [activeTab, setActiveTab] = useState<'standard' | 'turf'>('standard');
+
   const [config, setConfig] = useState<MatchConfig>({
     date: '',
     time: '',
     location: '',
     cost: '',
-    notes: ''
+    notes: '',
+    matchMode: 'standard',
+    numTeams: 2,
+    playersPerTeam: 6,
+    gkMode: 'rotating',
+    gkRotationInterval: 'per_match',
+    matchType: 'league',
+    matchDurationMins: 20,
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -111,14 +129,42 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-visible border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-visible border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col"
             dir={isAr ? 'rtl' : 'ltr'}
           >
             <div className="p-6 overflow-y-auto overflow-x-visible">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-2.5">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
                 <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xl">⚙️</span>
                 <span>{isAr ? 'إعدادات المباراة' : 'Match Configuration'}</span>
               </h2>
+
+              {/* Mode Tabs */}
+              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('standard'); setConfig(prev => ({ ...prev, matchMode: 'standard' })); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all ${
+                    activeTab === 'standard'
+                      ? 'bg-emerald-600 text-white shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>⚽</span>
+                  <span>{isAr ? 'مباراة قانونية (11 × 11)' : 'Standard (11v11)'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('turf'); setConfig(prev => ({ ...prev, matchMode: 'turf' })); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all ${
+                    activeTab === 'turf'
+                      ? 'bg-amber-500 text-white shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Shuffle className="w-4 h-4" />
+                  <span>{isAr ? 'حجز كورة عادي (خماسي / سداسي)' : 'Turf / Casual Match'}</span>
+                </button>
+              </div>
 
               <div className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -314,7 +360,179 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                 </div>
               </div>
 
-              <div className="mt-8 flex gap-3">
+              {/* ────────── Turf Settings ────────── */}
+              {activeTab === 'turf' && (
+                <div className="space-y-5 mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl">
+                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-black text-sm">
+                    <Shuffle className="w-4 h-4" />
+                    <span>{isAr ? 'إعدادات حجز الكورة العادي / الخماسي' : 'Turf / Casual Matchmaking Settings'}</span>
+                  </div>
+
+                  {/* Num Teams */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{isAr ? 'عدد الفرق' : 'Number of Teams'}</span>
+                      </label>
+                      <div className="flex gap-1.5">
+                        {[2, 3, 4].map(n => (
+                          <button
+                            key={n}
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, numTeams: n }))}
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                              config.numTeams === n
+                                ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                            }`}
+                          >
+                            {n}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Players per Team */}
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                        {isAr ? 'لاعبين/فريق' : 'Players / Team'}
+                      </label>
+                      <select
+                        value={config.playersPerTeam}
+                        onChange={e => setConfig(prev => ({ ...prev, playersPerTeam: Number(e.target.value) }))}
+                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
+                      >
+                        {[4, 5, 6, 7, 8, 9, 10].map(n => (
+                          <option key={n} value={n}>{n} {isAr ? 'لاعبين' : 'players'}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* GK Mode */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                      <span className="flex items-center gap-1"><RotateCw className="w-3.5 h-3.5" />{isAr ? 'نظام حارس المرمى' : 'GK System'}</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, gkMode: 'fixed' }))}
+                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                          config.gkMode === 'fixed'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                        }`}
+                      >
+                        🥅 {isAr ? 'حارس ثابت' : 'Fixed GK'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, gkMode: 'rotating' }))}
+                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                          config.gkMode === 'rotating'
+                            ? 'bg-amber-500 text-white border-amber-500'
+                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                        }`}
+                      >
+                        🔄 {isAr ? 'حارس دوار' : 'Rotating GK'}
+                      </button>
+                    </div>
+                    {config.gkMode === 'rotating' && (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_match' }))}
+                          className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                            config.gkRotationInterval === 'per_match'
+                              ? 'bg-amber-400 text-white border-amber-400'
+                              : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {isAr ? 'يتبدل كل مباراة' : 'Rotate per match'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_goal' }))}
+                          className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                            config.gkRotationInterval === 'per_goal'
+                              ? 'bg-amber-400 text-white border-amber-400'
+                              : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {isAr ? 'يتبدل كل هدف' : 'Rotate per goal'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Match Format + Duration */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                        <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5" />{isAr ? 'نوع البطولة' : 'Tournament'}</span>
+                      </label>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'league' }))}
+                          className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                            config.matchType === 'league'
+                              ? 'bg-amber-500 text-white border-amber-500'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {isAr ? 'دوري' : 'League'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'knockout' }))}
+                          className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                            config.matchType === 'knockout'
+                              ? 'bg-amber-500 text-white border-amber-500'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {isAr ? 'كأس' : 'Knockout'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                        <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5" />{isAr ? 'مدة المباراة (دقيقة)' : 'Match Duration (min)'}</span>
+                      </label>
+                      <div className="flex gap-1.5">
+                        {[10, 15, 20, 25, 30].map(m => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, matchDurationMins: m }))}
+                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                              config.matchDurationMins === m
+                                ? 'bg-amber-500 text-white border-amber-500'
+                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {m}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
+                    {isAr
+                      ? `سيتم توزيع اللاعبين على ${config.numTeams} فرق بنظام الدور (Serpentine Draft) بحيث تكون قوة الفرق متكافئة — ${config.playersPerTeam} لاعب لكل فريق — ${config.gkMode === 'rotating' ? `مع دوران الحراسة ${config.gkRotationInterval === 'per_goal' ? 'بعد كل هدف' : 'كل مباراة'}` : 'مع حارس ثابت'} — ${config.matchType === 'league' ? 'دوري ذهاب وإياب' : 'كأس إقصاء'} — ${config.matchDurationMins} دقيقة.`
+                      : `Players will be split into ${config.numTeams} balanced teams via Serpentine Draft — ${config.playersPerTeam} players each — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : 'per match'}` : 'fixed GK'} — ${config.matchType} format — ${config.matchDurationMins} min.`
+                    }
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+
                 <button
                   type="button"
                   onClick={onClose}
