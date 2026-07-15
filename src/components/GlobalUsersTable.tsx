@@ -38,12 +38,19 @@ export default function GlobalUsersTable() {
         getDocs(collection(db, "players")),
         getDocs(collection(db, "communities"))
       ]);
-      setUsers(usersSnap.docs.map(d => ({ ...d.data() } as PlayerProfile)));
 
       const commMap: Record<string, string> = {};
       const uCommMap: Record<string, string[]> = {};
+      const allUsersMap: Record<string, PlayerProfile> = {};
 
-      for (const cDoc of commsSnap.docs) {
+      // Process global players first ensuring explicit uid field
+      usersSnap.docs.forEach(d => {
+        const data = d.data();
+        allUsersMap[d.id] = { uid: d.id, ...data } as PlayerProfile;
+      });
+
+      // Fetch all community player rosters in parallel
+      const communityRosterPromises = commsSnap.docs.map(async (cDoc) => {
         const cData = cDoc.data();
         commMap[cDoc.id] = cData.name || cDoc.id;
         if (cData.adminUid) {
@@ -56,11 +63,22 @@ export default function GlobalUsersTable() {
           const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
           pSnap.docs.forEach(pDoc => {
             uCommMap[pDoc.id] = Array.from(new Set([...(uCommMap[pDoc.id] || []), cDoc.id]));
+            if (!allUsersMap[pDoc.id]) {
+              const pData = pDoc.data();
+              allUsersMap[pDoc.id] = { uid: pDoc.id, ...pData } as PlayerProfile;
+            }
           });
-        } catch (e) {}
-      }
+        } catch (e) {
+          // Ignore individual subcollection access errors
+        }
+      });
+
+      await Promise.all(communityRosterPromises);
+
+      const combinedUsersList = Object.values(allUsersMap);
       setCommunitiesMap(commMap);
       setUserCommMap(uCommMap);
+      setUsers(combinedUsersList);
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "فشل جلب المستخدمين" : "Failed to fetch users");

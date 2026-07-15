@@ -191,21 +191,33 @@ export default function CommunitiesPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm flex flex-col gap-4 animate-pulse">
-                {/* Name + badge row */}
-                <div className="flex justify-between items-start">
-                  <div className="h-6 w-32 bg-slate-200 dark:bg-slate-700 rounded-lg" />
-                  <div className="h-5 w-16 bg-emerald-200 dark:bg-emerald-900/40 rounded-full" />
+              <div
+                key={i}
+                className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl flex flex-col justify-between relative overflow-hidden min-h-[260px]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 dark:via-emerald-400/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                
+                <div>
+                  {/* Name + badge row */}
+                  <div className="flex justify-between items-start mb-4 gap-3">
+                    <div className="h-7 w-40 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                    <div className="h-6 w-16 bg-emerald-500/20 rounded-lg" />
+                  </div>
+                  
+                  {/* Player count pill */}
+                  <div className="h-6 w-24 bg-slate-100 dark:bg-slate-800 rounded-md mb-4" />
+                  
+                  {/* Description lines */}
+                  <div className="space-y-2.5 mb-6">
+                    <div className="h-4 w-full bg-slate-200 dark:bg-slate-800/80 rounded-lg" />
+                    <div className="h-4 w-3/4 bg-slate-200 dark:bg-slate-800/80 rounded-lg" />
+                  </div>
                 </div>
-                {/* Player count */}
-                <div className="h-5 w-24 bg-slate-200 dark:bg-slate-700 rounded-md" />
-                {/* Description lines */}
-                <div className="space-y-2">
-                  <div className="h-4 w-full bg-slate-200 dark:bg-slate-700 rounded-md" />
-                  <div className="h-4 w-4/5 bg-slate-200 dark:bg-slate-700 rounded-md" />
+
+                {/* Button */}
+                <div className="h-12 w-full bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border border-emerald-500/30 rounded-xl mt-auto flex items-center justify-center">
+                  <div className="h-4 w-28 bg-emerald-500/30 rounded-md" />
                 </div>
-                {/* Action button placeholder */}
-                <div className="mt-auto h-11 w-full bg-emerald-200 dark:bg-emerald-900/30 rounded-xl" />
               </div>
             ))}
           </div>

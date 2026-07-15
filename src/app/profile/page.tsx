@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
@@ -92,14 +92,15 @@ export default function PlayerProfilePage() {
 function PlayerProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const uid = searchParams.get("uid");
+  const rawUid = searchParams.get("uid");
+  const uid = (rawUid && rawUid !== "undefined" && rawUid !== "null") ? rawUid : null;
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
-  // const { players } = usePlayers(); // Not used - we load from global doc via onSnapshot
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const effectiveUid = uid || user?.uid;
-  const isViewingOwnProfile = user?.uid === effectiveUid;
+  // If uid query parameter was passed, use it. Otherwise default to logged in user.
+  const effectiveUid = rawUid ? uid : user?.uid;
+  const isViewingOwnProfile = Boolean(user?.uid && effectiveUid && user.uid === effectiveUid);
 
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -122,27 +123,43 @@ function PlayerProfileContent() {
           const d = snap.data();
           setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
           setLoading(false);
-        } else if (user?.email && user?.uid === effectiveUid) {
-          try {
-            const q = query(collection(db, "players"), where("email", "==", user.email));
-            const querySnap = await getDocs(q);
-            if (!querySnap.empty) {
-              const existingData = querySnap.docs[0].data();
-              await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
-              setPlayer({ uid: effectiveUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
-              setLoading(false);
-              return;
-            }
-          } catch (e) {
-            console.error("Profile sync by email error:", e);
-          }
-          setPlayer(null);
-          setLoading(false);
-          router.push("/onboarding");
         } else {
+          // Check if player exists in active community before giving up
+          const activeCommId = typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null;
+          if (activeCommId) {
+            try {
+              const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
+              if (commSnap.exists()) {
+                const cd = commSnap.data();
+                setPlayer({ uid: commSnap.id, ...cd, attributes: cd.attributes || {}, stats: cd.stats || {} } as PlayerProfile);
+                setLoading(false);
+                return;
+              }
+            } catch (e) {
+              console.error("Fallback community profile lookup failed:", e);
+            }
+          }
+
+          if (user?.email && isViewingOwnProfile) {
+            try {
+              const q = query(collection(db, "players"), where("email", "==", user.email));
+              const querySnap = await getDocs(q);
+              if (!querySnap.empty) {
+                const existingData = querySnap.docs[0].data();
+                await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
+                setPlayer({ uid: effectiveUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
+                setLoading(false);
+                return;
+              }
+            } catch (e) {
+              console.error("Profile sync by email error:", e);
+            }
+          }
+
           setPlayer(null);
           setLoading(false);
-          if (user?.uid === effectiveUid) {
+          // Only redirect to onboarding if the user navigated to their OWN profile directly without param
+          if (isViewingOwnProfile && !rawUid) {
             router.push("/onboarding");
           }
         }

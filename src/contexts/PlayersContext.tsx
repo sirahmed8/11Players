@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
@@ -16,7 +16,12 @@ const PlayersContext = createContext<PlayersContextProps | undefined>(undefined)
 export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [players, setPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(loading);
   const { activeCommunityId, loadingCommunity } = useCommunity();
+
+  useEffect(() => {
+    loadingRef.current = loading;
+  }, [loading]);
 
   useEffect(() => {
     if (loadingCommunity) return;
@@ -35,19 +40,35 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ child
       orderBy("calculatedAge", "asc")
     );
     
+    let fallbackTimer: NodeJS.Timeout | null = null;
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const liveRoster: PlayerProfile[] = [];
       snapshot.forEach((doc) => {
         liveRoster.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
       });
       setPlayers(liveRoster);
-      setLoading(false);
+
+      // If coming from local cache and we have very few items on initial load,
+      // wait momentarily for the live server snapshot before clearing loading skeleton.
+      if (snapshot.metadata.fromCache && snapshot.size <= 3 && loadingRef.current) {
+        if (!fallbackTimer) {
+          fallbackTimer = setTimeout(() => setLoading(false), 900);
+        }
+      } else {
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        setLoading(false);
+      }
     }, (error) => {
       console.error("Real-time roster sync failed:", error);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+    };
   }, [activeCommunityId, loadingCommunity]);
 
   return (
