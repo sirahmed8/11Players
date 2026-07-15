@@ -16,7 +16,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import PendingEdits from "@/components/PendingEdits";
 import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
-import { doc, setDoc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, Sparkles, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
@@ -83,6 +83,32 @@ export default function AdminPage() {
 
   const handleGenerateDummyPlayers = () => {
     setShowDummyConfirm(true);
+  };
+
+  const handleResetCaptainVotes = async () => {
+    if (!activeCommunityId) return;
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "إعادة تعيين أصوات الكابتن" : "Reset Captain Votes",
+      message: isAr ? "هل أنت متأكد من رغبتك في إعادة تعيين جميع أصوات الكابتن في هذا المجتمع؟" : "Are you sure you want to reset all captain votes in this community?",
+      onConfirm: async () => {
+        try {
+          let count = 0;
+          for (const p of players) {
+            if (p.captainVotes && p.captainVotes.length > 0) {
+              await updateDoc(doc(db, "players", p.uid), {
+                captainVotes: []
+              });
+              count++;
+            }
+          }
+          toast.success(isAr ? `تمت إعادة تعيين أصوات الكابتن لـ ${count} لاعبين بنجاح.` : `Successfully reset captain votes for ${count} players.`);
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "حدث خطأ أثناء إعادة تعيين الأصوات" : "Error resetting captain votes");
+        }
+      }
+    });
   };
 
   const handleMatchmaking = async (config: MatchConfig) => {
@@ -388,6 +414,16 @@ export default function AdminPage() {
                           </span>
                         </button>
                       )}
+                      
+                      <button
+                        onClick={handleResetCaptainVotes}
+                        className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <UserX className="w-4 h-4 text-red-500" />
+                        <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
+                      </button>
+
+                      <PendingEdits />
                     </div>
                   </div>
                 </div>
@@ -400,7 +436,6 @@ export default function AdminPage() {
               )}
 
               <PendingRequests />
-              <PendingEdits />
 
               {loading ? (
                 <SiteSkeletonLoader variant="cards" />

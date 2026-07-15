@@ -58,7 +58,6 @@ export default function PendingEdits() {
   const isAr = locale === "ar";
   const [edits, setEdits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [reviewingEdit, setReviewingEdit] = useState<any | null>(null);
   const [currentPlayerData, setCurrentPlayerData] = useState<any | null>(null);
@@ -257,28 +256,6 @@ export default function PendingEdits() {
     });
   };
 
-  const handleApproveAll = () => {
-    if (edits.length === 0) return;
-    setConfirmModal({
-      isOpen: true,
-      title: isAr ? "الموافقة على الكل" : "Approve All",
-      message: isAr ? `هل أنت متأكد من الموافقة على جميع الاقتراحات (${edits.length}) دفعة واحدة؟` : `Are you sure you want to approve all ${edits.length} suggestions at once?`,
-      onConfirm: async () => {
-        try {
-          // Process sequentially to avoid overlapping batches and issues
-          for (const edit of edits) {
-            await applyApproval(edit);
-          }
-          setIsModalOpen(false);
-          toast.success(isAr ? "تم اعتماد جميع التعديلات بنجاح!" : "All edits approved successfully!");
-        } catch (err) {
-          console.error(err);
-          toast.error(isAr ? "حدث خطأ أثناء الموافقة على البعض." : "Error occurred while approving some edits.");
-        }
-      }
-    });
-  };
-
   const handleReject = (edit: any) => {
     const collPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
     setConfirmModal({
@@ -311,138 +288,84 @@ export default function PendingEdits() {
     });
   };
 
-  if (loading) return null;
+  if (loading) return <SiteSkeletonLoader variant="list" />;
+  if (edits.length === 0) return null;
 
   return (
-    <div>
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="w-full relative py-3 px-4 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-300 font-black rounded-xl transition-all flex items-center justify-center gap-2 text-xs border border-amber-200/60 dark:border-amber-500/20"
-      >
-        <AlertCircle className="w-4 h-4" />
-        <span>{isAr ? "مراجعة الاقتراحات والتقييمات" : "Review Suggestions & Edits"}</span>
-        {edits.length > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center shadow-sm">
-            {edits.length}
-          </span>
-        )}
-      </button>
-
-      <AnimatePresence>
-        {isModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-            dir={isAr ? 'rtl' : 'ltr'}
-          >
+    <div className="mb-8 p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-3xl shadow-md transition-all">
+      <h3 className="text-xl font-black mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+        <span className="text-amber-500 text-2xl">⚠️</span> {isAr ? "طلبات ومقترحات تقييم القدرات وتعديل الملفات" : "Pending Profile Edits & Peer Rating Proposals"} ({edits.length})
+      </h3>
+      <div className="space-y-4">
+        <AnimatePresence>
+          {edits.map(edit => (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
+              key={edit.id}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:border-amber-400/60 transition-all"
+              dir={isAr ? 'rtl' : 'ltr'}
             >
-              <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900 shrink-0">
-                <h3 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-white">
-                  <span className="text-amber-500 text-2xl">⚠️</span> {isAr ? "طلبات ومقترحات التقييم" : "Pending Profile Edits"} ({edits.length})
-                </h3>
-                <div className="flex items-center gap-3">
-                  {edits.length > 0 && (
-                    <button
-                      onClick={handleApproveAll}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
-                    >
-                      <Check className="w-4 h-4" />
-                      {isAr ? "الموافقة على الكل" : "Approve All"}
-                    </button>
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-lg text-slate-900 dark:text-white">
+                    {edit.playerName || edit.profileData?.fullName || "Player"}
+                  </span>
+                  {edit.profileData?.cardName && (
+                    <span className="text-xs bg-amber-500/20 text-amber-500 font-black px-2 py-0.5 rounded-lg">
+                      {edit.profileData.cardName}
+                    </span>
                   )}
-                  <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors">
-                    <X className="w-5 h-5" />
-                  </button>
+                  {edit.source === 'peer_ratings' ? (
+                    <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1 border border-purple-300 dark:border-purple-700">
+                      <Users className="w-3.5 h-3.5" />
+                      {isAr ? `متوسط تقييم الزملاء (${edit.raterCount || 1} مقيّم)` : `Peer Rating Avg (${edit.raterCount || 1} raters)`}
+                    </span>
+                  ) : (
+                    <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1">
+                      {isAr ? "طلب تعديل شخصي" : "Self Profile Edit"}
+                    </span>
+                  )}
+                </div>
+
+                <div className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2 items-center">
+                  <span>{isAr ? "تاريخ التقديم:" : "Requested:"} {new Date(edit.requestedAt).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</span>
+                  {edit.source === 'peer_ratings' && edit.raterNames && edit.raterNames.length > 0 && (
+                    <span className="text-amber-600 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                      🔒 {isAr ? "المقيّمون (للمسؤول فقط):" : "Raters (Admin View Only):"} {edit.raterNames.join(", ")}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto flex-1 space-y-4">
-                {edits.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium">
-                    {isAr ? "لا توجد اقتراحات حالياً." : "No pending suggestions right now."}
-                  </div>
-                ) : (
-                  <AnimatePresence>
-                    {edits.map(edit => (
-                      <motion.div
-                        key={edit.id}
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:border-amber-400/60 transition-all"
-                        dir={isAr ? 'rtl' : 'ltr'}
-                      >
-                        <div className="space-y-1.5 flex-1">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-black text-lg text-slate-900 dark:text-white">
-                              {edit.playerName || edit.profileData?.fullName || "Player"}
-                            </span>
-                            {edit.profileData?.cardName && (
-                              <span className="text-xs bg-amber-500/20 text-amber-500 font-black px-2 py-0.5 rounded-lg">
-                                {edit.profileData.cardName}
-                              </span>
-                            )}
-                            {edit.source === 'peer_ratings' ? (
-                              <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1 border border-purple-300 dark:border-purple-700">
-                                <Users className="w-3.5 h-3.5" />
-                                {isAr ? `متوسط تقييم الزملاء (${edit.raterCount || 1} مقيّم)` : `Peer Rating Avg (${edit.raterCount || 1} raters)`}
-                              </span>
-                            ) : (
-                              <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1">
-                                {isAr ? "طلب تعديل شخصي" : "Self Profile Edit"}
-                              </span>
-                            )}
-                          </div>
-
-                          <div className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2 items-center">
-                            <span>{isAr ? "تاريخ التقديم:" : "Requested:"} {new Date(edit.requestedAt).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</span>
-                            {edit.source === 'peer_ratings' && edit.raterNames && edit.raterNames.length > 0 && (
-                              <span className="text-amber-600 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
-                                🔒 {isAr ? "المقيّمون (للمسؤول فقط):" : "Raters (Admin View Only):"} {edit.raterNames.join(", ")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end">
-                          <button
-                            onClick={() => handleOpenReview(edit)}
-                            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all shadow-md flex items-center gap-2 text-sm"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                            {isAr ? "مراجعة وتعديل ومقارنة" : "Review, Diff & Edit"}
-                          </button>
-                          <button
-                            onClick={() => handleApprove(edit)}
-                            className="px-4 py-2.5 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 transition-all shadow-md flex items-center gap-2 text-sm"
-                          >
-                            <Check className="w-4 h-4" />
-                            {isAr ? "اعتماد مباشر" : "Quick Approve"}
-                          </button>
-                          <button
-                            onClick={() => handleReject(edit)}
-                            className="px-3.5 py-2.5 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/60 transition-all flex items-center gap-1.5 text-sm"
-                          >
-                            <X className="w-4 h-4" />
-                            {isAr ? "رفض" : "Reject"}
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
+              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end">
+                <button
+                  onClick={() => handleOpenReview(edit)}
+                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all shadow-md flex items-center gap-2 text-sm"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  {isAr ? "مراجعة وتعديل ومقارنة" : "Review, Diff & Edit"}
+                </button>
+                <button
+                  onClick={() => handleApprove(edit)}
+                  className="px-4 py-2.5 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 transition-all shadow-md flex items-center gap-2 text-sm"
+                >
+                  <Check className="w-4 h-4" />
+                  {isAr ? "اعتماد مباشر" : "Quick Approve"}
+                </button>
+                <button
+                  onClick={() => handleReject(edit)}
+                  className="px-3.5 py-2.5 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/60 transition-all flex items-center gap-1.5 text-sm"
+                >
+                  <X className="w-4 h-4" />
+                  {isAr ? "رفض" : "Reject"}
+                </button>
               </div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ))}
+        </AnimatePresence>
+      </div>
 
       {/* Complete Before vs. After Diff Inspector & Interactive Slider Dashboard */}
       <AnimatePresence>

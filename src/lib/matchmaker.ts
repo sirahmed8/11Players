@@ -663,7 +663,21 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
 
   const teamSize = Math.floor(players.length / 2);
 
-  // Group players by category: GK, DEF, MID, ATK
+  const teamA: PlayerProfile[] = [];
+  const teamB: PlayerProfile[] = [];
+
+  // Identify top 2 captains
+  const captains = [...players]
+    .filter(p => (p.captainVotes?.length || 0) > 0)
+    .sort((a, b) => (b.captainVotes?.length || 0) - (a.captainVotes?.length || 0))
+    .slice(0, 2);
+
+  const captainIds = new Set(captains.map(c => c.uid));
+  
+  if (captains.length > 0) teamA.push(captains[0]);
+  if (captains.length > 1) teamB.push(captains[1]);
+
+  // Group remaining players by category: GK, DEF, MID, ATK
   const categories: Record<PositionCategory, PlayerProfile[]> = {
     GK: [],
     DEF: [],
@@ -672,12 +686,10 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
   };
 
   players.forEach(p => {
+    if (captainIds.has(p.uid)) return;
     const cat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
     categories[cat].push(p);
   });
-
-  const teamA: PlayerProfile[] = [];
-  const teamB: PlayerProfile[] = [];
 
   // Serpentine draft inside each position category
   const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
@@ -719,6 +731,14 @@ function iterativeSwapBalance(
   const a = [...teamA];
   const b = [...teamB];
 
+  // Identify top captains again so we don't swap them
+  const allPlayers = [...teamA, ...teamB];
+  const captains = allPlayers
+    .filter(p => (p.captainVotes?.length || 0) > 0)
+    .sort((p1, p2) => (p2.captainVotes?.length || 0) - (p1.captainVotes?.length || 0))
+    .slice(0, 2);
+  const captainIds = new Set(captains.map(c => c.uid));
+
   let currentVariance = calculateTotalVariance(
     calculateTeamMetrics(a),
     calculateTeamMetrics(b),
@@ -731,7 +751,9 @@ function iterativeSwapBalance(
     let bestNewVariance = currentVariance.total;
 
     for (let i = 0; i < a.length; i++) {
+      if (captainIds.has(a[i].uid)) continue;
       for (let j = 0; j < b.length; j++) {
+        if (captainIds.has(b[j].uid)) continue;
         if (!arePositionCompatible(a[i], b[j])) continue;
 
         const temp = a[i];

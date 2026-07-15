@@ -56,6 +56,33 @@ export default function CommunityPage() {
     });
   }, [players, searchQuery, sortBy]);
 
+  const handleVoteCaptain = async (playerId: string) => {
+    if (!user) return;
+    try {
+      const targetPlayer = players.find(p => p.uid === playerId);
+      if (!targetPlayer) return;
+      
+      const currentVotes = targetPlayer.captainVotes || [];
+      const hasVoted = currentVotes.includes(user.uid);
+      
+      let newVotes;
+      if (hasVoted) {
+        newVotes = currentVotes.filter(uid => uid !== user.uid);
+      } else {
+        newVotes = [...currentVotes, user.uid];
+      }
+
+      await updateDoc(doc(db, "players", playerId), {
+        captainVotes: newVotes
+      });
+      
+      toast.success(hasVoted ? (isAr ? "تم إلغاء التصويت" : "Vote removed") : (isAr ? "تم التصويت كابتن!" : "Voted for captain!"));
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "حدث خطأ أثناء التصويت" : "Error casting vote");
+    }
+  };
+
   const handleLeaveCommunity = async () => {
     if (!user || !activeCommunityId) return;
     try {
@@ -206,7 +233,11 @@ export default function CommunityPage() {
                     transition={{ delay: Math.min(index * 0.05, 0.5) }}
                     layout
                   >
-                    <PlayerCardCompact player={player} />
+                    <PlayerCardCompact 
+                      player={player} 
+                      onVoteCaptain={handleVoteCaptain}
+                      currentUserId={user?.uid}
+                    />
                   </motion.div>
                 ))}
               </AnimatePresence>

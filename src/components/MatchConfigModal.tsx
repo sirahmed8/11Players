@@ -15,7 +15,7 @@ export interface MatchConfig {
   playersPerTeam?: number;        // 4 to 10
   gkMode?: 'fixed' | 'rotating'; // GK rotation style
   gkRotationInterval?: 'per_match' | 'per_goal';
-  matchType?: 'league' | 'knockout';
+  matchType?: 'league' | 'knockout' | 'winner_stays';
   matchDurationMins?: number;     // Duration per match
 }
 
@@ -472,28 +472,42 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                       <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                         <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5" />{isAr ? 'نوع البطولة' : 'Tournament'}</span>
                       </label>
-                      <div className="flex gap-1.5">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, matchType: 'league' }))}
+                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                              config.matchType === 'league'
+                                ? 'bg-amber-500 text-white border-amber-500'
+                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? 'دوري' : 'League'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, matchType: 'knockout' }))}
+                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                              config.matchType === 'knockout'
+                                ? 'bg-amber-500 text-white border-amber-500'
+                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? 'كأس' : 'Knockout'}
+                          </button>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'league' }))}
-                          className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
-                            config.matchType === 'league'
-                              ? 'bg-amber-500 text-white border-amber-500'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'winner_stays' }))}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                            config.matchType === 'winner_stays'
+                              ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-500 text-amber-700 dark:text-amber-400'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
                           }`}
                         >
-                          {isAr ? 'دوري' : 'League'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'knockout' }))}
-                          className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
-                            config.matchType === 'knockout'
-                              ? 'bg-amber-500 text-white border-amber-500'
-                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                          }`}
-                        >
-                          {isAr ? 'كأس' : 'Knockout'}
+                          <RotateCw className="w-4 h-4" />
+                          <span>{isAr ? "الكسبان مستمر" : "Winner Stays On"}</span>
                         </button>
                       </div>
                     </div>
@@ -524,8 +538,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                   {/* Summary */}
                   <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
                     {isAr
-                      ? `سيتم توزيع اللاعبين على ${config.numTeams} فرق بنظام الدور (Serpentine Draft) بحيث تكون قوة الفرق متكافئة — ${config.playersPerTeam} لاعب لكل فريق — ${config.gkMode === 'rotating' ? `مع دوران الحراسة ${config.gkRotationInterval === 'per_goal' ? 'بعد كل هدف' : 'كل مباراة'}` : 'مع حارس ثابت'} — ${config.matchType === 'league' ? 'دوري ذهاب وإياب' : 'كأس إقصاء'} — ${config.matchDurationMins} دقيقة.`
-                      : `Players will be split into ${config.numTeams} balanced teams via Serpentine Draft — ${config.playersPerTeam} players each — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : 'per match'}` : 'fixed GK'} — ${config.matchType} format — ${config.matchDurationMins} min.`
+                      ? `سيتم توزيع اللاعبين على ${config.numTeams} فرق بنظام الدور (Serpentine Draft) بحيث تكون قوة الفرق متكافئة — ${config.playersPerTeam} لاعب لكل فريق — ${config.gkMode === 'rotating' ? `مع دوران الحراسة ${config.gkRotationInterval === 'per_goal' ? 'بعد كل هدف' : 'كل مباراة'}` : 'مع حارس ثابت'} — ${config.matchType === 'league' ? 'دوري ذهاب وإياب' : config.matchType === 'knockout' ? 'كأس إقصاء' : 'الكسبان مستمر'} — ${config.matchDurationMins} دقيقة.`
+                      : `Players will be split into ${config.numTeams} balanced teams via Serpentine Draft — ${config.playersPerTeam} players each — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} format — ${config.matchDurationMins} min.`
                     }
                   </div>
                 </div>

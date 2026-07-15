@@ -34,7 +34,7 @@ export interface TurfMatchmakingResult {
   teams: TurfTeam[];
   gkRotationSchedule: { teamId: string; playerName: string; matchNumber: number }[];
   fixtures: TurfFixture[];
-  matchType: 'league' | 'knockout';
+  matchType: 'league' | 'knockout' | 'winner_stays';
   numTeams: number;
   playersPerTeam: number;
   gkMode: 'fixed' | 'rotating';
@@ -203,10 +203,16 @@ export function generateTurfMatch(
   });
 
   // Build GK rotation schedule (across all matches)
-  const fixtures = matchType === 'league'
-    ? generateLeagueFixtures(teams)
-    : generateKnockoutFixtures(teams);
-
+  let fixtures: TurfFixture[] = [];
+  if (matchType === 'league') {
+    fixtures = generateLeagueFixtures(teams);
+  } else if (matchType === 'knockout') {
+    fixtures = generateKnockoutFixtures(teams);
+  } else if (matchType === 'winner_stays') {
+    // We don't generate fixed fixtures for winner_stays, it's dynamic
+    fixtures = [];
+  }
+  
   const gkRotationSchedule: TurfMatchmakingResult['gkRotationSchedule'] = [];
   if (gkMode === 'rotating') {
     teams.forEach(team => {

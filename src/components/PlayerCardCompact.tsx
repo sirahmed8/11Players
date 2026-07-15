@@ -11,9 +11,11 @@ import FormIcon from './FormIcon';
 interface PlayerCardCompactProps {
   player: PlayerProfile;
   recordedStats?: Record<string, any>;
+  onVoteCaptain?: (uid: string) => void;
+  currentUserId?: string;
 }
 
-const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
+const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats, onVoteCaptain, currentUserId }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = calculateRealisticOverall(
     activeAttributes,
@@ -116,6 +118,22 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
               <span className="text-[9px] text-amber-400">⭐</span>
               <span className="text-[10px] font-bold text-amber-300">{player.peerRatingAvg.toFixed(1)}</span>
             </div>
+          )}
+          {onVoteCaptain && currentUserId && (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onVoteCaptain(player.uid);
+              }}
+              className={`mt-1.5 p-1.5 rounded-full transition-all ${
+                player.captainVotes?.includes(currentUserId)
+                  ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                  : 'bg-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:bg-slate-800 dark:hover:bg-amber-500/10'
+              }`}
+              title="Vote for Captain"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={player.captainVotes?.includes(currentUserId) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+            </button>
           )}
         </div>
       </motion.div>

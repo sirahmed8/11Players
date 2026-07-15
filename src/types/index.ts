@@ -145,4 +145,5 @@ export interface PlayerProfile {
   communityStats?: Record<string, CommunityStats>;
   defaultPage?: string;
   isExcludedFromMatchmaking?: boolean;
+  captainVotes?: string[]; // Array of UIDs who voted for this player as captain
 }
