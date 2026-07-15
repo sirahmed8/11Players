@@ -9,8 +9,9 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import ConfirmModal from "@/components/ConfirmModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LogOut } from "lucide-react";
+import { Search, ChevronDown, LogOut, Users, Activity } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import CommunityPulseFeed from "@/components/CommunityPulseFeed";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -29,6 +30,7 @@ export default function CommunityPage() {
   const [sortBy, setSortBy] = useState<"overall" | "goals" | "assists" | "mvp">("overall");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"directory" | "pulse">("directory");
 
   const filteredPlayers = React.useMemo(() => {
     const getOvr = (p: any) => calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || "");
@@ -87,8 +89,8 @@ export default function CommunityPage() {
             </div>
             
             <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-              <div className="relative flex-1 md:w-64 flex items-center bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl transition-all duration-300 focus-within:border-emerald-500 shadow-sm">
-                <Search className="absolute left-3.5 rtl:left-auto rtl:right-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+              <div className="relative flex-1 md:w-72 flex items-center bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-2xl transition-all duration-300 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/25 focus-within:shadow-lg focus-within:shadow-emerald-500/10 transform focus-within:-translate-y-0.5 group shadow-sm">
+                <Search className="absolute left-3.5 rtl:left-auto rtl:right-3.5 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 group-focus-within:scale-110 transition-all duration-300 pointer-events-none" />
                 <input
                   type="text"
                   placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search by name or position..."}
@@ -108,44 +110,76 @@ export default function CommunityPage() {
             </div>
           </div>
           
-          <div className="flex justify-end mb-6">
-            <div className="relative">
-              <button 
-                onClick={() => setIsSortOpen(!isSortOpen)}
-                className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-white dark:bg-slate-900/80 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <button
+                onClick={() => setActiveTab("directory")}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all ${
+                  activeTab === "directory"
+                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
               >
-                <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "overall" ? "Overall" : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
-                </span>
-                <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
-                  <ChevronDown className="w-4 h-4 text-slate-500" />
-                </motion.div>
+                <Users className="w-4 h-4" />
+                <span>{isAr ? "قائمة اللاعبين" : "Player Directory"}</span>
               </button>
-              <AnimatePresence>
-                {isSortOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute z-10 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden right-0"
-                  >
-                    {(["overall", "goals", "assists", "mvp"] as const).map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => { setSortBy(s); setIsSortOpen(false); }}
-                        className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
-                      >
-                        {s === "overall" ? "Overall" : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
-                      </button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
+              <button
+                onClick={() => setActiveTab("pulse")}
+                className={`flex-1 sm:flex-initial flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all ${
+                  activeTab === "pulse"
+                    ? "bg-emerald-500 text-slate-950 shadow-md"
+                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                }`}
+              >
+                <Activity className="w-4 h-4" />
+                <span>{isAr ? "نبض المجتمع والنشاطات" : "Community Pulse"}</span>
+              </button>
             </div>
+
+            {activeTab === "directory" && (
+              <div className="flex justify-end w-full sm:w-auto">
+                <div className="relative">
+                  <button 
+                    onClick={() => setIsSortOpen(!isSortOpen)}
+                    className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
+                  >
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
+                      {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "overall" ? "Overall" : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                    </span>
+                    <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
+                      <ChevronDown className="w-4 h-4 text-slate-500" />
+                    </motion.div>
+                  </button>
+                  <AnimatePresence>
+                    {isSortOpen && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: -10 }} 
+                        animate={{ opacity: 1, y: 0 }} 
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute z-10 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden right-0"
+                      >
+                        {(["overall", "goals", "assists", "mvp"] as const).map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => { setSortBy(s); setIsSortOpen(false); }}
+                            className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-xs ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
+                          >
+                            {s === "overall" ? "Overall" : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Directory Grid */}
-          {loading ? (
+          {/* Directory Grid or Pulse Feed */}
+          {activeTab === "pulse" ? (
+            <CommunityPulseFeed />
+          ) : loading ? (
             <SiteSkeletonLoader variant="cards" />
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">

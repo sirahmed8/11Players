@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { collection, query, where, onSnapshot, doc, deleteDoc, getDoc, writeBatch, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
@@ -11,8 +11,42 @@ import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
 import { getAllPlayerCommunities } from "@/lib/playerUtils";
-import { Edit3, Check, X } from "lucide-react";
+import { Edit3, Check, X, Shield, Brain, CircleDot, Wand2, Footprints, Plane, Target, Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, Axe, Hand, Users, AlertCircle, ArrowRight } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import type { PlayerAttributes, PESPosition } from "@/types";
+
+const ATTRIBUTE_KEYS: (keyof PlayerAttributes)[] = [
+  'offensiveAwareness', 'ballControl', 'dribbling', 'lowPass', 'loftedPass',
+  'finishing', 'heading', 'speed', 'acceleration', 'kickingPower',
+  'jump', 'physicalContact', 'balance', 'stamina',
+  'defensiveAwareness', 'ballWinning', 'aggression',
+  'gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach'
+];
+
+const ATTRIBUTE_LABELS: Record<keyof PlayerAttributes, { en: string; ar: string }> = {
+  offensiveAwareness: { en: 'Offensive Awareness', ar: 'الوعي الهجومي' },
+  ballControl: { en: 'Ball Control', ar: 'التحكم بالكرة' },
+  dribbling: { en: 'Dribbling', ar: 'المراوغة' },
+  lowPass: { en: 'Low Pass', ar: 'التمرير القصير' },
+  loftedPass: { en: 'Lofted Pass', ar: 'التمرير الطويل' },
+  finishing: { en: 'Finishing', ar: 'الإنهاء والتسديد' },
+  heading: { en: 'Heading', ar: 'الرأسيات' },
+  speed: { en: 'Speed', ar: 'السرعة القصوى' },
+  acceleration: { en: 'Acceleration', ar: 'التسارع والانطلاق' },
+  kickingPower: { en: 'Kicking Power', ar: 'قوة التسديد' },
+  jump: { en: 'Jump', ar: 'القفز والارتقاء' },
+  physicalContact: { en: 'Physical Contact', ar: 'القوة والالتحام البدني' },
+  balance: { en: 'Balance', ar: 'التوازن الجسدي' },
+  stamina: { en: 'Stamina', ar: 'اللياقة البدنية' },
+  defensiveAwareness: { en: 'Defensive Awareness', ar: 'الوعي الدفاعي' },
+  ballWinning: { en: 'Ball Winning', ar: 'افتكاك الكرة' },
+  aggression: { en: 'Aggression', ar: 'الشراسة الدفاعية' },
+  gkAwareness: { en: 'GK Awareness', ar: 'تمركز حارس المرمى' },
+  gkCatching: { en: 'GK Catching', ar: 'الإمساك بالكرة' },
+  gkClearing: { en: 'GK Clearing', ar: 'تشتيت الكرة' },
+  gkReflexes: { en: 'GK Reflexes', ar: 'ردة الفعل للمرمى' },
+  gkReach: { en: 'GK Reach', ar: 'مدى الوصول والارتماء' }
+};
 
 export default function PendingEdits() {
   const { activeCommunityId } = useCommunity();
@@ -23,7 +57,9 @@ export default function PendingEdits() {
   const [loading, setLoading] = useState(true);
 
   const [reviewingEdit, setReviewingEdit] = useState<any | null>(null);
+  const [currentPlayerData, setCurrentPlayerData] = useState<any | null>(null);
   const [reviewFormData, setReviewFormData] = useState<any>({});
+  const [activeReviewTab, setActiveReviewTab] = useState<'profile' | 'attributes' | 'stats'>('attributes');
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -38,7 +74,10 @@ export default function PendingEdits() {
     let globalEdits: any[] = [];
     
     const merge = () => {
-      setEdits([...communityEdits, ...globalEdits]);
+      const merged = [...communityEdits, ...globalEdits];
+      // Remove duplicates by ID
+      const unique = merged.filter((item, index, self) => index === self.findIndex(t => t.id === item.id));
+      setEdits(unique);
       setLoading(false);
     };
 
@@ -65,6 +104,58 @@ export default function PendingEdits() {
     return () => unsubs.forEach(u => u());
   }, [activeCommunityId, isOwner]);
 
+  const handleOpenReview = async (edit: any) => {
+    setReviewingEdit(edit);
+    
+    // Fetch current player database profile to display exact Before vs. After diff
+    let fetchedCurrent: any = {};
+    try {
+      if (edit.playerId) {
+        const snap = await getDoc(doc(db, "players", edit.playerId));
+        if (snap.exists()) {
+          fetchedCurrent = snap.data();
+        }
+      }
+    } catch (err) {
+      console.warn("Could not fetch current player data for diff:", err);
+    }
+    setCurrentPlayerData(fetchedCurrent);
+
+    const initialAttributes = {
+      ...(fetchedCurrent.attributes || {}),
+      ...(edit.attributes || edit.profileData?.attributes || {})
+    };
+
+    setReviewFormData({
+      fullName: edit.profileData?.fullName || edit.playerName || fetchedCurrent.fullName || "",
+      cardName: edit.profileData?.cardName || edit.cardName || fetchedCurrent.cardName || "",
+      primaryPosition: edit.profileData?.primaryPosition || fetchedCurrent.primaryPosition || "CMF",
+      height: edit.profileData?.height || fetchedCurrent.height || 175,
+      weight: edit.profileData?.weight || fetchedCurrent.weight || 70,
+      profileData: { ...(fetchedCurrent || {}), ...(edit.profileData || {}) },
+      attributes: initialAttributes,
+      stats: edit.stats || edit.profileData?.stats || fetchedCurrent.stats || {}
+    });
+
+    if (edit.attributes || edit.source === 'peer_ratings') {
+      setActiveReviewTab('attributes');
+    } else {
+      setActiveReviewTab('profile');
+    }
+  };
+
+  // Dynamically calculate predicted overall based on current review sliders (`see what it will be`)
+  const predictedOverall = useMemo(() => {
+    if (!reviewFormData.attributes || !reviewFormData.primaryPosition) {
+      return currentPlayerData?.overallRating || 70;
+    }
+    return calculateRealisticOverall(
+      reviewFormData.attributes,
+      reviewFormData.primaryPosition as PESPosition,
+      reviewFormData.profileData?.playStyle || currentPlayerData?.playStyle || ""
+    );
+  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.profileData?.playStyle, currentPlayerData]);
+
   const applyApproval = async (edit: any, modifiedData?: any) => {
     const collectionPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
     const editCommunityId = activeCommunityId || null;
@@ -78,11 +169,11 @@ export default function PendingEdits() {
       const targetAttributes = modifiedData?.attributes || edit.attributes;
       const targetStats = modifiedData?.stats || edit.stats;
 
-      const pos = targetProfileData.primaryPosition || playerData.primaryPosition || "CMF";
+      const pos = modifiedData?.primaryPosition || targetProfileData.primaryPosition || playerData.primaryPosition || "CMF";
       const style = targetProfileData.playStyle || playerData.playStyle || "";
 
-      const updateDataGlobal: any = { ...targetProfileData };
-      const updateDataComm: any = { ...targetProfileData };
+      const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos };
+      const updateDataComm: any = { ...targetProfileData, primaryPosition: pos };
 
       if (targetAttributes) {
         const mergedAttr = { ...(playerData.attributes || {}), ...targetAttributes };
@@ -94,7 +185,6 @@ export default function PendingEdits() {
         updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
       } else if (Object.keys(targetProfileData).length > 0) {
-        // Recalculate overall if position changed
         const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style);
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.overallRating = newOverall;
@@ -120,12 +210,19 @@ export default function PendingEdits() {
       batch.delete(doc(db, collectionPath, edit.id));
       await batch.commit();
 
-      // Notify player about approval
+      // Notify player about approval without disclosing rater identities if peer rated
       try {
+        const titleText = edit.source === 'peer_ratings'
+          ? (isAr ? 'تم اعتماد تقييم الأداء والقدرات الجديد!' : 'New Peer Ability Ratings Approved!')
+          : (isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!');
+        const bodyText = edit.source === 'peer_ratings'
+          ? (isAr ? `قام مسؤول المجتمع بمراجعة واعتماد التقييمات الجديدة لقدراتك بنجاح. تقييمك العام الحالي: ${updateDataGlobal.overallRating || 'مُحدّث'}.` : `Your community admin approved new peer performance ability ratings. New OVR: ${updateDataGlobal.overallRating || 'Updated'}.`)
+          : (isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي وقدراته والموافقة عليه بنجاح.' : 'Your requested profile and attribute updates have been approved and applied.');
+
         await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
           type: 'stats',
-          title: isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!',
-          body: isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي والموافقة عليه بنجاح.' : 'Your requested profile/attributes updates have been approved and applied.',
+          title: titleText,
+          body: bodyText,
           read: false,
           createdAt: serverTimestamp(),
           link: '/profile?uid=' + edit.playerId
@@ -134,7 +231,7 @@ export default function PendingEdits() {
         console.warn("Player notification send warning:", err);
       }
 
-      toast.success(isAr ? "تمت الموافقة على التعديل وتحديث الملف الشخصي بنجاح!" : "Edit approved and profile updated successfully!");
+      toast.success(isAr ? "تم اعتماد التعديلات وتطبيق التقييمات والقدرات بنجاح!" : "Edits approved and player abilities updated successfully!");
       setReviewingEdit(null);
     } catch (err) {
       console.error(err);
@@ -146,22 +243,8 @@ export default function PendingEdits() {
     setConfirmModal({
       isOpen: true,
       title: isAr ? "موافقة على التعديل" : "Approve Edit",
-      message: isAr ? "هل أنت متأكد من الموافقة على هذا التعديل؟" : "Are you sure you want to approve this edit?",
+      message: isAr ? "هل أنت متأكد من الموافقة وتطبيق هذه التعديلات والتقييمات؟" : "Are you sure you want to approve and apply these profile edits/ratings?",
       onConfirm: () => applyApproval(edit)
-    });
-  };
-
-  const handleOpenReview = (edit: any) => {
-    setReviewingEdit(edit);
-    setReviewFormData({
-      fullName: edit.profileData?.fullName || edit.playerName || "",
-      cardName: edit.profileData?.cardName || edit.cardName || "",
-      primaryPosition: edit.profileData?.primaryPosition || "CMF",
-      height: edit.profileData?.height || 175,
-      weight: edit.profileData?.weight || 70,
-      profileData: { ...(edit.profileData || {}) },
-      attributes: edit.attributes ? { ...edit.attributes } : undefined,
-      stats: edit.stats ? { ...edit.stats } : undefined
     });
   };
 
@@ -174,18 +257,19 @@ export default function PendingEdits() {
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, collPath, edit.id));
-          // Notify player about rejection
-          try {
+          if (edit.source !== 'peer_ratings') {
+            try {
               await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
                 type: 'system',
                 title: isAr ? 'تم رفض التعديل - تقديم التماس؟' : 'Edit Rejected - Want to Appeal?',
-                body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك في محادثة الدعم الفني؟' : 'Your requested profile edit was not approved. Want to make an appeal in Support Chat?',
+                body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك مع إدارة المجتمع؟' : 'Your requested profile edit was not approved. Want to make an appeal with community management?',
                 read: false,
                 createdAt: serverTimestamp(),
                 link: '/support'
               });
-          } catch (e) {
-            console.warn(e);
+            } catch (e) {
+              console.warn(e);
+            }
           }
           toast.success(isAr ? "تم رفض التعديل." : "Edit rejected.");
         } catch (err) {
@@ -200,9 +284,9 @@ export default function PendingEdits() {
   if (edits.length === 0) return null;
 
   return (
-    <div className="mb-8 p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-2xl shadow-sm">
-      <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
-        <span className="text-amber-500">⚠️</span> {isAr ? "طلبات تعديل الملفات الشخصية والقدرات المعلقة" : "Pending Profile & Stats Edits"} ({edits.length})
+    <div className="mb-8 p-6 bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800/50 rounded-3xl shadow-md transition-all">
+      <h3 className="text-xl font-black mb-4 flex items-center gap-2 text-slate-900 dark:text-white">
+        <span className="text-amber-500 text-2xl">⚠️</span> {isAr ? "طلبات ومقترحات تقييم القدرات وتعديل الملفات" : "Pending Profile Edits & Peer Rating Proposals"} ({edits.length})
       </h3>
       <div className="space-y-4">
         <AnimatePresence>
@@ -212,58 +296,59 @@ export default function PendingEdits() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4"
+              className="p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:border-amber-400/60 transition-all"
               dir={isAr ? 'rtl' : 'ltr'}
             >
-              <div>
-                <p className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  {edit.playerName || edit.profileData?.fullName}
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-black text-lg text-slate-900 dark:text-white">
+                    {edit.playerName || edit.profileData?.fullName || "Player"}
+                  </span>
                   {edit.profileData?.cardName && (
-                    <span className="text-xs bg-amber-500/20 text-amber-500 font-black px-2 py-0.5 rounded">
+                    <span className="text-xs bg-amber-500/20 text-amber-500 font-black px-2 py-0.5 rounded-lg">
                       {edit.profileData.cardName}
                     </span>
                   )}
-                </p>
-                <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 flex flex-wrap gap-2">
-                  {edit.profileData && Object.keys(edit.profileData).length > 0 && (
-                    <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 px-2.5 py-0.5 rounded font-bold text-xs">
-                      {isAr ? "البيانات الشخصية" : "Profile Details"}
+                  {edit.source === 'peer_ratings' ? (
+                    <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1 border border-purple-300 dark:border-purple-700">
+                      <Users className="w-3.5 h-3.5" />
+                      {isAr ? `متوسط تقييم الزملاء (${edit.raterCount || 1} مقيّم)` : `Peer Rating Avg (${edit.raterCount || 1} raters)`}
                     </span>
-                  )}
-                  {edit.attributes && (
-                    <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400 px-2.5 py-0.5 rounded font-bold text-xs">
-                      {isAr ? "القدرات" : "Attributes"}
-                    </span>
-                  )}
-                  {edit.stats && (
-                    <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 px-2.5 py-0.5 rounded font-bold text-xs">
-                      {isAr ? "الإحصائيات" : "Stats"}
+                  ) : (
+                    <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1">
+                      {isAr ? "طلب تعديل شخصي" : "Self Profile Edit"}
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-400 mt-1">
-                  {isAr ? "تم الطلب في:" : "Requested at:"} {new Date(edit.requestedAt).toLocaleString(isAr ? 'ar-EG' : 'en-US')}
-                </p>
+
+                <div className="text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2 items-center">
+                  <span>{isAr ? "تاريخ التقديم:" : "Requested:"} {new Date(edit.requestedAt).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</span>
+                  {edit.source === 'peer_ratings' && edit.raterNames && edit.raterNames.length > 0 && (
+                    <span className="text-amber-600 dark:text-amber-400 font-semibold bg-amber-50 dark:bg-amber-950/50 px-2 py-0.5 rounded border border-amber-200 dark:border-amber-800">
+                      🔒 {isAr ? "المقيّمون (للمسؤول فقط):" : "Raters (Admin View Only):"} {edit.raterNames.join(", ")}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end">
                 <button
                   onClick={() => handleOpenReview(edit)}
-                  className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition-colors flex items-center gap-1.5 text-sm"
+                  className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all shadow-md flex items-center gap-2 text-sm"
                 >
                   <Edit3 className="w-4 h-4" />
-                  {isAr ? "مراجعة وتعديل" : "Review & Edit"}
+                  {isAr ? "مراجعة وتعديل ومقارنة" : "Review, Diff & Edit"}
                 </button>
                 <button
                   onClick={() => handleApprove(edit)}
-                  className="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-500 transition-colors flex items-center gap-1.5 text-sm"
+                  className="px-4 py-2.5 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 transition-all shadow-md flex items-center gap-2 text-sm"
                 >
                   <Check className="w-4 h-4" />
-                  {isAr ? "موافقة" : "Approve"}
+                  {isAr ? "اعتماد مباشر" : "Quick Approve"}
                 </button>
                 <button
                   onClick={() => handleReject(edit)}
-                  className="px-4 py-2 bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 font-bold rounded-lg hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors flex items-center gap-1.5 text-sm"
+                  className="px-3.5 py-2.5 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/60 transition-all flex items-center gap-1.5 text-sm"
                 >
                   <X className="w-4 h-4" />
                   {isAr ? "رفض" : "Reject"}
@@ -274,84 +359,261 @@ export default function PendingEdits() {
         </AnimatePresence>
       </div>
 
-      {/* Review & Edit Modal */}
-      {reviewingEdit && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" dir={isAr ? 'rtl' : 'ltr'}>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h4 className="text-lg font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-              <Edit3 className="w-5 h-5 text-amber-500" />
-              {isAr ? "مراجعة وتعديل طلب اللاعب" : "Review & Edit Player Request"}
-            </h4>
-
-            <div className="space-y-4 text-sm">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-                  {isAr ? "الاسم الكامل" : "Full Name"}
-                </label>
-                <input
-                  type="text"
-                  value={reviewFormData.fullName}
-                  onChange={e => setReviewFormData({
-                    ...reviewFormData,
-                    fullName: e.target.value,
-                    profileData: { ...reviewFormData.profileData, fullName: e.target.value }
-                  })}
-                  className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+      {/* Complete Before vs. After Diff Inspector & Interactive Slider Dashboard */}
+      <AnimatePresence>
+        {reviewingEdit && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto" dir={isAr ? 'rtl' : 'ltr'}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl p-6 md:p-8 shadow-2xl max-h-[92vh] flex flex-col my-auto"
+            >
+              {/* Header with OVR Prediction (`see what it will be`) */}
+              <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-                    {isAr ? "اسم البطاقة" : "Card Name"}
-                  </label>
-                  <input
-                    type="text"
-                    value={reviewFormData.cardName}
-                    onChange={e => setReviewFormData({
-                      ...reviewFormData,
-                      cardName: e.target.value,
-                      profileData: { ...reviewFormData.profileData, cardName: e.target.value }
-                    })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
-                  />
+                  <h4 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Edit3 className="w-6 h-6 text-amber-500" />
+                    {isAr ? "مراجعة وتعديل التقييمات والقدرات (قارن واعتمد)" : "Review & Edit Player Ability Ratings"}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    {isAr
+                      ? "يمكنك تعديل أي رقم أو قدرة قبل الاعتماد. يتم حفظ التقييمات في قدرات اللاعب مع إخفاء أسماء المقيّمين."
+                      : "You can tweak any slider before approving. Rater names remain strictly anonymous to the player."}
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
-                    {isAr ? "المركز الأساسي" : "Primary Position"}
-                  </label>
-                  <input
-                    type="text"
-                    value={reviewFormData.primaryPosition}
-                    onChange={e => setReviewFormData({
-                      ...reviewFormData,
-                      primaryPosition: e.target.value,
-                      profileData: { ...reviewFormData.profileData, primaryPosition: e.target.value }
-                    })}
-                    className="w-full p-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
-                  />
+                {/* Real-time OVR Badge (`see what it will be`) */}
+                <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-inner">
+                  <div className="text-center">
+                    <div className="text-[10px] uppercase font-bold text-slate-400">{isAr ? "التقييم الحالي" : "Current OVR"}</div>
+                    <div className="text-xl font-black text-slate-600 dark:text-slate-300">{currentPlayerData?.overallRating || 70}</div>
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-amber-500 rtl:rotate-180" />
+                  <div className="text-center">
+                    <div className="text-[10px] uppercase font-bold text-emerald-500">{isAr ? "بعد الاعتماد" : "New OVR"}</div>
+                    <div className="text-2xl font-black text-emerald-500 drop-shadow-sm animate-pulse">{predictedOverall}</div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setReviewingEdit(null)}
-                className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              >
-                {isAr ? "إلغاء" : "Cancel"}
-              </button>
-              <button
-                onClick={() => applyApproval(reviewingEdit, reviewFormData)}
-                className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-colors shadow-lg shadow-emerald-600/20"
-              >
-                {isAr ? "موافقة وتطبيق التعديلات" : "Approve & Apply Edits"}
-              </button>
-            </div>
+              {/* Rater Visibility Notice (`Visible to Community Admins to prevent bullying`) */}
+              {reviewingEdit.source === 'peer_ratings' && (
+                <div className="mb-6 p-4 bg-purple-50 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-2xl flex items-start gap-3 text-sm">
+                  <Shield className="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-bold text-purple-900 dark:text-purple-200 block">
+                      {isAr ? "حماية خصوصية التقييم (سرية للمقيّم، مكشوفة للمشرف):" : "Rating Anonymity Protection (Anonymous to Player, Visible to Admin):"}
+                    </span>
+                    <span className="text-purple-700 dark:text-purple-300 text-xs leading-relaxed">
+                      {isAr
+                        ? `قام ${reviewingEdit.raterCount || 1} لاعب بتقديم هذا التقييم. أسماء المقيّمين: [ ${reviewingEdit.raterNames?.join(', ') || 'زملاء'} ]. عند الموافقة سيتم تحديث قدرات اللاعب فقط ولن تظهر أسماء المقيّمين له لمنع أي حساسية أو تنمر.`
+                        : `Submitted by ${reviewingEdit.raterCount || 1} peers. Raters: [ ${reviewingEdit.raterNames?.join(', ') || 'Peers'} ]. Once approved, only the attributes change; rater identities remain strictly confidential from the player.`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Navigation Tabs */}
+              <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 overflow-x-auto pb-1">
+                <button
+                  onClick={() => setActiveReviewTab('attributes')}
+                  className={`px-5 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 transition-all shrink-0 ${
+                    activeReviewTab === 'attributes'
+                      ? 'bg-emerald-500 text-slate-950 shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Brain className="w-4 h-4" />
+                  <span>{isAr ? "قدرات ومؤهلات اللاعب (22 مهارة)" : "Player Attributes & Abilities (22 Stats)"}</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveReviewTab('profile')}
+                  className={`px-5 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 transition-all shrink-0 ${
+                    activeReviewTab === 'profile'
+                      ? 'bg-emerald-500 text-slate-950 shadow-md'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  <Users className="w-4 h-4" />
+                  <span>{isAr ? "البيانات الأساسية والمقارنة" : "Profile Details Diff"}</span>
+                </button>
+              </div>
+
+              {/* Tab Content */}
+              <div className="flex-1 overflow-y-auto pr-1 space-y-6">
+                {activeReviewTab === 'attributes' && (
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        {isAr ? "قارن بين التقييم الحالي في قاعدة البيانات والتقييم المقترح، وحرك المؤشر لتعديل أي رقم:" : "Compare current vs proposed ratings, drag sliders to customize before approval:"}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {ATTRIBUTE_KEYS.map((key) => {
+                        const oldVal = currentPlayerData?.attributes?.[key] ?? 60;
+                        const newVal = reviewFormData.attributes?.[key] ?? oldVal;
+                        const diff = newVal - oldVal;
+
+                        return (
+                          <div key={key} className="p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 rounded-2xl transition-all hover:border-emerald-500/50">
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                {ATTRIBUTE_LABELS[key]?.[isAr ? 'ar' : 'en'] || key}
+                              </span>
+                              
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-slate-400 font-semibold" title="Current in database">
+                                  {isAr ? `الحالي: ${oldVal}` : `Old: ${oldVal}`}
+                                </span>
+                                {diff !== 0 && (
+                                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-black ${
+                                    diff > 0 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                                  }`}>
+                                    {diff > 0 ? `+${diff}` : diff}
+                                  </span>
+                                )}
+                                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 min-w-[2.5ch] text-end">
+                                  {newVal}
+                                </span>
+                              </div>
+                            </div>
+
+                            <input
+                              type="range"
+                              min="40"
+                              max="99"
+                              value={newVal}
+                              onChange={(e) => {
+                                const val = Number(e.target.value);
+                                setReviewFormData((prev: any) => ({
+                                  ...prev,
+                                  attributes: {
+                                    ...(prev.attributes || {}),
+                                    [key]: val
+                                  }
+                                }));
+                              }}
+                              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {activeReviewTab === 'profile' && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        {isAr ? "الاسم الكامل (الحالي vs الجديد)" : "Full Name (Old vs New)"}
+                      </label>
+                      <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي في النظام:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.fullName || 'N/A'}</span></div>
+                      <input
+                        type="text"
+                        value={reviewFormData.fullName}
+                        onChange={e => setReviewFormData({
+                          ...reviewFormData,
+                          fullName: e.target.value,
+                          profileData: { ...reviewFormData.profileData, fullName: e.target.value }
+                        })}
+                        className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                      />
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        {isAr ? "اسم البطاقة (Card Name)" : "Card Name"}
+                      </label>
+                      <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.cardName || 'N/A'}</span></div>
+                      <input
+                        type="text"
+                        value={reviewFormData.cardName}
+                        onChange={e => setReviewFormData({
+                          ...reviewFormData,
+                          cardName: e.target.value,
+                          profileData: { ...reviewFormData.profileData, cardName: e.target.value }
+                        })}
+                        className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                      />
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        {isAr ? "المركز الأساسي (Position)" : "Primary Position"}
+                      </label>
+                      <div className="text-xs text-slate-400 mb-1">{isAr ? `الحالي:` : `Current:`} <span className="font-bold text-slate-700 dark:text-slate-300">{currentPlayerData?.primaryPosition || 'CMF'}</span></div>
+                      <select
+                        value={reviewFormData.primaryPosition}
+                        onChange={e => setReviewFormData({
+                          ...reviewFormData,
+                          primaryPosition: e.target.value,
+                          profileData: { ...reviewFormData.profileData, primaryPosition: e.target.value }
+                        })}
+                        className="w-full p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                      >
+                        {['CF', 'SS', 'LWF', 'RWF', 'AMF', 'LMF', 'RMF', 'CMF', 'DMF', 'LB', 'RB', 'CB', 'GK'].map(pos => (
+                          <option key={pos} value={pos}>{pos}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                        {isAr ? "الطول (سم) والوزن (كجم)" : "Height (cm) & Weight (kg)"}
+                      </label>
+                      <div className="flex gap-3">
+                        <input
+                          type="number"
+                          placeholder="Height"
+                          value={reviewFormData.height || 175}
+                          onChange={e => setReviewFormData({
+                            ...reviewFormData,
+                            height: Number(e.target.value),
+                            profileData: { ...reviewFormData.profileData, height: Number(e.target.value) }
+                          })}
+                          className="w-1/2 p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Weight"
+                          value={reviewFormData.weight || 70}
+                          onChange={e => setReviewFormData({
+                            ...reviewFormData,
+                            weight: Number(e.target.value),
+                            profileData: { ...reviewFormData.profileData, weight: Number(e.target.value) }
+                          })}
+                          className="w-1/2 p-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Footer */}
+              <div className="flex flex-wrap justify-end gap-3 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
+                <button
+                  onClick={() => setReviewingEdit(null)}
+                  className="px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  {isAr ? "إلغاء ومغادرة" : "Cancel"}
+                </button>
+                <button
+                  onClick={() => applyApproval(reviewingEdit, reviewFormData)}
+                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl transition-all shadow-lg shadow-emerald-600/30 flex items-center gap-2"
+                >
+                  <Check className="w-5 h-5" />
+                  <span>{isAr ? `اعتماد وتطبيق التقييمات (OVR: ${predictedOverall})` : `Approve & Apply (OVR: ${predictedOverall})`}</span>
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
 
       <ConfirmModal
         isOpen={confirmModal.isOpen}
@@ -363,3 +625,4 @@ export default function PendingEdits() {
     </div>
   );
 }
+

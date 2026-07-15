@@ -15,7 +15,16 @@ interface PlayerCardCompactProps {
 
 const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
-  const overall = calculateRealisticOverall(activeAttributes, player.primaryPosition || 'CMF', player.playStyle || '');
+  const overall = calculateRealisticOverall(
+    activeAttributes,
+    player.primaryPosition || 'CMF',
+    player.playStyle || '',
+    player.height,
+    player.weight,
+    player.calculatedAge,
+    player.peerRatingAvg,
+    player.peerRatingCount
+  );
   const [imgError, setImgError] = React.useState(false);
   const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
 

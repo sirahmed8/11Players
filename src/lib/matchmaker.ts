@@ -651,11 +651,10 @@ function calculateTotalVariance(
 }
 
 /**
- * Partition players into two balanced teams using a serpentine draft
+ * Partition players into two balanced teams using category-partitioned serpentine draft
  * followed by iterative swap-based variance minimisation.
- *
- * @param players - Array of player profiles. Must have an even count (typically 22).
- * @returns Array of two player groups: [teamA, teamB].
+ * By drafting within each position category (GK, DEF, MID, ATK) independently,
+ * we ensure both teams have equal positional balance and elite talent distribution.
  */
 function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerProfile[]] {
   if (players.length < 2) {
@@ -664,30 +663,45 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
 
   const teamSize = Math.floor(players.length / 2);
 
-  // Sort by overall ability (descending) for serpentine draft
-  const sorted = [...players].sort((a, b) => {
-    const attrsA = a.approvedAttributes || a.attributes || {};
-    const attrsB = b.approvedAttributes || b.attributes || {};
-    const overallA = calculateRealisticOverall(attrsA, a.primaryPosition || 'CMF', a.playStyle || '');
-    const overallB = calculateRealisticOverall(attrsB, b.primaryPosition || 'CMF', b.playStyle || '');
-    return overallB - overallA;
+  // Group players by category: GK, DEF, MID, ATK
+  const categories: Record<PositionCategory, PlayerProfile[]> = {
+    GK: [],
+    DEF: [],
+    MID: [],
+    ATK: [],
+  };
+
+  players.forEach(p => {
+    const cat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
+    categories[cat].push(p);
   });
 
-  // Serpentine draft: 1→A, 2→B, 3→B, 4→A, 5→A, 6→B …
   const teamA: PlayerProfile[] = [];
   const teamB: PlayerProfile[] = [];
 
-  for (let i = 0; i < sorted.length; i++) {
-    const round = Math.floor(i / 2);
-    if (i % 2 === 0) {
-      // Even index → round-robin alternation
-      (round % 2 === 0 ? teamA : teamB).push(sorted[i]);
-    } else {
-      (round % 2 === 0 ? teamB : teamA).push(sorted[i]);
-    }
-  }
+  // Serpentine draft inside each position category
+  const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
+  catKeys.forEach(cat => {
+    const sortedCat = [...categories[cat]].sort((a, b) => {
+      const attrsA = a.approvedAttributes || a.attributes || {};
+      const attrsB = b.approvedAttributes || b.attributes || {};
+      const overallA = calculateRealisticOverall(attrsA, a.primaryPosition || 'CMF', a.playStyle || '');
+      const overallB = calculateRealisticOverall(attrsB, b.primaryPosition || 'CMF', b.playStyle || '');
+      return overallB - overallA;
+    });
 
-  // Trim to equal size
+    for (let i = 0; i < sortedCat.length; i++) {
+      const round = Math.floor(i / 2);
+      // If teamA currently has fewer players overall or equal, use round-robin
+      if (i % 2 === 0) {
+        (round % 2 === 0 ? teamA : teamB).push(sortedCat[i]);
+      } else {
+        (round % 2 === 0 ? teamB : teamA).push(sortedCat[i]);
+      }
+    }
+  });
+
+  // Rebalance if one team ended up slightly larger due to odd counts across categories
   while (teamA.length > teamSize) teamB.push(teamA.pop()!);
   while (teamB.length > teamSize) teamA.push(teamB.pop()!);
 
@@ -697,14 +711,6 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
 /**
  * Attempt to reduce inter-team variance by swapping same-position players
  * between the two teams.
- *
- * The algorithm tries all pairwise swaps of players who share a position
- * category (attack, midfield, defense, GK) and accepts any swap that
- * reduces total variance.
- *
- * @param teamA - First team.
- * @param teamB - Second team.
- * @returns The improved [teamA, teamB] pair.
  */
 function iterativeSwapBalance(
   teamA: PlayerProfile[],
@@ -726,10 +732,8 @@ function iterativeSwapBalance(
 
     for (let i = 0; i < a.length; i++) {
       for (let j = 0; j < b.length; j++) {
-        // Only consider swaps between players in similar position groups
         if (!arePositionCompatible(a[i], b[j])) continue;
 
-        // Trial swap
         const temp = a[i];
         a[i] = b[j];
         b[j] = temp;
@@ -739,12 +743,11 @@ function iterativeSwapBalance(
           calculateTeamMetrics(b),
         );
 
-        if (trialVariance.total < bestNewVariance - 0.001) {
+        if (trialVariance.total < bestNewVariance - 0.0005) {
           bestSwap = [i, j];
           bestNewVariance = trialVariance.total;
         }
 
-        // Revert
         b[j] = a[i];
         a[i] = temp;
       }
@@ -760,7 +763,7 @@ function iterativeSwapBalance(
         calculateTeamMetrics(b),
       );
     } else {
-      break; // No improving swap found
+      break;
     }
   }
 
@@ -790,16 +793,18 @@ const POSITION_CATEGORIES: Record<PESPosition, PositionCategory> = {
 
 /**
  * Check if two players are in compatible position groups for swapping.
- * We allow swaps within the same category, or between adjacent categories
- * (DEF↔MID, MID↔ATK) to give the algorithm more room.
+ * GKs only swap with GKs. Others swap strictly within category or adjacent category.
  */
 function arePositionCompatible(a: PlayerProfile, b: PlayerProfile): boolean {
-  const catA = POSITION_CATEGORIES[a.primaryPosition];
-  const catB = POSITION_CATEGORIES[b.primaryPosition];
+  const catA = POSITION_CATEGORIES[a.primaryPosition || 'CMF'] || 'MID';
+  const catB = POSITION_CATEGORIES[b.primaryPosition || 'CMF'] || 'MID';
+
+  if (catA === 'GK' || catB === 'GK') {
+    return catA === catB;
+  }
 
   if (catA === catB) return true;
 
-  // Allow adjacent category swaps
   const adjacent: Record<PositionCategory, PositionCategory[]> = {
     GK: [],
     DEF: ['MID'],

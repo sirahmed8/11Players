@@ -18,7 +18,11 @@ type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "own
 interface UserNotification {
   id: string;
   title: string;
+  titleAr?: string;
+  titleEn?: string;
   body: string;
+  bodyAr?: string;
+  bodyEn?: string;
   read: boolean;
   createdAt: any;
   type: NotificationType;
@@ -287,14 +291,14 @@ export default function NotificationsPage() {
                         <div className="flex-1 min-w-0">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
                             <h4 className={`text-base font-bold truncate ${!notif.read ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
-                              {notif.title}
+                              {isAr ? (notif.titleAr || notif.title) : (notif.titleEn || notif.title)}
                             </h4>
                             <span className="text-xs font-medium text-slate-400 whitespace-nowrap">
                               {notif.createdAt?.toDate ? new Date(notif.createdAt.toDate()).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
                           </div>
                           <p className={`text-sm ${!notif.read ? "text-slate-700 dark:text-slate-300 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
-                            {notif.body}
+                            {isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)}
                           </p>
                           {notif.link && (
                             <Link

@@ -121,8 +121,9 @@ service cloud.firestore {
         // Per-match player ratings (stored by rater UID)
         match /ratings/{raterUid} {
           allow read: if request.auth != null;
-          allow create: if request.auth != null && isCommunityMember(communityId) && request.auth.uid == raterUid;
-          allow update: if request.auth != null && request.auth.uid == raterUid;
+          allow create, update: if request.auth != null && isCommunityMember(communityId) && request.auth.uid == raterUid &&
+            request.resource.data.keys().hasOnly(['ratedBy', 'ratings', 'timestamp', 'matchId']) &&
+            request.resource.data.ratedBy == request.auth.uid;
           allow delete: if isAdmin() || isCommAdmin(communityId);
         }
       }
@@ -130,8 +131,11 @@ service cloud.firestore {
       // Cross-match peer ratings (raterUid_ratedUid composite)
       match /playerRatings/{ratingId} {
         allow read: if request.auth != null;
-        allow create: if request.auth != null && isCommunityMember(communityId) && request.auth.uid == request.resource.data.raterUid;
-        allow update: if request.auth != null && request.auth.uid == request.resource.data.raterUid;
+        allow create, update: if request.auth != null && isCommunityMember(communityId) &&
+          request.auth.uid == request.resource.data.raterUid &&
+          request.resource.data.keys().hasOnly(['raterUid', 'ratedUid', 'rating', 'matchId', 'timestamp']) &&
+          request.resource.data.rating is number &&
+          request.resource.data.rating >= 1 && request.resource.data.rating <= 10;
         allow delete: if isAdmin() || isCommAdmin(communityId);
       }
 

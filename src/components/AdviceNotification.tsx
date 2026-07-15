@@ -80,10 +80,10 @@ export default function AdviceNotification() {
               </div>
               <div className="flex-1 w-0">
                 <p className="text-sm font-black text-white truncate">
-                  {notif.title}
+                  {isAr ? (notif.titleAr || notif.title) : (notif.titleEn || notif.title)}
                 </p>
                 <p className="mt-1 text-xs text-slate-300 line-clamp-2 font-medium">
-                  {notif.body}
+                  {isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)}
                 </p>
                 <p className="text-[10px] text-amber-400/80 font-bold mt-1.5">
                   {isAr ? "↑ اسحب للأعلى للإغلاق" : "↑ Swipe up to dismiss"}

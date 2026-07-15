@@ -8,6 +8,8 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
 import toast from 'react-hot-toast';
+import { ChevronDown, ChevronUp, Brain, Target, Shield, Zap, Hand, CheckCircle, AlertCircle } from 'lucide-react';
+import type { PlayerAttributes } from '@/types';
 
 interface PlayerRatingModalProps {
   isOpen: boolean;
@@ -17,16 +19,82 @@ interface PlayerRatingModalProps {
   isAr: boolean;
 }
 
+const ABILITY_CATEGORIES = [
+  {
+    id: 'offensive',
+    nameEn: 'Offensive & Finishing',
+    nameAr: 'الهجوم والإنهاء',
+    icon: Target,
+    keys: ['offensiveAwareness', 'ballControl', 'dribbling', 'finishing', 'kickingPower'] as (keyof PlayerAttributes)[]
+  },
+  {
+    id: 'passing',
+    nameEn: 'Passing & Vision',
+    nameAr: 'التمرير والرؤية',
+    icon: Brain,
+    keys: ['lowPass', 'loftedPass'] as (keyof PlayerAttributes)[]
+  },
+  {
+    id: 'physical',
+    nameEn: 'Physical & Pace',
+    nameAr: 'البدني والسرعة',
+    icon: Zap,
+    keys: ['speed', 'acceleration', 'jump', 'physicalContact', 'balance', 'stamina'] as (keyof PlayerAttributes)[]
+  },
+  {
+    id: 'defensive',
+    nameEn: 'Defensive & Aggression',
+    nameAr: 'الدفاع والافتكاك',
+    icon: Shield,
+    keys: ['defensiveAwareness', 'ballWinning', 'aggression', 'heading'] as (keyof PlayerAttributes)[]
+  },
+  {
+    id: 'goalkeeping',
+    nameEn: 'Goalkeeping Abilities',
+    nameAr: 'قدرات حراسة المرمى',
+    icon: Hand,
+    keys: ['gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach'] as (keyof PlayerAttributes)[]
+  }
+];
+
+const ABILITY_NAMES: Record<string, { en: string; ar: string }> = {
+  offensiveAwareness: { en: 'Offensive Awareness', ar: 'الوعي الهجومي' },
+  ballControl: { en: 'Ball Control', ar: 'التحكم بالكرة' },
+  dribbling: { en: 'Dribbling', ar: 'المراوغة' },
+  lowPass: { en: 'Low Pass', ar: 'التمرير القصير' },
+  loftedPass: { en: 'Lofted Pass', ar: 'التمرير الطويل' },
+  finishing: { en: 'Finishing', ar: 'الإنهاء والتسديد' },
+  heading: { en: 'Heading', ar: 'الرأسيات' },
+  speed: { en: 'Speed', ar: 'السرعة' },
+  acceleration: { en: 'Acceleration', ar: 'التسارع' },
+  kickingPower: { en: 'Kicking Power', ar: 'قوة التسديد' },
+  jump: { en: 'Jump', ar: 'القفز والارتقاء' },
+  physicalContact: { en: 'Physical Contact', ar: 'الالتحام البدني' },
+  balance: { en: 'Balance', ar: 'التوازن' },
+  stamina: { en: 'Stamina', ar: 'اللياقة البدنية' },
+  defensiveAwareness: { en: 'Defensive Awareness', ar: 'الوعي الدفاعي' },
+  ballWinning: { en: 'Ball Winning', ar: 'افتكاك الكرة' },
+  aggression: { en: 'Aggression', ar: 'الشراسة' },
+  gkAwareness: { en: 'GK Awareness', ar: 'تمركز الحارس' },
+  gkCatching: { en: 'GK Catching', ar: 'الإمساك بالكرة' },
+  gkClearing: { en: 'GK Clearing', ar: 'التشتيت' },
+  gkReflexes: { en: 'GK Reflexes', ar: 'ردة الفعل' },
+  gkReach: { en: 'GK Reach', ar: 'مدى الوصول' }
+};
+
 export default function PlayerRatingModal({ isOpen, onClose, matchId, players, isAr }: PlayerRatingModalProps) {
   const { user } = useAuth();
   const { activeCommunityId } = useCommunity();
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [existingRatings, setExistingRatings] = useState<Record<string, number>>({});
+  
+  // Store detailed ability ratings per player: { [playerId]: { offensiveAwareness: 75, ... } }
+  const [abilityRatings, setAbilityRatings] = useState<Record<string, Partial<PlayerAttributes>>>({});
+  const [expandedPlayerId, setExpandedPlayerId] = useState<string | null>(null);
+  const [activeTabByPlayer, setActiveTabByPlayer] = useState<Record<string, string>>({});
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load existing ratings for this user in this match
   useEffect(() => {
     if (!isOpen || !user || !activeCommunityId || !matchId) return;
     setIsLoading(true);
@@ -37,9 +105,30 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
         const snap = await getDoc(ratingDocRef);
         if (snap.exists()) {
           const data = snap.data();
-          const savedRatings = data.ratings || {};
-          setRatings(savedRatings);
-          setExistingRatings(savedRatings);
+          if (data.abilityRatings) {
+            setAbilityRatings(data.abilityRatings);
+          } else if (data.ratings) {
+            // Convert legacy 1-10 ratings to baseline attributes (e.g. 8/10 -> ~80)
+            const converted: Record<string, Partial<PlayerAttributes>> = {};
+            for (const [pid, val] of Object.entries(data.ratings)) {
+              const numVal = typeof val === 'number' ? val : 7;
+              const scaled = Math.min(99, Math.max(40, numVal * 10));
+              converted[pid] = {
+                offensiveAwareness: scaled,
+                ballControl: scaled,
+                dribbling: scaled,
+                lowPass: scaled,
+                loftedPass: scaled,
+                finishing: scaled,
+                speed: scaled,
+                acceleration: scaled,
+                stamina: scaled,
+                defensiveAwareness: scaled,
+                ballWinning: scaled
+              };
+            }
+            setAbilityRatings(converted);
+          }
         }
       } catch (err) {
         console.error('Failed to load existing ratings', err);
@@ -50,42 +139,121 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
     loadRatings();
   }, [isOpen, user, activeCommunityId, matchId]);
 
-  const handleRatingChange = (playerId: string, value: number) => {
-    setRatings(prev => ({ ...prev, [playerId]: value }));
+  const handleAbilityChange = (playerId: string, abilityKey: keyof PlayerAttributes, value: number) => {
+    setAbilityRatings(prev => ({
+      ...prev,
+      [playerId]: {
+        ...(prev[playerId] || {}),
+        [abilityKey]: value
+      }
+    }));
+  };
+
+  const getPlayerOverallAverage = (playerId: string) => {
+    const attrs = abilityRatings[playerId];
+    if (!attrs) return 0;
+    const values = Object.values(attrs).filter(v => typeof v === 'number' && v > 0) as number[];
+    if (values.length === 0) return 0;
+    const sum = values.reduce((a, b) => a + b, 0);
+    return Math.round(sum / values.length);
   };
 
   const handleSubmit = async () => {
     if (!user || !activeCommunityId) return;
     setIsSubmitting(true);
     try {
-      // Save per-match ratings
+      const currentRaterProfile = players.find(p => p.uid === user.uid);
+      const raterDisplayName = currentRaterProfile?.fullName || currentRaterProfile?.cardName || user.displayName || (user as any).fullName || 'Player';
+
+      // 1. Save per-match ratings for this rater
       const ratingDocRef = doc(db, 'communities', activeCommunityId, 'matches', matchId, 'ratings', user.uid);
       await setDoc(ratingDocRef, {
         ratedBy: user.uid,
-        ratings,
+        raterName: raterDisplayName,
+        abilityRatings,
         timestamp: serverTimestamp()
       });
 
-      // Also save cross-match peer ratings (latest rating per player)
-      for (const [playerId, rating] of Object.entries(ratings)) {
-        if (!rating) continue;
-        const peerRef = doc(db, 'communities', activeCommunityId, 'playerRatings', `${user.uid}_${playerId}`);
+      // 2. Save individual peer rating records & aggregate Peer Rating Proposals in editRequests
+      for (const [targetPlayerId, attrs] of Object.entries(abilityRatings)) {
+        if (!attrs || Object.keys(attrs).length === 0) continue;
+        
+        const targetPlayer = players.find(p => p.uid === targetPlayerId);
+        const avgOverall = getPlayerOverallAverage(targetPlayerId);
+
+        // Save detailed peer record
+        const peerRef = doc(db, 'communities', activeCommunityId, 'playerRatings', `${user.uid}_${targetPlayerId}`);
         await setDoc(peerRef, {
           raterUid: user.uid,
-          ratedUid: playerId,
-          rating,
+          raterName: raterDisplayName,
+          ratedUid: targetPlayerId,
+          rating: avgOverall,
+          attributes: attrs,
           matchId,
           timestamp: serverTimestamp()
         });
+
+        // Fetch all peer ratings for targetPlayerId to build aggregated average proposal for Admin
+        try {
+          const peerQuery = query(collection(db, 'communities', activeCommunityId, 'playerRatings'), where('ratedUid', '==', targetPlayerId));
+          const peerSnaps = await getDocs(peerQuery);
+          
+          const aggregatedAttrs: Record<string, number> = {};
+          const attrCounts: Record<string, number> = {};
+          const raterNamesSet = new Set<string>();
+
+          peerSnaps.forEach(docSnap => {
+            const d = docSnap.data();
+            if (d.raterName) raterNamesSet.add(d.raterName);
+            const pattrs = d.attributes || {};
+            for (const [key, val] of Object.entries(pattrs)) {
+              if (typeof val === 'number' && val >= 40 && val <= 99) {
+                aggregatedAttrs[key] = (aggregatedAttrs[key] || 0) + val;
+                attrCounts[key] = (attrCounts[key] || 0) + 1;
+              }
+            }
+          });
+
+          // Calculate final averages
+          const finalAvgAttrs: any = {};
+          for (const key of Object.keys(aggregatedAttrs)) {
+            finalAvgAttrs[key] = Math.round(aggregatedAttrs[key] / attrCounts[key]);
+          }
+
+          if (Object.keys(finalAvgAttrs).length > 0 && targetPlayer) {
+            // Create/Update Peer Rating Proposal inside editRequests (Visible to Admin only!)
+            const proposalDocRef = doc(db, 'communities', activeCommunityId, 'editRequests', `peer_proposal_${targetPlayerId}`);
+            await setDoc(proposalDocRef, {
+              playerId: targetPlayerId,
+              playerName: targetPlayer.cardName || targetPlayer.fullName || 'Player',
+              cardName: targetPlayer.cardName || '',
+              photoUrl: targetPlayer.photoUrl || targetPlayer.googlePic || '',
+              requestedAt: new Date().toISOString(),
+              status: 'pending',
+              source: 'peer_ratings',
+              raterCount: peerSnaps.size,
+              raterNames: Array.from(raterNamesSet), // Strictly for admin review modal!
+              attributes: finalAvgAttrs,
+              profileData: {
+                fullName: targetPlayer.fullName,
+                cardName: targetPlayer.cardName,
+                primaryPosition: targetPlayer.primaryPosition || 'CMF'
+              }
+            }, { merge: true });
+          }
+        } catch (proposalErr) {
+          console.warn('Could not aggregate peer rating proposal:', proposalErr);
+        }
       }
 
       setSubmitted(true);
+      toast.success(isAr ? 'تم إرسال تقييمات القدرات بنجاح وإرسالها لمشرف المجتمع للاعتماد!' : 'Ability ratings submitted to community admin for approval!');
       setTimeout(() => {
         onClose();
         setSubmitted(false);
-      }, 2000);
+      }, 2200);
     } catch (err) {
-      console.error('Failed to submit ratings', err);
+      console.error('Failed to submit ability ratings', err);
       toast.error(isAr ? 'فشل في إرسال التقييمات' : 'Failed to submit ratings');
     } finally {
       setIsSubmitting(false);
@@ -94,114 +262,174 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
 
   if (!isOpen) return null;
 
-  const ratedCount = Object.values(ratings).filter(v => v > 0).length;
   const editablePlayers = players.filter(p => p.uid !== user?.uid);
+  const ratedCount = Object.keys(abilityRatings).filter(pid => getPlayerOverallAverage(pid) > 0).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         dir={isAr ? 'rtl' : 'ltr'}
       >
-        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+        {/* Header */}
+        <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-start bg-slate-50 dark:bg-slate-800/80">
           <div>
-            <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100">
-              {isAr ? 'تقييم أداء اللاعبين' : 'Rate Players Performance'}
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <span>⭐</span>
+              {isAr ? 'تقييم قدرات ومؤهلات اللاعبين (40 - 99)' : 'Rate Teammates Abilities & Stats'}
             </h2>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               {isAr
-                ? `قيّم زملائك (1-10) — ${ratedCount}/${editablePlayers.length} ${isAr ? 'تم تقييمهم' : 'rated'}`
-                : `Rate your teammates (1-10) — ${ratedCount}/${editablePlayers.length} rated`}
+                ? `قيّم مهارات وقدرات زملائك بدقة. يتم تجميع التقييمات وعرض المتوسط على مسؤول المجتمع للموافقة عليه دون كشف هويتك كمقيّم لمنع أي إحراج.`
+                : `Rate detailed attributes. Averages are proposed to your community admin for review while keeping your rater identity strictly anonymous.`}
             </p>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xl">
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-xl bg-white dark:bg-slate-800 shadow-sm">
             ✕
           </button>
         </div>
 
+        {/* Players List */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-10">
-              <div className="w-8 h-8 border-3 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-16">
+              <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
             </div>
           ) : submitted ? (
-            <div className="flex flex-col items-center justify-center py-10 space-y-4">
-              <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 rounded-full flex items-center justify-center text-3xl">✅</div>
-              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">
-                {isAr ? 'تم إرسال تقييماتك بنجاح!' : 'Your ratings have been submitted!'}
+            <div className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-500 rounded-full flex items-center justify-center text-4xl shadow-lg">✅</div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white">
+                {isAr ? 'تم إرسال تقييماتك للمشرف بنجاح!' : 'Ratings Submitted for Approval!'}
               </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 text-center max-w-md">
+                {isAr ? 'شكراً لتعاونك! سيقوم مسؤول المجتمع بمراجعة واعتماد متوسط التقييمات العادل دون الكشف عن أسمائكم.' : 'Thank you! Your community admin will review and approve the fair average ratings.'}
+              </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {editablePlayers.map(p => {
-                const currentRating = ratings[p.uid] || 0;
-                const hasExisting = !!existingRatings[p.uid];
-                const ratingLabel = isAr
-                  ? ['سيء جداً', 'سيء', 'ضعيف', 'مقبول', 'متوسط', 'جيد', 'جيد جداً', 'ممتاز', 'متميز', 'استثنائي'][currentRating - 1] || ''
-                  : ['', 'Terrible', 'Bad', 'Poor', 'Fair', 'Average', 'Good', 'Very Good', 'Excellent', 'Outstanding', 'Exceptional'][currentRating] || '';
+                const avgOvr = getPlayerOverallAverage(p.uid);
+                const isExpanded = expandedPlayerId === p.uid;
+                const activeTab = activeTabByPlayer[p.uid] || 'offensive';
+                const currentAttrs = abilityRatings[p.uid] || {};
 
                 return (
                   <motion.div
                     key={p.uid}
                     layout
-                    className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 transition-all hover:border-amber-400/50"
+                    className={`bg-slate-50 dark:bg-slate-800/60 rounded-2xl border transition-all ${
+                      isExpanded
+                        ? 'border-emerald-500 shadow-lg dark:border-emerald-500/80 bg-white dark:bg-slate-800'
+                        : 'border-slate-200 dark:border-slate-700/80 hover:border-amber-400/60'
+                    }`}
                   >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-11 h-11 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex-shrink-0">
+                    {/* Player Summary Row */}
+                    <div
+                      onClick={() => setExpandedPlayerId(isExpanded ? null : p.uid)}
+                      className="p-4 flex items-center gap-4 cursor-pointer select-none"
+                    >
+                      <div className="w-12 h-12 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0 shadow-sm border border-slate-300 dark:border-slate-600">
                         {p.photoUrl || p.googlePic ? (
-                          <div className="relative w-full h-full">
-                            <Image src={p.photoUrl || p.googlePic} alt="" fill sizes="44px" className="object-cover" />
-                          </div>
+                          <Image src={p.photoUrl || p.googlePic} alt="" width={48} height={48} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-500 font-bold">
+                          <div className="w-full h-full flex items-center justify-center text-slate-600 dark:text-slate-300 font-black text-lg">
                             {(p.cardName || p.fullName || '?').charAt(0)}
                           </div>
                         )}
                       </div>
+
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-bold text-slate-800 dark:text-slate-200 truncate">{p.cardName || p.fullName}</h4>
-                        <span className="text-xs text-slate-500">{p.primaryPosition}</span>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-black text-slate-900 dark:text-white text-base truncate">{p.cardName || p.fullName}</h4>
+                          <span className="text-xs font-black bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-md">
+                            {p.primaryPosition || 'CMF'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                          {isExpanded
+                            ? (isAr ? 'حرك المؤشر لتقييم كل مهارة وقدرة (40 - 99)' : 'Drag sliders to rate specific abilities (40 - 99)')
+                            : (isAr ? 'انقر لفتح وتقييم القدرات التفصيلية من الوعي الهجومي حتى حراسة المرمى' : 'Click to rate detailed abilities from Offensive Awareness to GK Reach')}
+                        </p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        {hasExisting && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 font-bold">
-                            {isAr ? 'مُعدّل' : 'Edited'}
-                          </span>
+
+                      <div className="flex items-center gap-3">
+                        {avgOvr > 0 && (
+                          <div className="text-end">
+                            <div className="text-[10px] uppercase font-bold text-slate-400">{isAr ? 'متوسط تقييمك' : 'Your Avg'}</div>
+                            <div className="text-2xl font-black text-emerald-500">{avgOvr}</div>
+                          </div>
                         )}
-                        <div className="text-2xl font-black min-w-[3ch] text-center">
-                          <span className={currentRating >= 8 ? 'text-emerald-500' : currentRating >= 5 ? 'text-amber-500' : currentRating > 0 ? 'text-red-500' : 'text-slate-300 dark:text-slate-600'}>
-                            {currentRating || '-'}
-                          </span>
+                        <div className="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300">
+                          {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                         </div>
                       </div>
                     </div>
 
-                    {/* Rating scale */}
-                    <div className="flex justify-between items-center px-1">
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
-                        <button
-                          key={val}
-                          onClick={() => handleRatingChange(p.uid, val)}
-                          className={`w-7 h-7 rounded-full text-[11px] font-bold flex items-center justify-center transition-all duration-200 ${
-                            currentRating === val
-                              ? val >= 8
-                                ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/30 transform scale-110'
-                                : val >= 5
-                                  ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30 transform scale-110'
-                                  : 'bg-red-500 text-white shadow-md shadow-red-500/30 transform scale-110'
-                              : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-600'
-                          }`}
+                    {/* Expandable Ability Ratings Pane */}
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="border-t border-slate-200 dark:border-slate-700/80 p-5 bg-slate-100/60 dark:bg-slate-900/60 rounded-b-2xl"
                         >
-                          {val}
-                        </button>
-                      ))}
-                    </div>
-                    {ratingLabel && (
-                      <p className="text-center text-xs font-semibold mt-1.5 text-slate-500">{ratingLabel}</p>
-                    )}
+                          {/* Category Tabs */}
+                          <div className="flex gap-2 overflow-x-auto pb-3 mb-4 border-b border-slate-200 dark:border-slate-800">
+                            {ABILITY_CATEGORIES.map(cat => {
+                              const Icon = cat.icon;
+                              const isActive = activeTab === cat.id;
+                              return (
+                                <button
+                                  key={cat.id}
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setActiveTabByPlayer(prev => ({ ...prev, [p.uid]: cat.id }));
+                                  }}
+                                  className={`px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shrink-0 transition-all ${
+                                    isActive
+                                      ? 'bg-emerald-500 text-slate-950 shadow-md'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                  }`}
+                                >
+                                  <Icon className="w-3.5 h-3.5" />
+                                  <span>{isAr ? cat.nameAr : cat.nameEn}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          {/* Sliders for active category */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {ABILITY_CATEGORIES.find(c => c.id === activeTab)?.keys.map(key => {
+                              const val = (currentAttrs[key] as number) || (p.attributes?.[key] as number) || 65;
+                              const label = ABILITY_NAMES[key]?.[isAr ? 'ar' : 'en'] || key;
+
+                              return (
+                                <div key={key} className="p-3 bg-white dark:bg-slate-800/90 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                  <div className="flex justify-between items-center mb-1.5">
+                                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{label}</span>
+                                    <span className="text-base font-black text-emerald-500">{val}</span>
+                                  </div>
+                                  <input
+                                    type="range"
+                                    min="40"
+                                    max="99"
+                                    value={val}
+                                    onChange={e => handleAbilityChange(p.uid, key, Number(e.target.value))}
+                                    onClick={e => e.stopPropagation()}
+                                    className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </motion.div>
                 );
               })}
@@ -209,22 +437,23 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
           )}
         </div>
 
+        {/* Footer */}
         {!submitted && !isLoading && (
-          <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+          <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between gap-4">
+            <div className="text-xs text-slate-500 dark:text-slate-400">
+              {isAr ? `تم تقييم ${ratedCount} من أصل ${editablePlayers.length} لاعبين` : `Rated ${ratedCount} of ${editablePlayers.length} teammates`}
+            </div>
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || ratedCount === 0}
-              className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:hover:bg-amber-500 text-white font-black rounded-xl shadow-lg shadow-amber-500/20 transition-all flex justify-center items-center gap-2"
+              className="px-8 py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-black rounded-2xl shadow-lg shadow-emerald-600/30 transition-all flex items-center gap-2"
             >
               {isSubmitting ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <>
-                  <span>⭐</span>
-                  <span>{isAr ? 'حفظ التقييمات' : 'Submit Ratings'}</span>
-                  {ratedCount > 0 && (
-                    <span className="bg-white/20 px-2 py-0.5 rounded-lg text-sm">{ratedCount}</span>
-                  )}
+                  <CheckCircle className="w-5 h-5" />
+                  <span>{isAr ? 'إرسال التقييمات للاعتماد' : 'Submit Ratings for Approval'}</span>
                 </>
               )}
             </button>
@@ -234,3 +463,4 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
     </div>
   );
 }
+

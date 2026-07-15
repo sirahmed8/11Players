@@ -5,6 +5,13 @@ import { calculateRealisticOverall } from "@/lib/overallCalculator";
 
 const ADVICE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes per user request
 
+interface BilingualAdvice {
+  titleAr: string;
+  titleEn: string;
+  bodyAr: string;
+  bodyEn: string;
+}
+
 export async function generatePersonalizedAdvices(userUid: string, profile: PlayerProfile, isAr: boolean) {
   try {
     // 1. Check if we recently generated advices to avoid spam
@@ -24,82 +31,124 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       }
     }
 
-    const advices = [];
+    const advices: BilingualAdvice[] = [];
 
-    // --- 0. Overall Rating (OVR) Based Advice ---
-    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '');
+    // --- 0. Peer Rating Recognition & Community Synergy ---
+    if ((profile.peerRatingCount || 0) > 0) {
+      const avg = profile.peerRatingAvg || 6.0;
+      if (avg >= 8.0) {
+        advices.push({
+          titleAr: "⭐ تقدير عالٍ وحب من زملائك!",
+          titleEn: "⭐ High Peer Recognition & Respect!",
+          bodyAr: `حصلت على تقييم رائع (${avg.toFixed(1)}/10) من زملائك في المجتمع! هذا يعكس روحك الرياضية العالية وتأثيرك الإيجابي داخل الملعب. استمر في قيادة وتوجيه الزملاء!`,
+          bodyEn: `You've earned an outstanding peer rating (${avg.toFixed(1)}/10) from your community teammates! This reflects your high sportsmanship and positive impact on the pitch. Keep leading and inspiring your peers!`
+        });
+      } else if (avg < 6.0) {
+        advices.push({
+          titleAr: "🤝 تعزيز روح اللعب الجماعي",
+          titleEn: "🤝 Boost Team Synergy & Fair Play",
+          bodyAr: `تقييم زملائك لك بحاجة لبعض التعزيز (${avg.toFixed(1)}/10). ركز في مباراتك القادمة على اللعب التعاوني السهل، الالتزام بالتمركز، وتشجيع زملائك لكسب ثقتهم واحترامهم.`,
+          bodyEn: `Your peer rating has room for growth (${avg.toFixed(1)}/10). In your next match, focus on unselfish team play, positional discipline, and encouraging teammates during tough moments to win their respect.`
+        });
+      }
+    }
+
+    // --- 1. Overall Rating (OVR) Based Advice ---
+    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '', profile.calculatedAge);
     if (ovr < 70) {
       advices.push({
-        title: isAr ? "نصيحة الصعود والتدريب" : "Development Phase",
-        body: isAr ? "تقييمك العام في مرحلة الصعود. ركز على إتقان المهارات الأساسية: الاستلام والتسليم والتمركز السليم دون تعقيد للوصول للمستوى التالي." : "Your overall rating is developing. Master basic ball control, simple passes, and positional discipline to quickly reach the next level."
+        titleAr: "🚀 مرحلة الصعود والتأسيس",
+        titleEn: "🚀 Development Phase",
+        bodyAr: "تقييمك العام في مرحلة الصعود الصاروخي. ركز على إتقان المهارات الأساسية: الاستلام والتسليم تحت الضغط والتمركز السليم دون تعقيد للوصول للمستوى التالي بسلاسة.",
+        bodyEn: "Your overall rating is rapidly developing. Master basic ball control, simple passes under pressure, and positional discipline to quickly reach the next level."
       });
     } else if (ovr >= 85) {
       advices.push({
-        title: isAr ? "قيادة الفريق في الملعب" : "Pitch Leadership",
-        body: isAr ? "أنت أحد نجوم وقادة الفريق بناءً على تقييمك المرتفع. دورك الآن يشمل توجيه الزملاء، ضبط إيقاع اللعب، وحسم المواجهات المعقدة." : "As one of the highest-rated players on the pitch, your role extends to leadership—dictating tempo and guiding younger teammates."
+        titleAr: "👑 قيادة الفريق وحسم المواجهات",
+        titleEn: "👑 Pitch Leadership & Mastery",
+        bodyAr: "أنت أحد نجوم وقادة الفريق بناءً على تقييمك المرتفع. دورك الآن يشمل توجيه الزملاء، ضبط إيقاع اللعب في الأوقات الصعبة، وحسم المواجهات المعقدة بلمسة الذكاء.",
+        bodyEn: "As one of the highest-rated stars on the pitch, your role extends to leadership—dictating tempo in crucial moments and guiding younger teammates."
       });
     }
 
-    // --- 1. Position & Stat Synergies ---
-    if (profile.primaryPosition === "SS" || profile.primaryPosition === "CF" || profile.primaryPosition === "LWF" || profile.primaryPosition === "RWF") {
+    // --- 2. Position & Stat Synergies ---
+    if (["SS", "CF", "LWF", "RWF"].includes(profile.primaryPosition || "")) {
       if ((profile.attributes?.finishing || 0) < 75) {
         advices.push({
-          title: isAr ? "نصيحة للمهاجم" : "Striker Advice",
-          body: isAr ? "تسديداتك تحتاج إلى تطوير. ركز على التدريب على الإنهاء من داخل منطقة الجزاء لزيادة فرصك في التسجيل." : "Your shooting needs improvement. Focus on finishing drills inside the box to increase your scoring chances."
+          titleAr: "🎯 شحذ مهارة الإنهاء والتهديف",
+          titleEn: "🎯 Sharpen Striker Finishing",
+          bodyAr: "تسديداتك تحتاج إلى دقّة أعلى. ركز في التمارين على اللمسة الحاسمة من داخل منطقة الجزاء واختيار الزاوية البعيدة بهدوء لزيادة حصيلتك التهديفية.",
+          bodyEn: "Your shooting precision needs improvement. Focus on finishing drills inside the box and calmly picking the far corner to multiply your goal tally."
         });
       }
       if ((profile.attributes?.offensiveAwareness || 0) < 75) {
         advices.push({
-          title: isAr ? "التمركز الهجومي" : "Attacking Positioning",
-          body: isAr ? "وعيك الهجومي منخفض نسبياً. حاول قراءة تحركات المدافعين واستغلال المساحات الخالية خلفهم." : "Your offensive awareness is a bit low. Try to read the defenders' movements and exploit empty spaces behind them."
+          titleAr: "🧠 التمركز والوعي الهجومي",
+          titleEn: "🧠 Attacking Positioning & Movement",
+          bodyAr: "وعيك الهجومي بحاجة للتطوير. حاول قراءة تحركات المدافعين واستغلال المساحات الشاغرة خلف الظهيرين وانطلق في اللحظة المناسبة لكسر التسلل.",
+          bodyEn: "Your offensive awareness can grow. Read the defenders' movements and exploit empty spaces behind the fullbacks, timing your runs perfectly to beat the trap."
         });
       }
       if ((profile.stats?.goals || 0) === 0 && (profile.stats?.matchesPlayed || 0) > 3) {
         advices.push({
-          title: isAr ? "كسر الصيام التهديفي" : "Break the Goal Drought",
-          body: isAr ? "لم تسجل في مبارياتك الأخيرة. لا تتوتر! العب السهل، وحاول التمركز بشكل أفضل والتسديد من اللمسة الأولى." : "You haven't scored recently. Don't panic! Play simple, position yourself better and shoot first-time."
+          titleAr: "🔥 كسر الصيام التهديفي بثقة",
+          titleEn: "🔥 Break the Goal Drought with Confidence",
+          bodyAr: "لم تسجل في مبارياتك الأخيرة. لا تتوتر! العب السهل لتفريغ المساحة وحاول التسديد من اللمسة الأولى بمجرد حصولك على فرصة سانحة.",
+          bodyEn: "You haven't scored recently. Don't panic! Play simple lay-offs to open space and try shooting first-time the moment an opportunity presents itself."
         });
       }
-      if (["LWF", "RWF"].includes(profile.primaryPosition)) {
+      if (["LWF", "RWF"].includes(profile.primaryPosition || "")) {
         advices.push({
-          title: isAr ? "استغلال مساحات الأطراف" : "Wing Play Exploitation",
-          body: isAr ? "كجناح هجومي، استخدم تنويع اللعب بين الدخول للعمق في أنصاف المساحات (Half-spaces) والركض على الخط لسحب أظهرة الخصم وتفكيك دفاعهم." : "As a winger, vary your movement between cutting inside into half-spaces and hugging the touchline to disorganize the opponent's fullbacks."
+          titleAr: "⚡ استغلال وتفكيك دفاع الأطراف",
+          titleEn: "⚡ Wing Play Exploitation",
+          bodyAr: "كجناح هجومي، استخدم تنويع اللعب بين الدخول للعمق في أنصاف المساحات (Half-spaces) والركض على الخط لسحب أظهرة الخصم وتفكيك تماسك دفاعهم.",
+          bodyEn: "As a winger, vary your movement between cutting inside into half-spaces and hugging the touchline to disorganize the opponent's fullbacks and pull them out of position."
         });
       }
     }
 
-    if (["CMF", "DMF", "AMF", "LMF", "RMF"].includes(profile.primaryPosition)) {
+    if (["CMF", "DMF", "AMF", "LMF", "RMF"].includes(profile.primaryPosition || "")) {
       if ((profile.attributes?.lowPass || 0) < 75 || (profile.attributes?.loftedPass || 0) < 75) {
         advices.push({
-          title: isAr ? "نصيحة لخط الوسط" : "Midfielder Advice",
-          body: isAr ? "دقة تمريراتك منخفضة. في المباراة القادمة، حاول التركيز على التمريرات القصيرة والمضمونة لبناء الثقة قبل لعب الكرات الطويلة المعقدة." : "Your passing accuracy is low. Next match, focus on short, safe passes to build confidence before attempting complex long balls."
+          titleAr: "⚽ دقة التمرير وضبط إيقاع الوسط",
+          titleEn: "⚽ Passing Accuracy & Tempo Control",
+          bodyAr: "دقة تمريراتك بحاجة لتركيز أكبر. في المباراة القادمة، اعتمد على التمريرات القصيرة والمضمونة لبناء الثقة وإرهاق الخصم قبل لعب الكرات الطويلة العميقة.",
+          bodyEn: "Your passing precision can improve. Next match, focus on short, safe passes to build confidence and tire out the opposition before attempting deep long balls."
         });
       }
       if ((profile.stats?.assists || 0) === 0 && (profile.stats?.matchesPlayed || 0) > 5) {
         advices.push({
-          title: isAr ? "زيادة صناعة الأهداف" : "Boost Assists",
-          body: isAr ? "لم تقم بصناعة أي هدف رغم لعبك لعدة مباريات. حاول رفع رأسك قبل استلام الكرة والبحث عن المهاجمين المنطلقين." : "You haven't assisted any goals despite playing several matches. Scan the pitch before receiving the ball to find runners."
+          titleAr: "🌟 زيادة الرؤية وصناعة الأهداف",
+          titleEn: "🌟 Boost Assists & Vision",
+          bodyAr: "لم تقم بصناعة أهداف مؤخراً رغم لعبك لعدة مباريات. ارفع رأسك وامسح الملعب قبل استلام الكرة لاكتشاف المهاجمين المنطلقين في ظهر المدافعين.",
+          bodyEn: "You haven't assisted recently despite playing several matches. Scan the pitch before receiving the ball to spot forward runners breaking behind the defensive line."
         });
       }
     }
 
-    if (["CB", "RB", "LB"].includes(profile.primaryPosition)) {
+    if (["CB", "RB", "LB"].includes(profile.primaryPosition || "")) {
       if ((profile.attributes?.defensiveAwareness || 0) < 75) {
         advices.push({
-          title: isAr ? "نصيحة للمدافع" : "Defender Advice",
-          body: isAr ? "تمركزك الدفاعي يحتاج للعمل. ابقَ قريباً من المهاجمين ولا تندفع لقطع الكرة إلا وأنت متأكد لتجنب ترك مساحات خلفك." : "Your defensive positioning needs work. Stay tight to the attackers and don't commit to a tackle unless you are sure to avoid leaving spaces."
+          titleAr: "🛡️ الانضباط والتمركز الدفاعي",
+          titleEn: "🛡️ Defensive Positioning & Discipline",
+          bodyAr: "تمركزك الدفاعي يحتاج للمزيد من الصلابة. ابقَ قريباً من المهاجمين ولا تندفع لقطع الكرة إلا وأنت واثق بنسبة عالية لتجنب ترك ثغرات خلفك.",
+          bodyEn: "Your defensive positioning needs work. Stay tight to the attackers and don't commit to a tackle unless you are highly confident to avoid leaving gaps behind."
         });
       }
       if (profile.primaryPosition === "CB" && (profile.attributes?.heading || 0) < 75) {
         advices.push({
-          title: isAr ? "الكرات الهوائية" : "Aerial Duels",
-          body: isAr ? "كقلب دفاع، الرأسيات ضرورية لك. تدرب على التوقيت الصحيح للقفز وتوجيه الكرة." : "As a CB, headers are crucial. Practice your jumping timing and ball direction."
+          titleAr: "✈️ الهيمنة في الكرات الهوائية",
+          titleEn: "✈️ Dominating Aerial Duels",
+          bodyAr: "كقلب دفاع، الرأسيات والتفوق الهوائي ضرورة قصوى. تدرب على التوقيت السليم للقفز واستخدام القوة البدنية لتوجيه الكرة وإبعاد الخطورة.",
+          bodyEn: "As a CB, aerial dominance is crucial. Practice your jumping timing and core body strength to redirect high balls and clear danger convincingly."
         });
       }
-      if (["LB", "RB"].includes(profile.primaryPosition) && (profile.attributes?.stamina || 0) < 75) {
+      if (["LB", "RB"].includes(profile.primaryPosition || "") && (profile.attributes?.stamina || 0) < 75) {
         advices.push({
-          title: isAr ? "لياقة الأطراف" : "Fullback Stamina",
-          body: isAr ? "الركض على الأطراف يتطلب لياقة بدنية عالية. حاول تنظيم مجهودك ولا تندفع للهجوم في كل هجمة إذا كنت متعباً." : "Running the flanks requires high stamina. Pace yourself and don't push forward on every attack if you're tired."
+          titleAr: "🏃 لياقة الأظهرة وإدارة المجهود",
+          titleEn: "🏃 Fullback Stamina & Pace Management",
+          bodyAr: "الركض المستمر على الأطراف يتطلب مخزون لياقة عالي. نظم مجهودك بذكاء ولا تندفع للهجوم في كل هجمة إذا لم تكن التغطية الدفاعية متوفرة في الخلف.",
+          bodyEn: "Running the flanks constantly demands high stamina reserves. Pace yourself smartly and don't push forward on every attack if defensive cover isn't guaranteed."
         });
       }
     }
@@ -107,102 +156,86 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     if (profile.primaryPosition === "GK") {
       if ((profile.attributes?.gkReflexes || 0) < 70) {
         advices.push({
-          title: isAr ? "نصيحة لحارس المرمى" : "Goalkeeper Advice",
-          body: isAr ? "ردود أفعالك تحتاج للتطوير. ركز على تدريبات الرشاقة والقفز لتحسين تغطيتك للمرمى ومجاراة التسديدات المباغتة." : "Your reflexes need development. Focus on agility and jumping drills to improve goal coverage against sudden shots."
-        });
-      }
-      if ((profile.attributes?.jump || 0) < 70) {
-        advices.push({
-          title: isAr ? "القفز وتغطية الزوايا" : "Jumping & Reach",
-          body: isAr ? "تغطيتك للزوايا البعيدة ضعيفة وتحتاج للقفز بشكل أفضل. حاول تحسين تمركزك والوقوف في منتصف زاوية التسديد لتسهيل التصدي." : "Your reach to far posts is lacking. Improve your positioning and jumping to be in the bisector of the shooting angle."
+          titleAr: "🧤 تطوير ردود الفعل وحراسة المرمى",
+          titleEn: "🧤 Goalkeeper Reflexes & Agility",
+          bodyAr: "ردود أفعالك تحتاج لشحذ مستمر. ركز على تدريبات الرشاقة والقفز السريع لتحسين تغطيتك للمرمى والتصدي للكرات المباغتة من مسافات قريبة.",
+          bodyEn: "Your reflexes need continuous sharpening. Focus on agility and rapid jumping drills to improve goal coverage against close-range reflex shots."
         });
       }
     }
 
-    // --- 2. Physical & Athletic Advices ---
+    // --- 3. Physical & Athletic Advices ---
     if ((profile.attributes?.speed || 0) < 65) {
       advices.push({
-        title: isAr ? "تطوير اللياقة والسرعة" : "Pace & Fitness",
-        body: isAr ? "سرعتك أقل من المعدل المطلوب للمباريات التنافسية. ركز على الجري لمسافات قصيرة (سبرنت) لزيادة انفجاريتك في الملعب." : "Your pace is below average for competitive games. Focus on short sprints to increase your explosiveness."
+        titleAr: "⚡ زيادة الانفجارية والسرعة",
+        titleEn: "⚡ Pace & Explosive Sprints",
+        bodyAr: "سرعتك الانفجارية أقل من المعدل المطلوب للمواجهات السريعة. ركز على تمارين السبرنت القصير (10-20 متر) لزيادة قدرتك على تجاوز المدافعين أو اللحاق بالمهاجمين.",
+        bodyEn: "Your burst pace is below average for high-tempo matches. Focus on short sprint drills (10-20m) to increase your ability to beat defenders or track back quickly."
       });
     }
 
     if ((profile.attributes?.physicalContact || 0) < 65) {
       advices.push({
-        title: isAr ? "القوة البدنية" : "Physical Strength",
-        body: isAr ? "أنت تخسر الكثير من الالتحامات الثنائية. تدريبات القوة في الصالة الرياضية، خاصة الجذع (Core)، ستجعلك لاعباً أصلب." : "You're losing many 1v1 physical duels. Core strength training in the gym will make you much more solid."
+        titleAr: "🏋️ القوة البدنية والصلابة في الالتحام",
+        titleEn: "🏋️ Core Strength & Duels",
+        bodyAr: "أنت تخسر بعض الالتحامات البدنية في وسط الملعب. تدريبات تقوية الجذع (Core Strength) والتوازن ستجعلك لاعباً لا يشق له طرف في الصراعات الثنائية.",
+        bodyEn: "You're losing some physical duels in congested areas. Core strength and balance training will make you an immovable force in 1v1 challenges."
       });
     }
     
     if ((profile.attributes?.stamina || 0) < 70) {
       advices.push({
-        title: isAr ? "القدرة على التحمل" : "Stamina",
-        body: isAr ? "قد تجد صعوبة في إكمال المباراة بنفس الإيقاع. خصص أياماً للجري الطويل (الكارديو) لتحسين لياقتك التنفسية." : "You might struggle to finish the game at high intensity. Dedicate days to long runs (Cardio) to improve your breathing stamina."
+        titleAr: "🫁 التحمل البدني حتى الدقيقة الأخيرة",
+        titleEn: "🫁 Last-Minute Stamina & Endurance",
+        bodyAr: "قد ينخفض مردودك البدني في النصف الثاني من الشوط الثاني. خصص تمارين للجري المستمر (الكارديو) وتنظيم التنفس للحفاظ على تركيزك حتى صافرة النهاية.",
+        bodyEn: "Your physical output may drop during the late stages of matches. Dedicate cardio workouts and breathing rhythms to stay sharp until the final whistle."
       });
     }
 
-    // --- 3. Playstyle-based Advices ---
+    // --- 4. Playstyle-based Advices ---
     const ps = profile.playStyle?.toLowerCase() || "";
     if (ps.includes("poacher") || ps.includes("قناص")) {
       advices.push({
-        title: isAr ? "أسلوب اللعب: قناص الأهداف" : "Playstyle: Goal Poacher",
-        body: isAr ? "العب دائماً على خط التسلل. وظيفتك الرئيسية هي إنهاء الهجمات وليس بنائها؛ احتفظ بطاقتك للركض الحاسم." : "Play on the shoulders of the last defender. Your main job is finishing, not building up; save energy for the final run."
+        titleAr: "🎯 أسلوب اللعب: قناص الأهداف الخاطف",
+        titleEn: "🎯 Playstyle: Lethal Goal Poacher",
+        bodyAr: "العب دائماً على خط التسلل بذكاء. وظيفتك الأساسية هي اللمسة القاتلة وليس النزول الدائم للوسط؛ احتفظ بطاقتك للانطلاق الحاسم عند ثغرة الدفاع.",
+        bodyEn: "Play intelligently on the shoulder of the last defender. Your primary job is the lethal touch, not dropping deep constantly; save burst energy for the decisive run."
       });
     } else if (ps.includes("box-to-box") || ps.includes("بوكس")) {
       advices.push({
-        title: isAr ? "أسلوب اللعب: بوكس تو بوكس" : "Playstyle: Box-to-Box",
-        body: isAr ? "دورك يتطلب طاقة هائلة. كن حلقة الوصل بين الدفاع والهجوم، لكن احرص على عدم ترك مساحات فارغة عند تقدمك." : "Your role demands massive energy. Be the link between defense and attack, but ensure you don't leave gaps behind."
+        titleAr: "🔄 أسلوب اللعب: المحرك (بوكس تو بوكس)",
+        titleEn: "🔄 Playstyle: Dynamic Box-to-Box Engine",
+        bodyAr: "دورك يتطلب طاقة وجهد استثنائيين. كن القلب النابض الذي يربط الدفاع بالهجوم، لكن تذكر قراءة اللعب لعدم ترك فجوات دفاعية عند ارتداد الكرة.",
+        bodyEn: "Your role demands immense engine endurance. Be the heartbeat linking defense to attack, but read game transitions to never leave defensive gaps on turnovers."
       });
     } else if (ps.includes("anchor") || ps.includes("ارتكاز")) {
       advices.push({
-        title: isAr ? "أسلوب اللعب: ارتكاز صلب" : "Playstyle: Anchor Man",
-        body: isAr ? "أنت الدرع الواقي للدفاع. ابقَ متمركزاً ولا تنجذب للأطراف لتغطية العمق دائماً وقطع الهجمات المرتدة." : "You are the shield. Stay centrally positioned, don't get dragged wide, and stop counter-attacks early."
-      });
-    } else if (ps.includes("target") || ps.includes("محطة")) {
-      advices.push({
-        title: isAr ? "أسلوب اللعب: مهاجم محطة" : "Playstyle: Target Man",
-        body: isAr ? "استخدم جسمك لحماية الكرة وانتظار القادمين من الخلف. تمريرتك القادمة أهم من محاولتك الدوران في مساحة ضيقة." : "Use your body to shield the ball and wait for runners. Laying it off is often better than trying to turn blindly."
-      });
-    }
-
-    // --- 4. Form & Match Activity ---
-    if (profile.form === "⬆️" || profile.form === "↗️") {
-      advices.push({
-        title: isAr ? "فورمة ممتازة" : "Excellent Form",
-        body: isAr ? "مستواك الحالي ممتاز وتمر بفترة جيدة. استغل ثقتك في الملعب وخذ المبادرة لصناعة الفارق في المباريات المعقدة." : "You're in great form right now. Use your confidence on the pitch to take the initiative in tight matches."
-      });
-    } else if (profile.form === "↘️" || profile.form === "⬇️") {
-      advices.push({
-        title: isAr ? "تراجع المستوى" : "Form Slump",
-        body: isAr ? "مستواك متراجع قليلاً هذه الفترة. هذا طبيعي في كرة القدم. العب السهل لتستعيد ثقتك تدريجياً وابتعد عن الفلسفة." : "Your form has dipped recently. This is normal. Play simple passes to rebuild your confidence."
+        titleAr: "⚓ أسلوب اللعب: الارتكاز الصلب والدرع",
+        titleEn: "⚓ Playstyle: Solid Defensive Anchor",
+        bodyAr: "أنت الدرع الواقي للخط الخلفي. ابقَ متمركزاً في العمق ولا تنجذب للأطراف لتغطية الثغرات وقطع الهجمات المرتدة قبل أن تتحول إلى خطورة.",
+        bodyEn: "You are the protective shield before the defensive line. Stay centrally disciplined, don't get dragged wide, and stop counter-attacks before they become dangerous."
       });
     }
 
     // --- 5. Overall General & Tactical Tips ---
     advices.push(
       {
-        title: isAr ? "التمركز والضغط الذكي" : "Smart Pressing & Positioning",
-        body: isAr ? "لا تركض خلف الكرة بعشوائية! اغلق مسارات التمرير أولاً واضغط في التوقيت الذي يستلم فيه الخصم ظهره للملعب." : "Don't press blindly! Cut off passing lanes first and trigger your press when the opponent receives with their back turned."
+        titleAr: "🧠 التمركز والضغط الجماعي الذكي",
+        titleEn: "🧠 Smart Positioning & Pressing",
+        bodyAr: "لا تركض خلف الكرة بمفردك! اغلق زوايا التمرير أولاً واضغط في التوقيت الذي يستلم فيه الخصم الكرة وظهره للملعب أو في زاوية الملعب.",
+        bodyEn: "Don't press alone impulsively! Cut off passing angles first and trigger the press precisely when the opponent receives with their back turned or in tight corner zones."
       },
       {
-        title: isAr ? "إدارة اللياقة البدنية" : "Stamina Management",
-        body: isAr ? "وزع مجهودك البدني على مدار شوطي المباراة. الانطلاق في الأوقات الحاسمة أفضل من الركض المستمر دون فاعلية." : "Pace your energy across both halves. Explosive sprints at decisive moments beat constant ineffective jogging."
+        titleAr: "👀 اتخاذ القرار السريع ومسح الملعب",
+        titleEn: "👀 Scanning & Rapid Decision Making",
+        bodyAr: "ارفع رأسك وامسح الملعب بنظرة سريعة قبل أن تصلك الكرة، لتعرف خيارك الأول والبديل وتنفذ التمريرة أو المراوغة من اللمسة الأولى بسلاسة.",
+        bodyEn: "Scan the pitch thoroughly before the ball reaches your feet so you already know your primary and secondary options to execute first-time with fluid precision."
       },
       {
-        title: isAr ? "اتخاذ القرار السريع" : "Quick Decision Making",
-        body: isAr ? "ارفع رأسك وامسح الملعب قبل أن تصلك الكرة، لتعرف خيارك الأول والبديل قبل اللمسة الأولى." : "Scan the pitch before receiving the ball so you know your first and second options before taking a touch."
-      },
-      {
-        title: isAr ? "استغلال الكرات الثابتة" : "Set-Piece Threat",
-        body: isAr ? "الركنيات والضربات الحرة تصنع الفارق في المباريات المعقدة. ركز في التمركز والتحرك الخادع للهروب من الرقابة." : "Set pieces break deadlocks in tight games. Focus on sharp decoy runs to lose your marker inside the box."
-      },
-      {
-        title: isAr ? "نصيحة عامة في اللعب الجماعي" : "Team Chemistry Advice",
-        body: isAr ? "أرقامك متوازنة! تذكر أن التواصل الإيجابي وتشجيع الزملاء في الملعب يرفع الروح المعنوية ويحسم المباريات الصعبة." : "Your stats look solid! Remember that positive communication and encouraging teammates lifts team morale and wins tough games."
-      },
-      {
-        title: isAr ? "الراحة والتعافي البدني" : "Rest & Recovery",
-        body: isAr ? "التعافي الجيد هو سر الأداء الثابت. احرص على النوم الكافي والإطالات العضلية بعد المباريات القوية." : "Proper recovery is the secret to consistency. Prioritize hydration, sleep, and stretching after intense matches."
+        titleAr: "🌟 الروح الإيجابية وكيمياء الفريق",
+        titleEn: "🌟 Team Chemistry & Positive Leadership",
+        bodyAr: "التواصل الإيجابي وتشجيع زميلك عند الخطأ يرفع المعنويات ويصنع الفارق النفسي الذي يحسم أصعب المباريات. كن قائداً بكلماتك وأفعالك!",
+        bodyEn: "Positive communication and lifting up a teammate after a mistake boosts morale and creates the winning mentality needed in tough matches. Lead by example!"
       }
     );
 
@@ -211,17 +244,30 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {
+      const title = isAr ? ad.titleAr : ad.titleEn;
+      const body = isAr ? ad.bodyAr : ad.bodyEn;
       await addDoc(notificationsRef, {
         type: "advices",
-        title: ad.title,
-        body: ad.body,
+        title,
+        body,
+        titleAr: ad.titleAr,
+        titleEn: ad.titleEn,
+        bodyAr: ad.bodyAr,
+        bodyEn: ad.bodyEn,
         read: false,
         createdAt: serverTimestamp(),
         link: "/profile?uid=" + userUid
       });
     }
 
-    return selectedAdvices;
+    return selectedAdvices.map(ad => ({
+      title: isAr ? ad.titleAr : ad.titleEn,
+      body: isAr ? ad.bodyAr : ad.bodyEn,
+      titleAr: ad.titleAr,
+      titleEn: ad.titleEn,
+      bodyAr: ad.bodyAr,
+      bodyEn: ad.bodyEn
+    }));
   } catch (err) {
     console.error("Failed to generate advice:", err);
     return [];

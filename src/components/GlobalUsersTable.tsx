@@ -11,6 +11,7 @@ import { Loader2, Trash2, Search, ArrowUpDown, Eye } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ConfirmModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import GlobalUserRow from "@/components/GlobalUserRow";
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
 
 export default function GlobalUsersTable() {
@@ -23,6 +24,8 @@ export default function GlobalUsersTable() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -185,6 +188,16 @@ export default function GlobalUsersTable() {
     return result;
   }, [users, searchQuery, sortConfig]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortConfig]);
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = React.useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredUsers.slice(start, start + itemsPerPage);
+  }, [filteredUsers, currentPage, itemsPerPage]);
+
   if (loading) {
     return <SiteSkeletonLoader variant="table" />;
   }
@@ -247,74 +260,17 @@ export default function GlobalUsersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {filteredUsers.map(u => (
-              <tr key={u.uid} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    {(() => {
-                      const photo = u.photoUrl || u.googlePic || (u as any).photoURL || (u as any).userPic || '';
-                      return photo ? (
-                        <Image src={photo} alt={u.fullName} className="w-10 h-10 rounded-full object-cover" width={40} height={40} referrerPolicy="no-referrer" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold">
-                          {u.fullName?.charAt(0) || '?'}
-                        </div>
-                      );
-                    })()}
-                    <div>
-                      <div className="font-bold text-slate-900 dark:text-white">{u.fullName}</div>
-                      <div className="text-sm text-slate-500">{u.cardName}</div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                  {u.email || "N/A"}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex flex-wrap gap-1">
-                    {(() => {
-                      const activeLocalComm = typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null;
-                      const commIds = Array.from(new Set([
-                        ...(u.memberCommunities || []),
-                        ...(u.joinedCommunities || []),
-                        ...(userCommMap[u.uid] || []),
-                        ...((u as any).lastCommunityId ? [(u as any).lastCommunityId] : []),
-                        ...((activeLocalComm && (userCommMap[u.uid] || u.memberCommunities?.includes(activeLocalComm))) ? [activeLocalComm] : [])
-                      ].filter(Boolean))) as string[];
-                      return commIds.length > 0 ? (
-                        commIds.map(c => (
-                          <span key={c} className="text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
-                            {communitiesMap[c] || c}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-sm text-slate-400">-</span>
-                      );
-                    })()}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Link
-                      href={`/profile?uid=${u.uid}`}
-                      className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
-                      title={isAr ? "عرض الملف الشخصي" : "View Profile"}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>{isAr ? "الملف الشخصي" : "Profile"}</span>
-                    </Link>
-                    <button 
-                      onClick={() => handleBanUser(u)}
-                      className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                      title={isAr ? "حظر / حذف" : "Ban / Delete User"}
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
+            {paginatedUsers.map(u => (
+              <GlobalUserRow
+                key={u.uid}
+                u={u}
+                isAr={isAr}
+                communitiesMap={communitiesMap}
+                userCommMap={userCommMap}
+                onBanUser={handleBanUser}
+              />
             ))}
-            {users.length === 0 && (
+            {filteredUsers.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
                   {isAr ? "لا يوجد مستخدمين" : "No users found"}
@@ -324,6 +280,30 @@ export default function GlobalUsersTable() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between gap-4 flex-wrap">
+          <div className="text-xs font-bold text-slate-500">
+            {isAr ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-50 disabled:pointer-events-none hover:border-emerald-500 transition-colors"
+            >
+              {isAr ? "السابق" : "Previous"}
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-50 disabled:pointer-events-none hover:border-emerald-500 transition-colors"
+            >
+              {isAr ? "التالي" : "Next"}
+            </button>
+          </div>
+        </div>
+      )}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
