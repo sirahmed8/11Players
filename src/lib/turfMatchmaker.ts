@@ -38,7 +38,7 @@ export interface TurfMatchmakingResult {
   numTeams: number;
   playersPerTeam: number;
   gkMode: 'fixed' | 'rotating';
-  gkRotationInterval: 'per_match' | 'per_goal';
+  gkRotationInterval: 'per_match' | 'per_goal' | 'per_time';
   matchDurationMins: number;
 }
 
@@ -163,8 +163,9 @@ export interface TurfConfig {
   numTeams: number;           // 2, 3, 4, ...
   playersPerTeam: number;     // 4 to 10 (outfield + GK)
   gkMode: 'fixed' | 'rotating';
-  gkRotationInterval: 'per_match' | 'per_goal';
-  matchType: 'league' | 'knockout';
+  gkRotationInterval: 'per_match' | 'per_goal' | 'per_time';
+  gkRotationMinutes?: number; // Only used when gkRotationInterval === 'per_time'
+  matchType: 'league' | 'knockout' | 'winner_stays';
   matchDurationMins: number;
 }
 

@@ -117,7 +117,12 @@ export default function AdminPage() {
       setMatchmakingLoading(true);
       setMatchmakingError("");
       
-      const availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
+      // Filter by excluded + by explicit selection from MatchConfigModal
+      let availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
+      if (config.selectedPlayerUids && config.selectedPlayerUids.length > 0) {
+        const selectedSet = new Set(config.selectedPlayerUids);
+        availablePlayers = availablePlayers.filter(p => selectedSet.has(p.uid));
+      }
       const playerIds = availablePlayers.map((p) => p.uid);
 
       if (playerIds.length < 4) {
@@ -137,9 +142,10 @@ export default function AdminPage() {
         const turfConfig = {
           numTeams: config.numTeams || 2,
           playersPerTeam: config.playersPerTeam || 6,
-          gkMode: config.gkMode || 'rotating',
-          gkRotationInterval: config.gkRotationInterval || 'per_match',
-          matchType: (config.matchType as 'league' | 'knockout') || 'league',
+          gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_match' | 'per_goal' | 'per_time',
+          gkRotationMinutes: config.gkRotationMinutes,
+          matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
           matchDurationMins: config.matchDurationMins || 20,
         };
         const turfResult = generateTurfMatch(availablePlayers, turfConfig);
@@ -422,8 +428,6 @@ export default function AdminPage() {
                         <UserX className="w-4 h-4 text-red-500" />
                         <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
                       </button>
-
-                      <PendingEdits />
                     </div>
                   </div>
                 </div>
@@ -450,6 +454,7 @@ export default function AdminPage() {
           isOpen={isConfigModalOpen}
           onClose={() => setIsConfigModalOpen(false)}
           onGenerate={handleMatchmaking}
+          communityPlayers={players}
         />
 
         {/* Dummy Generation Confirm Modal */}

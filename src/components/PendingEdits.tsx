@@ -51,14 +51,19 @@ const ATTRIBUTE_LABELS: Record<keyof PlayerAttributes, { en: string; ar: string 
 const POSITIONS: PESPosition[] = ['CF', 'SS', 'LWF', 'RWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
 const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner', 'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank', 'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up', 'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
 
-export default function PendingEdits() {
+interface PendingEditsProps {
+  filterPlayerId?: string;    // If set, only shows edits for this player
+  inlineMode?: boolean;       // If true, renders inline (no trigger button)
+}
+
+export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEditsProps = {}) {
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const { isOwner } = useAuth();
   const isAr = locale === "ar";
   const [edits, setEdits] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(!!inlineMode);
 
   const [reviewingEdit, setReviewingEdit] = useState<any | null>(null);
   const [currentPlayerData, setCurrentPlayerData] = useState<any | null>(null);
@@ -80,7 +85,11 @@ export default function PendingEdits() {
     const merge = () => {
       const merged = [...communityEdits, ...globalEdits];
       // Remove duplicates by ID
-      const unique = merged.filter((item, index, self) => index === self.findIndex(t => t.id === item.id));
+      let unique = merged.filter((item, index, self) => index === self.findIndex(t => t.id === item.id));
+      // Filter to specific player if in per-player mode
+      if (filterPlayerId) {
+        unique = unique.filter(e => e.playerId === filterPlayerId);
+      }
       setEdits(unique);
       setLoading(false);
     };
@@ -106,7 +115,7 @@ export default function PendingEdits() {
     }
 
     return () => unsubs.forEach(u => u());
-  }, [activeCommunityId, isOwner]);
+  }, [activeCommunityId, isOwner, filterPlayerId]);
 
   const handleOpenReview = async (edit: any) => {
     setReviewingEdit(edit);

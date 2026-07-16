@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/components/ThemeProvider';
-import { Users, RotateCw, Trophy, Timer, Shuffle } from 'lucide-react';
+import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X } from 'lucide-react';
 
 export interface MatchConfig {
   date: string;
@@ -14,18 +14,29 @@ export interface MatchConfig {
   numTeams?: number;              // 2, 3, 4+
   playersPerTeam?: number;        // 4 to 10
   gkMode?: 'fixed' | 'rotating'; // GK rotation style
-  gkRotationInterval?: 'per_match' | 'per_goal';
+  gkRotationInterval?: 'per_match' | 'per_goal' | 'per_time';
+  gkRotationMinutes?: number;     // Minutes between GK rotations
   matchType?: 'league' | 'knockout' | 'winner_stays';
   matchDurationMins?: number;     // Duration per match
+  selectedPlayerUids?: string[];  // Which players will play (null = all)
+}
+
+interface CommunityPlayer {
+  uid: string;
+  fullName?: string;
+  cardName?: string;
+  primaryPosition?: string;
+  photoUrl?: string;
 }
 
 interface MatchConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
   onGenerate: (config: MatchConfig) => void;
+  communityPlayers?: CommunityPlayer[];
 }
 
-export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchConfigModalProps) {
+export default function MatchConfigModal({ isOpen, onClose, onGenerate, communityPlayers = [] }: MatchConfigModalProps) {
   const { locale } = useLocale();
   const isAr = locale === 'ar';
 
@@ -42,12 +53,16 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
     playersPerTeam: 6,
     gkMode: 'rotating',
     gkRotationInterval: 'per_match',
+    gkRotationMinutes: 10,
     matchType: 'league',
     matchDurationMins: 20,
+    selectedPlayerUids: undefined, // undefined = all players
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [showPlayersDropdown, setShowPlayersDropdown] = useState(false);
+  const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
 
   const [selectedHour, setSelectedHour] = useState('09');
@@ -56,6 +71,37 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
 
   const datePickerRef = useRef<HTMLDivElement>(null);
   const timePickerRef = useRef<HTMLDivElement>(null);
+  const playersDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Selected players for this match (default: all)
+  const [selectedUids, setSelectedUids] = useState<Set<string>>(new Set());
+  const allUids = communityPlayers.map(p => p.uid);
+
+  const togglePlayer = (uid: string) => {
+    setSelectedUids(prev => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedUids.size === allUids.length) {
+      setSelectedUids(new Set());
+    } else {
+      setSelectedUids(new Set(allUids));
+    }
+  };
+
+  // On open, default select all players
+  useEffect(() => {
+    if (isOpen && communityPlayers.length > 0) {
+      setSelectedUids(new Set(communityPlayers.map(p => p.uid)));
+    }
+  }, [isOpen, communityPlayers]);
+
+  const datePickerRef2 = datePickerRef;
+  const timePickerRef2 = timePickerRef;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -64,6 +110,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
       }
       if (timePickerRef.current && !timePickerRef.current.contains(event.target as Node)) {
         setShowTimePicker(false);
+      }
+      if (playersDropdownRef.current && !playersDropdownRef.current.contains(event.target as Node)) {
+        setShowPlayersDropdown(false);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -392,20 +441,49 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                       </div>
                     </div>
 
-                    {/* Players per Team */}
-                    <div>
+                    {/* Players per Team — Custom Animated Dropdown */}
+                    <div className="relative" ref={playersDropdownRef}>
                       <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
                         {isAr ? 'لاعبين/فريق' : 'Players / Team'}
                       </label>
-                      <select
-                        value={config.playersPerTeam}
-                        onChange={e => setConfig(prev => ({ ...prev, playersPerTeam: Number(e.target.value) }))}
-                        className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-bold text-slate-900 dark:text-white outline-none focus:border-amber-400"
+                      <button
+                        type="button"
+                        onClick={() => setShowPlayersDropdown(p => !p)}
+                        className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-900 dark:bg-slate-900 border border-slate-700 rounded-2xl text-sm font-black text-white hover:border-amber-500 transition-all"
                       >
-                        {[4, 5, 6, 7, 8, 9, 10].map(n => (
-                          <option key={n} value={n}>{n} {isAr ? 'لاعبين' : 'players'}</option>
-                        ))}
-                      </select>
+                        <span>{config.playersPerTeam} {isAr ? 'لاعبين' : 'players'}</span>
+                        <motion.span animate={{ rotate: showPlayersDropdown ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                          <ChevronDown className="w-4 h-4 text-slate-400" />
+                        </motion.span>
+                      </button>
+                      <AnimatePresence>
+                        {showPlayersDropdown && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -8, scaleY: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                            exit={{ opacity: 0, y: -8, scaleY: 0.9 }}
+                            transition={{ duration: 0.18 }}
+                            style={{ originY: 0 }}
+                            className="absolute z-50 top-full mt-1 w-full bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
+                          >
+                            {[4, 5, 6, 7, 8, 9, 10].map(n => (
+                              <button
+                                key={n}
+                                type="button"
+                                onClick={() => { setConfig(prev => ({ ...prev, playersPerTeam: n })); setShowPlayersDropdown(false); }}
+                                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold transition-colors ${
+                                  config.playersPerTeam === n
+                                    ? 'bg-amber-500 text-white'
+                                    : 'text-slate-300 hover:bg-slate-800'
+                                }`}
+                              >
+                                <span>{n} {isAr ? 'لاعبين' : 'players'}</span>
+                                {config.playersPerTeam === n && <Check className="w-4 h-4" />}
+                              </button>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
 
@@ -439,29 +517,65 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                       </button>
                     </div>
                     {config.gkMode === 'rotating' && (
-                      <div className="mt-2 flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_match' }))}
-                          className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
-                            config.gkRotationInterval === 'per_match'
-                              ? 'bg-amber-400 text-white border-amber-400'
-                              : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                          }`}
-                        >
-                          {isAr ? 'يتبدل كل مباراة' : 'Rotate per match'}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_goal' }))}
-                          className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
-                            config.gkRotationInterval === 'per_goal'
-                              ? 'bg-amber-400 text-white border-amber-400'
-                              : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
-                          }`}
-                        >
-                          {isAr ? 'يتبدل كل هدف' : 'Rotate per goal'}
-                        </button>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_match' }))}
+                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                              config.gkRotationInterval === 'per_match'
+                                ? 'bg-amber-400 text-white border-amber-400'
+                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? '🔄 كل مباراة' : '🔄 Per match'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_goal' }))}
+                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                              config.gkRotationInterval === 'per_goal'
+                                ? 'bg-amber-400 text-white border-amber-400'
+                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? '⚽ كل هدف' : '⚽ Per goal'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_time' }))}
+                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                              config.gkRotationInterval === 'per_time'
+                                ? 'bg-amber-400 text-white border-amber-400'
+                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                            }`}
+                          >
+                            {isAr ? '⏱️ كل وقت' : '⏱️ By time'}
+                          </button>
+                        </div>
+                        {config.gkRotationInterval === 'per_time' && (
+                          <div>
+                            <div className="text-[10px] font-bold text-slate-500 mb-1.5">
+                              {isAr ? 'تبديل كل (دقيقة)' : 'Rotate every (minutes)'}
+                            </div>
+                            <div className="flex gap-1.5">
+                              {[5, 7, 10, 12, 15].map(m => (
+                                <button
+                                  key={m}
+                                  type="button"
+                                  onClick={() => setConfig(prev => ({ ...prev, gkRotationMinutes: m }))}
+                                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                                    config.gkRotationMinutes === m
+                                      ? 'bg-amber-500 text-white border-amber-500'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                  }`}
+                                >
+                                  {m}&apos;
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -535,11 +649,70 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                     </div>
                   </div>
 
+                  {/* Player Selection */}
+                  {communityPlayers.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-black text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                          <Users className="w-3.5 h-3.5" />
+                          {isAr ? 'من سيلعب؟' : 'Who\'s Playing?'}
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-amber-500">
+                            {selectedUids.size}/{communityPlayers.length} {isAr ? 'لاعب' : 'players'}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={toggleAll}
+                            className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+                          >
+                            {selectedUids.size === allUids.length ? (isAr ? 'إلغاء الكل' : 'Deselect All') : (isAr ? 'تحديد الكل' : 'Select All')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setShowPlayerPicker(p => !p)}
+                            className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                          >
+                            {showPlayerPicker ? (isAr ? 'إخفاء' : 'Hide') : (isAr ? 'تعديل' : 'Edit')}
+                          </button>
+                        </div>
+                      </div>
+                      <AnimatePresence>
+                        {showPlayerPicker && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
+                              {communityPlayers.map(p => (
+                                <button
+                                  key={p.uid}
+                                  type="button"
+                                  onClick={() => togglePlayer(p.uid)}
+                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                    selectedUids.has(p.uid)
+                                      ? 'bg-emerald-500 text-white shadow-sm'
+                                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 line-through opacity-60'
+                                  }`}
+                                >
+                                  {selectedUids.has(p.uid) ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                                  {p.cardName || p.fullName}
+                                </button>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )}
+
                   {/* Summary */}
                   <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
                     {isAr
-                      ? `سيتم توزيع اللاعبين على ${config.numTeams} فرق بنظام الدور (Serpentine Draft) بحيث تكون قوة الفرق متكافئة — ${config.playersPerTeam} لاعب لكل فريق — ${config.gkMode === 'rotating' ? `مع دوران الحراسة ${config.gkRotationInterval === 'per_goal' ? 'بعد كل هدف' : 'كل مباراة'}` : 'مع حارس ثابت'} — ${config.matchType === 'league' ? 'دوري ذهاب وإياب' : config.matchType === 'knockout' ? 'كأس إقصاء' : 'الكسبان مستمر'} — ${config.matchDurationMins} دقيقة.`
-                      : `Players will be split into ${config.numTeams} balanced teams via Serpentine Draft — ${config.playersPerTeam} players each — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} format — ${config.matchDurationMins} min.`
+                      ? `سيتم توزيع ${communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
+                      : `Splitting ${communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
                     }
                   </div>
                 </div>
@@ -557,7 +730,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate }: MatchC
                 <button
                   type="button"
                   onClick={() => {
-                    onGenerate(config);
+                    const finalConfig: MatchConfig = {
+                      ...config,
+                      selectedPlayerUids: communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
+                        ? Array.from(selectedUids)
+                        : undefined,
+                    };
+                    onGenerate(finalConfig);
                     onClose();
                   }}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none focus:ring-2 focus:ring-emerald-500"

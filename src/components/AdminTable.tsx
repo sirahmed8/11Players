@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
-import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
 import { generateDummyPlayersForCommunity } from '@/lib/dummyData';
@@ -20,6 +20,7 @@ import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
 import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal';
 import CustomSelect from '@/components/CustomSelect';
+import PendingEdits from '@/components/PendingEdits';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -126,6 +127,26 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const [playerToDelete, setPlayerToDelete] = useState<PlayerProfile | null>(null);
   const [playerToReset, setPlayerToReset] = useState<PlayerProfile | null>(null);
   const [showEndSeasonModal, setShowEndSeasonModal] = useState(false);
+  const [pendingEditsByPlayer, setPendingEditsByPlayer] = useState<Record<string, number>>({});
+  const [suggestionsModalPlayer, setSuggestionsModalPlayer] = useState<PlayerProfile | null>(null);
+
+  // Subscribe to pending edits to show per-player badge
+  useEffect(() => {
+    if (!activeCommunityId) return;
+    const q = query(
+      collection(db, `communities/${activeCommunityId}/editRequests`),
+      where('status', '==', 'pending')
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      const counts: Record<string, number> = {};
+      snap.docs.forEach(d => {
+        const pid = d.data().playerId;
+        if (pid) counts[pid] = (counts[pid] || 0) + 1;
+      });
+      setPendingEditsByPlayer(counts);
+    });
+    return () => unsub();
+  }, [activeCommunityId]);
 
   const handleEndSeason = async () => {
     setLoadingUid('ending-season');
@@ -579,6 +600,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   onOpenDeleteModal={(p) => setPlayerToDelete(p)}
                   isOwner={isOwner}
                   onOpenManageCommunitiesModal={isOwner ? (p) => setManageCommModal({ open: true, player: p }) : undefined}
+                  pendingEditCount={pendingEditsByPlayer[player.uid] || 0}
+                  onOpenSuggestionsModal={(p) => setSuggestionsModalPlayer(p)}
                 />
               ))}
             </AnimatePresence>
@@ -1010,6 +1033,48 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         onClose={() => setManageCommModal({ open: false, player: null })}
         onRefresh={onRefresh}
       />
+
+      {/* Per-Player Suggestions Modal */}
+      <AnimatePresence>
+        {suggestionsModalPlayer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-slate-900/70 backdrop-blur-sm overflow-y-auto"
+            onClick={() => setSuggestionsModalPlayer(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: -10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: -10 }}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+                <div>
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                    {t(locale, 'Pending Suggestions', 'الاقتراحات المعلقة')}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {suggestionsModalPlayer.fullName}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSuggestionsModalPlayer(null)}
+                  className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-500"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+              </div>
+              <div className="p-4">
+                <PendingEdits filterPlayerId={suggestionsModalPlayer.uid} inlineMode={true} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
+
