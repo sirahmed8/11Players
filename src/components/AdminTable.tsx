@@ -130,22 +130,50 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const [pendingEditsByPlayer, setPendingEditsByPlayer] = useState<Record<string, number>>({});
   const [suggestionsModalPlayer, setSuggestionsModalPlayer] = useState<PlayerProfile | null>(null);
 
-  // Subscribe to pending edits to show per-player badge
+  // Subscribe to pending edits to show per-player badge (both community and global suggestions)
   useEffect(() => {
     if (!activeCommunityId) return;
-    const q = query(
+    const qComm = query(
       collection(db, `communities/${activeCommunityId}/editRequests`),
       where('status', '==', 'pending')
     );
-    const unsub = onSnapshot(q, (snap) => {
+    const qGlobal = query(
+      collection(db, 'editRequests'),
+      where('status', '==', 'pending')
+    );
+    
+    let commCounts: Record<string, number> = {};
+    let globalCounts: Record<string, number> = {};
+
+    const updateCombined = () => {
       const counts: Record<string, number> = {};
+      Object.entries(commCounts).forEach(([k, v]) => counts[k] = (counts[k] || 0) + v);
+      Object.entries(globalCounts).forEach(([k, v]) => counts[k] = (counts[k] || 0) + v);
+      setPendingEditsByPlayer(counts);
+    };
+
+    const unsubComm = onSnapshot(qComm, (snap) => {
+      commCounts = {};
       snap.docs.forEach(d => {
         const pid = d.data().playerId;
-        if (pid) counts[pid] = (counts[pid] || 0) + 1;
+        if (pid) commCounts[pid] = (commCounts[pid] || 0) + 1;
       });
-      setPendingEditsByPlayer(counts);
+      updateCombined();
     });
-    return () => unsub();
+
+    const unsubGlobal = onSnapshot(qGlobal, (snap) => {
+      globalCounts = {};
+      snap.docs.forEach(d => {
+        const pid = d.data().playerId;
+        if (pid) globalCounts[pid] = (globalCounts[pid] || 0) + 1;
+      });
+      updateCombined();
+    });
+
+    return () => {
+      unsubComm();
+      unsubGlobal();
+    };
   }, [activeCommunityId]);
 
   const handleEndSeason = async () => {
@@ -368,6 +396,24 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       const globalRef = doc(db, 'players', attrModal.player.uid);
       batch.set(globalRef, updatePayload, { merge: true });
 
+      try {
+        const notifRef = doc(db, 'users', attrModal.player.uid, 'notifications', `rating_update_${Date.now()}`);
+        batch.set(notifRef, {
+          title: t(locale, "🌟 OVR Rating & Attributes Updated!", "🌟 تم تحديث طاقاتك وتقييمك العام!"),
+          body: t(
+            locale,
+            `Your OVR Rating is now ${newOverall} (${pos}). Check your updated skills and profile card!`,
+            `تقييمك العام أصبح الآن ${newOverall} (${pos}). تفقد بطاقتك وطاقاتك المحدثة في ملفك الشخصي!`
+          ),
+          type: "updates",
+          read: false,
+          link: `/profile?uid=${attrModal.player.uid}`,
+          createdAt: serverTimestamp()
+        });
+      } catch (nErr) {
+        console.error("Failed to queue rating notification:", nErr);
+      }
+
       await batch.commit();
       onRefresh();
       closeAttrModal();
@@ -384,24 +430,13 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!playerToReset || !activeCommunityId) return;
     setLoadingUid('resetting-' + playerToReset.uid);
     try {
-      const batch = writeBatch(db);
+      const resetStats = { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 };
       const commRef = doc(db, 'communities', activeCommunityId, 'players', playerToReset.uid);
-      batch.set(commRef, {
-        'stats.goals': 0,
-        'stats.assists': 0,
-        'stats.mvp': 0,
-        'stats.matchesPlayed': 0,
-      }, { merge: true });
+      await setDoc(commRef, { stats: resetStats }, { merge: true });
 
       const globalRef = doc(db, 'players', playerToReset.uid);
-      batch.set(globalRef, {
-        'stats.goals': 0,
-        'stats.assists': 0,
-        'stats.mvp': 0,
-        'stats.matchesPlayed': 0,
-      }, { merge: true });
+      await setDoc(globalRef, { stats: resetStats, [`communityStats.${activeCommunityId}`]: resetStats }, { merge: true });
 
-      await batch.commit();
       onRefresh();
       toast.success(t(locale, 'Stats reset successfully', 'تم تصفير الإحصائيات بنجاح'));
       setPlayerToReset(null);
@@ -450,23 +485,33 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     if (!statsModal.player || !activeCommunityId) return;
     setLoadingUid('stats-' + statsModal.player.uid);
     try {
-      // 1. Update Community Stats
+      // 1. Update Community Stats safely using setDoc with merge: true
       const communityDocRef = doc(db, 'communities', activeCommunityId, 'players', statsModal.player.uid);
-      await updateDoc(communityDocRef, {
-        'stats.goals': increment(statsModal.goals),
-        'stats.assists': increment(statsModal.assists),
-        'stats.mvp': increment(statsModal.mvp),
-        'stats.matchesPlayed': increment(1),
-      });
+      await setDoc(communityDocRef, {
+        stats: {
+          goals: increment(statsModal.goals),
+          assists: increment(statsModal.assists),
+          mvp: increment(statsModal.mvp),
+          matchesPlayed: increment(1),
+        }
+      }, { merge: true });
 
-      // 2. Update Global Stats
+      // 2. Update Global Stats safely
       const globalDocRef = doc(db, 'players', statsModal.player.uid);
-      await updateDoc(globalDocRef, {
-        'stats.goals': increment(statsModal.goals),
-        'stats.assists': increment(statsModal.assists),
-        'stats.mvp': increment(statsModal.mvp),
-        'stats.matchesPlayed': increment(1),
-      }).catch(err => console.error("Global stat update failed (might not exist):", err));
+      await setDoc(globalDocRef, {
+        stats: {
+          goals: increment(statsModal.goals),
+          assists: increment(statsModal.assists),
+          mvp: increment(statsModal.mvp),
+          matchesPlayed: increment(1),
+        },
+        [`communityStats.${activeCommunityId}`]: {
+          goals: increment(statsModal.goals),
+          assists: increment(statsModal.assists),
+          mvp: increment(statsModal.mvp),
+          matchesPlayed: increment(1),
+        }
+      }, { merge: true }).catch(err => console.error("Global stat update failed:", err));
 
       try {
         const notifRef = doc(db, 'users', statsModal.player.uid, 'notifications', `stat_update_${Date.now()}`);

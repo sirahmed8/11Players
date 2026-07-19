@@ -211,6 +211,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       const resolvedCommId = editCommunityId || null;
       if (targetStats && resolvedCommId) {
         updateDataGlobal[`communityStats.${resolvedCommId}`] = targetStats;
+        updateDataGlobal.stats = targetStats;
         updateDataComm.stats = targetStats;
       }
       

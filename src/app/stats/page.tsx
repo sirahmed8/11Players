@@ -144,9 +144,11 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
 }
 
 export default function StatsPage() {
-  const { players, loading } = usePlayers();
+  const { players, loading, refreshPlayers } = usePlayers();
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  const [refreshing, setRefreshing] = React.useState(false);
+
   // All tables expanded by default — avoids the "loads 2 then the rest" perception on mobile
   const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({
     ballon: true,
@@ -159,6 +161,16 @@ export default function StatsPage() {
 
   const handleToggle = (id: string) => {
     setExpandedTables((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleManualRefresh = async () => {
+    if (refreshing || !refreshPlayers) return;
+    setRefreshing(true);
+    try {
+      await refreshPlayers();
+    } finally {
+      setTimeout(() => setRefreshing(false), 600);
+    }
   };
 
   const getOverall = React.useCallback((p: PlayerProfile) => {
@@ -199,9 +211,25 @@ export default function StatsPage() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
         
         <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-10 text-center">
-            <h2 className="text-4xl font-black mb-2">{isAr ? "قائمة المتصدرين العالمية" : "Global Leaderboards"}</h2>
-            <p className="text-slate-500 dark:text-slate-400" dir={isAr ? "rtl" : "ltr"}>{isAr ? "الأفضل بين الأفضل في 11Players." : "The best of the best in 11Players."}</p>
+          <div className="mb-10 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+            <div className="text-center md:text-start">
+              <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
+                <h2 className="text-3xl md:text-4xl font-black">{isAr ? "قائمة المتصدرين العالمية" : "Global Leaderboards"}</h2>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  {isAr ? "تحديث حي ومباشر" : "Live Updates"}
+                </span>
+              </div>
+              <p className="text-slate-500 dark:text-slate-400 text-sm" dir={isAr ? "rtl" : "ltr"}>{isAr ? "الأفضل بين الأفضل في 11Players يتم تحديثهم تلقائياً." : "The best of the best in 11Players updated in real-time."}</p>
+            </div>
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshing || loading}
+              className="px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-slate-700 dark:text-slate-200 font-bold text-sm shadow-sm border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-2.5 active:scale-95 disabled:opacity-50"
+            >
+              <span className={`text-base ${refreshing ? "animate-spin" : ""}`}>🔄</span>
+              <span>{refreshing ? (isAr ? "جارٍ المزامنة..." : "Syncing...") : (isAr ? "تحديث ومزامنة الإحصائيات" : "Refresh & Sync Stats")}</span>
+            </button>
           </div>
 
           {loading ? (

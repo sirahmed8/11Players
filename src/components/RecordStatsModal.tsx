@@ -98,15 +98,20 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge);
 
         const globalRef = doc(db, 'players', p.uid);
-        batch.set(globalRef, { stats: newStats, overallRating: newOverall }, { merge: true });
+        const globalPayload: any = { stats: newStats, overallRating: newOverall };
+        if (activeCommunityId) {
+          globalPayload[`communityStats.${activeCommunityId}`] = newStats;
+        }
+        batch.set(globalRef, globalPayload, { merge: true });
+
         if (activeCommunityId) {
           const commRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
           batch.set(commRef, { stats: newStats, overallRating: newOverall }, { merge: true });
         }
 
-        if (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp || pStats.played) {
-          const notifRef = doc(db, 'users', p.uid, 'notifications', `match_stat_${Date.now()}_${p.uid}`);
-          batch.set(notifRef, {
+        if (pStats.played || pStats.goals > 0 || pStats.assists > 0 || pStats.mvp) {
+          const statNotifRef = doc(db, 'users', p.uid, 'notifications', `match_stat_${Date.now()}_${p.uid}`);
+          batch.set(statNotifRef, {
             title: isAr ? "⚽ تحديث إحصائيات المباراة!" : "⚽ Match Stats Recorded!",
             body: isAr
               ? `تم تسجيل إحصائيات مباراتك الجديدة: ${pStats.goals || 0} أهداف، ${pStats.assists || 0} تمريرات حاسمة`
@@ -114,6 +119,18 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
             type: "stats",
             read: false,
             link: `/profile?uid=${p.uid}`,
+            createdAt: serverTimestamp()
+          });
+
+          const matchNotifRef = doc(db, 'users', p.uid, 'notifications', `match_result_${Date.now()}_${p.uid}`);
+          batch.set(matchNotifRef, {
+            title: isAr ? "🏆 نتيجة المباراة والتقييمات" : "🏆 Match Result & Ratings Available",
+            body: isAr
+              ? `اكتملت المباراة بنجاح! يمكنك الآن تقييم أداء زملائك ومراجعة تفاصيل التشكيلة.`
+              : `Match finalized! You can now rate your peers and inspect the detailed match summary.`,
+            type: "match",
+            read: false,
+            link: `/match`,
             createdAt: serverTimestamp()
           });
         }

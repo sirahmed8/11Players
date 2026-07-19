@@ -13,7 +13,6 @@ import { balanceTeams } from "@/lib/matchmaker";
 import { generateTurfMatch } from "@/lib/turfMatchmaker";
 import { generateDummyPlayersForCommunity } from "@/lib/dummyData";
 import { useLocale } from "@/components/ThemeProvider";
-import PendingEdits from "@/components/PendingEdits";
 import PendingRequests from "@/components/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs } from "firebase/firestore";
@@ -25,7 +24,7 @@ import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 export default function AdminPage() {
   const { user, isOwner } = useAuth();
-  const { players, loading } = usePlayers();
+  const { players, loading, refreshPlayers } = usePlayers();
   const { activeCommunityId } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
@@ -444,7 +443,7 @@ export default function AdminPage() {
               {loading ? (
                 <SiteSkeletonLoader variant="cards" />
               ) : (
-                <AdminTable players={players} onRefresh={() => {}} />
+                <AdminTable players={players} onRefresh={refreshPlayers || (() => {})} />
               )}
             </>
           )}
