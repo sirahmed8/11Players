@@ -208,6 +208,83 @@ export default function MatchPage() {
     }
   };
 
+  const handleCreateMatchFromPage = async (config: MatchConfig) => {
+    if (!activeCommunityId) return;
+    try {
+      let availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
+      if (config.selectedPlayerUids && config.selectedPlayerUids.length > 0) {
+        const selectedSet = new Set(config.selectedPlayerUids);
+        availablePlayers = availablePlayers.filter(p => selectedSet.has(p.uid));
+      }
+      const playerIds = availablePlayers.map((p) => p.uid);
+
+      if (!config.isOpenRegistration && playerIds.length < 4) {
+        toast.error(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.`);
+        return;
+      }
+
+      const matchId = `match_${Date.now()}`;
+      let newMatchData: any;
+
+      if (config.isOpenRegistration) {
+        newMatchData = {
+          id: matchId,
+          success: true,
+          status: 'registering',
+          matchMode: config.matchMode || 'turf',
+          maxPlayers: (config.playersPerTeam || 6) * (config.numTeams || 2),
+          signedUpPlayerUids: [],
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      } else if (config.matchMode === 'turf') {
+        const turfConfig = {
+          numTeams: config.numTeams || 2,
+          playersPerTeam: config.playersPerTeam || 6,
+          gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+          fixedGkTeamA: config.fixedGkTeamA,
+          fixedGkTeamB: config.fixedGkTeamB,
+          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+          gkRotationMinutes: config.gkRotationMinutes,
+          matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+          matchDurationMins: config.matchDurationMins || 20,
+          endCondition: config.endCondition || 'time',
+          targetGoals: config.targetGoals || 3,
+        };
+        const turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        newMatchData = {
+          id: matchId,
+          success: true,
+          status: 'active',
+          matchMode: 'turf',
+          turfResult,
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      } else {
+        const result = balanceTeams(availablePlayers);
+        newMatchData = {
+          id: matchId,
+          success: true,
+          status: 'active',
+          matchMode: 'standard',
+          teamA: result.teamA,
+          teamB: result.teamB,
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      }
+
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), newMatchData);
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", matchId), newMatchData);
+      setIsConfigModalOpen(false);
+      toast.success(isAr ? "تم إنشاء المباراة / الحجز بنجاح!" : "Match / Booking created successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل في إنشاء المباراة أو الحجز" : "Failed to create match or booking");
+    }
+  };
+
   const displayMatch = activeTab === "history" ? selectedHistoryMatch : matchData;
   const isViewingHistory = activeTab === "history" && Boolean(selectedHistoryMatch);
 
@@ -224,6 +301,19 @@ export default function MatchPage() {
                 ? "تابع التشكيلات والتكتيكات للمباراة القادمة، أو استعرض سجل المباريات السابقة والإحصائيات المسجلة."
                 : "View upcoming match lineups and tactics, or explore historical matches and recorded statistics."}
             </p>
+
+            {/* Admin Make a Match / Open Booking Action Button */}
+            {isAdmin && (
+              <div className="flex justify-center mb-6">
+                <button
+                  onClick={() => setIsConfigModalOpen(true)}
+                  className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl transition-all duration-200 flex items-center gap-2.5 active:scale-95 border border-emerald-400/30"
+                >
+                  <span className="text-xl">⚡</span>
+                  <span>{isAr ? "إنشاء مباراة جديدة أو فتح حجز (Hagaz)" : "Make a Match / Open Booking (Hagaz)"}</span>
+                </button>
+              </div>
+            )}
 
             {/* Tab Switcher */}
             <div className="flex justify-center mb-8">
@@ -507,11 +597,11 @@ export default function MatchPage() {
                   </p>
                   {isAdmin && (
                     <button
-                      onClick={() => router.push("/admin")}
+                      onClick={() => setIsConfigModalOpen(true)}
                       className="mt-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2"
                     >
                       <span>⚽</span>
-                      <span>{isAr ? "الذهاب لتشكيل المباراة القادمة" : "Generate Next Match"}</span>
+                      <span>{isAr ? "إنشاء مباراة أو فتح حجز جديد" : "Make a Match / Open Booking"}</span>
                     </button>
                   )}
                 </div>
@@ -1022,6 +1112,14 @@ export default function MatchPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Match Config / Booking Creation Modal */}
+      <MatchConfigModal
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+        onGenerate={handleCreateMatchFromPage}
+        communityPlayers={players}
+      />
 
       {/* Admin Record Stats Modal */}
       <RecordStatsModal 

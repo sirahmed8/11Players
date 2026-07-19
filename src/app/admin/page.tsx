@@ -446,13 +446,6 @@ export default function AdminPage() {
                         <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
                       </button>
 
-                      <a
-                        href="/announcements"
-                        className="w-full py-2.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        <span>📢</span>
-                        <span>{isAr ? "مركز بث الإشعارات والإعلانات" : "Push Announcements Center"}</span>
-                      </a>
                     </div>
                   </div>
                 </div>

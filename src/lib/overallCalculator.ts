@@ -18,16 +18,6 @@ const POSITION_WEIGHTS: Record<PESPosition, Weights> = {
   GK: { gkAwareness: 0.20, gkReflexes: 0.20, gkCatching: 0.15, gkClearing: 0.15, gkReach: 0.10, jump: 0.05, physicalContact: 0.05, defensiveAwareness: 0.05, loftedPass: 0.05, offensiveAwareness: 0, ballControl: 0, dribbling: 0, lowPass: 0, finishing: 0, heading: 0, speed: 0, acceleration: 0, kickingPower: 0, balance: 0, stamina: 0, ballWinning: 0, aggression: 0 },
 };
 
-const STYLE_BONUSES: Record<string, number> = {
-  'Goal Poacher': 1, 'Fox in the Box': 1, 'Target Man': 1, 'Dummy Runner': 1,
-  'Creative Playmaker': 1, 'Hole Player': 1, 'Classic No. 10': 1,
-  'Prolific Winger': 1, 'Roaming Flank': 1, 'Cross Specialist': 1,
-  'Box-to-Box': 2, 'Orchestrator': 1,
-  'The Destroyer': 1, 'Anchor Man': 1, 'Build Up': 1, 'Extra Frontman': 1,
-  'Offensive Full-back': 1, 'Defensive Full-back': 1, 'Full-back Finisher': 1,
-  'Offensive Goalkeeper': 1, 'Defensive Goalkeeper': 1
-};
-
 export function calculateRealisticOverall(
   attributes: PlayerAttributes,
   position: PESPosition,
@@ -48,8 +38,7 @@ export function calculateRealisticOverall(
     totalScore += attrValue * weight;
   }
 
-  const styleBonus = STYLE_BONUSES[playStyle] || 0;
-  let finalOverall = Math.round(totalScore) + styleBonus;
+  let finalOverall = Math.round(totalScore);
 
   // Height and Weight modifiers (BMI)
   if (height && weight && height > 0) {

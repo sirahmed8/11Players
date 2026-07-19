@@ -10,6 +10,7 @@ import { collection, getDocs, setDoc, doc, deleteDoc, query, orderBy, onSnapshot
 import toast from "react-hot-toast";
 import { Bell, Send, Trash2, AlertTriangle, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2 } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import CustomDropdown from "@/components/CustomDropdown";
 
 export interface Announcement {
   id: string;
@@ -190,34 +191,36 @@ export default function AnnouncementsPage() {
                 <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                   {isAr ? "نطاق المستهدفين بالبث (Target Scope)" : "Target Audience Scope"}
                 </label>
-                <select
+                <CustomDropdown
                   value={targetScope}
-                  onChange={e => setTargetScope(e.target.value as any)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
-                >
-                  <option value="active_community">
-                    👥 {isAr ? `لاعبو المجتمع الحالي (${activeCommunity?.name || 'النشط'})` : `Active Community Players (${activeCommunity?.name || 'Active'})`}
-                  </option>
-                  {isOwner && (
-                    <option value="global_all_users">
-                      🌍 {isAr ? "جميع مستخدمي المنصة (Global Broadcast - Owner Only)" : "Global Platform Users (All Members)"}
-                    </option>
-                  )}
-                </select>
+                  onChange={(val) => setTargetScope(val as any)}
+                  isAr={isAr}
+                  options={[
+                    {
+                      value: "active_community",
+                      label: isAr ? `👥 لاعبو المجتمع الحالي (${activeCommunity?.name || 'النشط'})` : `👥 Active Community Players (${activeCommunity?.name || 'Active'})`
+                    },
+                    ...(isOwner ? [{
+                      value: "global_all_users",
+                      label: isAr ? "🌍 جميع مستخدمي المنصة (Global Broadcast - Owner Only)" : "🌍 Global Platform Users (All Members)"
+                    }] : [])
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
                   {isAr ? "أولوية الإشعار (Priority Level)" : "Notification Priority"}
                 </label>
-                <select
+                <CustomDropdown
                   value={priority}
-                  onChange={e => setPriority(e.target.value as any)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
-                >
-                  <option value="normal">ℹ️ {isAr ? "إشعار عادي (Normal Update)" : "Normal Update"}</option>
-                  <option value="urgent">🚨 {isAr ? "إشعار عاجل ومهم (Urgent Priority)" : "Urgent Priority Alert"}</option>
-                </select>
+                  onChange={(val) => setPriority(val as any)}
+                  isAr={isAr}
+                  options={[
+                    { value: "normal", label: isAr ? "ℹ️ إشعار عادي (Normal Update)" : "ℹ️ Normal Update" },
+                    { value: "urgent", label: isAr ? "🚨 إشعار عاجل ومهم (Urgent Priority)" : "🚨 Urgent Priority Alert" }
+                  ]}
+                />
               </div>
             </div>
 
@@ -233,7 +236,7 @@ export default function AnnouncementsPage() {
                   placeholder="e.g. Next Match Sign-Up Open!"
                   value={titleEn}
                   onChange={e => setTitleEn(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
                 />
               </div>
 
@@ -247,7 +250,7 @@ export default function AnnouncementsPage() {
                   placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                   value={titleAr}
                   onChange={e => setTitleAr(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
                 />
               </div>
             </div>
@@ -264,7 +267,7 @@ export default function AnnouncementsPage() {
                   placeholder="Type your message description here in English..."
                   value={bodyEn}
                   onChange={e => setBodyEn(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
                 />
               </div>
 
@@ -278,7 +281,7 @@ export default function AnnouncementsPage() {
                   placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                   value={bodyAr}
                   onChange={e => setBodyAr(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
                 />
               </div>
             </div>
@@ -294,7 +297,7 @@ export default function AnnouncementsPage() {
                 placeholder={isAr ? "مثال: /match" : "e.g. /match"}
                 value={link}
                 onChange={e => setLink(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
               />
             </div>
 

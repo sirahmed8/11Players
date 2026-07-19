@@ -317,25 +317,6 @@ export default function OwnerPage() {
                 </form>
               </div>
 
-              <div className="bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-6 rounded-2xl border border-orange-500/30 shadow-sm flex flex-col gap-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-2xl">📢</span>
-                  <div>
-                    <h2 className="text-lg font-black text-orange-600 dark:text-orange-400">
-                      {isAr ? "بث الإعلانات والإشعارات" : "Broadcast Push Center"}
-                    </h2>
-                    <p className="text-xs text-slate-500">
-                      {isAr ? "إرسال إشعارات فورية وإعلانات لكافة مستخدمي المنصة أو للمجتمع" : "Send global or community push notifications and feed banners"}
-                    </p>
-                  </div>
-                </div>
-                <a
-                  href="/announcements"
-                  className="w-full py-3 bg-orange-500 hover:bg-orange-400 text-slate-950 font-black rounded-xl text-center text-xs shadow-md transition-all active:scale-95"
-                >
-                  {isAr ? "فتح لوحة بث الإشعارات الإعلانية" : "Open Broadcast Push Center"}
-                </a>
-              </div>
 
               <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-200 dark:border-red-800/30 flex flex-col gap-4">
                 <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>

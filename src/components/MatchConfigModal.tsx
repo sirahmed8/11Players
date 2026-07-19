@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/components/ThemeProvider';
 import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X } from 'lucide-react';
+import CustomDropdown from '@/components/CustomDropdown';
 
 export interface MatchConfig {
   date: string;
@@ -357,19 +358,27 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             </span>
                             <div className="flex items-center gap-1.5">
                               <div className="flex-1">
-                                <select value={selectedHour} onChange={(e) => handleTimeUpdate(e.target.value, selectedMinute, selectedPeriod)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/80 px-2 py-1.5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50">
-                                  {["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => (
-                                    <option key={h} value={h}>{h}</option>
-                                  ))}
-                                </select>
+                                <CustomDropdown
+                                  value={selectedHour}
+                                  onChange={(val) => handleTimeUpdate(val, selectedMinute, selectedPeriod)}
+                                  isAr={isAr}
+                                  options={["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => ({
+                                    value: h,
+                                    label: h
+                                  }))}
+                                />
                               </div>
                               <span className="font-bold text-slate-400">:</span>
                               <div className="flex-1">
-                                <select value={selectedMinute} onChange={(e) => handleTimeUpdate(selectedHour, e.target.value, selectedPeriod)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/80 px-2 py-1.5 text-xs font-semibold text-slate-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50">
-                                  {["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => (
-                                    <option key={m} value={m}>{m}</option>
-                                  ))}
-                                </select>
+                                <CustomDropdown
+                                  value={selectedMinute}
+                                  onChange={(val) => handleTimeUpdate(selectedHour, val, selectedPeriod)}
+                                  isAr={isAr}
+                                  options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => ({
+                                    value: m,
+                                    label: m
+                                  }))}
+                                />
                               </div>
                               <div className="flex rounded-xl bg-slate-100 dark:bg-slate-700/60 p-0.5 border border-slate-200 dark:border-slate-700">
                                 {["AM", "PM"].map((p) => (
@@ -533,31 +542,37 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           <label className="block text-[10px] font-bold text-slate-500 mb-1">
                             🥅 {isAr ? 'حارس الفريق الأول (A)' : 'Team A Fixed GK'}
                           </label>
-                          <select
+                          <CustomDropdown
                             value={config.fixedGkTeamA || ''}
-                            onChange={(e) => setConfig(prev => ({ ...prev, fixedGkTeamA: e.target.value }))}
-                            className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
-                          >
-                            <option value="">{isAr ? '-- اختر حارس --' : '-- Select GK --'}</option>
-                            {communityPlayers.map(p => (
-                              <option key={p.uid} value={p.uid}>{p.cardName || p.fullName}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setConfig(prev => ({ ...prev, fixedGkTeamA: val }))}
+                            isAr={isAr}
+                            placeholder={isAr ? '-- اختر حارس --' : '-- Select GK --'}
+                            options={[
+                              { value: '', label: isAr ? '-- اختر حارس --' : '-- Select GK --' },
+                              ...communityPlayers.map(p => ({
+                                value: p.uid,
+                                label: p.cardName || p.fullName || 'Player'
+                              }))
+                            ]}
+                          />
                         </div>
                         <div>
                           <label className="block text-[10px] font-bold text-slate-500 mb-1">
                             🥅 {isAr ? 'حارس الفريق الثاني (B)' : 'Team B Fixed GK'}
                           </label>
-                          <select
+                          <CustomDropdown
                             value={config.fixedGkTeamB || ''}
-                            onChange={(e) => setConfig(prev => ({ ...prev, fixedGkTeamB: e.target.value }))}
-                            className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
-                          >
-                            <option value="">{isAr ? '-- اختر حارس --' : '-- Select GK --'}</option>
-                            {communityPlayers.map(p => (
-                              <option key={p.uid} value={p.uid}>{p.cardName || p.fullName}</option>
-                            ))}
-                          </select>
+                            onChange={(val) => setConfig(prev => ({ ...prev, fixedGkTeamB: val }))}
+                            isAr={isAr}
+                            placeholder={isAr ? '-- اختر حارس --' : '-- Select GK --'}
+                            options={[
+                              { value: '', label: isAr ? '-- اختر حارس --' : '-- Select GK --' },
+                              ...communityPlayers.map(p => ({
+                                value: p.uid,
+                                label: p.cardName || p.fullName || 'Player'
+                              }))
+                            ]}
+                          />
                         </div>
                       </div>
                     )}
@@ -771,8 +786,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   </div>
 
                   {/* Player Selection */}
-                  {!config.isOpenRegistration && communityPlayers.length > 0 && (
-                    <div>
+                  <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${!config.isOpenRegistration && communityPlayers.length > 0 ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
+                    <div className="overflow-hidden">
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-xs font-black text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
                           <Users className="w-3.5 h-3.5" />
@@ -827,7 +842,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         )}
                       </AnimatePresence>
                     </div>
-                  )}
+                  </div>
 
                   {/* Summary */}
                   <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">

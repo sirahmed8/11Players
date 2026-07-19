@@ -74,30 +74,17 @@ export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationM
                   {isAr ? "التركيز على: الوعي الدفاعي، قطع الكرة، الالتحام الجسدي، والرأسيات." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}
                 </div>
                 <div className="p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 font-medium">
-                  <span className="font-bold text-purple-500 block mb-0.5">GK (حارس المرمى)</span>
+                  <span className="font-bold text-purple-500 block mb-0.5">{isAr ? "GK (حارس المرمى)" : "GK (Goalkeeper)"}</span>
                   {isAr ? "التركيز حصرياً على: وعي الحارس، رد الفعل، الإمساك، التشتيت، والوصول." : "Exclusive focus on: GK Awareness, Reflexes, Catching, Clearing, & Reach."}
                 </div>
               </div>
             </div>
 
-            {/* Section 2: Play Style Bonuses */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 space-y-2">
-              <div className="flex items-center gap-2 font-black text-amber-500 text-base">
-                <Sparkles className="w-5 h-5" />
-                <span>{isAr ? "2. حافز أسلوب اللعب (Play Style Bonus)" : "2. Play Style Bonus (+1 to +2 OVR)"}</span>
-              </div>
-              <p className="text-xs text-slate-600 dark:text-slate-400">
-                {isAr
-                  ? "اختيار أسلوب اللعب الذي يطابق مركزك وأسلوبك (مثل Box-to-Box أو Goal Poacher أو The Destroyer) يمنحك مكافأة إضافية (+1 أو +2) على تقييمك الكلي."
-                  : "Selecting an active Play Style fitting your role (e.g., Box-to-Box, Goal Poacher, The Destroyer) grants a direct +1 or +2 bonus to your final OVR."}
-              </p>
-            </div>
-
-            {/* Section 3: Physical & Age Modifiers */}
+            {/* Section 2: Physical & Age Modifiers */}
             <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 space-y-2">
               <div className="flex items-center gap-2 font-black text-teal-500 text-base">
                 <Award className="w-5 h-5" />
-                <span>{isAr ? "3. العوامل البدنية والسن (Physical & Age Modifiers)" : "3. Physical & Age Modifiers"}</span>
+                <span>{isAr ? "2. العوامل البدنية والسن (Physical & Age Modifiers)" : "2. Physical & Age Modifiers"}</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 {isAr
@@ -106,11 +93,11 @@ export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationM
               </p>
             </div>
 
-            {/* Section 4: Peer Ratings & Consensus */}
+            {/* Section 3: Peer Ratings & Consensus */}
             <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 space-y-2">
               <div className="flex items-center gap-2 font-black text-purple-500 text-base">
                 <Users className="w-5 h-5" />
-                <span>{isAr ? "4. تقييمات الزملاء واعتماد المسؤول" : "4. Peer Ratings & Admin Consensus"}</span>
+                <span>{isAr ? "3. تقييمات الزملاء واعتماد المسؤول" : "3. Peer Ratings & Admin Consensus"}</span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 {isAr
