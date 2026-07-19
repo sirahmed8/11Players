@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
 import { motion } from 'framer-motion';
 import { Users, RotateCw, Trophy, Timer, ChevronDown, ChevronUp, RefreshCw, Bot, X } from 'lucide-react';
@@ -77,7 +78,7 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
           {team.players.map((player, idx) => {
             const isGk = gkMode === 'rotating'
               ? team.gkOrder[0]?.uid === player.uid // First in rotation is current GK
-              : idx === team.players.length - 1; // Last added as fixed GK
+              : (team.fixedGkUid === player.uid || (!team.fixedGkUid && idx === team.players.length - 1)); // Fixed GK picked or fallback to last
 
             const ovr = Math.round(
               Object.values(player.attributes || {}).reduce((a: number, b: number) => a + b, 0) / 
@@ -91,7 +92,7 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
               >
                 <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
                   {player.photoUrl ? (
-                    <img src={player.photoUrl} alt={player.fullName} className="w-full h-full object-cover" />
+                    <Image src={player.photoUrl} alt={player.fullName} width={32} height={32} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-sm font-black text-slate-500">
                       {(player.cardName || player.fullName || '?').charAt(0).toUpperCase()}
@@ -667,7 +668,9 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
     playersPerTeam,
     gkMode,
     gkRotationInterval,
-    matchDurationMins
+    matchDurationMins,
+    endCondition,
+    targetGoals
   } = turfResult;
 
   const formatLabel = isAr
@@ -680,7 +683,7 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white"
+        className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-md"
       >
         <div className="flex items-center gap-3 mb-2">
           <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
@@ -710,6 +713,11 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
             <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
               <RotateCw className="w-3.5 h-3.5" />
               {isAr ? 'دوران الحراسة' : 'Rotating GK'}
+            </div>
+          )}
+          {endCondition && endCondition !== 'time' && targetGoals && (
+            <div className="flex items-center gap-1 bg-black/30 border border-white/20 rounded-full px-3 py-1 text-xs font-black animate-pulse">
+              ⚽ {isAr ? `الهدف: ${targetGoals} أهداف للفوز` : `Target: ${targetGoals} Goals to Win`}
             </div>
           )}
         </div>

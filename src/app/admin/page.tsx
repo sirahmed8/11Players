@@ -124,7 +124,7 @@ export default function AdminPage() {
       }
       const playerIds = availablePlayers.map((p) => p.uid);
 
-      if (playerIds.length < 4) {
+      if (!config.isOpenRegistration && playerIds.length < 4) {
         setMatchmakingError(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.`);
         setMatchmakingLoading(false);
         return;
@@ -136,21 +136,38 @@ export default function AdminPage() {
       const matchId = `match_${Date.now()}`;
       let matchData: object;
 
-      if (config.matchMode === 'turf') {
+      if (config.isOpenRegistration) {
+        // ── Open Registration / Booking Mode ──
+        matchData = {
+          id: matchId,
+          success: true,
+          status: 'registering',
+          matchMode: config.matchMode || 'turf',
+          maxPlayers: (config.playersPerTeam || 6) * (config.numTeams || 2),
+          signedUpPlayerUids: [],
+          config,
+          generatedAt: new Date().toISOString(),
+        };
+      } else if (config.matchMode === 'turf') {
         // ── Turf / Casual Mode ──
         const turfConfig = {
           numTeams: config.numTeams || 2,
           playersPerTeam: config.playersPerTeam || 6,
           gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
-          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_match' | 'per_goal' | 'per_time',
+          fixedGkTeamA: config.fixedGkTeamA,
+          fixedGkTeamB: config.fixedGkTeamB,
+          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
           gkRotationMinutes: config.gkRotationMinutes,
           matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
           matchDurationMins: config.matchDurationMins || 20,
+          endCondition: config.endCondition || 'time',
+          targetGoals: config.targetGoals || 3,
         };
         const turfResult = generateTurfMatch(availablePlayers, turfConfig);
         matchData = {
           id: matchId,
           success: true,
+          status: 'active',
           matchMode: 'turf',
           turfResult,
           config,
@@ -162,6 +179,7 @@ export default function AdminPage() {
         matchData = {
           id: matchId,
           success: true,
+          status: 'active',
           matchMode: 'standard',
           teamA: result.teamA,
           teamB: result.teamB,
@@ -427,6 +445,14 @@ export default function AdminPage() {
                         <UserX className="w-4 h-4 text-red-500" />
                         <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
                       </button>
+
+                      <a
+                        href="/announcements"
+                        className="w-full py-2.5 px-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-600 dark:text-orange-400 border border-orange-500/30 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <span>📢</span>
+                        <span>{isAr ? "مركز بث الإشعارات والإعلانات" : "Push Announcements Center"}</span>
+                      </a>
                     </div>
                   </div>
                 </div>

@@ -4,17 +4,18 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
-import { collection, getDocs, getCountFromServer } from "firebase/firestore";
+import { collection, getDocs, getCountFromServer, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import CommunityChallengeModal, { CommunityChallenge } from "@/components/CommunityChallengeModal";
 
 export default function CommunitiesPage() {
-  const { user, isOwner, loading: authLoading } = useAuth();
-  const { activeCommunityId, setActiveCommunityId } = useCommunity();
+  const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
+  const { activeCommunityId, setActiveCommunityId, activeCommunity } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
@@ -24,6 +25,32 @@ export default function CommunitiesPage() {
   const [passwordInput, setPasswordInput] = useState<{ [key: string]: string }>({});
   const [userProfile, setUserProfile] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Challenge modal state
+  const [challengeTarget, setChallengeTarget] = useState<Community | null>(null);
+  const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
+  const [myChallenges, setMyChallenges] = useState<CommunityChallenge[]>([]);
+
+  useEffect(() => {
+    if (!activeCommunityId) return;
+    const unsub1 = onSnapshot(query(collection(db, "community_challenges"), where("challengerCommunityId", "==", activeCommunityId)), (snap) => {
+      const list1: CommunityChallenge[] = [];
+      snap.forEach(d => list1.push({ id: d.id, ...d.data() } as CommunityChallenge));
+      setMyChallenges(prev => {
+        const other = prev.filter(c => c.challengerCommunityId !== activeCommunityId);
+        return [...other, ...list1];
+      });
+    });
+    const unsub2 = onSnapshot(query(collection(db, "community_challenges"), where("targetCommunityId", "==", activeCommunityId)), (snap) => {
+      const list2: CommunityChallenge[] = [];
+      snap.forEach(d => list2.push({ id: d.id, ...d.data() } as CommunityChallenge));
+      setMyChallenges(prev => {
+        const other = prev.filter(c => c.targetCommunityId !== activeCommunityId);
+        return [...other, ...list2];
+      });
+    });
+    return () => { unsub1(); unsub2(); };
+  }, [activeCommunityId]);
 
   // Redirect to welcome page if not logged in
   useEffect(() => {
@@ -188,6 +215,46 @@ export default function CommunitiesPage() {
             <span>{isAr ? "طلب إنشاء مجتمع" : "Request Create Community"}</span>
           </button>
         </div>
+
+        {/* Active Inter-Community Challenges Banner */}
+        {myChallenges.length > 0 && (
+          <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-amber-600/20 via-orange-600/15 to-slate-900/40 border border-amber-500/40 shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚔️</span>
+              <div>
+                <h3 className="text-lg font-black text-amber-500 dark:text-amber-400">
+                  {isAr ? "تحديات المجتمعات ومحادثات الاتفاق" : "Inter-Community Challenges & Negotiation Chats"}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {isAr ? "تنسيق المباريات والتفاوض مع المجتمعات الأخرى واختيار تشكيلتك المغلقة" : "Coordinate matches, negotiate terms, and lock squads with rival communities"}
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {myChallenges.map(c => (
+                <div key={c.id} className="p-4 rounded-2xl bg-slate-900/80 border border-white/10 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-bold text-sm text-white truncate">
+                      {c.challengerCommunityName} vs {c.targetCommunityName}
+                    </p>
+                    <span className="text-[11px] text-amber-400 font-semibold">
+                      {c.status === 'approved' ? (isAr ? '🎉 معتمد ومغلق للتشكيلة' : '🎉 Approved & Squads Locked') :
+                       c.status === 'deal_reached' ? (isAr ? '🤝 تم الاتفاق! اختر تشكيلتك' : '🤝 Deal Reached! Lock Squad') :
+                       (isAr ? '💬 جاري التفاوض...' : '💬 Negotiating Chat...')}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => { setChallengeTarget(null); setActiveChallengeId(c.id); }}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shrink-0 shadow transition-transform active:scale-95"
+                  >
+                    {isAr ? "فتح المحادثة" : "Open Chat"}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(3)].map((_, i) => (
@@ -273,6 +340,16 @@ export default function CommunitiesPage() {
                           isAr ? "طلب انضمام" : "Join Request"
                         )}
                       </button>
+
+                      {isAdmin && activeCommunityId && c.id !== activeCommunityId && (
+                        <button
+                          onClick={() => { setActiveChallengeId(null); setChallengeTarget(c); }}
+                          className="w-full mt-2 py-2 rounded-xl font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 border border-amber-500/30 transition-colors text-xs flex items-center justify-center gap-1.5"
+                        >
+                          <span>⚔️</span>
+                          <span>{isAr ? "تحدي هذا المجتمع (التفاوض والموعد)" : "Challenge Community (Negotiate & Chat)"}</span>
+                        </button>
+                      )}
                     </>
                   );
                 })()}
@@ -285,6 +362,15 @@ export default function CommunitiesPage() {
             )}
           </div>
         )}
+
+        <CommunityChallengeModal
+          isOpen={!!challengeTarget || !!activeChallengeId}
+          onClose={() => { setChallengeTarget(null); setActiveChallengeId(null); }}
+          activeCommunityId={activeCommunityId || ""}
+          activeCommunityName={activeCommunity?.name || (isAr ? "مجتمعي" : "My Community")}
+          targetCommunity={challengeTarget}
+          existingChallengeId={activeChallengeId}
+        />
       </main>
     </div>
   );

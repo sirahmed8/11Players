@@ -36,7 +36,7 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
         ...((activeLocalComm && (userCommMap[u.uid] || u.memberCommunities?.includes(activeLocalComm))) ? [activeLocalComm] : []),
       ].filter(Boolean))
     ) as string[];
-  }, [u, u.memberCommunities, u.joinedCommunities, userCommMap, u.uid]);
+  }, [u, userCommMap]);
 
   return (
     <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">

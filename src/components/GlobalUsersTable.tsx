@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
@@ -20,6 +20,9 @@ export default function GlobalUsersTable() {
   const isAr = locale === "ar";
   
   const [users, setUsers] = useState<PlayerProfile[]>([]);
+  const usersRef = useRef(users);
+  usersRef.current = users;
+
   const [communitiesMap, setCommunitiesMap] = useState<Record<string, string>>({});
   const [userCommMap, setUserCommMap] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
@@ -41,7 +44,7 @@ export default function GlobalUsersTable() {
   }>({ open: false, user: null });
 
   const fetchUsers = useCallback(async () => {
-    setLoading(users.length === 0);
+    setLoading(usersRef.current.length === 0);
     try {
       const [usersSnap, commsSnap] = await Promise.all([
         getDocs(collection(db, "players")),

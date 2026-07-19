@@ -21,6 +21,7 @@ export interface TurfTeam {
   totalOvr: number;
   avgOvr: number;
   gkOrder: PlayerProfile[]; // Rotating GK order for this team
+  fixedGkUid?: string;      // UID if a fixed GK was picked for this team
 }
 
 export interface TurfFixture {
@@ -40,6 +41,8 @@ export interface TurfMatchmakingResult {
   gkMode: 'fixed' | 'rotating';
   gkRotationInterval: 'per_match' | 'per_goal' | 'per_time';
   matchDurationMins: number;
+  endCondition?: 'time' | 'goals' | 'both';
+  targetGoals?: number;
 }
 
 // ─── Serpentine Draft ─────────────────────────────────────────────────────────
@@ -163,10 +166,14 @@ export interface TurfConfig {
   numTeams: number;           // 2, 3, 4, ...
   playersPerTeam: number;     // 4 to 10 (outfield + GK)
   gkMode: 'fixed' | 'rotating';
+  fixedGkTeamA?: string;
+  fixedGkTeamB?: string;
   gkRotationInterval: 'per_match' | 'per_goal' | 'per_time';
   gkRotationMinutes?: number; // Only used when gkRotationInterval === 'per_time'
   matchType: 'league' | 'knockout' | 'winner_stays';
   matchDurationMins: number;
+  endCondition?: 'time' | 'goals' | 'both';
+  targetGoals?: number;
 }
 
 /**
@@ -178,7 +185,7 @@ export function generateTurfMatch(
   availablePlayers: PlayerProfile[],
   config: TurfConfig
 ): TurfMatchmakingResult {
-  const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins } = config;
+  const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins, endCondition, targetGoals, fixedGkTeamA, fixedGkTeamB } = config;
 
   const totalNeeded = numTeams * playersPerTeam;
   const activePlayers = availablePlayers.slice(0, totalNeeded);
@@ -192,6 +199,7 @@ export function generateTurfMatch(
     const totalOvr = ovrs.reduce((a, b) => a + b, 0);
     const avgOvr = players.length > 0 ? Math.round(totalOvr / players.length) : 0;
     const gkOrder = buildGkRotationOrder(players);
+    const fixedGkUid = idx === 0 ? fixedGkTeamA : idx === 1 ? fixedGkTeamB : undefined;
 
     return {
       id: `team_${idx + 1}`,
@@ -199,7 +207,8 @@ export function generateTurfMatch(
       players,
       totalOvr,
       avgOvr,
-      gkOrder
+      gkOrder,
+      fixedGkUid
     };
   });
 
@@ -236,6 +245,8 @@ export function generateTurfMatch(
     playersPerTeam,
     gkMode,
     gkRotationInterval,
-    matchDurationMins
+    matchDurationMins,
+    endCondition,
+    targetGoals
   };
 }

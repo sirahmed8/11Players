@@ -8,6 +8,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ThemeProvider";
 import { toast } from "react-hot-toast";
 import AdviceNotification from "@/components/AdviceNotification";
+import GlobalAnnouncementBanner from "@/components/GlobalAnnouncementBanner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -92,6 +93,7 @@ export default function ProtectedRoute({
 
   return (
     <>
+      <GlobalAnnouncementBanner />
       <AdviceNotification />
       {children}
     </>

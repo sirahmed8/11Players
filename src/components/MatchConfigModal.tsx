@@ -14,10 +14,15 @@ export interface MatchConfig {
   numTeams?: number;              // 2, 3, 4+
   playersPerTeam?: number;        // 4 to 10
   gkMode?: 'fixed' | 'rotating'; // GK rotation style
+  fixedGkTeamA?: string;          // UID of fixed GK for Team A
+  fixedGkTeamB?: string;          // UID of fixed GK for Team B
   gkRotationInterval?: 'per_match' | 'per_goal' | 'per_time';
   gkRotationMinutes?: number;     // Minutes between GK rotations
   matchType?: 'league' | 'knockout' | 'winner_stays';
   matchDurationMins?: number;     // Duration per match
+  endCondition?: 'time' | 'goals' | 'both'; // Target match condition
+  targetGoals?: number;           // Goals needed to win / rotate
+  isOpenRegistration?: boolean;   // Open turf registration without initially selecting players
   selectedPlayerUids?: string[];  // Which players will play (null = all)
 }
 
@@ -52,10 +57,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     numTeams: 2,
     playersPerTeam: 6,
     gkMode: 'rotating',
+    fixedGkTeamA: '',
+    fixedGkTeamB: '',
     gkRotationInterval: 'per_match',
     gkRotationMinutes: 10,
     matchType: 'league',
     matchDurationMins: 20,
+    endCondition: 'time',
+    targetGoals: 3,
+    isOpenRegistration: false,
     selectedPlayerUids: undefined, // undefined = all players
   });
 
@@ -443,8 +453,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
                     {/* Players per Team — Custom Animated Dropdown */}
                     <div className="relative" ref={playersDropdownRef}>
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                        {isAr ? 'لاعبين/فريق' : 'Players / Team'}
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center justify-between">
+                        <span>{isAr ? 'لاعبين/فريق' : 'Players / Team'}</span>
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">({isAr ? 'شامل حارس المرمى' : 'Includes Goalkeeper'})</span>
                       </label>
                       <button
                         type="button"
@@ -516,6 +527,40 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         🔄 {isAr ? 'حارس دوار' : 'Rotating GK'}
                       </button>
                     </div>
+                    {config.gkMode === 'fixed' && communityPlayers.length > 0 && (
+                      <div className="mt-3 grid grid-cols-2 gap-3 p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                            🥅 {isAr ? 'حارس الفريق الأول (A)' : 'Team A Fixed GK'}
+                          </label>
+                          <select
+                            value={config.fixedGkTeamA || ''}
+                            onChange={(e) => setConfig(prev => ({ ...prev, fixedGkTeamA: e.target.value }))}
+                            className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="">{isAr ? '-- اختر حارس --' : '-- Select GK --'}</option>
+                            {communityPlayers.map(p => (
+                              <option key={p.uid} value={p.uid}>{p.cardName || p.fullName}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                            🥅 {isAr ? 'حارس الفريق الثاني (B)' : 'Team B Fixed GK'}
+                          </label>
+                          <select
+                            value={config.fixedGkTeamB || ''}
+                            onChange={(e) => setConfig(prev => ({ ...prev, fixedGkTeamB: e.target.value }))}
+                            className="w-full text-xs font-bold bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-2.5 py-1.5 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            <option value="">{isAr ? '-- اختر حارس --' : '-- Select GK --'}</option>
+                            {communityPlayers.map(p => (
+                              <option key={p.uid} value={p.uid}>{p.cardName || p.fullName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
                     {config.gkMode === 'rotating' && (
                       <div className="mt-2 space-y-2">
                         <div className="flex gap-2">
@@ -649,8 +694,84 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </div>
                   </div>
 
+                  {/* Match Limit / End Condition */}
+                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 space-y-2">
+                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400">
+                      <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5 text-amber-500" />{isAr ? 'شرط انتهاء المباراة' : 'Match End Condition'}</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, endCondition: 'time' }))}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'time' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        ⏱️ {isAr ? 'الوقت فقط' : 'Time Only'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, endCondition: 'goals' }))}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'goals' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        ⚽ {isAr ? 'عدد أهداف' : 'Target Goals'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfig(prev => ({ ...prev, endCondition: 'both' }))}
+                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'both' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        ⚡ {isAr ? 'أيهما أقرب' : 'Time or Goals'}
+                      </button>
+                    </div>
+                    {(config.endCondition === 'goals' || config.endCondition === 'both') && (
+                      <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{isAr ? 'الهدف المطلوب للفوز/التبديل:' : 'Target Goals to Win:'}</span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 5].map(g => (
+                            <button
+                              key={g}
+                              type="button"
+                              onClick={() => setConfig(prev => ({ ...prev, targetGoals: g }))}
+                              className={`w-7 h-7 rounded-lg text-xs font-black transition-all ${
+                                config.targetGoals === g ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                              }`}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Open Booking / Make a Match Registration Option */}
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 block">
+                        {isAr ? 'إنشاء حجز مفتوح للتسجيل (بدون اختيار لاعبين الآن)' : 'Open Booking Registration (No initial players required)'}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                        {isAr ? 'سيتمكن اللاعبون من تسجيل حضورهم لاحقاً حتى اكتمال العدد' : 'Players will sign up/check in later until capacity is reached'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, isOpenRegistration: !prev.isOpenRegistration }))}
+                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        config.isOpenRegistration ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+
                   {/* Player Selection */}
-                  {communityPlayers.length > 0 && (
+                  {!config.isOpenRegistration && communityPlayers.length > 0 && (
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="text-xs font-black text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
@@ -711,8 +832,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   {/* Summary */}
                   <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
                     {isAr
-                      ? `سيتم توزيع ${communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
-                      : `Splitting ${communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
+                      ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
+                      : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
                     }
                   </div>
                 </div>
@@ -732,16 +853,18 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   onClick={() => {
                     const finalConfig: MatchConfig = {
                       ...config,
-                      selectedPlayerUids: communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
-                        ? Array.from(selectedUids)
-                        : undefined,
+                      selectedPlayerUids: config.isOpenRegistration
+                        ? []
+                        : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
+                            ? Array.from(selectedUids)
+                            : undefined),
                     };
                     onGenerate(finalConfig);
                     onClose();
                   }}
                   className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  {isAr ? 'تكوين الفرق' : 'Generate Teams'}
+                  {isAr ? (config.isOpenRegistration ? 'إنشاء حجز للتسجيل' : 'تكوين الفرق') : (config.isOpenRegistration ? 'Create Open Registration' : 'Generate Teams')}
                 </button>
               </div>
             </div>

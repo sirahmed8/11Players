@@ -104,6 +104,7 @@ export interface PlayerProfile {
   primaryPosition: PESPosition;
   secondaryPosition: PESPosition;
   tertiaryPosition: PESPosition;
+  preferredPosition?: string;
   memberCommunities?: string[];
   pendingCommunities?: string[];
   lastCommunityId?: string;

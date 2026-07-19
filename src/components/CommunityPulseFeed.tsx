@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { collection, query, orderBy, limit, getDocs, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useCommunity } from "@/contexts/CommunityContext";
@@ -218,7 +219,7 @@ export default function CommunityPulseFeed() {
               >
                 <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
                   {star.photo ? (
-                    <img src={star.photo} alt={star.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                    <Image src={star.photo} alt={star.name} width={48} height={48} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center font-bold text-slate-500">
                       {star.name.charAt(0)}

@@ -409,6 +409,21 @@ export default function Sidebar() {
               </Link>
             )}
 
+            {(isAdmin || isOwner) && (
+              <Link
+                href="/announcements"
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
+                  pathname.startsWith("/announcements")
+                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                    : "text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10"
+                }`}
+              >
+                <Bell className="w-5 h-5" />
+                <span>{isAr ? "بث الإعلانات" : "Announcements"}</span>
+              </Link>
+            )}
+
             {isOwner && (
               <Link
                 href="/owner"

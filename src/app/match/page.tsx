@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { doc, onSnapshot, collection } from "firebase/firestore";
+import { doc, onSnapshot, collection, updateDoc, arrayUnion, arrayRemove, deleteDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -13,11 +13,16 @@ import MatchPitchDisplay from "@/components/MatchPitchDisplay";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
+import { usePlayers } from "@/contexts/PlayersContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import TurfMatchDisplay from "@/components/TurfMatchDisplay";
+import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
+import { generateTurfMatch } from "@/lib/turfMatchmaker";
+import { balanceTeams } from "@/lib/matchmaker";
+import toast from "react-hot-toast";
 
 export default function MatchPage() {
   const router = useRouter();
@@ -25,8 +30,9 @@ export default function MatchPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { activeCommunityId } = useCommunity();
+  const { players } = usePlayers();
   
   const [matchData, setMatchData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -34,6 +40,8 @@ export default function MatchPage() {
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
   // Match History state — respect ?tab=history from query string (e.g. rate-match toast)
   const [activeTab, setActiveTab] = useState<'current' | 'history'>(() => {
@@ -83,6 +91,122 @@ export default function MatchPage() {
       unsubHistory();
     };
   }, [isAr, activeCommunityId]);
+
+  const handleToggleSignInToBooking = async () => {
+    if (!activeCommunityId || !user || !matchData || isSubmittingBooking) return;
+    setIsSubmittingBooking(true);
+    try {
+      const isSignedUp = (matchData.signedUpPlayerUids || []).includes(user.uid);
+      const latestRef = doc(db, "communities", activeCommunityId, "matches", "latest");
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", matchData.id);
+
+      if (isSignedUp) {
+        await updateDoc(latestRef, { signedUpPlayerUids: arrayRemove(user.uid) });
+        await updateDoc(matchRef, { signedUpPlayerUids: arrayRemove(user.uid) }).catch(() => {});
+        toast.success(isAr ? "تم إلغاء تسجيل حضورك" : "You have signed out from this match");
+      } else {
+        const currentCount = (matchData.signedUpPlayerUids || []).length;
+        if (matchData.maxPlayers && currentCount >= matchData.maxPlayers) {
+          toast.error(isAr ? "عذراً، اكتمل العدد المطلوب للحجز" : "Sorry, booking capacity reached");
+        } else {
+          await updateDoc(latestRef, { signedUpPlayerUids: arrayUnion(user.uid) });
+          await updateDoc(matchRef, { signedUpPlayerUids: arrayUnion(user.uid) }).catch(() => {});
+          toast.success(isAr ? "تم تسجيل حضورك للمباراة بنجاح! ⚽" : "Successfully signed in for the match! ⚽");
+        }
+      }
+    } catch (err: any) {
+      console.error("Sign in/out error:", err);
+      toast.error(isAr ? "حدث خطأ أثناء التسجيل" : "Failed to update attendance");
+    } finally {
+      setIsSubmittingBooking(false);
+    }
+  };
+
+  const handleGenerateFromBooking = async () => {
+    if (!activeCommunityId || !matchData || matchData.status !== 'registering') return;
+    const signedUpUids = matchData.signedUpPlayerUids || [];
+    if (signedUpUids.length < 4) {
+      toast.error(isAr ? "يتطلب تكوين الفرق 4 لاعبين مسجلين على الأقل" : "Generating teams requires at least 4 checked-in players");
+      return;
+    }
+    try {
+      const signedUpPlayers = players.filter(p => signedUpUids.includes(p.uid));
+      const config = matchData.config || {};
+      const turfConfig = {
+        numTeams: config.numTeams || 2,
+        playersPerTeam: config.playersPerTeam || 6,
+        gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+        fixedGkTeamA: config.fixedGkTeamA,
+        fixedGkTeamB: config.fixedGkTeamB,
+        gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+        gkRotationMinutes: config.gkRotationMinutes,
+        matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+        matchDurationMins: config.matchDurationMins || 20,
+        endCondition: config.endCondition || 'time',
+        targetGoals: config.targetGoals || 3,
+      };
+      const turfResult = generateTurfMatch(signedUpPlayers, turfConfig);
+      const updatedData = {
+        ...matchData,
+        status: 'active',
+        turfResult,
+        generatedAt: new Date().toISOString(),
+      };
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), updatedData);
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id), updatedData);
+      toast.success(isAr ? "تم تكوين الفرق بنجاح وبدء المباراة!" : "Teams generated and match active!");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل تكوين الفرق" : "Failed to generate teams");
+    }
+  };
+
+  const handleRemakeTeams = async () => {
+    if (!activeCommunityId || !matchData || !matchData.turfResult) return;
+    try {
+      const activePlayers = matchData.turfResult.teams.flatMap((t: any) => t.players);
+      const config = matchData.config || {};
+      const turfConfig = {
+        numTeams: config.numTeams || matchData.turfResult.numTeams || 2,
+        playersPerTeam: config.playersPerTeam || matchData.turfResult.playersPerTeam || 6,
+        gkMode: (config.gkMode || matchData.turfResult.gkMode || 'rotating') as 'fixed' | 'rotating',
+        fixedGkTeamA: config.fixedGkTeamA,
+        fixedGkTeamB: config.fixedGkTeamB,
+        gkRotationInterval: (config.gkRotationInterval || matchData.turfResult.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+        gkRotationMinutes: config.gkRotationMinutes,
+        matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || matchData.turfResult.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+        matchDurationMins: config.matchDurationMins || matchData.turfResult.matchDurationMins || 20,
+        endCondition: config.endCondition || matchData.turfResult.endCondition || 'time',
+        targetGoals: config.targetGoals || matchData.turfResult.targetGoals || 3,
+      };
+      const turfResult = generateTurfMatch(activePlayers, turfConfig);
+      const updatedData = {
+        ...matchData,
+        turfResult,
+        generatedAt: new Date().toISOString(),
+      };
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), updatedData);
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id), updatedData);
+      toast.success(isAr ? "تم إعادة توزيع الفرق بخلط جديد!" : "Teams remade successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل إعادة التوزيع" : "Failed to remake teams");
+    }
+  };
+
+  const handleEndBooking = async () => {
+    if (!activeCommunityId || !matchData) return;
+    if (!window.confirm(isAr ? "هل أنت متأكد من رغبتك في إنهاء الحجز بالكامل؟ سيتم نقل المباراة للأرشيف." : "Are you sure you want to end this booking completely?")) return;
+    try {
+      const finishedData = { ...matchData, status: 'finished', finishedAt: new Date().toISOString() };
+      await setDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id), finishedData);
+      await deleteDoc(doc(db, "communities", activeCommunityId, "matches", "latest"));
+      toast.success(isAr ? "تم إنهاء الحجز ونقله للأرشيف بنجاح" : "Booking ended and archived successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "حدث خطأ أثناء إنهاء الحجز" : "Failed to end booking");
+    }
+  };
 
   const displayMatch = activeTab === "history" ? selectedHistoryMatch : matchData;
   const isViewingHistory = activeTab === "history" && Boolean(selectedHistoryMatch);
@@ -398,11 +522,239 @@ export default function MatchPage() {
               className="space-y-10"
               dir={isAr ? 'rtl' : 'ltr'}
             >
+              {/* Open Registration / Booking View */}
+              {displayMatch.status === 'registering' && (
+                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/80 rounded-3xl p-6 md:p-10 text-white shadow-2xl border border-amber-500/30 relative overflow-hidden space-y-8">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
+                    <div>
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-3 animate-pulse">
+                        🔥 {isAr ? "حجز مفتوح للتسجيل" : "Open Booking / Registration"}
+                      </span>
+                      <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+                        {isAr ? "تسجيل الحضور للمباراة القادمة" : "Sign Up for Next Match"}
+                      </h2>
+                      <p className="text-sm text-slate-300 mt-1">
+                        {isAr ? "سجل حضورك ليتم إدراج اسمك في التشكيل وسحب الفرق عند اكتمال العدد" : "Check in to enter the draft and generate balanced teams once capacity is reached."}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-start md:items-end gap-2 bg-black/30 p-4 rounded-2xl border border-white/10 w-full md:w-auto">
+                      <div className="text-sm font-bold text-amber-300">
+                        {isAr ? "المقاعد المحجوزة" : "Checked In Players"}
+                      </div>
+                      <div className="text-3xl font-black font-mono text-white">
+                        {(displayMatch.signedUpPlayerUids || []).length} / {displayMatch.maxPlayers || ((displayMatch.config?.playersPerTeam || 6) * (displayMatch.config?.numTeams || 2))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Registered Players Grid */}
+                  <div>
+                    <h3 className="text-lg font-bold text-amber-200 mb-4 flex items-center gap-2">
+                      <span>👥</span>
+                      <span>{isAr ? "اللاعبون المسجلون حالياً" : "Currently Registered Players"}</span>
+                    </h3>
+                    {(displayMatch.signedUpPlayerUids || []).length === 0 ? (
+                      <div className="bg-white/5 rounded-2xl p-8 text-center border border-dashed border-white/10 text-slate-400">
+                        {isAr ? "لم يسجل أي لاعب بعد. كن أول المسجلين!" : "No players have signed up yet. Be the first to join!"}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        {(displayMatch.signedUpPlayerUids || []).map((uid: string) => {
+                          const p = players.find(player => player.uid === uid);
+                          return (
+                            <div key={uid} className="bg-white/10 hover:bg-white/15 transition-all p-3 rounded-2xl flex items-center gap-3 border border-white/10">
+                              <div className="w-10 h-10 rounded-full overflow-hidden bg-slate-700 shrink-0 flex items-center justify-center font-bold text-lg">
+                                {p?.photoUrl ? (
+                                  <Image src={p.photoUrl} alt={p?.fullName || uid} width={40} height={40} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                                ) : (
+                                  <span>{(p?.cardName || p?.fullName || '?').charAt(0).toUpperCase()}</span>
+                                )}
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-sm truncate text-white">
+                                  {p ? (p.cardName || p.fullName) : isAr ? 'لاعب' : 'Player'}
+                                </p>
+                                {(p?.preferredPosition || p?.primaryPosition) && (
+                                  <span className="text-[10px] font-black uppercase text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                                    {p?.preferredPosition || p?.primaryPosition}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10">
+                    <div className="flex flex-wrap gap-3">
+                      {user && (
+                        <button
+                          onClick={handleToggleSignInToBooking}
+                          disabled={isSubmittingBooking}
+                          className={`px-8 py-4 rounded-2xl font-black text-base shadow-xl transition-all duration-200 active:scale-95 flex items-center gap-3 ${
+                            (displayMatch.signedUpPlayerUids || []).includes(user.uid)
+                              ? 'bg-red-600 hover:bg-red-500 text-white shadow-red-900/30'
+                              : 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-orange-900/40'
+                          }`}
+                        >
+                          <span>{(displayMatch.signedUpPlayerUids || []).includes(user.uid) ? '🚫' : '✅'}</span>
+                          <span>
+                            {isSubmittingBooking
+                              ? (isAr ? 'جاري المعالجة...' : 'Processing...')
+                              : (displayMatch.signedUpPlayerUids || []).includes(user.uid)
+                                ? (isAr ? 'إلغاء تسجيل الحضور' : 'Sign Out from Booking')
+                                : (isAr ? 'تسجيل الحضور والمشاركة' : 'Check In / Sign Up Now')}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Admin Actions */}
+                    {isAdmin && (
+                      <div className="flex flex-wrap items-center gap-3">
+                        <button
+                          onClick={handleGenerateFromBooking}
+                          className="px-6 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl shadow-lg transition-transform active:scale-95 flex items-center gap-2 text-sm"
+                        >
+                          <span>⚡</span>
+                          <span>{isAr ? "تشكيل الفرق وبدء المباراة" : "Generate Teams from Checked In"}</span>
+                        </button>
+                        <button
+                          onClick={handleEndBooking}
+                          className="px-5 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-2xl shadow transition-colors text-sm"
+                        >
+                          {isAr ? "إلغاء/إنهاء الحجز" : "Cancel Booking"}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Live Admin Control Panel (When Active) */}
+              {displayMatch.status !== 'registering' && isAdmin && !isViewingHistory && (
+                <div className="bg-slate-900 dark:bg-slate-900/90 border border-amber-500/30 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-white shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="font-black text-sm text-amber-400">
+                      {isAr ? "لوحة تحكم الإدارة الحية" : "Live Admin Match Control Panel"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={handleRemakeTeams}
+                      className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs shadow transition-transform active:scale-95 flex items-center gap-1.5"
+                    >
+                      <span>🔄</span>
+                      <span>{isAr ? "إعادة خلط وتوزيع الفرق" : "Remake Teams"}</span>
+                    </button>
+                    <button
+                      onClick={handleEndBooking}
+                      className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white font-bold rounded-xl text-xs shadow transition-colors flex items-center gap-1.5"
+                    >
+                      <span>🏁</span>
+                      <span>{isAr ? "إنهاء الحجز بالكامل وأرشفته" : "End & Archive Booking"}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Turf / Casual Match Display */}
-              {displayMatch.matchMode === 'turf' && displayMatch.turfResult && (
+              {displayMatch.status !== 'registering' && displayMatch.matchMode === 'turf' && displayMatch.turfResult && (
                 <TurfMatchDisplay turfResult={displayMatch.turfResult} isAr={isAr} />
               )}
-              {displayMatch.matchMode !== 'turf' && (
+
+              {/* Inter-Community Challenge Match Display & Access Enforcement */}
+              {displayMatch.status !== 'registering' && displayMatch.matchMode === 'inter_community' && (
+                (() => {
+                  const hasSquadAccess = isAdmin || (displayMatch.challengerSquadUids || []).includes(user?.uid) || (displayMatch.targetSquadUids || []).includes(user?.uid);
+                  if (!hasSquadAccess) {
+                    return (
+                      <div className="bg-red-500/10 border border-red-500/40 rounded-3xl p-8 md:p-12 text-center space-y-4 shadow-xl">
+                        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto text-3xl">
+                          🚫
+                        </div>
+                        <h3 className="text-2xl font-black text-red-500 dark:text-red-400">
+                          {isAr ? "عذراً، لم يتم اختيارك ضمن قائمة الفريق لهذه المباراة" : "Unfortunately, you are not selected in the squad for this match"}
+                        </h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                          {isAr ? "هذه مباراة تحدي خاصة بين المجتمعات وتقتصر على التشكيلة المغلقة المعتمدة من مسؤول المجتمع." : "This is an inter-community challenge match restricted to the locked squad confirmed by the community admin."}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950/80 rounded-3xl p-6 md:p-10 text-white shadow-2xl border border-amber-500/30 space-y-8">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
+                        <div>
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-2">
+                            ⚔️ {isAr ? "مباراة تحدي مجتمعات رسمية" : "Official Inter-Community Challenge"}
+                          </span>
+                          <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+                            {displayMatch.challengerCommunityName} vs {displayMatch.targetCommunityName}
+                          </h2>
+                          {displayMatch.challengeDetails && (
+                            <p className="text-sm text-slate-300 mt-2 flex flex-wrap gap-4 font-semibold">
+                              {displayMatch.challengeDetails.date && <span>📅 {displayMatch.challengeDetails.date}</span>}
+                              {displayMatch.challengeDetails.time && <span>⏰ {displayMatch.challengeDetails.time}</span>}
+                              {displayMatch.challengeDetails.location && <span>🏟️ {displayMatch.challengeDetails.location}</span>}
+                            </p>
+                          )}
+                        </div>
+                        <div className="px-4 py-2 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-bold text-xs flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                          <span>{isAr ? "القائمة مغلقة ومعتمدة" : "Locked & Approved Squads"}</span>
+                        </div>
+                      </div>
+
+                      {/* Squads Comparison Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-slate-900/60 p-5 rounded-2xl border border-white/10">
+                          <h4 className="font-black text-amber-400 mb-4 flex items-center gap-2">
+                            <span>🛡️</span>
+                            <span>{displayMatch.challengerCommunityName} {isAr ? "(التشكيلة المعتمدة)" : "(Challenger Squad)"}</span>
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {(displayMatch.challengerSquadUids || []).map((uid: string) => {
+                              const p = players.find(player => player.uid === uid);
+                              return (
+                                <div key={uid} className="bg-white/5 p-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" />
+                                  <span className="truncate">{p?.cardName || p?.fullName || uid}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="bg-slate-900/60 p-5 rounded-2xl border border-white/10">
+                          <h4 className="font-black text-blue-400 mb-4 flex items-center gap-2">
+                            <span>🛡️</span>
+                            <span>{displayMatch.targetCommunityName} {isAr ? "(التشكيلة المعتمدة)" : "(Target Squad)"}</span>
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {(displayMatch.targetSquadUids || []).map((uid: string) => {
+                              const p = players.find(player => player.uid === uid);
+                              return (
+                                <div key={uid} className="bg-white/5 p-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-blue-400 shrink-0" />
+                                  <span className="truncate">{p?.cardName || p?.fullName || uid}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
+
+              {displayMatch.status !== 'registering' && displayMatch.matchMode !== 'turf' && displayMatch.matchMode !== 'inter_community' && (
               <React.Fragment>
               {/* Scoreboard Banner if match has recorded stats */}
               {displayMatch.recordedStats && (
