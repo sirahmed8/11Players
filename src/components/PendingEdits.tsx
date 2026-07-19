@@ -193,9 +193,15 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
       const updateDataComm: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
 
+      const height = targetProfileData.height || playerData.height;
+      const weight = targetProfileData.weight || playerData.weight;
+      const age = targetProfileData.calculatedAge || playerData.calculatedAge;
+      const peerAvg = playerData.peerRatingAvg;
+      const peerCount = playerData.peerRatingCount;
+
       if (targetAttributes) {
         const mergedAttr = { ...(playerData.attributes || {}), ...targetAttributes };
-        const newOverall = calculateRealisticOverall(mergedAttr, pos, style);
+        const newOverall = calculateRealisticOverall(mergedAttr, pos, style, height, weight, age, peerAvg, peerCount);
         updateDataGlobal.attributes = mergedAttr;
         updateDataGlobal.approvedAttributes = mergedAttr;
         updateDataGlobal.overallRating = newOverall;
@@ -203,7 +209,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
         updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
       } else if (Object.keys(targetProfileData).length > 0 || modifiedData?.playStyle !== undefined || modifiedData?.primaryPosition !== undefined) {
-        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style);
+        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style, height, weight, age, peerAvg, peerCount);
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.overallRating = newOverall;
       }

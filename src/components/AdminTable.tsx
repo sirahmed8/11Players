@@ -376,7 +376,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       const secPos = attrModal.secondaryPosition !== undefined ? attrModal.secondaryPosition : (attrModal.player.secondaryPosition || '');
       const tertPos = attrModal.tertiaryPosition !== undefined ? attrModal.tertiaryPosition : (attrModal.player.tertiaryPosition || '');
       const style = attrModal.playStyle !== undefined ? attrModal.playStyle : (attrModal.player.playStyle || '');
-      const newOverall = calculateRealisticOverall(attrModal.attributes, pos, style, attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge);
+      const newOverall = calculateRealisticOverall(attrModal.attributes, pos, style, attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge, attrModal.player.peerRatingAvg, attrModal.player.peerRatingCount);
       const batch = writeBatch(db);
       const commIds = getAllPlayerCommunities(attrModal.player, activeCommunityId);
       const updatePayload = {

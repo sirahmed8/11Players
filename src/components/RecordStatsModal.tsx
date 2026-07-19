@@ -95,7 +95,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
 
         const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
-        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge);
+        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount);
 
         const globalRef = doc(db, 'players', p.uid);
         const globalPayload: any = { stats: newStats, overallRating: newOverall };
@@ -136,10 +136,36 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         }
       }
 
+      // AI Man of the Match (MOTM) Calculation
+      let bestMotmPlayer: any = null;
+      let highestMotmScore = -999;
+      allPlayers.forEach(p => {
+        if (!p || !p.uid) return;
+        const pStats = stats[p.uid] || { goals: 0, assists: 0, mvp: false, played: false };
+        if (!pStats.played && pStats.goals === 0 && pStats.assists === 0 && !pStats.mvp) return;
+        const ovr = Number(p.overallRating || p.attributes?.pace || 70);
+        const score = (Number(pStats.goals || 0) * 4) + (Number(pStats.assists || 0) * 2.5) + (pStats.mvp ? 6 : 0) + (ovr * 0.15);
+        if (score > highestMotmScore) {
+          highestMotmScore = score;
+          bestMotmPlayer = p;
+        }
+      });
+
+      const aiMotm = bestMotmPlayer ? {
+        uid: bestMotmPlayer.uid,
+        name: bestMotmPlayer.cardName || bestMotmPlayer.fullName || "Player",
+        photoUrl: bestMotmPlayer.photoUrl || null,
+        score: Math.round(highestMotmScore * 10) / 10,
+        goals: stats[bestMotmPlayer.uid]?.goals || 0,
+        assists: stats[bestMotmPlayer.uid]?.assists || 0,
+        reasonEn: `AI Algorithmic selection based on match rating (${bestMotmPlayer.overallRating || 75} OVR) and recorded impact (${stats[bestMotmPlayer.uid]?.goals || 0}G / ${stats[bestMotmPlayer.uid]?.assists || 0}A).`,
+        reasonAr: `اختيار الذكاء الاصطناعي بناءً على التقييم العام (${bestMotmPlayer.overallRating || 75} OVR) والإحصائيات المسجلة (${stats[bestMotmPlayer.uid]?.goals || 0} أهداف / ${stats[bestMotmPlayer.uid]?.assists || 0} صناعة).`
+      } : null;
+
       if (activeCommunityId) {
         const targetMatchId = (matchData.id && matchData.id !== "latest") ? matchData.id : `match_${Date.now()}`;
         const historyRef = doc(db, "communities", activeCommunityId, "matches", targetMatchId);
-        batch.set(historyRef, { ...matchData, id: targetMatchId, status: "finished", finishedAt: new Date().toISOString(), recordedStats: stats }, { merge: true });
+        batch.set(historyRef, { ...matchData, id: targetMatchId, status: "finished", finishedAt: new Date().toISOString(), recordedStats: stats, aiMotm }, { merge: true });
         
         const latestMatchRef = doc(db, "communities", activeCommunityId, "matches", "latest");
         batch.delete(latestMatchRef);

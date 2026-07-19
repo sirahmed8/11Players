@@ -166,7 +166,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       if (isOwner || isAdmin) {
         const mergedAttributes = { ...player.attributes, ...attributes };
-        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '');
+        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '', formData.height || player.height, formData.weight || player.weight, age, player.peerRatingAvg, player.peerRatingCount);
         const updatePayload: any = {
           ...dataToSave,
           attributes: mergedAttributes,

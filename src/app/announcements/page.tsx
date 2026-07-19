@@ -46,11 +46,15 @@ export default function AnnouncementsPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
-    const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+    const q = collection(db, "announcements");
     const unsub = onSnapshot(q, (snap) => {
       const list: Announcement[] = [];
       snap.forEach(d => list.push({ id: d.id, ...d.data() } as Announcement));
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setRecentAnnouncements(list);
+      setLoadingHistory(false);
+    }, (err) => {
+      console.error("Announcements query error:", err);
       setLoadingHistory(false);
     });
     return () => unsub();
@@ -236,7 +240,7 @@ export default function AnnouncementsPage() {
                   placeholder="e.g. Next Match Sign-Up Open!"
                   value={titleEn}
                   onChange={e => setTitleEn(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                 />
               </div>
 
@@ -250,7 +254,7 @@ export default function AnnouncementsPage() {
                   placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                   value={titleAr}
                   onChange={e => setTitleAr(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                 />
               </div>
             </div>
@@ -267,7 +271,7 @@ export default function AnnouncementsPage() {
                   placeholder="Type your message description here in English..."
                   value={bodyEn}
                   onChange={e => setBodyEn(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                 />
               </div>
 
@@ -281,7 +285,7 @@ export default function AnnouncementsPage() {
                   placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                   value={bodyAr}
                   onChange={e => setBodyAr(e.target.value)}
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
                 />
               </div>
             </div>
@@ -297,7 +301,7 @@ export default function AnnouncementsPage() {
                 placeholder={isAr ? "مثال: /match" : "e.g. /match"}
                 value={link}
                 onChange={e => setLink(e.target.value)}
-                className="w-full px-4 py-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-sm hover:border-amber-500/40 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/40 transition-all duration-200 shadow-sm"
+                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
               />
             </div>
 

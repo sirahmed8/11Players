@@ -10,6 +10,7 @@ import { User } from "lucide-react";
 import Link from "next/link";
 
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
+import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
 function PlayerRowAvatar({ photoUrl, cardName }: { photoUrl?: string; cardName: string }) {
@@ -174,7 +175,7 @@ export default function StatsPage() {
   };
 
   const getOverall = React.useCallback((p: PlayerProfile) => {
-    return calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || "");
+    return getPlayerOverall(p);
   }, []);
 
   const topScorers = React.useMemo(() => {

@@ -198,10 +198,42 @@ export default function MatchPage() {
     if (!activeCommunityId || !matchData) return;
     if (!window.confirm(isAr ? "هل أنت متأكد من رغبتك في إنهاء الحجز بالكامل؟ سيتم نقل المباراة للأرشيف." : "Are you sure you want to end this booking completely?")) return;
     try {
-      const finishedData = { ...matchData, status: 'finished', finishedAt: new Date().toISOString() };
+      let bestMotmPlayer: any = null;
+      let highestMotmScore = -999;
+      const allMatchPlayers = [
+        ...(matchData.teamA || []),
+        ...(matchData.teamB || []),
+        ...(matchData.bench || []).map((b: any) => b.player || b),
+        ...(matchData.turfResult?.teams || []).flatMap((t: any) => t.players || []),
+        ...(matchData.signedUpPlayerUids ? players.filter(p => matchData.signedUpPlayerUids.includes(p.uid)) : [])
+      ];
+      const uniquePlayers = Array.from(new Map(allMatchPlayers.filter(p => p && p.uid).map(p => [p.uid, p])).values());
+      uniquePlayers.forEach((p: any) => {
+        const ovr = Number(p.overallRating || p.attributes?.pace || 70);
+        const goals = Number(matchData.recordedStats?.[p.uid]?.goals || p.stats?.goals || 0);
+        const assists = Number(matchData.recordedStats?.[p.uid]?.assists || p.stats?.assists || 0);
+        const mvp = Boolean(matchData.recordedStats?.[p.uid]?.mvp || false);
+        const score = (goals * 4) + (assists * 2.5) + (mvp ? 6 : 0) + (ovr * 0.15);
+        if (score > highestMotmScore) {
+          highestMotmScore = score;
+          bestMotmPlayer = p;
+        }
+      });
+      const aiMotm = matchData.aiMotm || (bestMotmPlayer ? {
+        uid: bestMotmPlayer.uid,
+        name: bestMotmPlayer.cardName || bestMotmPlayer.fullName || "Player",
+        photoUrl: bestMotmPlayer.photoUrl || null,
+        score: Math.round(highestMotmScore * 10) / 10,
+        goals: matchData.recordedStats?.[bestMotmPlayer.uid]?.goals || 0,
+        assists: matchData.recordedStats?.[bestMotmPlayer.uid]?.assists || 0,
+        reasonEn: `AI Algorithmic selection based on match rating (${bestMotmPlayer.overallRating || 75} OVR) and match impact.`,
+        reasonAr: `اختيار الذكاء الاصطناعي بناءً على التقييم العام (${bestMotmPlayer.overallRating || 75} OVR) وتأثير اللاعب في المباراة.`
+      } : null);
+
+      const finishedData = { ...matchData, status: 'finished', finishedAt: new Date().toISOString(), aiMotm };
       await setDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id), finishedData);
       await deleteDoc(doc(db, "communities", activeCommunityId, "matches", "latest"));
-      toast.success(isAr ? "تم إنهاء الحجز ونقله للأرشيف بنجاح" : "Booking ended and archived successfully");
+      toast.success(isAr ? "تم إنهاء الحجز واختيار نجم المباراة بالأرشيف بنجاح!" : "Booking ended & AI Man of the Match selected successfully!");
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "حدث خطأ أثناء إنهاء الحجز" : "Failed to end booking");
@@ -751,6 +783,85 @@ export default function MatchPage() {
                   </div>
                 </div>
               )}
+
+              {/* AI Man of the Match (MOTM) Banner */}
+              {(displayMatch.aiMotm || (displayMatch.status === 'finished' && displayMatch.recordedStats)) && (() => {
+                const motm = displayMatch.aiMotm || (() => {
+                  let best: any = null;
+                  let max = -999;
+                  const all = [
+                    ...(displayMatch.teamA || []),
+                    ...(displayMatch.teamB || []),
+                    ...(displayMatch.turfResult?.teams || []).flatMap((t: any) => t.players || [])
+                  ];
+                  all.forEach((p: any) => {
+                    if (!p || !p.uid) return;
+                    const st = displayMatch.recordedStats?.[p.uid] || { goals: 0, assists: 0, mvp: false };
+                    const sc = (Number(st.goals || 0) * 4) + (Number(st.assists || 0) * 2.5) + (st.mvp ? 6 : 0) + ((Number(p.overallRating) || 70) * 0.15);
+                    if (sc > max) { max = sc; best = { uid: p.uid, name: p.cardName || p.fullName, photoUrl: p.photoUrl, score: Math.round(sc * 10) / 10, goals: st.goals || 0, assists: st.assists || 0, reasonEn: `AI selection based on match rating (${p.overallRating || 75} OVR) & performance.`, reasonAr: `اختيار الذكاء الاصطناعي بناءً على التقييم العام (${p.overallRating || 75} OVR) والإحصائيات.` }; }
+                  });
+                  return best;
+                })();
+                if (!motm) return null;
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 md:p-8 text-slate-950 shadow-2xl border-2 border-yellow-200 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden"
+                  >
+                    <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/20 rounded-full blur-2xl pointer-events-none" />
+                    <div className="flex items-center gap-5 z-10">
+                      <div className="relative">
+                        <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-900 border-2 border-amber-300 shadow-xl overflow-hidden flex items-center justify-center shrink-0 text-3xl font-black text-amber-400">
+                          {motm.photoUrl ? (
+                            <img src={motm.photoUrl} alt={motm.name} className="w-full h-full object-cover" />
+                          ) : (
+                            motm.name?.slice(0, 2).toUpperCase() || '🌟'
+                          )}
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 bg-slate-950 text-amber-400 px-2.5 py-0.5 rounded-full text-[10px] font-black border border-amber-400 shadow">
+                          MOTM
+                        </div>
+                      </div>
+                      <div className="space-y-1 text-center sm:text-start">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-slate-950 text-amber-300 shadow-sm">
+                          🤖 {isAr ? "نجم المباراة المختار بالذكاء الاصطناعي (AI MOTM)" : "AI Man of the Match (MOTM)"}
+                        </div>
+                        <h3 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
+                          {motm.name}
+                        </h3>
+                        <p className="text-xs sm:text-sm font-bold text-slate-900/90 max-w-xl">
+                          {isAr ? motm.reasonAr : motm.reasonEn}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 bg-slate-950/10 backdrop-blur-sm px-6 py-4 rounded-2xl border border-black/10 shrink-0 z-10">
+                      <div className="text-center">
+                        <span className="block text-[10px] font-black uppercase tracking-wider text-slate-800">{isAr ? "نقاط الذكاء الاصطناعي" : "AI Score"}</span>
+                        <span className="text-2xl font-black font-mono text-slate-950">{motm.score || '9.5'}</span>
+                      </div>
+                      {motm.goals !== undefined && (
+                        <>
+                          <div className="w-px h-8 bg-black/10" />
+                          <div className="text-center">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-800">{isAr ? "أهداف" : "Goals"}</span>
+                            <span className="text-xl font-black font-mono text-slate-950">{motm.goals}</span>
+                          </div>
+                        </>
+                      )}
+                      {motm.assists !== undefined && (
+                        <>
+                          <div className="w-px h-8 bg-black/10" />
+                          <div className="text-center">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-800">{isAr ? "صناعة" : "Assists"}</span>
+                            <span className="text-xl font-black font-mono text-slate-950">{motm.assists}</span>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })()}
 
               {/* Turf / Casual Match Display */}
               {displayMatch.status !== 'registering' && displayMatch.matchMode === 'turf' && displayMatch.turfResult && (

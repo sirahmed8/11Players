@@ -54,7 +54,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     }
 
     // --- 1. Overall Rating (OVR) Based Advice ---
-    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '', profile.calculatedAge);
+    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '', profile.height, profile.weight, profile.calculatedAge, profile.peerRatingAvg, profile.peerRatingCount);
     if (ovr < 70) {
       advices.push({
         titleAr: "🚀 مرحلة الصعود والتأسيس",
