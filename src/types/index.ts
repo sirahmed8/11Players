@@ -56,6 +56,9 @@ export interface CommunityStats {
   assists: number;
   mvp: number;
   matchesPlayed: number;
+  yellowCards?: number;
+  redCards?: number;
+  isSuspended?: boolean;
   form?: '⬆️' | '↗️' | '➡️' | '↘️' | '⬇️';
   trophies?: {
     name: string;
@@ -133,6 +136,9 @@ export interface PlayerProfile {
     assists: number;
     mvp: number;
     matchesPlayed: number;
+    yellowCards?: number;
+    redCards?: number;
+    isSuspended?: boolean;
   };
   trophies?: {
     name: string;

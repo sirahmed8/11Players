@@ -25,6 +25,7 @@ export interface MatchConfig {
   targetGoals?: number;           // Goals needed to win / rotate
   isOpenRegistration?: boolean;   // Open turf registration without initially selecting players
   selectedPlayerUids?: string[];  // Which players will play (null = all)
+  enableCardsSystem?: boolean;    // Enable Yellow & Red Card disciplinary system
 }
 
 interface CommunityPlayer {
@@ -33,6 +34,7 @@ interface CommunityPlayer {
   cardName?: string;
   primaryPosition?: string;
   photoUrl?: string;
+  stats?: any;
 }
 
 interface MatchConfigModalProps {
@@ -68,6 +70,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     targetGoals: 3,
     isOpenRegistration: false,
     selectedPlayerUids: undefined, // undefined = all players
+    enableCardsSystem: true,
   });
 
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -796,6 +799,27 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </button>
                   </div>
 
+                  {/* Enable Cards & Disciplinary System Option */}
+                  <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center justify-between mt-3">
+                    <div>
+                      <span className="text-xs font-black text-red-800 dark:text-red-300 block">
+                        {isAr ? 'تفعيل نظام الإنذارات والكروت (أصفر / أحمر / إيقاف)' : 'Enable Cards & Disciplinary System (Yellow/Red/Suspensions)'}
+                      </span>
+                      <span className="text-[10px] text-red-600 dark:text-red-400">
+                        {isAr ? 'تسجيل الكروت أثناء المباراة وتطبيق الإيقاف التلقائي في الحجز التالي للكرت الأحمر' : 'Track cards during match & enforce suspensions for players with red cards'}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setConfig(prev => ({ ...prev, enableCardsSystem: prev.enableCardsSystem === false ? true : false }))}
+                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                        config.enableCardsSystem !== false ? 'bg-red-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                      }`}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                    </button>
+                  </div>
+
                   {/* Player Selection */}
                   <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${!config.isOpenRegistration && communityPlayers.length > 0 ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
                     <div className="overflow-hidden">
@@ -842,10 +866,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                     selectedUids.has(p.uid)
                                       ? 'bg-emerald-500 text-white shadow-sm'
                                       : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 line-through opacity-60'
-                                  }`}
+                                  } ${config.enableCardsSystem !== false && p.stats?.isSuspended ? 'border-2 border-red-500 bg-red-500/20 text-red-600 dark:text-red-400' : ''}`}
                                 >
                                   {selectedUids.has(p.uid) ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
                                   {p.cardName || p.fullName}
+                                  {config.enableCardsSystem !== false && p.stats?.isSuspended && (
+                                    <span title={isAr ? 'موقوف بسبب كرت أحمر' : 'Suspended (Red Card)'} className="px-1 py-0.5 bg-red-600 text-white rounded text-[9px] font-black">
+                                      🚫 {isAr ? 'موقوف' : 'Suspended'}
+                                    </span>
+                                  )}
                                 </button>
                               ))}
                             </div>

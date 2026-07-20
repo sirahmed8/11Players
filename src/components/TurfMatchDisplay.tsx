@@ -157,6 +157,11 @@ const TeamCard = ({
                         🥅 GK
                       </span>
                     )}
+                    {player.stats?.isSuspended && (
+                      <span title={isAr ? 'موقوف عن اللعب (كرت أحمر)' : 'Suspended (Red Card)'} className="px-1.5 py-0.5 text-[9px] font-black bg-red-600 text-white rounded-md shadow-sm">
+                        🚫 {isAr ? 'موقوف' : 'Suspended'}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[10px] text-slate-500 dark:text-slate-400">
                     {player.primaryPosition}

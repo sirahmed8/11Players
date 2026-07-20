@@ -114,13 +114,6 @@ export function calculateRealisticOverall(
     }
   }
 
-  // Special Skills Impact (up to +2 boost for specialized traits)
-  if (specialSkills && Array.isArray(specialSkills) && specialSkills.length > 0) {
-    const skillCount = specialSkills.length;
-    if (skillCount >= 6) finalOverall += 2;
-    else if (skillCount >= 3) finalOverall += 1;
-  }
-
   // Community Peer Rating Modifier (±2.0 max, requires at least 3 ratings for stability)
   if (peerRatingCount && peerRatingCount >= 3 && peerRatingAvg !== undefined && peerRatingAvg > 0) {
     const peerModifier = Math.max(-2, Math.min(2, Math.round((peerRatingAvg - 6.0) * 0.5)));

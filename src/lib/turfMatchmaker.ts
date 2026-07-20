@@ -43,6 +43,7 @@ export interface TurfMatchmakingResult {
   matchDurationMins: number;
   endCondition?: 'time' | 'goals' | 'both';
   targetGoals?: number;
+  enableCardsSystem?: boolean;
 }
 
 // ─── Serpentine Draft ─────────────────────────────────────────────────────────
@@ -174,6 +175,7 @@ export interface TurfConfig {
   matchDurationMins: number;
   endCondition?: 'time' | 'goals' | 'both';
   targetGoals?: number;
+  enableCardsSystem?: boolean;
 }
 
 /**
@@ -185,7 +187,7 @@ export function generateTurfMatch(
   availablePlayers: PlayerProfile[],
   config: TurfConfig
 ): TurfMatchmakingResult {
-  const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins, endCondition, targetGoals, fixedGkTeamA, fixedGkTeamB } = config;
+  const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins, endCondition, targetGoals, fixedGkTeamA, fixedGkTeamB, enableCardsSystem } = config;
 
   const totalNeeded = numTeams * playersPerTeam;
   const activePlayers = availablePlayers.slice(0, totalNeeded);
@@ -250,6 +252,7 @@ export function generateTurfMatch(
     gkRotationInterval,
     matchDurationMins,
     endCondition,
-    targetGoals
+    targetGoals,
+    enableCardsSystem
   };
 }

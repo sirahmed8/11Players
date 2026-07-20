@@ -99,7 +99,13 @@ service cloud.firestore {
 
       match /players/{userId} {
         allow read: if request.auth != null;
-        allow write: if isAdmin() || isCommAdmin(communityId) || (request.auth != null && request.auth.uid == userId);
+        allow create: if isAdmin() || isCommAdmin(communityId) || (request.auth != null && request.auth.uid == userId);
+        allow update: if isAdmin() || isCommAdmin(communityId) ||
+          (request.auth != null && request.auth.uid == userId) ||
+          (request.auth != null && isCommunityMember(communityId) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['captainVotes']) &&
+            request.resource.data.captainVotes is list);
+        allow delete: if isAdmin() || isCommAdmin(communityId) || (request.auth != null && request.auth.uid == userId);
       }
 
       match /requests/{requestId} {

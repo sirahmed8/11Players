@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
-import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import FormIcon from './FormIcon';
 
@@ -17,7 +16,6 @@ interface PlayerCardCompactProps {
 }
 
 const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats, onVoteCaptain, currentUserId }: PlayerCardCompactProps) {
-  const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = getPlayerOverall(player);
   const [imgError, setImgError] = React.useState(false);
   const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
@@ -35,16 +33,16 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className={`relative flex items-center gap-4 p-3 rounded-xl shadow-sm border transition-all cursor-pointer overflow-hidden ${
+        className={`relative grid grid-cols-[4.5rem_minmax(0,1fr)_4.25rem] items-center gap-4 min-h-[168px] p-5 rounded-2xl shadow-sm border transition-all cursor-pointer overflow-hidden ${
           isCurrentUser
-            ? 'border-emerald-500 ring-2 ring-emerald-500/50 bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent dark:from-emerald-500/20 dark:via-emerald-500/10 dark:to-transparent'
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-md'
+            ? 'border-emerald-400 bg-emerald-950/95 ring-1 ring-emerald-400/60 shadow-[0_12px_30px_rgba(16,185,129,0.16)]'
+            : 'bg-slate-800/95 border-slate-700 hover:border-emerald-500/40 hover:shadow-md'
         }`}
       >
 
         {/* Photo */}
-        <div className={`relative w-14 h-14 rounded-full border-2 overflow-hidden flex-shrink-0 ${
-          isCurrentUser ? 'border-emerald-400 ring-2 ring-emerald-400/50 bg-emerald-50 dark:bg-slate-800' : 'border-emerald-500/30 bg-slate-100 dark:bg-slate-700'
+        <div className={`relative w-16 h-16 rounded-full border-2 overflow-hidden flex-shrink-0 ${
+          isCurrentUser ? 'border-emerald-300 ring-4 ring-emerald-400/20 bg-slate-900' : 'border-emerald-500/40 bg-slate-700'
         }`}>
           {(() => {
             return displayPhoto && !imgError ? (
@@ -52,13 +50,13 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
                 src={displayPhoto} 
                 alt="" 
                 fill
-                sizes="56px"
+                sizes="64px"
                 style={{ objectFit: 'cover' }}
                 referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-emerald-600/50 dark:text-emerald-400/50 font-bold text-xl">
+              <div className="w-full h-full flex items-center justify-center text-emerald-300/70 font-bold text-xl">
                 {player.cardName.charAt(0).toUpperCase()}
               </div>
             );
@@ -68,16 +66,11 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
         {/* Details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-lg font-bold truncate ${isCurrentUser ? 'text-emerald-700 dark:text-emerald-300 font-black' : 'text-slate-900 dark:text-white'}`}>
+            <h3 className={`text-lg font-black truncate ${isCurrentUser ? 'text-emerald-200' : 'text-white'}`}>
               {player.cardName}
             </h3>
-            {isCurrentUser && (
-              <span className="text-[10px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full shadow-sm animate-pulse shrink-0">
-                أنت / YOU
-              </span>
-            )}
             {player.form && (
-              <div title="Current Form" className="bg-slate-100 dark:bg-slate-700/50 rounded-full p-0.5">
+              <div title="Current Form" className="bg-slate-700 rounded-full p-0.5">
                 <FormIcon form={player.form} className="w-3.5 h-3.5" />
               </div>
             )}
@@ -95,16 +88,16 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
                 {pStats.mvp && <span>⭐ MOTM</span>}
               </span>
             )}
-            <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+            <span className="text-xs font-black px-2.5 py-1 rounded-md bg-emerald-500/15 text-emerald-300">
               {player.primaryPosition}
             </span>
             {player.playStyle && (
-              <span className="text-xs font-bold px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+              <span className="text-xs font-bold px-2.5 py-1 rounded-md bg-amber-500/15 text-amber-300">
                 {player.playStyle.replace(/_/g, ' ').trim()}
               </span>
             )}
             {player.secondaryPosition && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-md bg-slate-700 text-slate-300">
                 {player.secondaryPosition}
               </span>
             )}
@@ -112,14 +105,14 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
         </div>
 
         {/* Overall Rating */}
-        <div className="flex-shrink-0 px-2 flex flex-col items-center justify-center border-s border-slate-200 dark:border-slate-700 pl-4">
-          <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 tracking-wider">OVR</span>
-          <div className="text-2xl font-black text-amber-500 drop-shadow-sm leading-none">
+        <div className="flex-shrink-0 flex flex-col items-center justify-center border-s border-slate-700 pl-4">
+          <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">OVR</span>
+          <div className="text-3xl font-black text-amber-400 drop-shadow-sm leading-none">
             {overall}
           </div>
           {player.peerRatingAvg && player.peerRatingAvg > 0 && (
             <div className="flex items-center gap-0.5 mt-0.5">
-              <span className="text-[9px] text-amber-400">⭐</span>
+              <span className="text-[9px] text-amber-400">★</span>
               <span className="text-[10px] font-bold text-amber-300">{player.peerRatingAvg.toFixed(1)}</span>
             </div>
           )}

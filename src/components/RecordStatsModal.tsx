@@ -24,8 +24,8 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
   const { locale } = useLocale();
   const isAr = locale === 'ar';
 
-  // Store stats incrementally per player: uid -> { goals, assists, mvp, played }
-  const [stats, setStats] = useState<Record<string, { goals: number; assists: number; mvp: boolean; played: boolean }>>({});
+  // Store stats incrementally per player: uid -> { goals, assists, mvp, played, yellowCards, redCards }
+  const [stats, setStats] = useState<Record<string, { goals: number; assists: number; mvp: boolean; played: boolean; yellowCards: number; redCards: number }>>({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -45,6 +45,8 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
           assists: 0,
           mvp: false,
           played: !isBench,
+          yellowCards: 0,
+          redCards: 0,
         };
       });
       setStats(initialStats);
@@ -60,10 +62,14 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
   ].filter(p => p && p.uid);
 
   const updateStat = (uid: string, field: string, val: any) => {
-    setStats(prev => ({
-      ...prev,
-      [uid]: { ...prev[uid], [field]: val }
-    }));
+    setStats(prev => {
+      const current = prev[uid] || { goals: 0, assists: 0, mvp: false, played: true, yellowCards: 0, redCards: 0 };
+      const updated = { ...current, [field]: val };
+      if (field === 'yellowCards' && val >= 2) {
+        updated.redCards = 1;
+      }
+      return { ...prev, [uid]: updated };
+    });
   };
 
   const handleSave = async () => {
@@ -73,7 +79,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
 
       const activePlayers = allPlayers.filter(p => {
         const pStats = stats[p.uid];
-        return pStats && (pStats.played || pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
+        return pStats && (pStats.played || pStats.goals > 0 || pStats.assists > 0 || pStats.mvp || pStats.yellowCards > 0 || pStats.redCards > 0 || p.stats?.isSuspended);
       });
 
       const snaps = await Promise.all(
@@ -94,6 +100,17 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.assists > 0) newStats.assists = (currentStats.assists || 0) + Number(pStats.assists);
         if (pStats.mvp) newStats.mvp = (currentStats.mvp || 0) + 1;
         if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
+
+        if (matchData.turfResult?.enableCardsSystem !== false && matchData.enableCardsSystem !== false) {
+          if (pStats.yellowCards > 0) newStats.yellowCards = (currentStats.yellowCards || 0) + Number(pStats.yellowCards);
+          if (pStats.redCards > 0) newStats.redCards = (currentStats.redCards || 0) + Number(pStats.redCards);
+
+          if ((pStats.yellowCards && pStats.yellowCards >= 2) || (pStats.redCards && pStats.redCards > 0)) {
+            newStats.isSuspended = true;
+          } else if (currentStats.isSuspended === true && !pStats.played) {
+            newStats.isSuspended = false;
+          }
+        }
 
         const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
         const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount, currentData.preferredFoot || p.preferredFoot, currentData.specialSkills || p.specialSkills);
@@ -243,6 +260,11 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                           {isBench ? (isAr ? 'دكة' : 'Bench') : (p.assignedPosition || p.primaryPosition)}
                         </span>
                         <span>• OVR {getPlayerOverall(p)}</span>
+                        {p.stats?.isSuspended && (
+                          <span className="px-1.5 py-0.5 bg-red-600 text-white font-black text-[9px] rounded-md">
+                            🚫 {isAr ? 'موقوف (كرت أحمر)' : 'Suspended'}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -303,6 +325,47 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                         >+</button>
                       </div>
                     </div>
+
+                    {/* Yellow & Red Cards (if disciplinary system is enabled) */}
+                    {matchData.turfResult?.enableCardsSystem !== false && matchData.enableCardsSystem !== false && (
+                      <>
+                        {/* Yellow Cards */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                            🟨 {isAr ? 'إنذار' : 'Yellow'}
+                          </span>
+                          <div className="flex items-center bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-inner p-0.5">
+                            <button
+                              type="button"
+                              onClick={() => updateStat(p.uid, 'yellowCards', Math.max(0, (pStats.yellowCards || 0) - 1))}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all font-black text-base shadow-sm active:scale-95"
+                            >−</button>
+                            <div className="w-8 text-center font-black text-amber-600 dark:text-amber-400 text-base">
+                              {pStats.yellowCards || 0}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => updateStat(p.uid, 'yellowCards', (pStats.yellowCards || 0) + 1)}
+                              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white transition-all font-black text-base shadow-sm active:scale-95"
+                            >+</button>
+                          </div>
+                        </div>
+
+                        {/* Red Card Toggle */}
+                        <button
+                          type="button"
+                          onClick={() => updateStat(p.uid, 'redCards', (pStats.redCards || 0) > 0 ? 0 : 1)}
+                          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 shadow-sm border ${
+                            (pStats.redCards || 0) > 0
+                              ? 'bg-red-600 text-white border-red-600 shadow-red-500/30 shadow-md ring-2 ring-red-500'
+                              : 'bg-slate-100 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-700 hover:border-red-500/40 hover:text-red-500'
+                          }`}
+                        >
+                          <span className="text-base">🟥</span>
+                          <span>{isAr ? 'أحمر/طرد' : 'Red Card'}</span>
+                        </button>
+                      </>
+                    )}
 
                     {/* MVP Toggle Button */}
                     <button

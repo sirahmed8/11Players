@@ -258,6 +258,16 @@ function PlayerProfileContent() {
       label: isAr ? "المباريات" : "Matches",
       value: player.stats?.matchesPlayed || 0,
     },
+    {
+      icon: <span className="text-base">🟨</span>,
+      label: isAr ? "الإنذارات (صفراء)" : "Yellow Cards",
+      value: player.stats?.yellowCards || 0,
+    },
+    {
+      icon: <span className="text-base">🟥</span>,
+      label: isAr ? "الكروت الحمراء" : "Red Cards",
+      value: player.stats?.redCards || 0,
+    },
     ...(player.matchStarRatingAvg
       ? [{
           icon: <span className="text-amber-400 text-lg">⭐</span>,
@@ -295,6 +305,24 @@ function PlayerProfileContent() {
               </button>
             </div>
           </div>
+
+          {player.stats?.isSuspended && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="p-4 bg-red-50 dark:bg-red-500/10 border-2 border-red-500 rounded-2xl flex items-center gap-3 text-red-800 dark:text-red-200 shadow-md"
+            >
+              <span className="text-2xl">🚫</span>
+              <div>
+                <h4 className="font-black text-sm">{isAr ? "اللاعب موقوف حالياً عن المشاركة (كرت أحمر)" : "Player Currently Suspended (Red Card)"}</h4>
+                <p className="text-xs text-red-600 dark:text-red-300 mt-0.5">
+                  {isAr
+                    ? "حصل هذا اللاعب على كرت أحمر في مباراته السابقة، ولن يتمكن من المشاركة في الحجز/المباراة القادمة حتى انتهاء مدة الإيقاف."
+                    : "This player received a red card in their previous match and cannot play in the next match/turf session."}
+                </p>
+              </div>
+            </motion.div>
+          )}
 
             <div className="flex flex-col lg:flex-row gap-8 w-full justify-center lg:justify-between items-center lg:items-start bg-white dark:bg-slate-800/30 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none">
               {/* Left Column: Card & Form */}

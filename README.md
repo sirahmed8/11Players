@@ -19,13 +19,6 @@
 - **Backend**: Firebase (Firestore, Authentication, Storage)
 - **Deployment**: Firebase Hosting
 
-## 📦 Local Development
-
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Add your Firebase credentials in `.env.local`
-4. Run the development server: `npm run dev`
-
 ## 📄 License
 
 This project is proprietary and closed-source. All rights reserved by **11Players**. See the [LICENSE](LICENSE) file for details.

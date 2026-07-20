@@ -19,6 +19,7 @@ import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import TurfMatchDisplay from "@/components/TurfMatchDisplay";
+import LiveMatchController from "@/components/LiveMatchController";
 import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
 import { generateTurfMatch } from "@/lib/turfMatchmaker";
 import { balanceTeams } from "@/lib/matchmaker";
@@ -945,6 +946,17 @@ export default function MatchPage() {
                   </motion.div>
                 );
               })()}
+
+              {/* Live Match Stopwatch & Extra Time Controller */}
+              {displayMatch.status !== 'registering' && !isViewingHistory && (
+                <LiveMatchController
+                  matchDurationMins={displayMatch.config?.matchDurationMins || displayMatch.turfResult?.matchDurationMins || 20}
+                  isAr={isAr}
+                  isAdmin={isAdmin}
+                  onOpenRecordModal={() => setIsRecordModalOpen(true)}
+                  enableCardsSystem={displayMatch.turfResult?.enableCardsSystem !== false && displayMatch.enableCardsSystem !== false}
+                />
+              )}
 
               {/* Turf / Casual Match Display */}
               {displayMatch.status !== 'registering' && displayMatch.matchMode === 'turf' && displayMatch.turfResult && (

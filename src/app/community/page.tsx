@@ -14,7 +14,7 @@ import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import OvrExplanationModal from "@/components/OvrExplanationModal";
-import { deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
+import { arrayRemove, arrayUnion, deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -57,7 +57,7 @@ export default function CommunityPage() {
   }, [players, searchQuery, sortBy]);
 
   const handleVoteCaptain = async (playerId: string) => {
-    if (!user) return;
+    if (!user || !activeCommunityId) return;
     if (playerId === user.uid) {
       toast.error(isAr ? "لا يمكنك التصويت لنفسك لتكون كابتن!" : "You cannot vote for yourself as captain!");
       return;
@@ -68,16 +68,11 @@ export default function CommunityPage() {
       
       const currentVotes = targetPlayer.captainVotes || [];
       const hasVoted = currentVotes.includes(user.uid);
-      
-      let newVotes;
-      if (hasVoted) {
-        newVotes = currentVotes.filter(uid => uid !== user.uid);
-      } else {
-        newVotes = [...currentVotes, user.uid];
-      }
+      const communityPlayerRef = doc(db, "communities", activeCommunityId, "players", playerId);
 
-      await updateDoc(doc(db, "players", playerId), {
-        captainVotes: newVotes
+      // The roster is the live source used by every member of this community.
+      await updateDoc(communityPlayerRef, {
+        captainVotes: hasVoted ? arrayRemove(user.uid) : arrayUnion(user.uid)
       });
       
       toast.success(hasVoted ? (isAr ? "تم إلغاء التصويت" : "Vote removed") : (isAr ? "تم التصويت كابتن!" : "Voted for captain!"));

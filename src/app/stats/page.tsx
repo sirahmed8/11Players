@@ -95,11 +95,6 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
             <div>
               <div className="flex items-center gap-2">
                 <span className={`font-bold group-hover:text-emerald-500 transition-colors ${isCurrentUser ? 'text-emerald-700 dark:text-emerald-300 font-black' : ''}`}>{p.cardName}</span>
-                {isCurrentUser && (
-                  <span className="text-[10px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full shadow-sm animate-pulse shrink-0">
-                    {isAr ? "أنت" : "YOU"}
-                  </span>
-                )}
               </div>
               <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
                 {p.primaryPosition}
