@@ -70,17 +70,6 @@ export default function CommunityPage() {
       const hasVoted = currentVotes.includes(user.uid);
       const communityPlayerRef = doc(db, "communities", activeCommunityId, "players", playerId);
 
-      // Optimistic UI update - immediately update local state
-      setPlayers(prev => prev.map(p => {
-        if (p.uid === playerId) {
-          const newVotes = hasVoted 
-            ? (p.captainVotes || []).filter(v => v !== user.uid)
-            : [...(p.captainVotes || []), user.uid];
-          return { ...p, captainVotes: newVotes };
-        }
-        return p;
-      }));
-
       // The roster is the live source used by every member of this community.
       await updateDoc(communityPlayerRef, {
         captainVotes: hasVoted ? arrayRemove(user.uid) : arrayUnion(user.uid)
@@ -90,14 +79,6 @@ export default function CommunityPage() {
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "حدث خطأ أثناء التصويت" : "Error casting vote");
-      // Revert optimistic update on error
-      setPlayers(prev => prev.map(p => {
-        if (p.uid === playerId) {
-          const targetPlayer = players.find(orig => orig.uid === playerId);
-          return { ...p, captainVotes: targetPlayer?.captainVotes || [] };
-        }
-        return p;
-      }));
     }
   };
 
