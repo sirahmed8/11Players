@@ -29,10 +29,10 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
   const isCurrentUser = Boolean(currentUserId && player.uid === currentUserId);
 
   const getOverallColor = (ovr: number) => {
-    if (ovr >= 90) return 'from-emerald-400 to-emerald-600';
-    if (ovr >= 80) return 'from-blue-400 to-blue-600';
-    if (ovr >= 70) return 'from-slate-400 to-slate-600';
-    return 'from-slate-500 to-slate-700';
+    if (ovr >= 90) return 'bg-emerald-500';
+    if (ovr >= 80) return 'bg-blue-500';
+    if (ovr >= 70) return 'bg-slate-500';
+    return 'bg-slate-600';
   };
 
   return (
@@ -113,7 +113,7 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
 
           {/* Overall Rating */}
           <div className="flex flex-col items-center justify-center flex-shrink-0">
-            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${getOverallColor(overall)} flex items-center justify-center shadow-md`}>
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl ${getOverallColor(overall)} flex items-center justify-center shadow-md`}>
               <span className="text-xl sm:text-2xl font-black text-white">{overall}</span>
             </div>
             {player.peerRatingAvg && player.peerRatingAvg > 0 && (

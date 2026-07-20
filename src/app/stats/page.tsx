@@ -13,6 +13,8 @@ import { toast } from "react-hot-toast";
 
 import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import FormIcon from "@/components/FormIcon";
+import { RefreshCw, Trophy, Target, Zap, Award, Medal } from "lucide-react";
 
 function PlayerRowAvatar({ photoUrl, cardName }: { photoUrl?: string; cardName: string }) {
   const [imgError, setImgError] = React.useState(false);
@@ -48,9 +50,10 @@ interface StatTableProps {
   isAr: boolean;
   getOverall: (p: PlayerProfile) => number;
   currentUserUid?: string;
+  icon?: React.ReactNode;
 }
 
-function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTables, onToggle, isAr, getOverall, currentUserUid }: StatTableProps) {
+function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTables, onToggle, isAr, getOverall, currentUserUid, icon }: StatTableProps) {
   const isExpanded = !!expandedTables[tableId];
   
   // Filter valid players with > 0 stats
@@ -89,11 +92,11 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
         }`}
       >
         <div className="flex items-center gap-4">
-          <div className={`font-black w-8 h-8 rounded-full flex items-center justify-center ${
-            idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg' : 
-            idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-700 shadow-md' : 
-            idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md' : 
-            'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          <div className={`font-black w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+            idx === 0 ? 'bg-amber-400 text-white border-amber-500 shadow-md' : 
+            idx === 1 ? 'bg-slate-300 text-slate-700 border-slate-400 shadow-sm' : 
+            idx === 2 ? 'bg-amber-600 text-white border-amber-700 shadow-sm' : 
+            'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-600'
           }`}>
             {idx + 1}
           </div>
@@ -103,9 +106,9 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
               <div className="flex items-center gap-2">
                 <span className={`font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors ${isCurrentUser ? 'text-white font-semibold' : 'text-slate-800 dark:text-slate-200'}`}>{p.cardName}</span>
                 {player.form && (
-                  <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-semibold">
-                    {player.form}
-                  </span>
+                  <div className="bg-emerald-100 dark:bg-emerald-900/30 rounded-full p-1">
+                    <FormIcon form={player.form} className="w-3 h-3" />
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-2 mt-1">
@@ -131,7 +134,10 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
   return (
     <div className="bg-white dark:bg-slate-800/90 rounded-3xl shadow-xl overflow-hidden border border-slate-200/80 dark:border-slate-700/80 flex flex-col h-fit self-start">
       <div className="bg-slate-100 dark:bg-slate-900 p-5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
-        <h3 className="font-black text-lg text-emerald-600 dark:text-emerald-400">{title}</h3>
+        <div className="flex items-center gap-3">
+          {icon && <div className="p-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm">{icon}</div>}
+          <h3 className="font-black text-lg text-emerald-600 dark:text-emerald-400">{title}</h3>
+        </div>
         {hasAnyStats && (
           <span className="text-xs font-black px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
             {validPlayers.length} {isAr ? "لاعب" : "Players"}
@@ -200,7 +206,7 @@ export default function StatsPage() {
     setRefreshing(true);
     try {
       await refreshPlayers();
-      toast.success(isAr ? "تمت مزامنة وتحديث إحصائيات جميع اللاعبين بنجاح! 🔄" : "All player stats refreshed & synced successfully! 🔄");
+      toast.success(isAr ? "تمت مزامنة وتحديث إحصائيات جميع اللاعبين بنجاح!" : "All player stats refreshed & synced successfully!");
     } catch (err) {
       toast.error(isAr ? "فشلت المزامنة، يرجى المحاولة مرة أخرى." : "Failed to sync stats. Please try again.");
     } finally {
@@ -262,7 +268,7 @@ export default function StatsPage() {
               disabled={refreshing || loading}
               className="px-5 py-2.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-500/10 text-slate-700 dark:text-slate-200 font-bold text-sm shadow-sm border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-2.5 active:scale-95 disabled:opacity-50"
             >
-              <span className={`text-base ${refreshing ? "animate-spin" : ""}`}>🔄</span>
+              <RefreshCw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
               <span>{refreshing ? (isAr ? "جارٍ المزامنة..." : "Syncing...") : (isAr ? "تحديث ومزامنة الإحصائيات" : "Refresh & Sync Stats")}</span>
             </button>
           </div>
@@ -273,14 +279,14 @@ export default function StatsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
               <div className="md:col-span-2 lg:col-span-3 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  <StatTable tableId="ballon" title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
-                  <StatTable tableId="overall" title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+                  <StatTable tableId="ballon" title={isAr ? "ترتيب الكرة الذهبية" : "Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Trophy className="w-5 h-5 text-amber-500" />} />
+                  <StatTable tableId="overall" title={isAr ? "أعلى اللاعبين تقييماً" : "Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Medal className="w-5 h-5 text-emerald-500" />} />
                 </div>
               </div>
-              <StatTable tableId="goals" title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
-              <StatTable tableId="assists" title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
-              <StatTable tableId="ga" title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
-              <StatTable tableId="mvp" title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+              <StatTable tableId="goals" title={isAr ? "الهدافين" : "Top Scorers"} data={topScorers} statKey="goals" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Target className="w-5 h-5 text-red-500" />} />
+              <StatTable tableId="assists" title={isAr ? "صناع اللعب" : "Top Assisters"} data={topAssisters} statKey="assists" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Zap className="w-5 h-5 text-blue-500" />} />
+              <StatTable tableId="ga" title={isAr ? "المساهمات (أهداف + تمريرات)" : "Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Award className="w-5 h-5 text-orange-500" />} />
+              <StatTable tableId="mvp" title={isAr ? "رجل المباراة (MVP)" : "Most MVPs"} data={topMVPs} statKey="mvp" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} icon={<Medal className="w-5 h-5 text-purple-500" />} />
             </div>
           )}
         </main>

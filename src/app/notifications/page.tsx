@@ -289,15 +289,15 @@ export default function NotificationsPage() {
                           {getIconForType(notif.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
-                            <h4 className={`text-base font-bold truncate ${!notif.read ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-1 mb-1">
+                            <h4 className={`text-sm sm:text-base font-bold line-clamp-2 ${!notif.read ? "text-slate-900 dark:text-white" : "text-slate-700 dark:text-slate-300"}`}>
                               {isAr ? (notif.titleAr || notif.title) : (notif.titleEn || notif.title)}
                             </h4>
-                            <span className="text-xs font-medium text-slate-400 whitespace-nowrap">
+                            <span className="text-xs font-medium text-slate-400 whitespace-nowrap sm:mt-0.5">
                               {notif.createdAt?.toDate ? new Date(notif.createdAt.toDate()).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
                             </span>
                           </div>
-                          <p className={`text-sm ${!notif.read ? "text-slate-700 dark:text-slate-300 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
+                          <p className={`text-sm line-clamp-3 ${!notif.read ? "text-slate-700 dark:text-slate-300 font-medium" : "text-slate-500 dark:text-slate-400"}`}>
                             {isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)}
                           </p>
                           {notif.link && (
