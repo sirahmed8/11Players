@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from './FormIcon';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface PlayerCardProps {
   player: PlayerProfile;
@@ -49,17 +50,7 @@ function formatFoot(foot?: PlayerProfile['preferredFoot']): string {
 const PlayerCard = React.memo(function PlayerCard({ player }: PlayerCardProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const hasAttributes = Object.keys(activeAttributes).length > 0;
-  const calculatedOverall = calculateRealisticOverall(
-    activeAttributes,
-    player.primaryPosition || 'CMF',
-    player.playStyle || '',
-    player.height,
-    player.weight,
-    player.calculatedAge,
-    player.peerRatingAvg,
-    player.peerRatingCount
-  );
-  const overall = (hasAttributes && calculatedOverall > 40) ? calculatedOverall : (player.overallRating || calculatedOverall);
+  const overall = getPlayerOverall(player);
   const [imgError, setImgError] = useState(false);
   const displayPhoto = player.photoUrl || (player as any).photoURL || player.googlePic || (player as any).userPic || '';
 

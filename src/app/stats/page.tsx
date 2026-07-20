@@ -3,11 +3,13 @@
 import React from "react";
 import Image from "next/image";
 import { usePlayers } from "@/contexts/PlayersContext";
+import { useAuth } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ThemeProvider";
 import { User } from "lucide-react";
 import Link from "next/link";
+import { toast } from "react-hot-toast";
 
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -46,9 +48,10 @@ interface StatTableProps {
   onToggle: (id: string) => void;
   isAr: boolean;
   getOverall: (p: PlayerProfile) => number;
+  currentUserUid?: string;
 }
 
-function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTables, onToggle, isAr, getOverall }: StatTableProps) {
+function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = false, isBallon = false, expandedTables, onToggle, isAr, getOverall, currentUserUid }: StatTableProps) {
   const isExpanded = !!expandedTables[tableId];
   
   // Filter valid players with > 0 stats
@@ -74,24 +77,37 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
           ? ((p.stats?.goals || 0) * 2) + ((p.stats?.assists || 0) * 1) + ((p.stats?.mvp || 0) * 5)
           : (p.stats as any)?.[statKey] || 0;
 
+    const isCurrentUser = Boolean(currentUserUid && p.uid === currentUserUid);
+
     return (
       <div 
         key={p.uid}
-        className="flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors"
+        className={`flex items-center justify-between p-4 transition-colors ${
+          isCurrentUser
+            ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent dark:from-emerald-500/25 dark:via-emerald-500/10 dark:to-transparent border-l-4 border-emerald-500 relative z-10 font-bold"
+            : "hover:bg-slate-50 dark:hover:bg-slate-700/30"
+        }`}
       >
         <div className="flex items-center gap-4">
           <span className={`font-black w-6 text-center ${idx === 0 ? 'text-amber-500 text-lg' : idx === 1 ? 'text-slate-400 text-base' : idx === 2 ? 'text-amber-700 text-base' : 'text-slate-500 text-sm'}`}>{idx + 1}</span>
           <Link href={`/profile?uid=${p.uid}`} className="flex items-center gap-3 group">
             <PlayerRowAvatar photoUrl={photo} cardName={p.cardName} />
             <div>
-              <div className="font-bold group-hover:text-emerald-500 transition-colors">{p.cardName}</div>
+              <div className="flex items-center gap-2">
+                <span className={`font-bold group-hover:text-emerald-500 transition-colors ${isCurrentUser ? 'text-emerald-700 dark:text-emerald-300 font-black' : ''}`}>{p.cardName}</span>
+                {isCurrentUser && (
+                  <span className="text-[10px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full shadow-sm animate-pulse shrink-0">
+                    {isAr ? "أنت" : "YOU"}
+                  </span>
+                )}
+              </div>
               <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
                 {p.primaryPosition}
               </div>
             </div>
           </Link>
         </div>
-        <div className="font-black text-xl text-slate-700 dark:text-slate-200">
+        <div className={`font-black text-xl ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
           {scoreVal}
         </div>
       </div>
@@ -147,6 +163,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
 export default function StatsPage() {
   const { players, loading, refreshPlayers } = usePlayers();
   const { locale } = useLocale();
+  const { user } = useAuth();
   const isAr = locale === "ar";
   const [refreshing, setRefreshing] = React.useState(false);
 
@@ -169,6 +186,9 @@ export default function StatsPage() {
     setRefreshing(true);
     try {
       await refreshPlayers();
+      toast.success(isAr ? "تمت مزامنة وتحديث إحصائيات جميع اللاعبين بنجاح! 🔄" : "All player stats refreshed & synced successfully! 🔄");
+    } catch (err) {
+      toast.error(isAr ? "فشلت المزامنة، يرجى المحاولة مرة أخرى." : "Failed to sync stats. Please try again.");
     } finally {
       setTimeout(() => setRefreshing(false), 600);
     }
@@ -239,14 +259,14 @@ export default function StatsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
               <div className="md:col-span-2 lg:col-span-3 mb-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                  <StatTable tableId="ballon" title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-                  <StatTable tableId="overall" title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+                  <StatTable tableId="ballon" title={isAr ? "🏆 ترتيب الكرة الذهبية" : "🏆 Ballon d'Or Ranking"} data={ballonDOr} statKey="ballon" isBallon={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+                  <StatTable tableId="overall" title={isAr ? "🌟 أعلى اللاعبين تقييماً" : "🌟 Highest Rated (OVR)"} data={highestRated} statKey="overall" isOverall={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
                 </div>
               </div>
-              <StatTable tableId="goals" title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="assists" title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="ga" title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
-              <StatTable tableId="mvp" title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} />
+              <StatTable tableId="goals" title={isAr ? "🎯 الهدافين" : "🎯 Top Scorers"} data={topScorers} statKey="goals" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+              <StatTable tableId="assists" title={isAr ? "👟 صناع اللعب" : "👟 Top Assisters"} data={topAssisters} statKey="assists" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+              <StatTable tableId="ga" title={isAr ? "🔥 المساهمات (أهداف + تمريرات)" : "🔥 Top G/A"} data={topGA} statKey="ga" isGA={true} expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
+              <StatTable tableId="mvp" title={isAr ? "🏅 رجل المباراة (MVP)" : "🏅 Most MVPs"} data={topMVPs} statKey="mvp" expandedTables={expandedTables} onToggle={handleToggle} isAr={isAr} getOverall={getOverall} currentUserUid={user?.uid} />
             </div>
           )}
         </main>

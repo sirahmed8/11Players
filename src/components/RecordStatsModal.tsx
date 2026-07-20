@@ -10,6 +10,7 @@ import { Target, Handshake, Trophy, X, CheckCircle, Shield, Check } from 'lucide
 import { useCommunity } from '@/contexts/CommunityContext';
 import { useLocale } from '@/components/ThemeProvider';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 import toast from 'react-hot-toast';
 
 interface RecordStatsModalProps {
@@ -95,7 +96,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         if (pStats.played) newStats.matchesPlayed = (currentStats.matchesPlayed || 0) + 1;
 
         const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
-        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount);
+        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount, currentData.preferredFoot || p.preferredFoot, currentData.specialSkills || p.specialSkills);
 
         const globalRef = doc(db, 'players', p.uid);
         const globalPayload: any = { stats: newStats, overallRating: newOverall };
@@ -241,7 +242,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
                         <span className={`px-2 py-0.5 rounded-full text-[10px] ${isBench ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold'}`}>
                           {isBench ? (isAr ? 'دكة' : 'Bench') : (p.assignedPosition || p.primaryPosition)}
                         </span>
-                        <span>• OVR {calculateRealisticOverall(p.approvedAttributes || p.attributes || {}, p.primaryPosition || 'CMF', p.playStyle || '')}</span>
+                        <span>• OVR {getPlayerOverall(p)}</span>
                       </div>
                     </div>
                   </div>

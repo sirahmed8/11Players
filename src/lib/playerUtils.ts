@@ -39,7 +39,7 @@ export function calculateAge(birthDate: Date | string | number | undefined | nul
 export function getPlayerOverall(player: Partial<PlayerProfile>): number {
   if (!player) return 40;
   const activeAttributes = (player.approvedAttributes || player.attributes || {}) as import('@/types').PlayerAttributes;
-  return calculateRealisticOverall(
+  const calculatedOverall = calculateRealisticOverall(
     activeAttributes,
     player.primaryPosition || 'CMF',
     player.playStyle || '',
@@ -47,7 +47,14 @@ export function getPlayerOverall(player: Partial<PlayerProfile>): number {
     player.weight,
     player.calculatedAge || calculateAge(player.dateOfBirth),
     player.peerRatingAvg,
-    player.peerRatingCount
+    player.peerRatingCount,
+    player.preferredFoot,
+    player.specialSkills
   );
+  const hasAttributes = Object.keys(activeAttributes).length > 0;
+  if (hasAttributes && calculatedOverall > 40) {
+    return calculatedOverall;
+  }
+  return player.overallRating || calculatedOverall || 40;
 }
 

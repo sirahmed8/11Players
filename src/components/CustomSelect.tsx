@@ -48,8 +48,8 @@ export default function CustomSelect({
         type="button"
         disabled={disabled}
         onClick={() => setIsOpen((prev) => !prev)}
-        className={`w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all ${
-          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-emerald-500/50"
+        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-sm select-none [-webkit-tap-highlight-color:transparent] ${
+          disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
         }`}
       >
         <span className={selectedOption ? "" : "text-slate-400"}>
@@ -83,7 +83,7 @@ export default function CustomSelect({
                         onChange(option.value);
                         setIsOpen(false);
                       }}
-                      className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-colors ${
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg outline-none focus:outline-none select-none [-webkit-tap-highlight-color:transparent] transition-colors ${
                         isSelected
                           ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold"
                           : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"

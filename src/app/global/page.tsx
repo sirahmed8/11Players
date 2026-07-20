@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import { getPlayerOverall } from "@/lib/playerUtils";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { ChevronDown, Loader2 } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
@@ -14,6 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function GlobalLeaderboardPage() {
   const { locale } = useLocale();
+  const { user } = useAuth();
   const isAr = locale === "ar";
   const [globalPlayers, setGlobalPlayers] = useState<PlayerProfile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +102,7 @@ export default function GlobalLeaderboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {sortedPlayers.map((p) => (
-              <PlayerCardCompact key={p.uid} player={p} />
+              <PlayerCardCompact key={p.uid} player={p} currentUserId={user?.uid} />
             ))}
             {sortedPlayers.length === 0 && (
               <div className="col-span-full text-center py-12 text-slate-500">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayerProfile } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface Props {
   player: PlayerProfile;
@@ -28,11 +29,7 @@ export default function PDFPlayerCard({ player, locale = 'en' }: Props) {
     physicalContact: 68, stamina: 75, jump: 68
   };
 
-  const overall = calculateRealisticOverall(
-    activeAttributes,
-    player.primaryPosition || 'CMF',
-    player.playStyle || ''
-  );
+  const overall = getPlayerOverall(player);
 
   const stats = calculateMainStats(activeAttributes);
   const pStats = player.stats || { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 };

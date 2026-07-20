@@ -1,7 +1,7 @@
-import { doc, collection, getDocs, addDoc, serverTimestamp, query, where, limit } from "firebase/firestore";
+import { doc, collection, getDocs, addDoc, serverTimestamp, query, where, limit, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
-import { calculateRealisticOverall } from "@/lib/overallCalculator";
+import { getPlayerOverall } from "@/lib/playerUtils";
 
 const ADVICE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes per user request
 
@@ -14,18 +14,26 @@ interface BilingualAdvice {
 
 export async function generatePersonalizedAdvices(userUid: string, profile: PlayerProfile, isAr: boolean) {
   try {
-    // 1. Check if we recently generated advices to avoid spam
+    // 1. Check if we recently generated advices to avoid spam & collect recent titles to prevent repetition
     const notificationsRef = collection(db, "users", userUid, "notifications");
     const q = query(
       notificationsRef,
       where("type", "==", "advices"),
-      limit(1)
+      limit(15)
     );
     const snap = await getDocs(q);
     
+    const recentTitles = new Set<string>();
     if (!snap.empty) {
-      const lastAdvice = snap.docs[0].data();
-      const lastTime = lastAdvice.createdAt?.toMillis ? lastAdvice.createdAt.toMillis() : Date.now();
+      // Sort in memory or check timestamps
+      let lastTime = 0;
+      snap.docs.forEach(docSnap => {
+        const data = docSnap.data();
+        if (data.titleEn) recentTitles.add(data.titleEn);
+        if (data.titleAr) recentTitles.add(data.titleAr);
+        const docTime = data.createdAt?.toMillis ? data.createdAt.toMillis() : 0;
+        if (docTime > lastTime) lastTime = docTime;
+      });
       if (Date.now() - lastTime < ADVICE_COOLDOWN_MS) {
         return []; // Too soon to generate more advices
       }
@@ -54,7 +62,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     }
 
     // --- 1. Overall Rating (OVR) Based Advice ---
-    const ovr = calculateRealisticOverall(profile.approvedAttributes || profile.attributes || {}, profile.primaryPosition || 'CMF', profile.playStyle || '', profile.height, profile.weight, profile.calculatedAge, profile.peerRatingAvg, profile.peerRatingCount);
+    const ovr = getPlayerOverall(profile);
     if (ovr < 70) {
       advices.push({
         titleAr: "🚀 مرحلة الصعود والتأسيس",
@@ -217,7 +225,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       });
     }
 
-    // --- 5. Overall General & Tactical Tips ---
+    // --- 5. Diverse Tactical, Positional & Mental Masterclass Pool ---
     advices.push(
       {
         titleAr: "🧠 التمركز والضغط الجماعي الذكي",
@@ -236,11 +244,69 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
         titleEn: "🌟 Team Chemistry & Positive Leadership",
         bodyAr: "التواصل الإيجابي وتشجيع زميلك عند الخطأ يرفع المعنويات ويصنع الفارق النفسي الذي يحسم أصعب المباريات. كن قائداً بكلماتك وأفعالك!",
         bodyEn: "Positive communication and lifting up a teammate after a mistake boosts morale and creates the winning mentality needed in tough matches. Lead by example!"
+      },
+      {
+        titleAr: "⚡ استغلال أنصاف المساحات (Half-Spaces)",
+        titleEn: "⚡ Dominating the Half-Spaces",
+        bodyAr: "أخطر مناطق الملعب هي الممرات بين قلب الدفاع والظهير. تحرك في هذه المنطقة لاستلام الكرة وخلق التفوق العددي وكسر الخطوط الدفاعية بلمسة واحدة.",
+        bodyEn: "The most dangerous zones are the channels between CB and fullbacks. Position yourself in these half-spaces to receive on the half-turn and break defensive lines."
+      },
+      {
+        titleAr: "🔀 اللعب على الرجل الثالث (Third-Man Runs)",
+        titleEn: "🔀 Third-Man Combinations",
+        bodyAr: "عندما يكون زميلك مضغوطاً، لا تنتظر الكرة منه مباشرة بل تحرك لتكون الخيار الثالث بعد تمريرة جدارية سريعة (One-Two) لاختراق التكتل الدفاعي.",
+        bodyEn: "When your teammate is under heavy pressure, don't wait for a direct pass. Make dynamic third-man runs to receive immediately after a quick lay-off combination."
+      },
+      {
+        titleAr: "🎯 إتقان التمويه الجسدي (Body Feints)",
+        titleEn: "🎯 Mastery of Body Feints",
+        bodyAr: "قبل استلام الكرة، استخدم تمويهاً جسدياً بسيطاً بالكتف أو الخصر في اتجاه ثم انطلق في الاتجاه المعاكس لترك المدافع خلفك دون لمس الكرة.",
+        bodyEn: "Before touching the ball, drop your shoulder or feint with your torso one way before accelerating the other direction to completely off-balance your marker."
+      },
+      {
+        titleAr: "🛡️ الوقاية الدفاعية عند الهجوم (Rest Defense)",
+        titleEn: "🛡️ Smart Rest Defense",
+        bodyAr: "حتى وأنت تهاجم، انتبه لمواقع مدافعي فريقك وضمان التفوق العددي ضد مهاجمي الخصم تحسباً لأي هجمة مرتدة سريعة في حال فقدان الكرة.",
+        bodyEn: "Even while attacking, always check your team's structural balance behind the ball to ensure numerical superiority against counter-attacking targets upon turnovers."
+      },
+      {
+        titleAr: "🔄 تغيير جهة اللعب ونقل الكرة للسعة",
+        titleEn: "🔄 Switching the Point of Attack",
+        bodyAr: "إذا تكتل الخصم في جهة واحدة من الملعب، لا تحاول الاختراق بالقوة. مرر كرة قطرية سريعة للجهة المقابلة حيث المساحة الشاغرة لزميلك غير المراقب.",
+        bodyEn: "If the opponent overloads one flank, avoid forcing passes into congested traffic. Execute a quick diagonal switch to the opposite side where space is wide open."
+      },
+      {
+        titleAr: "🔋 إدارة المخزون اللياقي والركض الذكي",
+        titleEn: "🔋 Efficient Energy & Pace Regulation",
+        bodyAr: "الركض المتواصل دون هدف يستنزف طاقتك قبل الدقائق الحاسمة. اختر أوقات السبرنت بذكاء واحتفظ بتركيزك العالي للقطات المصيرية في نهاية المباراة.",
+        bodyEn: "Aimless running drains your fuel before crunch moments. Choose your sprint moments wisely so your technical execution remains sharp in the final crucial minutes."
+      },
+      {
+        titleAr: "💬 التواصل الصوتي الفعال والتوجيه",
+        titleEn: "💬 Vocal Pitch Communication",
+        bodyAr: "النداء الواضح والمبكر لزملائك (مثل: وقتك، ظهرك، مرر هنا) يمنحهم ثانية إضافية حاسمة لاتخاذ القرار الصحيح ويمنع الأخطاء الفردية تحت الضغط.",
+        bodyEn: "Clear, early calls to your teammates (e.g., 'Man on!', 'Time!', 'Turn!') grant them a precious extra second to execute correctly and prevent forced errors."
+      },
+      {
+        titleAr: "⚖️ التوازن العاطفي والهدوء بعد قبول هدف",
+        titleEn: "⚖️ Composure After Conceding",
+        bodyAr: "أكبر الأخطاء تحدث بسبب التوتر بعد استقبال هدف. حافظ على هدوئك، ارفع معنويات الزملاء، وابدأ باللعب المضمون لاستعادة السيطرة وإيقاع اللقاء.",
+        bodyEn: "The most expensive mistakes happen during panic after conceding. Stay calm, rally your teammates, and complete safe passes to rebuild control and momentum."
+      },
+      {
+        titleAr: "🚀 استغلال الجري في المنطقة العمياء لمدافع الخصم",
+        titleEn: "🚀 Blind-Side Attacking Runs",
+        bodyAr: "تحرك دائماً في المنطقة التي لا يستطيع المدافع رؤيتك فيها مع رؤية الكرة في نفس الوقت (Blind side)، هذا يمنحك أفضلية التموضع والسباق نحو الكرة.",
+        bodyEn: "Make attacking runs in the defender's blind spot where they can't watch both you and the ball simultaneously. This guarantees a positional split-second head start."
       }
     );
 
-    // Select 1 random advice from the generated pool so the user receives exactly one notification
-    const shuffled = advices.sort(() => 0.5 - Math.random());
+    // Filter out recently sent advice titles to guarantee fresh, non-repetitive suggestions every time
+    const freshAdvices = advices.filter(ad => !recentTitles.has(ad.titleEn) && !recentTitles.has(ad.titleAr));
+    const poolToUse = freshAdvices.length > 0 ? freshAdvices : advices;
+
+    // Select 1 random advice from the pool so the user receives exactly one fresh notification
+    const shuffled = poolToUse.sort(() => 0.5 - Math.random());
     const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {

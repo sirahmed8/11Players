@@ -330,20 +330,34 @@ export default function MatchPage() {
     if (!activeCommunityId || !currentMatch?.id) return;
 
     try {
-      const currentVotes = currentMatch.captainVotes || {};
-      const updatedVotes = {
-        ...currentVotes,
-        [user.uid]: candidateUid
-      };
+      const currentVotes = { ...(currentMatch.captainVotes || {}) };
+      const isAlreadyVotedForThisCandidate = currentVotes[user.uid] === candidateUid;
 
-      const matchRef = doc(db, "communities", activeCommunityId, "matches", currentMatch.id);
-      await setDoc(matchRef, { captainVotes: updatedVotes }, { merge: true });
-
-      if (currentMatch.id === matchData?.id || currentMatch.id === 'latest') {
-        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), { captainVotes: updatedVotes }, { merge: true });
+      if (isAlreadyVotedForThisCandidate) {
+        delete currentVotes[user.uid];
+      } else {
+        currentVotes[user.uid] = candidateUid;
       }
 
-      toast.success(isAr ? "تم تسجيل صوتك للكابتن بنجاح! 👑" : "Your captain vote has been recorded! 👑");
+      // Optimistic instant UI update (+1 or -1 immediately)
+      if (activeTab === "history") {
+        setSelectedHistoryMatch((prev: any) => prev ? { ...prev, captainVotes: currentVotes } : prev);
+      } else {
+        setMatchData((prev: any) => prev ? { ...prev, captainVotes: currentVotes } : prev);
+      }
+
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", currentMatch.id);
+      await setDoc(matchRef, { captainVotes: currentVotes }, { merge: true });
+
+      if (currentMatch.id === matchData?.id || currentMatch.id === 'latest') {
+        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), { captainVotes: currentVotes }, { merge: true });
+      }
+
+      if (isAlreadyVotedForThisCandidate) {
+        toast.success(isAr ? "تم إلغاء صوتك لكابتن الفريق" : "Your captain vote was removed");
+      } else {
+        toast.success(isAr ? "تم تسجيل صوتك (+1) للكابتن بنجاح! 👑" : "Your captain vote (+1) has been recorded! 👑");
+      }
     } catch (err) {
       console.error("Vote captain error:", err);
       toast.error(isAr ? "حدث خطأ أثناء التصويت" : "Error recording vote");

@@ -64,6 +64,7 @@ function PitchPlayerNode({
   recordedStats,
   isCaptain,
   voteCount,
+  isVotedByMe,
   onVote,
   canVote,
   isSwapSelected,
@@ -79,6 +80,7 @@ function PitchPlayerNode({
   recordedStats?: Record<string, any>;
   isCaptain?: boolean;
   voteCount: number;
+  isVotedByMe?: boolean;
   onVote?: () => void;
   canVote?: boolean;
   isSwapSelected?: boolean;
@@ -174,15 +176,21 @@ function PitchPlayerNode({
             onVote();
           }}
           disabled={!canVote}
-          title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isAr ? 'صوت ككابتن الفريق' : 'Vote as Captain')}
+          title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isVotedByMe ? (isAr ? 'إلغاء التصويت' : 'Remove vote') : (isAr ? 'صوت ككابتن الفريق' : 'Vote as Captain'))}
           className={`mt-1 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black transition-all shadow-md ${
-            canVote
-              ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black cursor-pointer'
-              : 'bg-slate-800/80 text-slate-400 cursor-not-allowed border border-white/10'
+            isVotedByMe
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-white ring-2 ring-emerald-300 shadow-[0_0_12px_rgba(16,185,129,0.5)] scale-105 animate-pulse cursor-pointer'
+              : canVote
+                ? 'bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-black cursor-pointer'
+                : 'bg-slate-800/80 text-slate-400 cursor-not-allowed border border-white/10'
           }`}
         >
           <Crown className="w-3 h-3" />
-          <span>{voteCount > 0 ? `${voteCount} ${isAr ? 'صوت' : 'votes'}` : (isAr ? 'صوت كابتن' : 'Vote')}</span>
+          <span>
+            {voteCount > 0
+              ? `${voteCount} ${isVotedByMe ? (isAr ? '👑 صوتك' : '👑 Voted') : (isAr ? 'صوت' : 'votes')}`
+              : (isAr ? '+1 تصويت' : '+1 Vote')}
+          </span>
         </button>
       )}
     </div>
@@ -379,6 +387,7 @@ const MatchPitchDisplay = React.memo(function MatchPitchDisplay({
           const isCaptain = p.uid === topCaptainUid;
           const voteCount = voteCounts[p.uid] || 0;
           const canVote = Boolean(currentUserUid && currentUserUid !== p.uid);
+          const isVotedByMe = Boolean(currentUserUid && captainVotes && captainVotes[currentUserUid] === p.uid);
 
           return (
             <PitchPlayerNode
@@ -391,6 +400,7 @@ const MatchPitchDisplay = React.memo(function MatchPitchDisplay({
               recordedStats={recordedStats}
               isCaptain={isCaptain}
               voteCount={voteCount}
+              isVotedByMe={isVotedByMe}
               onVote={onVoteCaptain ? () => onVoteCaptain(p.uid) : undefined}
               canVote={canVote}
               isSwapSelected={selectedForSwap?.uid === p.uid}

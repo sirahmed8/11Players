@@ -22,6 +22,8 @@ import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal'
 import CustomSelect from '@/components/CustomSelect';
 import PendingEdits from '@/components/PendingEdits';
 import SkillsChecklist from '@/components/SkillsChecklist';
+import SeasonCeremonyModal from '@/components/SeasonCeremonyModal';
+import { Crown } from 'lucide-react';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -90,7 +92,7 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
 
 export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const { locale } = useLocale();
-  const { activeCommunityId } = useCommunity();
+  const { activeCommunityId, activeCommunity } = useCommunity();
   const { isOwner } = useAuth();
   const [manageCommModal, setManageCommModal] = useState<{ open: boolean; player: PlayerProfile | null }>({
     open: false,
@@ -600,13 +602,38 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
   return (
     <>
+      {activeCommunityId && new Date().getFullYear() > ((activeCommunity as any)?.lastSeasonResetYear || 2025) && (
+        <div className="mb-6 p-5 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border-2 border-amber-500/50 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-amber-500/10">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-amber-500 rounded-2xl text-slate-950 font-black text-2xl animate-bounce shadow-md">
+              🏆
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-white flex items-center gap-2">
+                <span>{t(locale, `Annual Season Reset Needed! Season ${new Date().getFullYear()} is here`, `تنبيه التصفير السنوي التلقائي! انطلق موسم ${new Date().getFullYear()}`)}</span>
+                <span className="bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full uppercase font-black animate-pulse">NEW YEAR</span>
+              </h3>
+              <p className="text-xs text-amber-300/80 mt-1 font-medium">
+                {t(locale, `Time to crown last season's champions, permanently award their trophies, and launch the new year with reset stats!`, `حان الوقت لتتويج فرسان وأبطال الموسم الماضي وإضافة ألقابهم للخزانة، وتصفير العدادات لانطلاق الموسم الجديد!`)}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowEndSeasonModal(true)}
+            className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap"
+          >
+            <Crown className="w-4 h-4 fill-slate-950" />
+            <span>{t(locale, 'Launch Season Ceremony 🚀', 'بدء حفل التتويج والموسم 🚀')}</span>
+          </button>
+        </div>
+      )}
       <div className="mb-4 flex flex-wrap justify-end gap-3">
         <button
           onClick={() => setShowEndSeasonModal(true)}
           disabled={loadingUid === 'ending-season'}
           className="rounded-lg bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-600 dark:text-amber-500 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
         >
-          {loadingUid === 'ending-season' ? 'Ending...' : t(locale, 'End Season', 'إنهاء الموسم')}
+          {t(locale, 'Season End & Ceremony 🏆', 'ختام الموسم وتتويج الأبطال 🏆')}
         </button>
         <button
           onClick={() => setShowDeleteMockModal(true)}
@@ -1089,42 +1116,15 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         )}
       </AnimatePresence>
 
-      {/* End Season Modal */}
-      <AnimatePresence>
-        {showEndSeasonModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
-            >
-              <div className="p-6 text-center">
-                <h2 className="text-2xl font-black mb-4 text-amber-600">
-                  {t(locale, 'End Season?', 'إنهاء الموسم؟')}
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-6">
-                  {t(locale, "This will award trophies to the top players (Ballon d'Or, Golden Boot, etc.) and reset all stats (Goals, Assists, MVPs) to 0 for everyone.", "سيؤدي هذا إلى منح الجوائز لأفضل اللاعبين (الكرة الذهبية، الحذاء الذهبي، إلخ) وتصفير جميع الإحصائيات للجميع.")}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowEndSeasonModal(false)}
-                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
-                  >
-                    {t(locale, 'Cancel', 'إلغاء')}
-                  </button>
-                  <button
-                    onClick={handleEndSeason}
-                    className="flex-1 px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-amber-500/20"
-                  >
-                    {t(locale, 'Confirm End Season', 'تأكيد إنهاء الموسم')}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* Season Ceremony Wizard */}
+      <SeasonCeremonyModal
+        isOpen={showEndSeasonModal}
+        onClose={() => setShowEndSeasonModal(false)}
+        players={players}
+        activeCommunityId={activeCommunityId || ''}
+        locale={locale}
+        onRefresh={onRefresh}
+      />
       <ManageUserCommunitiesModal
         user={manageCommModal.player}
         isOpen={manageCommModal.open}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { PlayerProfile } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface Props {
   profiles: PlayerProfile[];
@@ -154,11 +155,7 @@ export default function PDFBulkTable({ profiles, pageIndex, totalPages, locale =
                   physicalContact: 68, stamina: 75, jump: 68
                 };
 
-                const overall = calculateRealisticOverall(
-                  activeAttributes,
-                  p.primaryPosition || 'CMF',
-                  p.playStyle || ''
-                );
+                const overall = getPlayerOverall(p);
 
                 const footLabel = isAr
                   ? (p.preferredFoot === 'Left' ? 'يسرى' : 'يمنى')

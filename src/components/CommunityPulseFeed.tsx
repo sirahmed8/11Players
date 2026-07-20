@@ -12,6 +12,7 @@ import { Trophy, Star, Activity, Award, Flame, Users, Calendar, ShieldCheck } fr
 import Link from "next/link";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
+import { getPlayerOverall } from "@/lib/playerUtils";
 
 export default function CommunityPulseFeed() {
   const { activeCommunityId } = useCommunity();
@@ -56,17 +57,7 @@ export default function CommunityPulseFeed() {
     const peerList: { uid: string; name: string; peerAvg: number; peerCount: number; photo: string }[] = [];
 
     players.forEach((p) => {
-      const activeAttributes = p.approvedAttributes || p.attributes || {};
-      const ovr = calculateRealisticOverall(
-        activeAttributes,
-        p.primaryPosition || "CMF",
-        p.playStyle || "",
-        p.height,
-        p.weight,
-        p.calculatedAge,
-        p.peerRatingAvg,
-        p.peerRatingCount
-      );
+      const ovr = getPlayerOverall(p);
       totalOvr += ovr;
 
       const played = p.stats?.matchesPlayed || 0;

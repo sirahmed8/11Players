@@ -13,6 +13,7 @@ import ConfirmModal from "@/components/ConfirmModal";
 import { getAllPlayerCommunities } from "@/lib/playerUtils";
 import { Edit3, Check, X, Shield, Brain, CircleDot, Wand2, Footprints, Plane, Target, Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, Axe, Hand, Users, AlertCircle, ArrowRight } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import SkillsChecklist from "@/components/SkillsChecklist";
 import type { PlayerAttributes, PESPosition } from "@/types";
 
 const ATTRIBUTE_KEYS: (keyof PlayerAttributes)[] = [
@@ -146,6 +147,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       secondaryPosition: edit.profileData?.secondaryPosition || fetchedCurrent.secondaryPosition || "",
       tertiaryPosition: edit.profileData?.tertiaryPosition || fetchedCurrent.tertiaryPosition || "",
       playStyle: edit.profileData?.playStyle || fetchedCurrent.playStyle || "",
+      specialSkills: edit.profileData?.specialSkills || edit.specialSkills || fetchedCurrent.specialSkills || [],
       height: edit.profileData?.height || fetchedCurrent.height || 175,
       weight: edit.profileData?.weight || fetchedCurrent.weight || 70,
       profileData: { ...(fetchedCurrent || {}), ...(edit.profileData || {}) },
@@ -165,12 +167,20 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     if (!reviewFormData.attributes) {
       return currentPlayerData?.overallRating || 70;
     }
+    const skills = reviewFormData.specialSkills || reviewFormData.profileData?.specialSkills || currentPlayerData?.specialSkills || [];
     return calculateRealisticOverall(
       reviewFormData.attributes,
       reviewFormData.primaryPosition as PESPosition,
-      reviewFormData.playStyle || reviewFormData.profileData?.playStyle || currentPlayerData?.playStyle || ""
+      reviewFormData.playStyle || reviewFormData.profileData?.playStyle || currentPlayerData?.playStyle || "",
+      reviewFormData.height || reviewFormData.profileData?.height || currentPlayerData?.height || 175,
+      reviewFormData.weight || reviewFormData.profileData?.weight || currentPlayerData?.weight || 70,
+      currentPlayerData?.calculatedAge || 25,
+      currentPlayerData?.peerRatingAvg,
+      currentPlayerData?.peerRatingCount,
+      currentPlayerData?.preferredFoot,
+      skills
     );
-  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.playStyle, reviewFormData.profileData?.playStyle, currentPlayerData]);
+  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.playStyle, reviewFormData.specialSkills, reviewFormData.profileData, reviewFormData.height, reviewFormData.weight, currentPlayerData]);
 
   const applyApproval = async (edit: any, modifiedData?: any) => {
     const collectionPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
@@ -189,9 +199,10 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       const secPos = modifiedData?.secondaryPosition !== undefined ? modifiedData.secondaryPosition : (targetProfileData.secondaryPosition || playerData.secondaryPosition || "");
       const tertPos = modifiedData?.tertiaryPosition !== undefined ? modifiedData.tertiaryPosition : (targetProfileData.tertiaryPosition || playerData.tertiaryPosition || "");
       const style = modifiedData?.playStyle !== undefined ? modifiedData.playStyle : (targetProfileData.playStyle || playerData.playStyle || "");
+      const skills = modifiedData?.specialSkills !== undefined ? modifiedData.specialSkills : (targetProfileData.specialSkills || edit.specialSkills || playerData.specialSkills || []);
 
-      const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
-      const updateDataComm: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style };
+      const updateDataGlobal: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style, specialSkills: skills };
+      const updateDataComm: any = { ...targetProfileData, primaryPosition: pos, secondaryPosition: secPos, tertiaryPosition: tertPos, playStyle: style, specialSkills: skills };
 
       const height = targetProfileData.height || playerData.height;
       const weight = targetProfileData.weight || playerData.weight;
@@ -201,15 +212,15 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
 
       if (targetAttributes) {
         const mergedAttr = { ...(playerData.attributes || {}), ...targetAttributes };
-        const newOverall = calculateRealisticOverall(mergedAttr, pos, style, height, weight, age, peerAvg, peerCount);
+        const newOverall = calculateRealisticOverall(mergedAttr, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot, skills);
         updateDataGlobal.attributes = mergedAttr;
         updateDataGlobal.approvedAttributes = mergedAttr;
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.attributes = mergedAttr;
         updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
-      } else if (Object.keys(targetProfileData).length > 0 || modifiedData?.playStyle !== undefined || modifiedData?.primaryPosition !== undefined) {
-        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style, height, weight, age, peerAvg, peerCount);
+      } else if (Object.keys(targetProfileData).length > 0 || modifiedData?.playStyle !== undefined || modifiedData?.primaryPosition !== undefined || modifiedData?.specialSkills !== undefined) {
+        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot, skills);
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.overallRating = newOverall;
       }
@@ -1025,6 +1036,20 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                           <option key={style} value={style}>{style}</option>
                         ))}
                       </select>
+                    </div>
+
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-2">
+                        {isAr ? "المهارات الخاصة (Special Skills)" : "Special Skills"}
+                      </label>
+                      <SkillsChecklist
+                        selectedSkills={reviewFormData.specialSkills || []}
+                        onSkillsChange={(skills) => setReviewFormData({
+                          ...reviewFormData,
+                          specialSkills: skills,
+                          profileData: { ...reviewFormData.profileData, specialSkills: skills }
+                        })}
+                      />
                     </div>
 
                     <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">

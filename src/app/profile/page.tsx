@@ -386,12 +386,19 @@ function PlayerProfileContent() {
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {player.trophies.map((trophy, i) => {
-                const tName = trophy?.name || '🏆 Trophy';
+                const tName = trophy?.name || (isAr ? 'جائزة الموسم' : 'Season Trophy');
+                const tIcon = (trophy as any)?.icon || (
+                  tName.includes("Ballon") ? "👑" :
+                  tName.includes("Boot") || tName.includes("الهداف") ? "⚽" :
+                  tName.includes("Playmaker") || tName.includes("صانع") ? "🎯" :
+                  tName.includes("MVP") || tName.includes("رجل الموسم") ? "⭐" :
+                  tName.includes("Shield") || tName.includes("المدافع") ? "🛡️" : "🏆"
+                );
                 return (
-                  <div key={i} className="bg-gradient-to-br from-amber-50 dark:from-amber-500/10 to-amber-100/50 dark:to-amber-600/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform shadow-sm dark:shadow-none">
-                    <div className="text-3xl mb-2">{tName.split(' ')[1] || '🏆'}</div>
-                    <div className="font-black text-amber-600 dark:text-amber-500 text-sm">{tName.split(' ')[0]}</div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{trophy?.season || ''}</div>
+                  <div key={i} className="bg-gradient-to-br from-amber-50 dark:from-amber-500/10 to-amber-100/50 dark:to-amber-600/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform shadow-sm dark:shadow-none flex flex-col items-center justify-center">
+                    <div className="text-3xl mb-2 animate-bounce">{tIcon}</div>
+                    <div className="font-black text-amber-600 dark:text-amber-500 text-xs sm:text-sm">{tName}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{trophy?.season || ''}</div>
                   </div>
                 );
               })}

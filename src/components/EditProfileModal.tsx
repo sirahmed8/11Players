@@ -12,6 +12,7 @@ import type { PlayerProfile, PESPosition, PlayerAttributes, CommunityStats } fro
 import BackgroundRemover from '@/components/BackgroundRemover';
 import AttributeSliders from '@/components/AttributeSliders';
 import CommunityStatsEditor from '@/components/CommunityStatsEditor';
+import SkillsChecklist from '@/components/SkillsChecklist';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
 import { ChevronDown } from 'lucide-react';
@@ -130,6 +131,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
   // Merge player attributes with defaults so every key has a value (min 40)
   const [attributes, setAttributes] = useState<PlayerAttributes>({ ...defaultAttributes, ...(player.attributes || {}) });
+  const [specialSkills, setSpecialSkills] = useState<string[]>(player.specialSkills || []);
   
   const [stats, setStats] = useState<CommunityStats>(
     (activeCommunityId && player.communityStats && player.communityStats[activeCommunityId]) 
@@ -158,7 +160,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       const dataToSave: Record<string, any> = {};
       // Only include defined fields to avoid overwriting with undefined
-      Object.entries({ ...formData, calculatedAge: age }).forEach(([k, v]) => {
+      Object.entries({ ...formData, calculatedAge: age, specialSkills }).forEach(([k, v]) => {
         if (v !== undefined && v !== null) dataToSave[k] = v;
       });
 
@@ -166,7 +168,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       if (isOwner || isAdmin) {
         const mergedAttributes = { ...player.attributes, ...attributes };
-        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '', formData.height || player.height, formData.weight || player.weight, age, player.peerRatingAvg, player.peerRatingCount);
+        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '', formData.height || player.height, formData.weight || player.weight, age, player.peerRatingAvg, player.peerRatingCount, formData.preferredFoot, specialSkills);
         const updatePayload: any = {
           ...dataToSave,
           attributes: mergedAttributes,
@@ -207,7 +209,9 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           status: 'pending',
           profileData: dataToSave,
           attributes,
-          stats
+          stats,
+          specialSkills,
+          playStyle: formData.playStyle
         };
 
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
@@ -447,6 +451,16 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 locale={(locale as 'en' | 'ar') ?? 'ar'}
                 primaryPosition={formData.primaryPosition}
                 playStyle={formData.playStyle}
+              />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold mb-4 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-2">
+                {isRTL ? 'المهارات الخاصة (Special Skills)' : 'Special Skills'}
+              </h3>
+              <SkillsChecklist
+                selectedSkills={specialSkills}
+                onSkillsChange={setSpecialSkills}
               />
             </div>
           </div>

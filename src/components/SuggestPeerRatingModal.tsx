@@ -2,15 +2,16 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Send, ShieldCheck, UserCheck, AlertCircle } from "lucide-react";
+import { X, Sparkles, Send, AlertCircle } from "lucide-react";
 import { useLocale } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import toast from "react-hot-toast";
 import type { PlayerProfile, PESPosition, PlayerAttributes } from "@/types";
 import AttributeSliders from "@/components/AttributeSliders";
+import SkillsChecklist from "@/components/SkillsChecklist";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
@@ -32,6 +33,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
   const [attributes, setAttributes] = useState<PlayerAttributes>(player.approvedAttributes || player.attributes || {} as PlayerAttributes);
   const [primaryPosition, setPrimaryPosition] = useState<PESPosition>((player.primaryPosition as PESPosition) || 'CMF');
   const [playStyle, setPlayStyle] = useState<string>(player.playStyle || '');
+  const [specialSkills, setSpecialSkills] = useState<string[]>(player.specialSkills || []);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
       setAttributes(player.approvedAttributes || player.attributes || {} as PlayerAttributes);
       setPrimaryPosition((player.primaryPosition as PESPosition) || 'CMF');
       setPlayStyle(player.playStyle || '');
+      setSpecialSkills(player.specialSkills || []);
     }
   }, [isOpen, player]);
 
@@ -53,9 +56,11 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
       player.weight,
       player.calculatedAge,
       player.peerRatingAvg,
-      player.peerRatingCount
+      player.peerRatingCount,
+      player.preferredFoot,
+      specialSkills
     );
-  }, [attributes, primaryPosition, playStyle, player]);
+  }, [attributes, primaryPosition, playStyle, specialSkills, player]);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -65,31 +70,106 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
 
     setSubmitting(true);
     try {
-      const collectionPath = activeCommunityId
-        ? `communities/${activeCommunityId}/editRequests`
-        : `editRequests`;
+      const collRoot = activeCommunityId ? `communities/${activeCommunityId}` : ``;
+      const ratingsPath = collRoot ? `${collRoot}/playerRatings` : `playerRatings`;
+      const requestsPath = collRoot ? `${collRoot}/editRequests` : `editRequests`;
 
-      const payload = {
+      // 1. Save this peer's individual rating suggestion
+      const peerRatingRef = doc(db, ratingsPath, `${user.uid}_${player.uid}`);
+      await setDoc(peerRatingRef, {
+        raterUid: user.uid,
+        raterName: user.displayName || user.email || "Peer Player",
+        ratedUid: player.uid,
+        rating: suggestedOvr,
+        attributes: attributes,
+        primaryPosition,
+        playStyle,
+        specialSkills,
+        timestamp: serverTimestamp()
+      });
+
+      // 2. Fetch all peer ratings for this player to calculate consensus
+      const peerQuery = query(collection(db, ratingsPath), where("ratedUid", "==", player.uid));
+      const peerSnaps = await getDocs(peerQuery);
+
+      const aggregatedAttrs: Record<string, number> = {};
+      const attrCounts: Record<string, number> = {};
+      const raterNamesSet = new Set<string>();
+      const posCounts: Record<string, number> = {};
+      const styleCounts: Record<string, number> = {};
+      const skillCounts: Record<string, number> = {};
+
+      peerSnaps.forEach(docSnap => {
+        const d = docSnap.data();
+        if (d.raterName) raterNamesSet.add(d.raterName);
+        if (d.primaryPosition) posCounts[d.primaryPosition] = (posCounts[d.primaryPosition] || 0) + 1;
+        if (d.playStyle) styleCounts[d.playStyle] = (styleCounts[d.playStyle] || 0) + 1;
+        if (Array.isArray(d.specialSkills)) {
+          d.specialSkills.forEach((s: string) => {
+            skillCounts[s] = (skillCounts[s] || 0) + 1;
+          });
+        }
+        const pattrs = d.attributes || {};
+        for (const [key, val] of Object.entries(pattrs)) {
+          if (typeof val === "number" && val >= 40 && val <= 99) {
+            aggregatedAttrs[key] = (aggregatedAttrs[key] || 0) + val;
+            attrCounts[key] = (attrCounts[key] || 0) + 1;
+          }
+        }
+      });
+
+      // Calculate consensus averages & mode values across peers
+      const finalAvgAttrs: any = {};
+      for (const key of Object.keys(aggregatedAttrs)) {
+        finalAvgAttrs[key] = Math.round(aggregatedAttrs[key] / attrCounts[key]);
+      }
+
+      const consensusPos = Object.keys(posCounts).sort((a, b) => posCounts[b] - posCounts[a])[0] || primaryPosition;
+      const consensusStyle = Object.keys(styleCounts).sort((a, b) => styleCounts[b] - styleCounts[a])[0] || playStyle;
+      
+      // Include any skill selected by at least 30% of peers (or at least 1 peer if very few voters)
+      const threshold = Math.max(1, Math.ceil(peerSnaps.size * 0.3));
+      const consensusSkills = Object.keys(skillCounts).filter(s => skillCounts[s] >= threshold);
+
+      const consensusOvr = calculateRealisticOverall(
+        finalAvgAttrs,
+        consensusPos as PESPosition,
+        consensusStyle,
+        player.height,
+        player.weight,
+        player.calculatedAge,
+        player.peerRatingAvg,
+        player.peerRatingCount,
+        player.preferredFoot,
+        consensusSkills
+      );
+
+      // 3. Save aggregated consensus proposal into editRequests (Visible to Admin in PendingEdits)
+      const proposalRef = doc(db, requestsPath, `peer_proposal_${player.uid}`);
+      await setDoc(proposalRef, {
         playerId: player.uid,
         playerName: player.fullName,
         cardName: player.cardName || player.fullName,
+        photoUrl: player.photoUrl || "",
         source: "peer_ratings",
         suggestedByUid: user.uid,
-        suggestedByName: user.displayName || user.email || "Peer Player",
-        attributes: attributes,
+        suggestedByName: `إجماع من ${peerSnaps.size} لاعبين (Consensus of ${peerSnaps.size} peers)`,
+        raterCount: peerSnaps.size,
+        raterNames: Array.from(raterNamesSet),
+        attributes: finalAvgAttrs,
         profileData: {
-          primaryPosition,
-          playStyle,
+          primaryPosition: consensusPos,
+          playStyle: consensusStyle,
+          specialSkills: consensusSkills,
           height: player.height || 175,
           weight: player.weight || 70,
           fullName: player.fullName,
           cardName: player.cardName || player.fullName,
         },
+        suggestedOvr: consensusOvr,
         status: "pending",
-        createdAt: serverTimestamp(),
-      };
-
-      await addDoc(collection(db, collectionPath), payload);
+        updatedAt: serverTimestamp()
+      }, { merge: true });
 
       // Notify the target player
       try {
@@ -97,8 +177,8 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
           type: 'stats',
           title: isAr ? 'اقتراح تقييم جديد لمهاراتك!' : 'New Ability Rating Suggestion!',
           body: isAr
-            ? `قام أحد اللاعبين في مجتمعك باقتراح تعديل على طاقاتك ومركزك (التقييم المقترح: ${suggestedOvr}). في انتظار اعتماد مسؤول المجتمع.`
-            : `A community peer suggested updates to your abilities and ratings (Suggested OVR: ${suggestedOvr}). Waiting for Admin approval.`,
+            ? `قام أحد اللاعبين في مجتمعك باقتراح تعديل على طاقاتك ومركزك ومهاراتك (التقييم المقترح: ${consensusOvr}). في انتظار اعتماد مسؤول المجتمع.`
+            : `A community peer suggested updates to your abilities, position, and skills (Suggested OVR: ${consensusOvr}). Waiting for Admin approval.`,
           read: false,
           createdAt: serverTimestamp(),
           link: '/profile?uid=' + player.uid
@@ -107,7 +187,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
         console.warn("Could not notify target player:", e);
       }
 
-      toast.success(isAr ? "تم إرسال اقتراحك بنجاح وسيتوجه للمسؤول للاعتماد!" : "Suggestion sent successfully! Waiting for admin review.");
+      toast.success(isAr ? "تم إرسال وحفظ اقتراحك واحتسابه ضمن إجماع اللاعبين!" : "Suggestion submitted and aggregated into community consensus!");
       onClose();
     } catch (err) {
       console.error("Failed to submit peer suggestion:", err);
@@ -180,18 +260,67 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
               <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>
                 {isAr
-                  ? "قم بتعديل شريحة القدرات أدناه حسب أداء اللاعب الفعلي في الملعب. عند النقر على إرسال، سيصل الإشعار إلى المسؤول ومراجعة التغيير لاعتماده."
-                  : "Adjust sliders according to exact on-pitch performance. Upon submission, the Community Admin will review the exact before/after difference."}
+                  ? "قم بتعديل شريحة القدرات والمركز والمهارات حسب أداء اللاعب الفعلي. سيتم احتساب إجماع اللاعبين تلقائياً ومراجعته من المسؤول."
+                  : "Adjust sliders, position, and skills according to on-pitch performance. Peer consensus is automatically aggregated for admin review."}
               </span>
             </div>
 
-            <AttributeSliders
-              attributes={attributes}
-              onChange={setAttributes}
-              locale={isAr ? "ar" : "en"}
-              primaryPosition={primaryPosition}
-              playStyle={playStyle}
-            />
+            {/* Position and Play Style */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                  {isAr ? "المركز الأساسي المقترح" : "Suggested Primary Position"}
+                </label>
+                <select
+                  value={primaryPosition}
+                  onChange={(e) => setPrimaryPosition(e.target.value as PESPosition)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                >
+                  {POSITIONS.map((pos) => (
+                    <option key={pos} value={pos}>{pos}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
+                  {isAr ? "أسلوب اللعب المقترح" : "Suggested Play Style"}
+                </label>
+                <select
+                  value={playStyle}
+                  onChange={(e) => setPlayStyle(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                >
+                  <option value="">{isAr ? "بدون (None)" : "None"}</option>
+                  {PLAY_STYLES.map((style) => (
+                    <option key={style} value={style}>{style}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-slate-900 dark:text-white">
+                {isAr ? 'القدرات والسمات (Attributes)' : 'Attributes'}
+              </h3>
+              <AttributeSliders
+                attributes={attributes}
+                onChange={setAttributes}
+                locale={isAr ? "ar" : "en"}
+                primaryPosition={primaryPosition}
+                playStyle={playStyle}
+              />
+            </div>
+
+            <div>
+              <h3 className="text-sm font-bold mb-3 text-slate-900 dark:text-white">
+                {isAr ? 'المهارات الخاصة المقترحة (Suggested Special Skills)' : 'Suggested Special Skills'}
+              </h3>
+              <SkillsChecklist
+                selectedSkills={specialSkills}
+                onSkillsChange={setSpecialSkills}
+              />
+            </div>
           </div>
 
           {/* Footer */}

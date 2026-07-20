@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 import FormIcon from './FormIcon';
 
 interface PlayerCardCompactProps {
@@ -17,16 +18,7 @@ interface PlayerCardCompactProps {
 
 const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, recordedStats, onVoteCaptain, currentUserId }: PlayerCardCompactProps) {
   const activeAttributes = player.approvedAttributes || player.attributes || {};
-  const overall = calculateRealisticOverall(
-    activeAttributes,
-    player.primaryPosition || 'CMF',
-    player.playStyle || '',
-    player.height,
-    player.weight,
-    player.calculatedAge,
-    player.peerRatingAvg,
-    player.peerRatingCount
-  );
+  const overall = getPlayerOverall(player);
   const [imgError, setImgError] = React.useState(false);
   const displayPhoto = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || '';
 
@@ -36,17 +28,24 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
 
   const pStats = recordedStats?.[player.uid];
   const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
+  const isCurrentUser = Boolean(currentUserId && player.uid === currentUserId);
 
   return (
     <Link href={`/profile?uid=${player.uid}`} className="block w-full">
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="relative flex items-center gap-4 p-3 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition-shadow cursor-pointer overflow-hidden"
+        className={`relative flex items-center gap-4 p-3 rounded-xl shadow-sm border transition-all cursor-pointer overflow-hidden ${
+          isCurrentUser
+            ? 'border-emerald-500 ring-2 ring-emerald-500/50 bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent dark:from-emerald-500/20 dark:via-emerald-500/10 dark:to-transparent'
+            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:shadow-md'
+        }`}
       >
 
         {/* Photo */}
-        <div className="relative w-14 h-14 rounded-full border-2 border-emerald-500/30 overflow-hidden bg-slate-100 dark:bg-slate-700 flex-shrink-0">
+        <div className={`relative w-14 h-14 rounded-full border-2 overflow-hidden flex-shrink-0 ${
+          isCurrentUser ? 'border-emerald-400 ring-2 ring-emerald-400/50 bg-emerald-50 dark:bg-slate-800' : 'border-emerald-500/30 bg-slate-100 dark:bg-slate-700'
+        }`}>
           {(() => {
             return displayPhoto && !imgError ? (
               <Image 
@@ -68,10 +67,15 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
 
         {/* Details */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white truncate">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3 className={`text-lg font-bold truncate ${isCurrentUser ? 'text-emerald-700 dark:text-emerald-300 font-black' : 'text-slate-900 dark:text-white'}`}>
               {player.cardName}
             </h3>
+            {isCurrentUser && (
+              <span className="text-[10px] bg-emerald-500 text-white font-black px-1.5 py-0.5 rounded-full shadow-sm animate-pulse shrink-0">
+                أنت / YOU
+              </span>
+            )}
             {player.form && (
               <div title="Current Form" className="bg-slate-100 dark:bg-slate-700/50 rounded-full p-0.5">
                 <FormIcon form={player.form} className="w-3.5 h-3.5" />

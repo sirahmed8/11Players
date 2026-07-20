@@ -126,6 +126,7 @@ const TeamCard = ({
             const isCaptain = player.uid === topCaptainUid && (voteCounts[player.uid] || 0) > 0;
             const voteCount = voteCounts[player.uid] || 0;
             const canVote = Boolean(currentUserUid && currentUserUid !== player.uid);
+            const isVotedByMe = Boolean(currentUserUid && captainVotes && captainVotes[currentUserUid] === player.uid);
 
             return (
               <div
@@ -168,14 +169,16 @@ const TeamCard = ({
                       type="button"
                       onClick={() => canVote && onVoteCaptain(player.uid)}
                       disabled={!canVote}
-                      title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isAr ? 'صوت ككابتن' : 'Vote Captain')}
-                      className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
-                        canVote
-                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black cursor-pointer'
-                          : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                      title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isVotedByMe ? (isAr ? 'إلغاء التصويت' : 'Remove vote') : (isAr ? 'صوت ككابتن' : 'Vote Captain'))}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-sm ${
+                        isVotedByMe
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-white ring-2 ring-emerald-300 scale-105 animate-pulse cursor-pointer'
+                          : canVote
+                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black cursor-pointer'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                       }`}
                     >
-                      👑 {voteCount > 0 ? voteCount : (isAr ? 'صوت' : 'Vote')}
+                      👑 {voteCount > 0 ? `${voteCount} ${isVotedByMe ? (isAr ? 'صوتك' : 'Voted') : ''}` : (isAr ? '+1 تصويت' : '+1 Vote')}
                     </button>
                   )}
                   <OVR_BADGE ovr={ovr || 60} />

@@ -12,6 +12,7 @@
 
 import type { PESPosition, PlayerAttributes, PlayerProfile } from '@/types';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 // ─── Exported Types ──────────────────────────────────────────────────────────
 
@@ -399,7 +400,7 @@ export function calculateTeamMetrics(team: PlayerProfile[]): TeamMetrics {
     if (!a) continue;
 
     // Overall uses positional weights
-    const playerOverall = calculateRealisticOverall(a, p.primaryPosition || 'CMF', p.playStyle || '');
+    const playerOverall = getPlayerOverall(p);
     overalls.push(playerOverall);
     speeds.push(mean([a.speed || 40, a.acceleration || 40]));
     staminas.push(a.stamina || 40);
@@ -695,10 +696,8 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
   const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
   catKeys.forEach(cat => {
     const sortedCat = [...categories[cat]].sort((a, b) => {
-      const attrsA = a.approvedAttributes || a.attributes || {};
-      const attrsB = b.approvedAttributes || b.attributes || {};
-      const overallA = calculateRealisticOverall(attrsA, a.primaryPosition || 'CMF', a.playStyle || '');
-      const overallB = calculateRealisticOverall(attrsB, b.primaryPosition || 'CMF', b.playStyle || '');
+      const overallA = getPlayerOverall(a);
+      const overallB = getPlayerOverall(b);
       return overallB - overallA;
     });
 
