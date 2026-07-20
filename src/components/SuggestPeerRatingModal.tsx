@@ -169,21 +169,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
         updatedAt: serverTimestamp()
       }, { merge: true });
 
-      // Notify the target player
-      try {
-        await addDoc(collection(db, `users/${player.uid}/notifications`), {
-          type: 'stats',
-          title: isAr ? 'اقتراح تقييم جديد لمهاراتك!' : 'New Ability Rating Suggestion!',
-          body: isAr
-            ? `قام أحد اللاعبين في مجتمعك باقتراح تعديل على طاقاتك ومركزك ومهاراتك (التقييم المقترح: ${consensusOvr}). في انتظار اعتماد مسؤول المجتمع.`
-            : `A community peer suggested updates to your abilities, position, and skills (Suggested OVR: ${consensusOvr}). Waiting for Admin approval.`,
-          read: false,
-          createdAt: serverTimestamp(),
-          link: '/profile?uid=' + player.uid
-        });
-      } catch (e) {
-        console.warn("Could not notify target player:", e);
-      }
+
 
       toast.success(isAr ? "تم إرسال وحفظ اقتراحك واحتسابه ضمن إجماع اللاعبين!" : "Suggestion submitted and aggregated into community consensus!");
       onClose();

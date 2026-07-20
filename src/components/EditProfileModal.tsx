@@ -104,7 +104,7 @@ const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }:
 
 export default function EditProfileModal({ player, isOpen, onClose, onRefresh }: EditProfileModalProps) {
   const { locale } = useLocale();
-  const { isOwner, isAdmin } = useAuth();
+  const { user, isOwner, isAdmin } = useAuth();
   const { activeCommunityId, activeCommunity } = useCommunity();
   const isRTL = locale === 'ar';
   
@@ -221,8 +221,22 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           await setDoc(editRequestRef, editPayload);
 
           try {
+            // Notify the user who made the edit (their own card) with a button to view the diff
+            if (user) {
+              const userNotifRef = doc(collection(db, `users/${user.uid}/notifications`), `edit_request_${Date.now()}`);
+              await setDoc(userNotifRef, {
+                type: 'stats',
+                title: isRTL ? 'تم إرسال طلب تعديل ملفك الشخصي' : 'Your Profile Edit Request Sent',
+                body: isRTL ? 'تم إرسال طلب تعديل ملفك الشخصي وقدراتك إلى مسؤول المجتمع للمراجعة. سيتم تحديث ملفك بعد الموافقة.' : 'Your profile & stats edit request has been sent to the community admin for review. Your profile will be updated after approval.',
+                read: false,
+                createdAt: serverTimestamp(),
+                link: '/profile?uid=' + user.uid
+              });
+            }
+
+            // Notify admin
             if (activeCommunity?.adminUid) {
-              const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`));
+              const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`), `edit_request_admin_${Date.now()}`);
               await setDoc(adminNotifRef, {
                 type: 'stats',
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
@@ -234,7 +248,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
             }
 
             if (activeCommunity?.adminUid !== ownerUid) {
-              const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
+              const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`), `edit_request_owner_${Date.now()}`);
               await setDoc(ownerNotifRef, {
                 type: 'stats',
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',

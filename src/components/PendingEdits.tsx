@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
 import { getAllPlayerCommunities } from "@/lib/playerUtils";
-import { Edit3, Check, X, Shield, Brain, CircleDot, Wand2, Footprints, Plane, Target, Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, Axe, Hand, Users, AlertCircle, ArrowRight } from "lucide-react";
+import { Edit3, Check, X, Shield, Brain, CircleDot, Wand2, Footprints, Plane, Target, Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, Axe, Hand, Users, AlertCircle, ArrowRight, XCircle } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import SkillsChecklist from "@/components/SkillsChecklist";
 import type { PlayerAttributes, PESPosition } from "@/types";
@@ -287,7 +287,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     setConfirmModal({
       isOpen: true,
       title: isAr ? "الموافقة على الكل" : "Approve All",
-      message: isAr ? `هل أنت متأكد من الموافقة على جميع الاقتراحات (${edits.length}) دفعة واحدة؟` : `Are you sure you want to approve all ${edits.length} suggestions at once?`,
+      message: isAr ? `هل أنت متأكد من الموافقة على جميع الاقتراحات (${edits.length}) دفعة واحدة؟ سيتم احتساب المتوسط من جميع الاقتراحات السابقة والحالية.` : `Are you sure you want to approve all ${edits.length} suggestions at once? Average will be calculated from all past and current suggestions.`,
       onConfirm: async () => {
         try {
           // Process sequentially to avoid overlapping batches and issues
@@ -299,6 +299,28 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
         } catch (err) {
           console.error(err);
           toast.error(isAr ? "حدث خطأ أثناء الموافقة على البعض." : "Error occurred while approving some edits.");
+        }
+      }
+    });
+  };
+
+  const handleRejectAll = () => {
+    if (edits.length === 0) return;
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "رفض الكل" : "Reject All",
+      message: isAr ? `هل أنت متأكد من رفض جميع الاقتراحات (${edits.length}) دفعة واحدة؟` : `Are you sure you want to reject all ${edits.length} suggestions at once?`,
+      onConfirm: async () => {
+        try {
+          for (const edit of edits) {
+            const collPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
+            await deleteDoc(doc(db, collPath, edit.id));
+          }
+          setIsModalOpen(false);
+          toast.success(isAr ? "تم رفض جميع التعديلات بنجاح!" : "All edits rejected successfully!");
+        } catch (err) {
+          console.error(err);
+          toast.error(isAr ? "حدث خطأ أثناء رفض البعض." : "Error occurred while rejecting some edits.");
         }
       }
     });
@@ -496,26 +518,30 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                   </div>
                 )}
 
-                <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 overflow-x-auto pb-1">
+                <div className="flex flex-wrap sm:flex-nowrap border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 pb-2">
                   <button
                     onClick={() => setActiveReviewTab('attributes')}
-                    className={`px-5 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 transition-all shrink-0 ${
+                    className={`px-4 py-2 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 transition-all shrink-0 ${
                       activeReviewTab === 'attributes'
                         ? 'bg-emerald-500 text-slate-950 shadow-md'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span>⚡</span> {isAr ? "تعديل ومراجعة القدرات الـ19" : "Edit 19 Attributes"}
+                    <span className="text-sm">⚡</span> 
+                    <span className="hidden sm:inline">{isAr ? "تعديل ومراجعة القدرات الـ19" : "Edit 19 Attributes"}</span>
+                    <span className="sm:hidden">{isAr ? "القدرات" : "Attributes"}</span>
                   </button>
                   <button
                     onClick={() => setActiveReviewTab('basic')}
-                    className={`px-5 py-2.5 rounded-xl font-black text-sm flex items-center gap-2 transition-all shrink-0 ${
+                    className={`px-4 py-2 rounded-xl font-black text-xs sm:text-sm flex items-center gap-2 transition-all shrink-0 ${
                       activeReviewTab === 'basic'
                         ? 'bg-emerald-500 text-slate-950 shadow-md'
                         : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span>👤</span> {isAr ? "مقارنة البيانات والمركز" : "Basic & Position Profile"}
+                    <span className="text-sm">👤</span>
+                    <span className="hidden sm:inline">{isAr ? "مقارنة البيانات والمركز" : "Basic & Position Profile"}</span>
+                    <span className="sm:hidden">{isAr ? "البيانات" : "Profile"}</span>
                   </button>
                 </div>
 
@@ -674,16 +700,25 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                 </h3>
                 <div className="flex items-center gap-3">
                   {edits.length > 0 && (
-                    <button
-                      onClick={handleApproveAll}
-                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
-                    >
-                      <Check className="w-4 h-4" />
-                      {isAr ? "الموافقة على الكل" : "Approve All"}
-                    </button>
+                    <>
+                      <button
+                        onClick={handleApproveAll}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm rounded-xl transition-all shadow-md shadow-emerald-600/20 flex items-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        {isAr ? "الموافقة على الكل" : "Approve All"}
+                      </button>
+                      <button
+                        onClick={handleRejectAll}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-black text-sm rounded-xl transition-all shadow-md shadow-red-600/20 flex items-center gap-2"
+                      >
+                        <X className="w-4 h-4" />
+                        {isAr ? "رفض الكل" : "Reject All"}
+                      </button>
+                    </>
                   )}
                   <button onClick={() => setIsModalOpen(false)} className="p-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl transition-colors">
-                    <X className="w-5 h-5" />
+                    <ArrowRight className="w-5 h-5 rtl:rotate-180" />
                   </button>
                 </div>
               </div>
