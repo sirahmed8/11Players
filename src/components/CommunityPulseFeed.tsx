@@ -11,7 +11,6 @@ import { motion } from "framer-motion";
 import { Trophy, Star, Activity, Award, Flame, Users, Calendar, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
 export default function CommunityPulseFeed() {

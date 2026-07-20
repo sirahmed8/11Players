@@ -33,16 +33,16 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
       <motion.div
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className={`relative grid grid-cols-[4.5rem_minmax(0,1fr)_4.25rem] items-center gap-4 min-h-[168px] p-5 rounded-2xl shadow-sm border transition-all cursor-pointer overflow-hidden ${
+        className={`relative grid grid-cols-[4.5rem_minmax(0,1fr)_4.25rem] items-center gap-4 min-h-[180px] p-5 rounded-2xl shadow-md border transition-all cursor-pointer overflow-hidden ${
           isCurrentUser
-            ? 'border-emerald-400 bg-emerald-950/95 ring-1 ring-emerald-400/60 shadow-[0_12px_30px_rgba(16,185,129,0.16)]'
-            : 'bg-slate-800/95 border-slate-700 hover:border-emerald-500/40 hover:shadow-md'
+            ? 'border-emerald-400 bg-emerald-600 shadow-[0_12px_30px_rgba(16,185,129,0.16)]'
+            : 'bg-slate-800/95 border-slate-700 hover:border-emerald-500/40 hover:shadow-lg'
         }`}
       >
 
         {/* Photo */}
         <div className={`relative w-16 h-16 rounded-full border-2 overflow-hidden flex-shrink-0 ${
-          isCurrentUser ? 'border-emerald-300 ring-4 ring-emerald-400/20 bg-slate-900' : 'border-emerald-500/40 bg-slate-700'
+          isCurrentUser ? 'border-white bg-emerald-700' : 'border-emerald-500/40 bg-slate-700'
         }`}>
           {(() => {
             return displayPhoto && !imgError ? (
@@ -66,7 +66,7 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
         {/* Details */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className={`text-lg font-black truncate ${isCurrentUser ? 'text-emerald-200' : 'text-white'}`}>
+            <h3 className={`text-lg font-black truncate ${isCurrentUser ? 'text-white' : 'text-white'}`}>
               {player.cardName}
             </h3>
             {player.form && (

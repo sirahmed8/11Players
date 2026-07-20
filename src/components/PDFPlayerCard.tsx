@@ -1,6 +1,5 @@
 import React from 'react';
 import { PlayerProfile } from '@/types';
-import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface Props {

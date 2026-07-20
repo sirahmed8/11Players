@@ -6,7 +6,6 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from './FormIcon';
-import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface PlayerCardProps {

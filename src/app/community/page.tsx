@@ -70,15 +70,34 @@ export default function CommunityPage() {
       const hasVoted = currentVotes.includes(user.uid);
       const communityPlayerRef = doc(db, "communities", activeCommunityId, "players", playerId);
 
+      // Optimistic UI update - immediately update local state
+      setPlayers(prev => prev.map(p => {
+        if (p.uid === playerId) {
+          const newVotes = hasVoted 
+            ? (p.captainVotes || []).filter(v => v !== user.uid)
+            : [...(p.captainVotes || []), user.uid];
+          return { ...p, captainVotes: newVotes };
+        }
+        return p;
+      }));
+
       // The roster is the live source used by every member of this community.
       await updateDoc(communityPlayerRef, {
         captainVotes: hasVoted ? arrayRemove(user.uid) : arrayUnion(user.uid)
       });
       
-      toast.success(hasVoted ? (isAr ? "تم إلغاء التصويت" : "Vote removed") : (isAr ? "تم التصويت كابتن!" : "Voted for captain!"));
+      toast.success(hasVoted ? (isAr ? "تم إلغاء التصويت" : "Vote removed") : (isAr ? "تم التصويت كابتن! (+1)" : "Voted for captain! (+1)"));
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "حدث خطأ أثناء التصويت" : "Error casting vote");
+      // Revert optimistic update on error
+      setPlayers(prev => prev.map(p => {
+        if (p.uid === playerId) {
+          const targetPlayer = players.find(orig => orig.uid === playerId);
+          return { ...p, captainVotes: targetPlayer?.captainVotes || [] };
+        }
+        return p;
+      }));
     }
   };
 
@@ -222,7 +241,7 @@ export default function CommunityPage() {
               <p className="text-slate-600 dark:text-slate-400">No players found.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               <AnimatePresence>
                 {filteredPlayers.map((player, index) => (
                   <motion.div

@@ -57,10 +57,9 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
       player.calculatedAge,
       player.peerRatingAvg,
       player.peerRatingCount,
-      player.preferredFoot,
-      specialSkills
+      player.preferredFoot
     );
-  }, [attributes, primaryPosition, playStyle, specialSkills, player]);
+  }, [attributes, primaryPosition, playStyle, player]);
 
   const handleSubmit = async () => {
     if (!user) {
@@ -140,8 +139,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
         player.calculatedAge,
         player.peerRatingAvg,
         player.peerRatingCount,
-        player.preferredFoot,
-        consensusSkills
+        player.preferredFoot
       );
 
       // 3. Save aggregated consensus proposal into editRequests (Visible to Admin in PendingEdits)

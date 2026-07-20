@@ -27,8 +27,7 @@ export function calculateRealisticOverall(
   age?: number,
   peerRatingAvg?: number,
   peerRatingCount?: number,
-  preferredFoot?: string,
-  specialSkills?: string[]
+  preferredFoot?: string
 ): number {
   if (!attributes) return 40;
 
@@ -141,7 +140,6 @@ export function calculatePositionRating(
     peerRatingAvg?: number;
     peerRatingCount?: number;
     preferredFoot?: string;
-    specialSkills?: string[];
   },
   targetPosition: PESPosition
 ): number {
@@ -158,8 +156,7 @@ export function calculatePositionRating(
     age,
     player?.peerRatingAvg,
     player?.peerRatingCount,
-    player?.preferredFoot,
-    player?.specialSkills
+    player?.preferredFoot
   );
 
   if (targetPosition === primaryPos) {
@@ -206,7 +203,6 @@ export function getPlayerPositionRatings(player: {
   peerRatingAvg?: number;
   peerRatingCount?: number;
   preferredFoot?: string;
-  specialSkills?: string[];
 }) {
   const activeAttributes = player?.approvedAttributes || player?.attributes || ({} as any);
   const primaryPos = player?.primaryPosition || 'CMF';

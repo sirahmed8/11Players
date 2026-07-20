@@ -167,7 +167,6 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     if (!reviewFormData.attributes) {
       return currentPlayerData?.overallRating || 70;
     }
-    const skills = reviewFormData.specialSkills || reviewFormData.profileData?.specialSkills || currentPlayerData?.specialSkills || [];
     return calculateRealisticOverall(
       reviewFormData.attributes,
       reviewFormData.primaryPosition as PESPosition,
@@ -177,10 +176,9 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       currentPlayerData?.calculatedAge || 25,
       currentPlayerData?.peerRatingAvg,
       currentPlayerData?.peerRatingCount,
-      currentPlayerData?.preferredFoot,
-      skills
+      currentPlayerData?.preferredFoot
     );
-  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.playStyle, reviewFormData.specialSkills, reviewFormData.profileData, reviewFormData.height, reviewFormData.weight, currentPlayerData]);
+  }, [reviewFormData.attributes, reviewFormData.primaryPosition, reviewFormData.playStyle, reviewFormData.profileData, reviewFormData.height, reviewFormData.weight, currentPlayerData]);
 
   const applyApproval = async (edit: any, modifiedData?: any) => {
     const collectionPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
@@ -212,7 +210,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
 
       if (targetAttributes) {
         const mergedAttr = { ...(playerData.attributes || {}), ...targetAttributes };
-        const newOverall = calculateRealisticOverall(mergedAttr, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot, skills);
+        const newOverall = calculateRealisticOverall(mergedAttr, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot);
         updateDataGlobal.attributes = mergedAttr;
         updateDataGlobal.approvedAttributes = mergedAttr;
         updateDataGlobal.overallRating = newOverall;
@@ -220,7 +218,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
         updateDataComm.approvedAttributes = mergedAttr;
         updateDataComm.overallRating = newOverall;
       } else if (Object.keys(targetProfileData).length > 0 || modifiedData?.playStyle !== undefined || modifiedData?.primaryPosition !== undefined || modifiedData?.specialSkills !== undefined) {
-        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot, skills);
+        const newOverall = calculateRealisticOverall(playerData.attributes || {}, pos, style, height, weight, age, peerAvg, peerCount, playerData.preferredFoot);
         updateDataGlobal.overallRating = newOverall;
         updateDataComm.overallRating = newOverall;
       }

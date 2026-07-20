@@ -11,7 +11,6 @@
  */
 
 import type { PESPosition, PlayerAttributes, PlayerProfile } from '@/types';
-import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getPlayerOverall } from '@/lib/playerUtils';
 
 // ─── Exported Types ──────────────────────────────────────────────────────────

@@ -48,8 +48,7 @@ export function getPlayerOverall(player: Partial<PlayerProfile>): number {
     player.calculatedAge || calculateAge(player.dateOfBirth),
     player.peerRatingAvg,
     player.peerRatingCount,
-    player.preferredFoot,
-    player.specialSkills
+    player.preferredFoot
   );
   const hasAttributes = Object.keys(activeAttributes).length > 0;
   if (hasAttributes && calculatedOverall > 40) {

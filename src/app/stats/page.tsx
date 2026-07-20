@@ -11,7 +11,6 @@ import { User } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 
-import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 
@@ -84,7 +83,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
         key={p.uid}
         className={`flex items-center justify-between p-4 transition-colors ${
           isCurrentUser
-            ? "bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-transparent dark:from-emerald-500/25 dark:via-emerald-500/10 dark:to-transparent border-l-4 border-emerald-500 relative z-10 font-bold"
+            ? "bg-emerald-500 text-white dark:bg-emerald-600 relative z-10 font-bold"
             : "hover:bg-slate-50 dark:hover:bg-slate-700/30"
         }`}
       >
@@ -94,7 +93,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
             <PlayerRowAvatar photoUrl={photo} cardName={p.cardName} />
             <div>
               <div className="flex items-center gap-2">
-                <span className={`font-bold group-hover:text-emerald-500 transition-colors ${isCurrentUser ? 'text-emerald-700 dark:text-emerald-300 font-black' : ''}`}>{p.cardName}</span>
+                <span className={`font-bold group-hover:text-emerald-500 transition-colors ${isCurrentUser ? 'text-white font-black' : ''}`}>{p.cardName}</span>
               </div>
               <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
                 {p.primaryPosition}
@@ -102,7 +101,7 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
             </div>
           </Link>
         </div>
-        <div className={`font-black text-xl ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-200'}`}>
+        <div className={`font-black text-xl ${isCurrentUser ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>
           {scoreVal}
         </div>
       </div>

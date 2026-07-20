@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { PESPosition } from '@/types';
-import { calculateRealisticOverall, calculatePositionRating } from '@/lib/overallCalculator';
+import { calculatePositionRating } from '@/lib/overallCalculator';
 import { FORMATIONS, assignPlayersToFormation } from '@/lib/matchmaker';
 import { Crown, RefreshCw, Layers, Check } from 'lucide-react';
 

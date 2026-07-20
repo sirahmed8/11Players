@@ -113,7 +113,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
         }
 
         const activeAttr = currentData.approvedAttributes || currentData.attributes || p.approvedAttributes || p.attributes || {};
-        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount, currentData.preferredFoot || p.preferredFoot, currentData.specialSkills || p.specialSkills);
+        const newOverall = calculateRealisticOverall(activeAttr, currentData.primaryPosition || p.primaryPosition || 'CMF', currentData.playStyle || p.playStyle || '', currentData.height || p.height, currentData.weight || p.weight, currentData.calculatedAge || p.calculatedAge, currentData.peerRatingAvg || p.peerRatingAvg, currentData.peerRatingCount || p.peerRatingCount, currentData.preferredFoot || p.preferredFoot);
 
         const globalRef = doc(db, 'players', p.uid);
         const globalPayload: any = { stats: newStats, overallRating: newOverall };
