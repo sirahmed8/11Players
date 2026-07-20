@@ -241,7 +241,7 @@ export default function MatchPage() {
     }
   };
 
-  const handleCreateMatchFromPage = async (config: MatchConfig) => {
+  const handleCreateMatchFromPage = async (config: MatchConfig, previewData?: any) => {
     if (!activeCommunityId) return;
     try {
       let availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
@@ -271,20 +271,25 @@ export default function MatchPage() {
           generatedAt: new Date().toISOString(),
         };
       } else if (config.matchMode === 'turf') {
-        const turfConfig = {
-          numTeams: config.numTeams || 2,
-          playersPerTeam: config.playersPerTeam || 6,
-          gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
-          fixedGkTeamA: config.fixedGkTeamA,
-          fixedGkTeamB: config.fixedGkTeamB,
-          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
-          gkRotationMinutes: config.gkRotationMinutes,
-          matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
-          matchDurationMins: config.matchDurationMins || 20,
-          endCondition: config.endCondition || 'time',
-          targetGoals: config.targetGoals || 3,
-        };
-        const turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        let turfResult: any;
+        if (previewData && previewData.matchMode === 'turf' && previewData.turfResult) {
+          turfResult = previewData.turfResult;
+        } else {
+          const turfConfig = {
+            numTeams: config.numTeams || 2,
+            playersPerTeam: config.playersPerTeam || 6,
+            gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+            fixedGkTeamA: config.fixedGkTeamA,
+            fixedGkTeamB: config.fixedGkTeamB,
+            gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+            gkRotationMinutes: config.gkRotationMinutes,
+            matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
+            matchDurationMins: config.matchDurationMins || 20,
+            endCondition: config.endCondition || 'time',
+            targetGoals: config.targetGoals || 3,
+          };
+          turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        }
         newMatchData = {
           id: matchId,
           success: true,
@@ -295,14 +300,34 @@ export default function MatchPage() {
           generatedAt: new Date().toISOString(),
         };
       } else {
-        const result = balanceTeams(availablePlayers);
+        let teamA, teamB, bench, metrics, formation, tipsAndTactics;
+        if (previewData && previewData.matchMode === 'standard') {
+          teamA = previewData.teamA || [];
+          teamB = previewData.teamB || [];
+          bench = previewData.bench || [];
+          metrics = previewData.metrics || { teamAAvg: 70, teamBAvg: 70 };
+          formation = previewData.formation || "4-3-3";
+          tipsAndTactics = previewData.tipsAndTactics || [];
+        } else {
+          const result = balanceTeams(availablePlayers);
+          teamA = result.teamA;
+          teamB = result.teamB;
+          bench = [...(result.benchA || []), ...(result.benchB || [])];
+          metrics = result.metrics;
+          formation = result.formation;
+          tipsAndTactics = result.tipsAndTactics;
+        }
         newMatchData = {
           id: matchId,
           success: true,
           status: 'active',
           matchMode: 'standard',
-          teamA: result.teamA,
-          teamB: result.teamB,
+          teamA,
+          teamB,
+          bench,
+          metrics,
+          formation,
+          tipsAndTactics,
           config,
           generatedAt: new Date().toISOString(),
         };

@@ -11,6 +11,12 @@
 
 import type { PlayerProfile } from '@/types';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import {
+  serpentineDraftStrategy,
+  buildGkRotationOrderStrategy,
+  calculateTeamTotalOvr,
+  calculateTeamAverageOvr,
+} from '@/lib/matchmakingStrategy';
 
 // ─── Exported Types ───────────────────────────────────────────────────────────
 
@@ -44,55 +50,6 @@ export interface TurfMatchmakingResult {
   endCondition?: 'time' | 'goals' | 'both';
   targetGoals?: number;
   enableCardsSystem?: boolean;
-}
-
-// ─── Serpentine Draft ─────────────────────────────────────────────────────────
-
-/**
- * Distributes N players across T teams using the Serpentine (snake) draft order.
- * Ensures the weakest and strongest teams are balanced across all rounds.
- *
- * Draft order for T=3: R1: 1,2,3 | R2: 3,2,1 | R3: 1,2,3 ...
- */
-function serpentineDraft(players: PlayerProfile[], numTeams: number): PlayerProfile[][] {
-  // Sort by OVR descending
-  const sorted = [...players].sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
-  const teams: PlayerProfile[][] = Array.from({ length: numTeams }, () => []);
-
-  let forward = true;
-  let teamIndex = 0;
-
-  for (const player of sorted) {
-    teams[teamIndex].push(player);
-    if (forward) {
-      teamIndex++;
-      if (teamIndex >= numTeams) {
-        teamIndex = numTeams - 1;
-        forward = false;
-      }
-    } else {
-      teamIndex--;
-      if (teamIndex < 0) {
-        teamIndex = 0;
-        forward = true;
-      }
-    }
-  }
-
-  return teams;
-}
-
-// ─── GK Rotation ─────────────────────────────────────────────────────────────
-
-/**
- * Determines GK rotation order for a team based on overall rating (lowest OVR goes first in goal).
- * Returns a shuffled/ordered array of players for fair GK rotation.
- */
-function buildGkRotationOrder(players: PlayerProfile[]): PlayerProfile[] {
-  // Sort by OVR ascending so the 'worst' outfield player can go in goal first
-  // But randomise the last-third to prevent always forcing the weakest player
-  const sorted = [...players].sort((a, b) => getPlayerOverall(a) - getPlayerOverall(b));
-  return sorted;
 }
 
 // ─── Fixture Generation ───────────────────────────────────────────────────────
@@ -193,14 +150,13 @@ export function generateTurfMatch(
   const activePlayers = availablePlayers.slice(0, totalNeeded);
 
   // Run Serpentine draft
-  const draftedTeams = serpentineDraft(activePlayers, numTeams);
+  const draftedTeams = serpentineDraftStrategy(activePlayers, numTeams);
 
   // Build TurfTeam objects
   const teams: TurfTeam[] = draftedTeams.map((players, idx) => {
-    const ovrs = players.map(p => getPlayerOverall(p));
-    const totalOvr = ovrs.reduce((a, b) => a + b, 0);
-    const avgOvr = players.length > 0 ? Math.round(totalOvr / players.length) : 0;
-    const gkOrder = buildGkRotationOrder(players);
+    const totalOvr = calculateTeamTotalOvr(players);
+    const avgOvr = calculateTeamAverageOvr(players);
+    const gkOrder = buildGkRotationOrderStrategy(players);
     const fixedGkUid = idx === 0 ? fixedGkTeamA : idx === 1 ? fixedGkTeamB : undefined;
 
     return {

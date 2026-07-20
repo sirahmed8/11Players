@@ -110,7 +110,7 @@ export default function AdminPage() {
     });
   };
 
-  const handleMatchmaking = async (config: MatchConfig) => {
+  const handleMatchmaking = async (config: MatchConfig, previewData?: any) => {
     try {
       if (!activeCommunityId) throw new Error("No active community selected");
       setMatchmakingLoading(true);
@@ -150,20 +150,25 @@ export default function AdminPage() {
         };
       } else if (config.matchMode === 'turf') {
         // ── Turf / Casual Mode ──
-        const turfConfig = {
-          numTeams: config.numTeams || 2,
-          playersPerTeam: config.playersPerTeam || 6,
-          gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
-          fixedGkTeamA: config.fixedGkTeamA,
-          fixedGkTeamB: config.fixedGkTeamB,
-          gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
-          gkRotationMinutes: config.gkRotationMinutes,
-          matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
-          matchDurationMins: config.matchDurationMins || 20,
-          endCondition: config.endCondition || 'time',
-          targetGoals: config.targetGoals || 3,
-        };
-        const turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        let turfResult: any;
+        if (previewData && previewData.matchMode === 'turf' && previewData.turfResult) {
+          turfResult = previewData.turfResult;
+        } else {
+          const turfConfig = {
+            numTeams: config.numTeams || 2,
+            playersPerTeam: config.playersPerTeam || 6,
+            gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+            fixedGkTeamA: config.fixedGkTeamA,
+            fixedGkTeamB: config.fixedGkTeamB,
+            gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+            gkRotationMinutes: config.gkRotationMinutes,
+            matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+            matchDurationMins: config.matchDurationMins || 20,
+            endCondition: config.endCondition || 'time',
+            targetGoals: config.targetGoals || 3,
+          };
+          turfResult = generateTurfMatch(availablePlayers, turfConfig);
+        }
         matchData = {
           id: matchId,
           success: true,
@@ -175,18 +180,34 @@ export default function AdminPage() {
         };
       } else {
         // ── Standard 11v11 Mode ──
-        const result = balanceTeams(availablePlayers);
+        let teamA, teamB, bench, metrics, formation, tipsAndTactics;
+        if (previewData && previewData.matchMode === 'standard') {
+          teamA = previewData.teamA || [];
+          teamB = previewData.teamB || [];
+          bench = previewData.bench || [];
+          metrics = previewData.metrics || { teamAAvg: 70, teamBAvg: 70 };
+          formation = previewData.formation || "4-3-3";
+          tipsAndTactics = previewData.tipsAndTactics || [];
+        } else {
+          const result = balanceTeams(availablePlayers);
+          teamA = result.teamA;
+          teamB = result.teamB;
+          bench = [...(result.benchA || []), ...(result.benchB || [])];
+          metrics = result.metrics;
+          formation = result.formation;
+          tipsAndTactics = result.tipsAndTactics;
+        }
         matchData = {
           id: matchId,
           success: true,
           status: 'active',
           matchMode: 'standard',
-          teamA: result.teamA,
-          teamB: result.teamB,
-          bench: [...(result.benchA || []), ...(result.benchB || [])],
-          metrics: result.metrics,
-          formation: result.formation,
-          tipsAndTactics: result.tipsAndTactics,
+          teamA,
+          teamB,
+          bench,
+          metrics,
+          formation,
+          tipsAndTactics,
           config,
           generatedAt: new Date().toISOString(),
         };

@@ -12,6 +12,7 @@
 
 import type { PESPosition, PlayerAttributes, PlayerProfile } from '@/types';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import { sortPlayersByOvrDesc } from '@/lib/matchmakingStrategy';
 
 // ─── Exported Types ──────────────────────────────────────────────────────────
 
@@ -694,11 +695,7 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
   // Serpentine draft inside each position category
   const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
   catKeys.forEach(cat => {
-    const sortedCat = [...categories[cat]].sort((a, b) => {
-      const overallA = getPlayerOverall(a);
-      const overallB = getPlayerOverall(b);
-      return overallB - overallA;
-    });
+    const sortedCat = sortPlayersByOvrDesc(categories[cat]);
 
     for (let i = 0; i < sortedCat.length; i++) {
       const round = Math.floor(i / 2);

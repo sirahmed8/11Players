@@ -251,14 +251,14 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
 
             {/* Position and Play Style */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 transition-all duration-200">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                   {isAr ? "المركز الأساسي المقترح" : "Suggested Primary Position"}
                 </label>
                 <select
                   value={primaryPosition}
                   onChange={(e) => setPrimaryPosition(e.target.value as PESPosition)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all [-webkit-tap-highlight-color:transparent]"
                 >
                   {POSITIONS.map((pos) => (
                     <option key={pos} value={pos}>{pos}</option>
@@ -266,14 +266,14 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
                 </select>
               </div>
 
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 transition-all duration-200">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                   {isAr ? "أسلوب اللعب المقترح" : "Suggested Play Style"}
                 </label>
                 <select
                   value={playStyle}
                   onChange={(e) => setPlayStyle(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none [-webkit-tap-highlight-color:transparent]"
+                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all [-webkit-tap-highlight-color:transparent]"
                 >
                   <option value="">{isAr ? "بدون (None)" : "None"}</option>
                   {PLAY_STYLES.map((style) => (
@@ -309,22 +309,26 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
 
           {/* Footer */}
           <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={onClose}
               disabled={submitting}
-              className="px-6 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-bold text-sm hover:opacity-90 transition-opacity"
+              className="px-6 py-3 bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-2xl font-bold text-sm hover:opacity-90 transition-all"
             >
               {isAr ? "إلغاء" : "Cancel"}
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleSubmit}
               disabled={submitting}
-              className="px-8 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-extrabold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50"
+              className="px-8 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-2xl font-extrabold text-sm shadow-lg shadow-emerald-600/20 hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
               <span>{submitting ? (isAr ? "جاري الإرسال..." : "Submitting...") : (isAr ? "إرسال الاقتراح للمسؤول" : "Submit Suggestion")}</span>
-            </button>
+            </motion.button>
           </div>
           </motion.div>
         </div>

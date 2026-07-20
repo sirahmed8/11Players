@@ -836,7 +836,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="mx-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
+              className="mx-4 w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl"
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
               <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -980,7 +980,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
             >
               <div className="p-6 text-center">
                 <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
@@ -1017,7 +1017,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
             >
               <div className="p-6 text-center">
                 <h2 className="text-xl font-bold mb-4 text-red-600">
@@ -1053,7 +1053,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
             >
               <div className="p-6 text-center">
                 <h2 className="text-xl font-bold mb-4 text-amber-600">
@@ -1087,7 +1087,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
             >
               <div className="p-6 text-center">
                 <h2 className="text-xl font-bold mb-4 text-red-600">
@@ -1146,7 +1146,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               initial={{ opacity: 0, scale: 0.95, y: -10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700"
+              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-700"
               onClick={e => e.stopPropagation()}
             >
               <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">

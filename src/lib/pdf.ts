@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import PDFPlayerCard from '@/components/PDFPlayerCard';
 import PDFBulkTable from '@/components/PDFBulkTable';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 'ar' = 'en'): Promise<void> {
   if (typeof window === "undefined") {
@@ -100,8 +101,11 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: '
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    const ITEMS_PER_PAGE = 15;
-    const totalPages = Math.ceil(profiles.length / ITEMS_PER_PAGE) || 1;
+    // Sort descending by overall rating
+    const sortedProfiles = [...profiles].sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
+
+    const ITEMS_PER_PAGE = 12; // 12 per page ensures generous spacing, gorgeous badges, and ultra clean print
+    const totalPages = Math.ceil(sortedProfiles.length / ITEMS_PER_PAGE) || 1;
 
     const container = document.createElement('div');
     container.style.position = 'absolute';
@@ -112,7 +116,7 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: '
     const root = createRoot(container);
 
     for (let i = 0; i < totalPages; i++) {
-      const pageProfiles = profiles.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE);
+      const pageProfiles = sortedProfiles.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE);
       
       root.render(React.createElement(PDFBulkTable, {
         profiles: pageProfiles,

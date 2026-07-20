@@ -133,8 +133,14 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [activeCommunityId, loadingCommunity]);
 
+  const contextValue = React.useMemo(() => ({
+    players,
+    loading,
+    refreshPlayers
+  }), [players, loading, refreshPlayers]);
+
   return (
-    <PlayersContext.Provider value={{ players, loading, refreshPlayers }}>
+    <PlayersContext.Provider value={contextValue}>
       {children}
     </PlayersContext.Provider>
   );

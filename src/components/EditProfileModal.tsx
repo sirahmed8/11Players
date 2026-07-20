@@ -258,6 +258,18 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 link: '/admin?tab=edits'
               });
             }
+
+            // Global/System Admin Notification Stream
+            const sysNotifRef = doc(collection(db, 'system', 'admin_notifications', 'feed'), `edit_comm_${Date.now()}`);
+            await setDoc(sysNotifRef, {
+              type: 'edit_request',
+              title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
+              body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
+              read: false,
+              createdAt: serverTimestamp(),
+              link: '/admin?tab=edits',
+              communityId: targetCommunityId
+            });
           } catch (notifErr) {
             console.warn("Notification send warning:", notifErr);
           }
@@ -268,9 +280,20 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           await setDoc(globalEditReqRef, editPayload);
 
           try {
-            const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`));
+            const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`), `edit_req_${Date.now()}`);
             await setDoc(ownerNotifRef, {
               type: 'stats',
+              title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
+              body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
+              read: false,
+              createdAt: serverTimestamp(),
+              link: '/admin?tab=edits'
+            });
+
+            // Global/System Admin Notification Stream
+            const sysNotifRef = doc(collection(db, 'system', 'admin_notifications', 'feed'), `edit_global_${Date.now()}`);
+            await setDoc(sysNotifRef, {
+              type: 'edit_request',
               title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
               body: isRTL ? `لقد أرسل ${formData.fullName} طلب تعديل للمراجعة.` : `${formData.fullName} submitted profile & stats edits for review.`,
               read: false,

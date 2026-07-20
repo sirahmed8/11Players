@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '@/components/ThemeProvider';
-import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X } from 'lucide-react';
+import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X, Brain, RefreshCw, Sparkles, ArrowLeft, ArrowRight } from 'lucide-react';
 import CustomDropdown from '@/components/CustomDropdown';
+import { generateTurfMatch } from '@/lib/turfMatchmaker';
+import { balanceTeams } from '@/lib/matchmaker';
 
 export interface MatchConfig {
   date: string;
@@ -40,7 +42,7 @@ interface CommunityPlayer {
 interface MatchConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onGenerate: (config: MatchConfig) => void;
+  onGenerate: (config: MatchConfig, previewData?: any) => void;
   communityPlayers?: CommunityPlayer[];
 }
 
@@ -49,6 +51,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
   const isAr = locale === 'ar';
 
   const [activeTab, setActiveTab] = useState<'standard' | 'turf'>('standard');
+  const [step, setStep] = useState<'config' | 'preview'>('config');
+  const [previewData, setPreviewData] = useState<any>(null);
+  const [selectedForSwap, setSelectedForSwap] = useState<{
+    teamIndex: number | 'bench';
+    playerIndex: number;
+    player: any;
+  } | null>(null);
 
   const [config, setConfig] = useState<MatchConfig>({
     date: '',
@@ -177,6 +186,126 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setShowTimePicker(false);
   };
 
+  const handleGenerateOrPreview = () => {
+    const finalConfig: MatchConfig = {
+      ...config,
+      selectedPlayerUids: config.isOpenRegistration
+        ? []
+        : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
+            ? Array.from(selectedUids)
+            : undefined),
+    };
+
+    if (config.isOpenRegistration) {
+      onGenerate(finalConfig);
+      onClose();
+      return;
+    }
+
+    let availablePlayers = communityPlayers.filter((p: any) => !p.isExcludedFromMatchmaking);
+    if (finalConfig.selectedPlayerUids && finalConfig.selectedPlayerUids.length > 0) {
+      const selectedSet = new Set(finalConfig.selectedPlayerUids);
+      availablePlayers = availablePlayers.filter(p => selectedSet.has(p.uid));
+    }
+
+    if (config.matchMode === 'turf') {
+      const turfConfig = {
+        numTeams: config.numTeams || 2,
+        playersPerTeam: config.playersPerTeam || 6,
+        gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
+        fixedGkTeamA: config.fixedGkTeamA,
+        fixedGkTeamB: config.fixedGkTeamB,
+        gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
+        gkRotationMinutes: config.gkRotationMinutes,
+        matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
+        matchDurationMins: config.matchDurationMins || 20,
+        endCondition: config.endCondition || 'time',
+        targetGoals: config.targetGoals || 3,
+      };
+      const turfResult = generateTurfMatch(availablePlayers as any[], turfConfig);
+      setPreviewData({ matchMode: 'turf', turfResult, availablePlayers, turfConfig });
+    } else {
+      const result = balanceTeams(availablePlayers as any[]);
+      setPreviewData({ matchMode: 'standard', ...result, availablePlayers });
+    }
+    setSelectedForSwap(null);
+    setStep('preview');
+  };
+
+  const handleRegeneratePreview = () => {
+    if (!previewData || !previewData.availablePlayers) return;
+    if (previewData.matchMode === 'turf') {
+      const turfResult = generateTurfMatch(previewData.availablePlayers as any[], previewData.turfConfig);
+      setPreviewData({ ...previewData, turfResult });
+    } else {
+      const result = balanceTeams(previewData.availablePlayers as any[]);
+      setPreviewData({ ...previewData, ...result });
+    }
+    setSelectedForSwap(null);
+  };
+
+  const handlePlayerSwapClick = (teamIndex: number | 'bench', playerIndex: number, player: any) => {
+    if (!selectedForSwap) {
+      setSelectedForSwap({ teamIndex, playerIndex, player });
+      return;
+    }
+    if (selectedForSwap.teamIndex === teamIndex && selectedForSwap.playerIndex === playerIndex) {
+      setSelectedForSwap(null);
+      return;
+    }
+
+    if (previewData.matchMode === 'turf') {
+      const nextResult = JSON.parse(JSON.stringify(previewData.turfResult));
+      const getPlayerAndSet = (tIdx: number | 'bench', pIdx: number, val?: any) => {
+        if (tIdx === 'bench') {
+          if (val !== undefined) nextResult.bench[pIdx] = val;
+          return nextResult.bench[pIdx];
+        } else {
+          if (val !== undefined) nextResult.teams[tIdx].players[pIdx] = val;
+          return nextResult.teams[tIdx].players[pIdx];
+        }
+      };
+      const p1 = getPlayerAndSet(selectedForSwap.teamIndex, selectedForSwap.playerIndex);
+      const p2 = getPlayerAndSet(teamIndex, playerIndex);
+      getPlayerAndSet(selectedForSwap.teamIndex, selectedForSwap.playerIndex, p2);
+      getPlayerAndSet(teamIndex, playerIndex, p1);
+
+      if (nextResult.teams) {
+        nextResult.teams.forEach((t: any) => {
+          if (t.players && t.players.length > 0) {
+            const total = t.players.reduce((sum: number, p: any) => sum + (p.overallRating || p?.stats?.overallRating || 70), 0);
+            t.totalOvr = Math.round(total / t.players.length);
+          }
+        });
+      }
+      setPreviewData({ ...previewData, turfResult: nextResult });
+    } else {
+      const nextData = JSON.parse(JSON.stringify(previewData));
+      const getList = (tIdx: number | 'bench') => {
+        if (tIdx === 0) return nextData.teamA;
+        if (tIdx === 1) return nextData.teamB;
+        return nextData.bench;
+      };
+      const l1 = getList(selectedForSwap.teamIndex);
+      const l2 = getList(teamIndex);
+      const temp = l1[selectedForSwap.playerIndex];
+      l1[selectedForSwap.playerIndex] = l2[playerIndex];
+      l2[playerIndex] = temp;
+
+      const calcAvg = (list: any[]) => {
+        if (!list || list.length === 0) return 70;
+        const total = list.reduce((sum, p) => sum + (p.overallRating || p?.stats?.overallRating || 70), 0);
+        return Math.round(total / list.length);
+      };
+      nextData.metrics = {
+        teamAAvg: calcAvg(nextData.teamA),
+        teamBAvg: calcAvg(nextData.teamB),
+      };
+      setPreviewData(nextData);
+    }
+    setSelectedForSwap(null);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -192,11 +321,280 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg overflow-visible border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col"
+            className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full ${step === 'preview' ? 'max-w-4xl' : 'max-w-lg'} overflow-visible border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col transition-all duration-300`}
             dir={isAr ? 'rtl' : 'ltr'}
           >
-            <div className="p-6 overflow-y-auto overflow-x-visible">
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
+            <div className="p-6 overflow-y-auto overflow-x-visible flex-1">
+              {step === 'preview' && previewData ? (
+                <div className="space-y-6">
+                  {/* Preview Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    <div>
+                      <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                        <span className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                          <Brain className="w-6 h-6 animate-pulse" />
+                        </span>
+                        <span>{isAr ? 'مراجعة واعتماد التشكيلة (AI)' : 'AI Lineup Review & Approval'}</span>
+                      </h2>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                        <span>
+                          {isAr
+                            ? 'التبديل الذكي: اضغط على أي لاعب في فريق ثم اضغط على لاعب آخر في فريق آخر أو الاحتياط للتبديل وإعادة حساب التقييم فوراً.'
+                            : 'Smart Swap: Click any player on one team, then click another on a different team or bench to swap & recalculate ratings.'}
+                        </span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleRegeneratePreview}
+                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95 shrink-0"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>{isAr ? 'إعادة توزيع' : 'Regenerate'}</span>
+                    </button>
+                  </div>
+
+                  {/* Turf Mode Preview */}
+                  {previewData.matchMode === 'turf' && previewData.turfResult && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
+                          const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
+                          return (
+                            <div
+                              key={`turf-team-${tIdx}`}
+                              className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
+                                isTeamSelected
+                                  ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
+                                  : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                                <div className="flex items-center gap-2.5">
+                                  <span
+                                    className="w-3.5 h-3.5 rounded-full shadow-sm"
+                                    style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
+                                  />
+                                  <h3 className="font-black text-slate-900 dark:text-white text-base">
+                                    {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
+                                  </h3>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
+                                  <Trophy className="w-3.5 h-3.5" />
+                                  <span>OVR: {team.totalOvr || 70}</span>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2 flex-1">
+                                {team.players?.map((player: any, pIdx: number) => {
+                                  const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
+                                  const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                                  return (
+                                    <button
+                                      key={player.uid || `t-${tIdx}-p-${pIdx}`}
+                                      type="button"
+                                      onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
+                                      className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
+                                        isSelected
+                                          ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                          : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
+                                          isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                        }`}>
+                                          {player.primaryPosition ? player.primaryPosition.slice(0, 3) : 'PL'}
+                                        </div>
+                                        <span className="font-bold text-sm truncate">
+                                          {player.fullName || player.cardName || 'Unknown Player'}
+                                        </span>
+                                      </div>
+                                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                        isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                      }`}>
+                                        {ovr}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bench / Reserves */}
+                      {previewData.turfResult.bench && previewData.turfResult.bench.length > 0 && (
+                        <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
+                              <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                              <span>{isAr ? 'الاحتياط / المنتظرين' : 'Bench / Reserves'}</span>
+                              <span className="bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-100 text-xs px-2 py-0.5 rounded-full font-bold">
+                                {previewData.turfResult.bench.length}
+                              </span>
+                            </h4>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {previewData.turfResult.bench.map((player: any, pIdx: number) => {
+                              const isSelected = selectedForSwap?.teamIndex === 'bench' && selectedForSwap?.playerIndex === pIdx;
+                              const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                              return (
+                                <button
+                                  key={player.uid || `bench-${pIdx}`}
+                                  type="button"
+                                  onClick={() => handlePlayerSwapClick('bench', pIdx, player)}
+                                  className={`text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                                    isSelected
+                                      ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400'
+                                  }`}
+                                >
+                                  <span className="font-bold text-sm truncate">
+                                    {player.fullName || player.cardName || 'Player'}
+                                  </span>
+                                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                  }`}>
+                                    {ovr}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Standard 11v11 Preview */}
+                  {previewData.matchMode === 'standard' && (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { name: isAr ? 'الفريق الأول' : 'Team A', list: previewData.teamA, avg: previewData.metrics?.teamAAvg || 70, tIdx: 0, color: '#3B82F6' },
+                          { name: isAr ? 'الفريق الثاني' : 'Team B', list: previewData.teamB, avg: previewData.metrics?.teamBAvg || 70, tIdx: 1, color: '#EF4444' },
+                        ].map((team) => {
+                          const isTeamSelected = selectedForSwap?.teamIndex === team.tIdx;
+                          return (
+                            <div
+                              key={`std-team-${team.tIdx}`}
+                              className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
+                                isTeamSelected
+                                  ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
+                                  : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                                <div className="flex items-center gap-2.5">
+                                  <span className="w-3.5 h-3.5 rounded-full shadow-sm" style={{ backgroundColor: team.color }} />
+                                  <h3 className="font-black text-slate-900 dark:text-white text-base">{team.name}</h3>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
+                                  <Trophy className="w-3.5 h-3.5" />
+                                  <span>AVG: {team.avg}</span>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2 flex-1">
+                                {team.list?.map((player: any, pIdx: number) => {
+                                  const isSelected = selectedForSwap?.teamIndex === team.tIdx && selectedForSwap?.playerIndex === pIdx;
+                                  const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                                  return (
+                                    <button
+                                      key={player.uid || `std-${team.tIdx}-p-${pIdx}`}
+                                      type="button"
+                                      onClick={() => handlePlayerSwapClick(team.tIdx, pIdx, player)}
+                                      className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
+                                        isSelected
+                                          ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                          : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
+                                      }`}
+                                    >
+                                      <div className="flex items-center gap-2.5 min-w-0">
+                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
+                                          isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                        }`}>
+                                          {player.primaryPosition ? player.primaryPosition.slice(0, 3) : 'PL'}
+                                        </div>
+                                        <span className="font-bold text-sm truncate">
+                                          {player.fullName || player.cardName || 'Unknown Player'}
+                                        </span>
+                                      </div>
+                                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                        isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                      }`}>
+                                        {ovr}
+                                      </span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Bench */}
+                      {previewData.bench && previewData.bench.length > 0 && (
+                        <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
+                          <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
+                            <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                            <span>{isAr ? 'الاحتياط' : 'Bench'}</span>
+                            <span className="bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-100 text-xs px-2 py-0.5 rounded-full font-bold">
+                              {previewData.bench.length}
+                            </span>
+                          </h4>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                            {previewData.bench.map((player: any, pIdx: number) => {
+                              const isSelected = selectedForSwap?.teamIndex === 'bench' && selectedForSwap?.playerIndex === pIdx;
+                              const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                              return (
+                                <button
+                                  key={player.uid || `bench-std-${pIdx}`}
+                                  type="button"
+                                  onClick={() => handlePlayerSwapClick('bench', pIdx, player)}
+                                  className={`text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                                    isSelected
+                                      ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400'
+                                  }`}
+                                >
+                                  <span className="font-bold text-sm truncate">{player.fullName || player.cardName || 'Player'}</span>
+                                  <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{ovr}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Tips & Tactics Box */}
+                  {((previewData.turfResult && previewData.turfResult.tipsAndTactics && previewData.turfResult.tipsAndTactics.length > 0) ||
+                    (previewData.tipsAndTactics && previewData.tipsAndTactics.length > 0)) && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 dark:border-blue-500/30 space-y-2">
+                      <h4 className="font-black text-blue-900 dark:text-blue-300 text-xs flex items-center gap-1.5 uppercase tracking-wider">
+                        <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                        <span>{isAr ? 'نصائح وتكتيكات الذكاء الاصطناعي' : 'AI Tactical Insights'}</span>
+                      </h4>
+                      <ul className="space-y-1 text-xs font-medium text-slate-700 dark:text-slate-300">
+                        {(previewData.turfResult?.tipsAndTactics || previewData.tipsAndTactics).map((tip: string, idx: number) => (
+                          <li key={idx} className="flex items-start gap-2">
+                            <span className="text-blue-500 font-bold">•</span>
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
                 <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xl">⚙️</span>
                 <span>{isAr ? 'إعدادات المباراة' : 'Match Configuration'}</span>
               </h2>
@@ -894,34 +1292,61 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 </div>
               )}
 
-              <div className="flex gap-3">
+                </>
+              )}
 
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-slate-400"
-                >
-                  {isAr ? 'إلغاء' : 'Cancel'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const finalConfig: MatchConfig = {
-                      ...config,
-                      selectedPlayerUids: config.isOpenRegistration
-                        ? []
-                        : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
-                            ? Array.from(selectedUids)
-                            : undefined),
-                    };
-                    onGenerate(finalConfig);
-                    onClose();
-                  }}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  {isAr ? (config.isOpenRegistration ? 'إنشاء حجز للتسجيل' : 'تكوين الفرق') : (config.isOpenRegistration ? 'Create Open Registration' : 'Generate Teams')}
-                </button>
-              </div>
+              {step === 'preview' ? (
+                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedForSwap(null);
+                      setStep('config');
+                    }}
+                    className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>{isAr ? 'عودة للإعدادات' : 'Back to Config'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const finalConfig: MatchConfig = {
+                        ...config,
+                        selectedPlayerUids: config.isOpenRegistration
+                          ? []
+                          : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
+                              ? Array.from(selectedUids)
+                              : undefined),
+                      };
+                      onGenerate(finalConfig, previewData);
+                      onClose();
+                    }}
+                    className="flex-1 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-5 h-5" />
+                    <span>{isAr ? 'اعتماد التشكيلة وحفظ المباراة' : 'Confirm & Save Match'}</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    {isAr ? 'إلغاء' : 'Cancel'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleGenerateOrPreview}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center gap-2"
+                  >
+                    <span>{isAr ? (config.isOpenRegistration ? 'إنشاء حجز للتسجيل' : 'معاينة وتكوين الفرق الذكي') : (config.isOpenRegistration ? 'Create Open Registration' : 'Preview & Smart Generate')}</span>
+                    {!config.isOpenRegistration && <Brain className="w-4 h-4 animate-bounce" />}
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         </motion.div>

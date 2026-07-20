@@ -85,6 +85,9 @@ function generateRandomAttributes(position: PESPosition) {
 }
 
 export async function generateDummyPlayersForCommunity(communityId: string) {
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ALLOW_DUMMY_DATA !== 'true') {
+    throw new Error('Dummy data generation is disabled in production environments.');
+  }
   try {
     const batch = writeBatch(db);
     let totalGenerated = 0;
@@ -159,3 +162,24 @@ export async function generateDummyPlayersForCommunity(communityId: string) {
     throw error;
   }
 }
+
+export async function deleteAllDummyPlayersForCommunity(communityId: string, players: PlayerProfile[]) {
+  if (process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ALLOW_DUMMY_DATA !== 'true') {
+    throw new Error('Dummy data deletion helper is restricted in production environments.');
+  }
+  const { doc, writeBatch } = await import('firebase/firestore');
+  const batch = writeBatch(db);
+  let count = 0;
+  for (const p of players) {
+    if (p.isMockData) {
+      batch.delete(doc(db, 'communities', communityId, 'players', p.uid));
+      batch.delete(doc(db, 'players', p.uid));
+      count++;
+    }
+  }
+  if (count > 0) {
+    await batch.commit();
+  }
+  return count;
+}
+

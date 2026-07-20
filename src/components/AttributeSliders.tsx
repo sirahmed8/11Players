@@ -265,8 +265,8 @@ export default React.memo(function AttributeSliders({
           return (
             <motion.div
               key={key}
-              className="bg-slate-100 dark:bg-slate-800/40 rounded-xl p-3 border border-slate-200 dark:border-slate-700/30 hover:border-emerald-500/40 dark:hover:border-emerald-600/30 transition-colors"
-              whileHover={{ scale: 1.005 }}
+              className="bg-slate-50/90 dark:bg-slate-800/60 rounded-2xl p-3.5 border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-300 shadow-xs hover:shadow-md"
+              whileHover={{ scale: 1.006 }}
             >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex flex-col">

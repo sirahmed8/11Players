@@ -79,16 +79,16 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     };
   }, [activeCommunityId, hasReadStorage, setActiveCommunityId]);
 
+  const contextValue = React.useMemo(() => ({
+    activeCommunityId,
+    setActiveCommunityId,
+    activeCommunity,
+    communitySettings,
+    loadingCommunity
+  }), [activeCommunityId, setActiveCommunityId, activeCommunity, communitySettings, loadingCommunity]);
+
   return (
-    <CommunityContext.Provider 
-      value={{ 
-        activeCommunityId, 
-        setActiveCommunityId, 
-        activeCommunity, 
-        communitySettings,
-        loadingCommunity 
-      }}
-    >
+    <CommunityContext.Provider value={contextValue}>
       {children}
     </CommunityContext.Provider>
   );

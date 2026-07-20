@@ -7,7 +7,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
 import SettingsMenu from "@/components/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
@@ -100,6 +100,23 @@ export default function Sidebar() {
 
     return () => unsub();
   }, [user, isOwner, isGlobalModerator, pathname, isAr]);
+
+  // Listen for Admin Edit Requests & System Feed (Self-edits / Peer Proposals)
+  useEffect(() => {
+    if (!user || (!isAdmin && !isOwner && !isGlobalModerator)) return;
+
+    const editsQuery = activeCommunityId 
+      ? query(collection(db, `communities/${activeCommunityId}/editRequests`), limit(20))
+      : query(collection(db, 'editRequests'), limit(20));
+
+    const unsubEdits = onSnapshot(editsQuery, (snap) => {
+      if (!snap.empty) {
+        setUnreadNotifsCount(snap.size);
+      }
+    }, () => {});
+
+    return () => unsubEdits();
+  }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId]);
 
   // Listen for Global Chat Notifications (Regular User Support Desk)
   useEffect(() => {
@@ -239,19 +256,52 @@ export default function Sidebar() {
     return () => unsub();
   }, [user, activeCommunityId, isAr]);
 
-  const links = [
-    { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5" /> },
-    ...(activeCommunityId ? [
-      { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
-      { href: `/match`, labelEn: "Matches", labelAr: "المباريات", icon: <Swords className="w-5 h-5" /> },
-      { href: `/stats`, labelEn: "Leaderboard", labelAr: "المتصدريين", icon: <BarChart3 className="w-5 h-5" /> },
-      { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
-    ] : []),
-    ...(user ? [{ href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> }] : []),
-    { href: "/guide", labelEn: "Guide", labelAr: "الدليل", icon: <BookOpen className="w-5 h-5" /> },
-    ...(user ? [{ href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }] : []),
-    ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support", labelAr: "الدعم الفني", icon: <HeadphonesIcon className="w-5 h-5" /> }] : []),
-    ...(isOwner || isGlobalModerator ? [{ href: "/inbox", labelEn: "Inbox", labelAr: "البريد الوارد", icon: <InboxIcon className="w-5 h-5" /> }] : []),
+  const linkGroups = [
+    {
+      titleEn: "Community Workspace",
+      titleAr: "مساحة المجتمع",
+      items: [
+        { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5 text-indigo-500" /> },
+        ...(activeCommunityId ? [
+          { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5 text-emerald-500" /> },
+          { href: `/match`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5 text-amber-500" /> },
+          { href: `/stats`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5 text-sky-500" /> },
+          { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5 text-violet-500" /> },
+        ] : []),
+      ]
+    },
+    {
+      titleEn: "Personal Hub",
+      titleAr: "الحساب الشخصي",
+      items: [
+        ...(user ? [
+          { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5 text-blue-500" /> },
+          { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5 text-rose-500" /> }
+        ] : []),
+      ]
+    },
+    ...(isAdmin || isOwner || isGlobalModerator ? [{
+      titleEn: "Admin & Management",
+      titleAr: "إدارة المنصة والمجتمع",
+      items: [
+        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5 text-amber-500" />, badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined }] : []),
+        { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5 text-yellow-500" /> },
+        { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5 text-orange-500" /> },
+        { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5 text-purple-500" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
+        ...(isOwner ? [
+          { href: "/users", labelEn: "Users List", labelAr: "قائمة المستخدمين", icon: <Users className="w-5 h-5 text-slate-400" /> },
+          { href: "/owner", labelEn: "Owner Control", labelAr: "التحكم الشامل", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
+        ] : [])
+      ]
+    }] : []),
+    {
+      titleEn: "Help & Support",
+      titleAr: "المساعدة والدعم",
+      items: [
+        { href: "/guide", labelEn: "Guide & Rules", labelAr: "الدليل والقوانين", icon: <BookOpen className="w-5 h-5 text-teal-500" /> },
+        ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support Desk", labelAr: "الدعم الفني والشكاوى", icon: <HeadphonesIcon className="w-5 h-5 text-cyan-500" />, badge: unreadSupportCount > 0 ? unreadSupportCount : undefined }] : []),
+      ]
+    }
   ];
 
   // Public pages should not reserve sidebar/top-bar space while auth resolves.
@@ -303,7 +353,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <button onClick={toggleSidebar} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 relative">
             <Menu className="w-6 h-6" />
-            {(unreadInboxCount > 0 || unreadSupportCount > 0) && (
+            {(unreadInboxCount > 0 || unreadSupportCount > 0 || unreadNotifsCount > 0) && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900" />
             )}
           </button>
@@ -348,101 +398,54 @@ export default function Sidebar() {
             </button>
           </div>
 
-          {/* Links */}
-          <div className="py-6 px-4 flex flex-col gap-2 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
-            {links.map((link) => {
-              const baseHref = link.href.split("?")[0];
-              const cleanPathname = pathname.replace(/\/$/, '') || '/';
-              let isActive = cleanPathname === baseHref;
-              if (cleanPathname === '/profile' && baseHref === '/profile') {
-                const currentUidParam = searchParams?.get('uid');
-                isActive = !currentUidParam || currentUidParam === user?.uid;
-              }
-              const hasUnreadDot = (link.href === "/inbox" && unreadInboxCount > 0) || 
-                                   (link.href === "/support" && unreadSupportCount > 0) || 
-                                   (link.href === "/notifications" && unreadNotifsCount > 0);
-
+          {/* Categorized Links */}
+          <div className="py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
+            {linkGroups.map((group, gIdx) => {
+              if (group.items.length === 0) return null;
               return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setIsOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold relative ${
-                    isActive
-                      ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    {link.icon}
-                    <span>{isAr ? link.labelAr : link.labelEn}</span>
+                <div key={gIdx} className="space-y-1.5">
+                  <div className="px-3 text-[11px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center gap-2">
+                    <span>{isAr ? group.titleAr : group.titleEn}</span>
                   </div>
-                  {hasUnreadDot && (
-                    <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm shadow-red-500/50 flex-shrink-0" />
-                  )}
-                </Link>
+                  <div className="space-y-1">
+                    {group.items.map((link: any) => {
+                      const baseHref = link.href.split("?")[0];
+                      const cleanPathname = pathname.replace(/\/$/, '') || '/';
+                      let isActive = cleanPathname === baseHref;
+                      if (cleanPathname === '/profile' && baseHref === '/profile') {
+                        const currentUidParam = searchParams?.get('uid');
+                        isActive = !currentUidParam || currentUidParam === user?.uid;
+                      }
+
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setIsOpen(false)}
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-200 font-bold text-sm group ${
+                            isActive
+                              ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
+                              : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 truncate">
+                            {link.icon}
+                            <span className="truncate">{isAr ? link.labelAr : link.labelEn}</span>
+                          </div>
+                          {link.badge !== undefined && link.badge > 0 ? (
+                            <span className="px-2 py-0.5 bg-red-500 text-white text-[11px] font-black rounded-full shadow-sm animate-pulse flex-shrink-0">
+                              {link.badge}
+                            </span>
+                          ) : ((link.href === "/notifications" && unreadNotifsCount > 0) || (link.href === "/inbox" && unreadInboxCount > 0) || (link.href === "/support" && unreadSupportCount > 0)) ? (
+                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm shadow-red-500/50 flex-shrink-0" />
+                          ) : null}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               );
             })}
-
-            {isOwner && (
-              <Link
-                href="/users"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                  pathname.startsWith("/users")
-                    ? "bg-slate-800 text-white shadow-md shadow-slate-900/20"
-                    : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-              >
-                <Users className="w-5 h-5" />
-                <span>{isAr ? "المستخدمين" : "Users"}</span>
-              </Link>
-            )}
-
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                  pathname.startsWith("/admin")
-                    ? "bg-amber-500 text-white shadow-md shadow-amber-500/20"
-                    : "text-amber-600 dark:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-500/10"
-                }`}
-              >
-                <ShieldAlert className="w-5 h-5" />
-                <span>{isAr ? "إدارة المجتمع" : "Admin"}</span>
-              </Link>
-            )}
-
-            {(isAdmin || isOwner) && (
-              <Link
-                href="/announcements"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                  pathname.startsWith("/announcements")
-                    ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
-                    : "text-orange-600 dark:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10"
-                }`}
-              >
-                <Bell className="w-5 h-5" />
-                <span>{isAr ? "بث الإعلانات" : "Announcements"}</span>
-              </Link>
-            )}
-
-            {isOwner && (
-              <Link
-                href="/owner"
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-semibold ${
-                  pathname.startsWith("/owner")
-                    ? "bg-red-500 text-white shadow-md shadow-red-500/20"
-                    : "text-red-600 dark:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10"
-                }`}
-              >
-                <ShieldAlert className="w-5 h-5" />
-                <span>{isAr ? "المالك" : "Owner"}</span>
-              </Link>
-            )}
           </div>
 
           {/* Settings Area (Fixed Footer) */}
