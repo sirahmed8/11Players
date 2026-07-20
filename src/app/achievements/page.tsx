@@ -240,7 +240,7 @@ export default function AchievementsPage() {
             <aside className="space-y-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6">
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {statCards.slice(4, 6).map((stat, idx) => (
-                <div key={idx} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4">
+                <div key={idx} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 overflow-hidden">
                   <div className="flex items-center gap-3">
                     <div className="rounded-2xl bg-slate-200 dark:bg-slate-900 p-2 text-slate-700 dark:text-slate-300">{stat.icon}</div>
                     <div>
@@ -248,7 +248,7 @@ export default function AchievementsPage() {
                       <p className="text-xs text-slate-500 dark:text-slate-400">{isAr ? 'متوسط الفريق' : 'Season Average'}</p>
                     </div>
                   </div>
-                  <span className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</span>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white flex-shrink-0 ml-3 text-right min-w-[64px]">{stat.value}</span>
                 </div>
               ))}
             </div>
