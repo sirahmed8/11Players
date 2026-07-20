@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Trophy, Crown, Sparkles, Send, CheckCircle2, ShieldAlert, Award, Calendar, RefreshCw, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { doc, writeBatch, arrayUnion, serverTimestamp, setDoc } from "firebase/firestore";
@@ -82,7 +82,7 @@ export default function SeasonCeremonyModal({
     };
   }, [players]);
 
-  if (!isOpen || !winners) return null;
+  if (!winners) return null;
 
   const handleExecuteCeremony = async () => {
     if (!activeCommunityId) return;
@@ -91,19 +91,21 @@ export default function SeasonCeremonyModal({
     const dateStr = new Date().toISOString();
 
     try {
-      // 1. Save Season Archive / History
-      const seasonHistoryRef = doc(db, `communities/${activeCommunityId}/seasonHistory`, `season_${currentYear - 1}`);
-      await setDoc(seasonHistoryRef, {
-        seasonYear: currentYear - 1,
-        closedAt: serverTimestamp(),
-        winners: {
-          ballonDor: winners.ballonDor ? { uid: winners.ballonDor.uid, name: winners.ballonDor.cardName || winners.ballonDor.fullName, score: ((winners.ballonDor.stats?.goals || 0)*2 + (winners.ballonDor.stats?.assists || 0) + (winners.ballonDor.stats?.mvp || 0)*5) } : null,
-          topScorer: winners.topScorer ? { uid: winners.topScorer.uid, name: winners.topScorer.cardName || winners.topScorer.fullName, goals: winners.topScorer.stats?.goals || 0 } : null,
-          topAssister: winners.topAssister ? { uid: winners.topAssister.uid, name: winners.topAssister.cardName || winners.topAssister.fullName, assists: winners.topAssister.stats?.assists || 0 } : null,
-          topMVP: winners.topMVP ? { uid: winners.topMVP.uid, name: winners.topMVP.cardName || winners.topMVP.fullName, mvp: winners.topMVP.stats?.mvp || 0 } : null,
-        },
-        totalPlayers: players.length
-      }, { merge: true });
+      // 1. Save Season Archive / History only if not the very first season.
+      if (!isFirstSeason) {
+        const seasonHistoryRef = doc(db, `communities/${activeCommunityId}/seasonHistory`, `season_${currentYear - 1}`);
+        await setDoc(seasonHistoryRef, {
+          seasonYear: currentYear - 1,
+          closedAt: serverTimestamp(),
+          winners: {
+            ballonDor: winners.ballonDor ? { uid: winners.ballonDor.uid, name: winners.ballonDor.cardName || winners.ballonDor.fullName, score: ((winners.ballonDor.stats?.goals || 0) * 2 + (winners.ballonDor.stats?.assists || 0) + (winners.ballonDor.stats?.mvp || 0) * 5) } : null,
+            topScorer: winners.topScorer ? { uid: winners.topScorer.uid, name: winners.topScorer.cardName || winners.topScorer.fullName, goals: winners.topScorer.stats?.goals || 0 } : null,
+            topAssister: winners.topAssister ? { uid: winners.topAssister.uid, name: winners.topAssister.cardName || winners.topAssister.fullName, assists: winners.topAssister.stats?.assists || 0 } : null,
+            topMVP: winners.topMVP ? { uid: winners.topMVP.uid, name: winners.topMVP.cardName || winners.topMVP.fullName, mvp: winners.topMVP.stats?.mvp || 0 } : null,
+          },
+          totalPlayers: players.length
+        }, { merge: true });
+      }
 
       // Update community last reset year tag
       const commRef = doc(db, 'communities', activeCommunityId);
@@ -139,7 +141,7 @@ export default function SeasonCeremonyModal({
         if (newTrophies.length > 0) {
           updates.trophies = arrayUnion(...newTrophies);
           const globalDocRef = doc(db, 'players', p.uid);
-          batch.update(globalDocRef, { trophies: arrayUnion(...newTrophies) });
+          batch.set(globalDocRef, { trophies: arrayUnion(...newTrophies) }, { merge: true });
         }
 
         batch.update(docRef, updates);
@@ -207,15 +209,16 @@ export default function SeasonCeremonyModal({
   };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.2 } }}
-          transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-          className="bg-slate-900 border border-amber-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
-        >
+    <>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.2 } }}
+            transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
+            className="bg-slate-900 border border-amber-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+          >
           {/* Header */}
           <div className="p-6 bg-gradient-to-r from-amber-600/30 via-yellow-500/20 to-amber-600/30 border-b border-amber-500/30 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -524,7 +527,8 @@ export default function SeasonCeremonyModal({
             )}
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+        </div>
+      )}
+    </>
   );
 }

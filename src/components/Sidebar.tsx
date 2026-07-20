@@ -425,13 +425,15 @@ export default function Sidebar() {
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-200 font-bold text-sm group ${
                             isActive
-                              ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
+                              ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
                               : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                           }`}
                         >
                           <div className="flex items-center gap-3 truncate">
-                            <div className={isActive ? "text-white" : ""}>
-                              {link.icon}
+                            <div className={isActive ? "text-white" : "text-slate-500 dark:text-slate-300"}>
+                              {cloneElement(link.icon, {
+                                className: `w-5 h-5 ${isActive ? 'text-white' : 'text-slate-500 dark:text-slate-300'}`,
+                              })}
                             </div>
                             <span className="truncate">{isAr ? link.labelAr : link.labelEn}</span>
                           </div>

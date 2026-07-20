@@ -127,7 +127,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const [loadingUid, setLoadingUid] = useState<string | null>(null);
 
   const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [showDeleteMockModal, setShowDeleteMockModal] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<PlayerProfile | null>(null);
   const [playerToReset, setPlayerToReset] = useState<PlayerProfile | null>(null);
   const [pendingEditsByPlayer, setPendingEditsByPlayer] = useState<Record<string, number>>({});
@@ -190,35 +189,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     } catch (error) {
       console.error(error);
       toast.error(t(locale, 'Error generating players', 'حدث خطأ أثناء إنشاء اللاعبين'));
-    } finally {
-      setLoadingUid(null);
-    }
-  };
-
-  const handleDeleteMockPlayers = async () => {
-    setLoadingUid('deleting-mock');
-    setShowDeleteMockModal(false);
-    try {
-      const mockPlayers = players.filter(p => p.isMockData || p.uid.startsWith('test-player-') || p.uid.startsWith('dummy_') || (p.email && p.email.includes('dummy')));
-      if (mockPlayers.length === 0) {
-        toast.success(t(locale, 'No mock players found', 'لا يوجد لاعبين وهميين'));
-        setLoadingUid(null);
-        return;
-      }
-      const batch = writeBatch(db);
-      mockPlayers.forEach(p => {
-        const commIds = getAllPlayerCommunities(p, activeCommunityId);
-        commIds.forEach(cId => {
-          batch.delete(doc(db, 'communities', cId, 'players', p.uid));
-        });
-        batch.delete(doc(db, 'players', p.uid));
-      });
-      await batch.commit();
-      onRefresh();
-      toast.success(t(locale, `Successfully deleted ${mockPlayers.length} mock players`, `تم حذف ${mockPlayers.length} لاعب وهمي بنجاح`));
-    } catch (error) {
-      console.error(error);
-      toast.error(t(locale, 'Error deleting mock players', 'حدث خطأ أثناء حذف اللاعبين الوهميين'));
     } finally {
       setLoadingUid(null);
     }
@@ -542,14 +512,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   return (
     <>
       <div className="mb-4 flex flex-wrap justify-end gap-3">
-        <button
-          onClick={() => setShowDeleteMockModal(true)}
-          disabled={loadingUid === 'deleting-mock'}
-          className="rounded-lg bg-red-600/20 px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 border border-red-500/30 hover:bg-red-600/30 transition-colors"
-        >
-          {loadingUid === 'deleting-mock' ? 'Deleting...' : t(locale, 'Delete All Mock Players', 'حذف جميع اللاعبين الوهميين')}
-        </button>
-
+        {/* Removed mock player deletion control per UX request */}
       </div>
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
@@ -916,42 +879,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         )}
       </AnimatePresence>
 
-      {/* Delete Mock Players Modal */}
-      <AnimatePresence>
-        {showDeleteMockModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200 dark:border-slate-700"
-            >
-              <div className="p-6 text-center">
-                <h2 className="text-xl font-bold mb-4 text-red-600">
-                  {t(locale, 'Delete All Mock Players?', 'هل أنت متأكد من حذف جميع اللاعبين الوهميين؟')}
-                </h2>
-                <p className="text-slate-500 dark:text-slate-400 mb-6">
-                  {t(locale, 'This will permanently remove all generated test data.', 'هذا الإجراء سيحذف بيانات التجربة بشكل دائم.')}
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowDeleteMockModal(false)}
-                    className="flex-1 px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-800 dark:text-white rounded-lg font-bold transition-colors"
-                  >
-                    {t(locale, 'Cancel', 'إلغاء')}
-                  </button>
-                  <button
-                    onClick={handleDeleteMockPlayers}
-                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold transition-colors shadow-md shadow-red-500/20"
-                  >
-                    {t(locale, 'Delete', 'حذف')}
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
       {/* Reset Stats Modal */}
       <AnimatePresence>
         {playerToReset && (

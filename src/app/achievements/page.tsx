@@ -78,6 +78,9 @@ export default function AchievementsPage() {
   const earnedCount = achievements.filter((achievement) => achievement.earned).length;
   const totalCount = achievements.length;
   const trophyCount = player.trophies?.length || 0;
+  const matchesPlayed = player.stats?.matchesPlayed || 0;
+  const goalsPerMatch = matchesPlayed > 0 ? (player.stats?.goals || 0) / matchesPlayed : 0;
+  const assistsPerMatch = matchesPlayed > 0 ? (player.stats?.assists || 0) / matchesPlayed : 0;
 
   const statCards = [
     {
@@ -98,7 +101,17 @@ export default function AchievementsPage() {
     {
       icon: <Sparkles className="w-5 h-5 text-blue-500" />,
       label: isAr ? "المباريات" : "Matches",
-      value: player.stats?.matchesPlayed || 0,
+      value: matchesPlayed,
+    },
+    {
+      icon: <Target className="w-5 h-5 text-emerald-500" />,
+      label: isAr ? "الأهداف لكل مباراة" : "Goals per Match",
+      value: goalsPerMatch.toFixed(2),
+    },
+    {
+      icon: <Handshake className="w-5 h-5 text-cyan-500" />,
+      label: isAr ? "التمريرات لكل مباراة" : "Assists per Match",
+      value: assistsPerMatch.toFixed(2),
     },
     {
       icon: <span className="text-yellow-500 text-lg">🟨</span>,
@@ -224,8 +237,21 @@ export default function AchievementsPage() {
                 ))}
               </div>
             </div>
-
             <aside className="space-y-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {statCards.slice(4, 6).map((stat, idx) => (
+                <div key={idx} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-2xl bg-slate-200 dark:bg-slate-900 p-2 text-slate-700 dark:text-slate-300">{stat.icon}</div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{stat.label}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{isAr ? 'متوسط الفريق' : 'Season Average'}</p>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</span>
+                </div>
+              ))}
+            </div>
               <div className="flex items-center gap-3">
                 <div className="rounded-3xl bg-amber-500/10 p-3 text-amber-600 dark:text-amber-300">
                   <Trophy className="w-6 h-6" />
