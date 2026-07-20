@@ -7,7 +7,7 @@ import { BookOpen, Target, Shuffle, Star, Rocket, Globe, Scale, CheckCircle2, Ba
 import { PLAYER_STYLES } from "@/components/PlayerStylePicker";
 import { SKILLS } from "@/components/SkillsChecklist";
 
-type Tab = 'overview' | 'positions' | 'playstyles' | 'skills' | 'features';
+type Tab = 'overview' | 'positions' | 'playstyles' | 'skills' | 'features' | 'rules';
 
 export default function GuidePage() {
   const { locale } = useLocale();
@@ -26,6 +26,7 @@ export default function GuidePage() {
     { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", Icon: Shuffle, color: "text-indigo-500" },
     { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", Icon: Star, color: "text-amber-500" },
     { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
+    { id: 'rules', label: isAr ? "القوانين" : "Rules", Icon: Scale, color: "text-emerald-500" },
   ];
 
   if (loading) {
@@ -305,12 +306,34 @@ export default function GuidePage() {
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🏆 {isAr ? "الإنجازات (Achievements)" : "Achievements"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "تابع إنجازاتك، الجوائز الموسمية، والمتوسطات لكل لاعب. يوفر الموقع لوحة إنجازات تعرض تقدمك وجوائزك الشخصية."
+                        : "Track your achievements, seasonal awards, and per-match averages. The platform shows an achievements dashboard with your progress and personal trophies."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
                       💡 {isAr ? "نصائح ذكية (Smart Advice)" : "Smart Advice"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
                         ? "نصائح تصل إليك بشكل دوري لمساعدتك في تحسين أدائك."
                         : "Advice that comes to you periodically to help you improve your performance."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🏆 {isAr ? "الإنجازات (Achievements)" : "Achievements"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "تابع إنجازاتك، الجوائز الموسمية، والمتوسطات لكل لاعب. يوفر الموقع لوحة إنجازات تعرض تقدمك وجوائزك الشخصية."
+                        : "Track your achievements, seasonal awards, and per-match averages. The platform shows an achievements dashboard with your progress and personal trophies."}
                     </p>
                   </section>
 
@@ -421,6 +444,58 @@ export default function GuidePage() {
                       {isAr 
                         ? "هناك الكثير من المميزات الأخرى القادمة، وإذا كان لديك أي فكرة فأخبرنا وسنقوم بتنفيذها!"
                         : "There are many more features coming soon, and if you have any idea, let us know and we'll implement it!"}
+                    </p>
+                  </section>
+                </div>
+              )}
+
+              {activeTab === 'rules' && (
+                <div className="space-y-8">
+                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
+                    {isAr ? "القوانين" : "Rules"}
+                  </h1>
+
+                  <section className="space-y-3">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                      {isAr
+                        ? "هذه القوانين وضعت لحماية جميع اللاعبين وضمان تجربة عادلة وممتعة على 11Players. الرجاء اتباعها بدقة."
+                        : "These rules are designed to protect all players and ensure a fair, enjoyable experience on 11Players. Please follow them carefully."}
+                    </p>
+                    <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 text-sm">
+                      <li>{isAr ? "احترم اللاعبين الآخرين وامتنع عن الإساءة أو السلوك العنصري أو المسيء." : "Respect other players; do not use abusive, racist, or offensive language."}</li>
+                      <li>{isAr ? "لا تستخدم حسابات مزيفة أو بيانات تجريبية للتلاعب بالترتيب أو الجوائز." : "Do not use fake accounts or mock data to manipulate rankings or awards."}</li>
+                      <li>{isAr ? "شارك فقط في المباريات التي يمكنك إتمامها، ولا تترك الفريق من دون سبب." : "Only join matches you can complete; do not abandon teams without cause."}</li>
+                      <li>{isAr ? "احترم قرارات مديري المجتمع والمالكين أثناء تنظيم المباريات وإدارة التسجيلات." : "Respect community admins' and owners' decisions when organizing matches and managing registrations."}</li>
+                      <li>{isAr ? "لا تحاول التلاعب بأسماء اللاعبين أو الإحصائيات للحصول على مزايا غير عادلة." : "Do not attempt to alter player names or stats for unfair advantage."}</li>
+                      <li>{isAr ? "استخدم نظام التقييم والنقاد بصدق، ولا تقم بإرسال تقييمات خادعة." : "Use peer ratings honestly; do not submit fraudulent ratings."}</li>
+                      <li>{isAr ? "المكافآت الموسمية والإنجازات تُمنح على أساس الأداء الحقيقي داخل الموقع فقط." : "Seasonal awards and achievements are granted based on real on-platform performance only."}</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      {isAr ? "قواعد خاصة بالإنجازات" : "Achievements Rules"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                      {isAr
+                        ? "الإنجازات تُحتسب حسب الأداء الفعلي في المباريات وحسب التعليقات التي يحصل عليها اللاعب. لا يمكن ترحيل إنجازات إلى موسم آخر بدون إتمامه." 
+                        : "Achievements are calculated based on actual match performance and received ratings. They cannot be carried over to the next season without completing it."}
+                    </p>
+                    <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 text-sm">
+                      <li>{isAr ? "كل لاعب يكسب الجوائز الموسمية بناءً على الأهداف والتمريرات وأداء منتخب الأفضل لاعب." : "Players earn seasonal awards based on goals, assists, and Man of the Match performance."}</li>
+                      <li>{isAr ? "إحصائيات الأهداف والتمريرات لكل مباراة تحسب فقط من المباريات المسجلة في المجتمع." : "Goals and assists per match are counted only from matches recorded in the community."}</li>
+                      <li>{isAr ? "المستخدمون الذين يحاولون التلاعب بنظام التتويج قد يتم منعهم من المباريات المستقبلية." : "Users who attempt to manipulate the ceremony system may be banned from future matches."}</li>
+                    </ul>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      {isAr ? "التقارير والمخالفات" : "Reporting & Violations"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                      {isAr
+                        ? "إذا رأيت لاعباً ينتهك القوانين، استخدم نظام الدعم أو اتصل بمالك المجتمع. سيتم النظر في المخالفات واتخاذ الإجراءات المناسبة." 
+                        : "If you see a player violating the rules, use the support system or contact the community owner. Violations will be reviewed and appropriate action taken."}
                     </p>
                   </section>
                 </div>
