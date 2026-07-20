@@ -22,7 +22,6 @@ import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal'
 import CustomSelect from '@/components/CustomSelect';
 import PendingEdits from '@/components/PendingEdits';
 import SkillsChecklist from '@/components/SkillsChecklist';
-import SeasonCeremonyModal from '@/components/SeasonCeremonyModal';
 import { Crown } from 'lucide-react';
 
 interface AdminTableProps {
@@ -131,7 +130,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const [showDeleteMockModal, setShowDeleteMockModal] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<PlayerProfile | null>(null);
   const [playerToReset, setPlayerToReset] = useState<PlayerProfile | null>(null);
-  const [showEndSeasonModal, setShowEndSeasonModal] = useState(false);
   const [pendingEditsByPlayer, setPendingEditsByPlayer] = useState<Record<string, number>>({});
   const [suggestionsModalPlayer, setSuggestionsModalPlayer] = useState<PlayerProfile | null>(null);
 
@@ -180,65 +178,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       unsubGlobal();
     };
   }, [activeCommunityId]);
-
-  const handleEndSeason = async () => {
-    setLoadingUid('ending-season');
-    setShowEndSeasonModal(false);
-    try {
-      if (players.length === 0) return;
-
-      const batch = writeBatch(db);
-      
-      // Calculate winners
-      const topScorer = [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0))[0];
-      const topAssister = [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0))[0];
-      const topMVP = [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0))[0];
-      const ballonDor = [...players].sort((a, b) => {
-        const aScore = ((a.stats?.goals || 0) * 2) + ((a.stats?.assists || 0) * 1) + ((a.stats?.mvp || 0) * 5);
-        const bScore = ((b.stats?.goals || 0) * 2) + ((b.stats?.assists || 0) * 1) + ((b.stats?.mvp || 0) * 5);
-        return bScore - aScore;
-      })[0];
-
-      const seasonName = `Season ${new Date().getFullYear()}`;
-      const dateStr = new Date().toISOString();
-
-      players.forEach(p => {
-        if (!activeCommunityId) return;
-        const docRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-        const updates: any = {
-          'stats.goals': 0,
-          'stats.assists': 0,
-          'stats.mvp': 0,
-          'stats.matchesPlayed': 0,
-        };
-        
-        const newTrophies = [];
-        if (p.uid === topScorer.uid && (p.stats?.goals || 0) > 0) newTrophies.push({ name: 'Golden Boot', season: seasonName, date: dateStr });
-        if (p.uid === topAssister.uid && (p.stats?.assists || 0) > 0) newTrophies.push({ name: 'Playmaker', season: seasonName, date: dateStr });
-        if (p.uid === topMVP.uid && (p.stats?.mvp || 0) > 0) newTrophies.push({ name: 'Season MVP', season: seasonName, date: dateStr });
-        if (p.uid === ballonDor.uid && ((p.stats?.goals || 0) + (p.stats?.assists || 0) + (p.stats?.mvp || 0) > 0)) newTrophies.push({ name: "Ballon d'Or", season: seasonName, date: dateStr });
-
-        if (newTrophies.length > 0) {
-          updates.trophies = arrayUnion(...newTrophies);
-          
-          // Also award trophies to the global player card
-          const globalDocRef = doc(db, 'players', p.uid);
-          batch.update(globalDocRef, { trophies: arrayUnion(...newTrophies) });
-        }
-
-        batch.update(docRef, updates);
-      });
-
-      await batch.commit();
-      onRefresh();
-      toast.success(t(locale, "Season ended successfully! Trophies awarded and stats reset.", "تم إنهاء الموسم بنجاح! تم توزيع الجوائز وتصفير الإحصائيات."));
-    } catch (error) {
-      console.error(error);
-      toast.error(t(locale, 'Error ending season', 'حدث خطأ أثناء إنهاء الموسم'));
-    } finally {
-      setLoadingUid(null);
-    }
-  };
 
   const handleGeneratePlayers = async () => {
     setLoadingUid('generating-players');
@@ -602,39 +541,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
   return (
     <>
-      {activeCommunityId && new Date().getFullYear() > ((activeCommunity as any)?.lastSeasonResetYear || 2025) && (
-        <div className="mb-6 p-5 bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border-2 border-amber-500/50 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl shadow-amber-500/10">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-amber-500 rounded-2xl text-slate-950 font-black text-2xl animate-bounce shadow-md">
-              🏆
-            </div>
-            <div>
-              <h3 className="text-lg font-black text-white flex items-center gap-2">
-                <span>{t(locale, `Annual Season Reset Needed! Season ${new Date().getFullYear()} is here`, `تنبيه التصفير السنوي التلقائي! انطلق موسم ${new Date().getFullYear()}`)}</span>
-                <span className="bg-amber-500 text-slate-950 text-[10px] px-2 py-0.5 rounded-full uppercase font-black animate-pulse">NEW YEAR</span>
-              </h3>
-              <p className="text-xs text-amber-300/80 mt-1 font-medium">
-                {t(locale, `Time to crown last season's champions, permanently award their trophies, and launch the new year with reset stats!`, `حان الوقت لتتويج فرسان وأبطال الموسم الماضي وإضافة ألقابهم للخزانة، وتصفير العدادات لانطلاق الموسم الجديد!`)}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={() => setShowEndSeasonModal(true)}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2 shrink-0 whitespace-nowrap"
-          >
-            <Crown className="w-4 h-4 fill-slate-950" />
-            <span>{t(locale, 'Launch Season Ceremony 🚀', 'بدء حفل التتويج والموسم 🚀')}</span>
-          </button>
-        </div>
-      )}
       <div className="mb-4 flex flex-wrap justify-end gap-3">
-        <button
-          onClick={() => setShowEndSeasonModal(true)}
-          disabled={loadingUid === 'ending-season'}
-          className="rounded-lg bg-amber-500/20 px-4 py-2 text-sm font-semibold text-amber-600 dark:text-amber-500 border border-amber-500/30 hover:bg-amber-500/30 transition-colors"
-        >
-          {t(locale, 'Season End & Ceremony 🏆', 'ختام الموسم وتتويج الأبطال 🏆')}
-        </button>
         <button
           onClick={() => setShowDeleteMockModal(true)}
           disabled={loadingUid === 'deleting-mock'}
@@ -1116,15 +1023,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         )}
       </AnimatePresence>
 
-      {/* Season Ceremony Wizard */}
-      <SeasonCeremonyModal
-        isOpen={showEndSeasonModal}
-        onClose={() => setShowEndSeasonModal(false)}
-        players={players}
-        activeCommunityId={activeCommunityId || ''}
-        locale={locale}
-        onRefresh={onRefresh}
-      />
       <ManageUserCommunitiesModal
         user={manageCommModal.player}
         isOpen={manageCommModal.open}
