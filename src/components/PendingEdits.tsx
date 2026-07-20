@@ -771,7 +771,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end">
+                        <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end z-10">
                           <button
                             onClick={() => handleOpenReview(edit)}
                             className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl transition-all shadow-md flex items-center gap-2 text-sm"
@@ -787,7 +787,11 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                             {isAr ? "اعتماد مباشر" : "Quick Approve"}
                           </button>
                           <button
-                            onClick={() => handleReject(edit)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              handleReject(edit);
+                            }}
                             className="px-3.5 py-2.5 bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/60 transition-all flex items-center gap-1.5 text-sm"
                           >
                             <X className="w-4 h-4" />
