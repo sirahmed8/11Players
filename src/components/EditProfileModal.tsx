@@ -117,7 +117,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     primaryPosition: player.primaryPosition,
     secondaryPosition: player.secondaryPosition,
     tertiaryPosition: player.tertiaryPosition,
-    playStyle: player.playStyle || '',
+    playStyle: (player.playStyle || '').replace(/_/g, ' '),
     preferredFoot: player.preferredFoot,
     photoUrl: player.photoUrl || ''
   });
@@ -440,7 +440,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <CustomSelect
                     value={formData.playStyle}
                     placeholder={isRTL ? "اختر أسلوب اللعب" : "None"}
-                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p }))]}
+                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p.replace(/_/g, ' ') }))]}
                     onChange={(v) => handleChange('playStyle', v)}
                     dropUp={true}
                   />

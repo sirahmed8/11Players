@@ -57,6 +57,7 @@ const PlayerCard = React.memo(function PlayerCard({
     const pStats = recordedStats?.[player.uid];
     const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
     const isCurrentUser = Boolean(currentUserId && player.uid === currentUserId);
+    const captainVotesCount = player.captainVotes?.length || 0;
 
     const getOverallColor = (ovr: number) => {
       if (ovr >= 90) return 'bg-emerald-500';
@@ -79,7 +80,7 @@ const PlayerCard = React.memo(function PlayerCard({
           {/* Top Section - Photo and Basic Info */}
           <div className="p-4 flex items-start gap-3 sm:gap-4">
             {/* Photo */}
-            <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 ${
+            <div className={`relative w-20 h-24 sm:w-24 sm:h-28 rounded-xl overflow-hidden flex-shrink-0 border-2 ${
               isCurrentUser ? 'border-emerald-500 shadow-md' : 'border-slate-200 dark:border-slate-600'
             }`}>
               {displayPhoto && !imgError ? (
@@ -87,13 +88,13 @@ const PlayerCard = React.memo(function PlayerCard({
                   src={displayPhoto}
                   alt=""
                   fill
-                  sizes="80px"
+                  sizes="96px"
                   style={{ objectFit: 'cover' }}
                   referrerPolicy="no-referrer"
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xl sm:text-2xl">
+                <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-400 dark:text-slate-500 font-bold text-2xl sm:text-3xl">
                   {player.cardName.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -101,42 +102,53 @@ const PlayerCard = React.memo(function PlayerCard({
 
             {/* Player Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className={`text-base sm:text-lg font-bold truncate ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'}`}>
+              {/* Name & Rating */}
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className={`text-lg sm:text-xl font-black truncate ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
                   {player.cardName}
                 </h3>
-                {player.form && (
-                  <div title="Current Form" className="bg-emerald-100 dark:bg-emerald-900/30 rounded-full p-1 flex-shrink-0">
-                    <FormIcon form={player.form} className="w-3 h-3" />
-                  </div>
-                )}
+                <span className={`px-2 py-0.5 rounded-md font-bold text-white text-sm ${getOverallColor(overall)}`}>
+                  {overall}
+                </span>
               </div>
 
-              {/* Position and Style */}
+              {/* Positions */}
               <div className="flex flex-wrap items-center gap-1 mb-2">
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
                   {player.primaryPosition}
                 </span>
                 {player.secondaryPosition && (
-                  <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                     {player.secondaryPosition}
                   </span>
                 )}
-                {player.playStyle && (
-                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate">
-                    • {player.playStyle.replace(/_/g, ' ').trim()}
+                {player.tertiaryPosition && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                    {player.tertiaryPosition}
                   </span>
                 )}
               </div>
 
-              {/* Overall & Physicals */}
-              <div className="flex items-center gap-2 text-xs">
-                <span className={`px-2 py-0.5 rounded-md font-bold text-white ${getOverallColor(overall)}`}>
-                  {overall} OVR
-                </span>
+              {/* Play Style */}
+              {player.playStyle && (
+                <div className="mb-2">
+                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 truncate block">
+                    {player.playStyle.replace(/_/g, ' ').trim()}
+                  </span>
+                </div>
+              )}
+
+              {/* Physicals & Voting */}
+              <div className="flex items-center gap-3 text-xs">
                 {player.height && player.weight && (
-                  <span className="text-slate-400 dark:text-slate-500">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">
                     {player.height}cm / {player.weight}kg
+                  </span>
+                )}
+                {captainVotesCount > 0 && (
+                  <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-bold">
+                    <span>👑</span>
+                    <span>{captainVotesCount}</span>
                   </span>
                 )}
               </div>

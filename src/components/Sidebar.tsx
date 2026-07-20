@@ -284,7 +284,7 @@ export default function Sidebar() {
       titleEn: "Admin & Management",
       titleAr: "إدارة المنصة والمجتمع",
       items: [
-        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5 text-amber-500" />, badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined }] : []),
+        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5 text-amber-500" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined }] : []),
         { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5 text-yellow-500" /> },
         { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5 text-orange-500" /> },
         { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5 text-purple-500" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
