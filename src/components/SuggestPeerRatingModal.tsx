@@ -69,12 +69,15 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
 
     setSubmitting(true);
     try {
-      const collRoot = activeCommunityId ? `communities/${activeCommunityId}` : ``;
-      const ratingsPath = collRoot ? `${collRoot}/playerRatings` : `playerRatings`;
-      const requestsPath = collRoot ? `${collRoot}/editRequests` : `editRequests`;
+      const ratingsCollection = activeCommunityId
+        ? collection(db, 'communities', activeCommunityId, 'playerRatings')
+        : collection(db, 'playerRatings');
+      const requestsCollection = activeCommunityId
+        ? collection(db, 'communities', activeCommunityId, 'editRequests')
+        : collection(db, 'editRequests');
 
       // 1. Save this peer's individual rating suggestion
-      const peerRatingRef = doc(db, ratingsPath, `${user.uid}_${player.uid}`);
+      const peerRatingRef = doc(ratingsCollection, `${user.uid}_${player.uid}`);
       await setDoc(peerRatingRef, {
         raterUid: user.uid,
         raterName: user.displayName || user.email || "Peer Player",
@@ -88,7 +91,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
       });
 
       // 2. Fetch all peer ratings for this player to calculate consensus
-      const peerQuery = query(collection(db, ratingsPath), where("ratedUid", "==", player.uid));
+      const peerQuery = query(ratingsCollection, where("ratedUid", "==", player.uid));
       const peerSnaps = await getDocs(peerQuery);
 
       const aggregatedAttrs: Record<string, number> = {};
@@ -143,7 +146,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
       );
 
       // 3. Save aggregated consensus proposal into editRequests (Visible to Admin in PendingEdits)
-      const proposalRef = doc(db, requestsPath, `peer_proposal_${player.uid}`);
+      const proposalRef = doc(requestsCollection, `peer_proposal_${player.uid}`);
       await setDoc(proposalRef, {
         playerId: player.uid,
         playerName: player.fullName,

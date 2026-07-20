@@ -59,7 +59,7 @@ export default function InstallPWA() {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -50 }}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-[100] w-11/12 max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-4 flex items-center gap-4"
+          className="fixed top-4 inset-x-2 z-[100] max-w-md mx-auto min-w-0 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4 overflow-hidden"
         >
           <div className="bg-emerald-100 dark:bg-emerald-900/30 p-3 rounded-xl flex-shrink-0">
             <Download className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
@@ -74,10 +74,10 @@ export default function InstallPWA() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex w-full items-center justify-between gap-2 flex-shrink-0 sm:w-auto">
             <button
               onClick={handleInstallClick}
-              className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-500 transition-colors"
+              className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-500 transition-colors whitespace-nowrap"
             >
               {isAr ? "تثبيت" : "Install"}
             </button>
