@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, cloneElement } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -261,12 +261,12 @@ export default function Sidebar() {
       titleEn: "Community Workspace",
       titleAr: "مساحة المجتمع",
       items: [
-        { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5 text-indigo-500" /> },
+        { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5" /> },
         ...(activeCommunityId ? [
-          { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5 text-emerald-500" /> },
-          { href: `/match`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5 text-amber-500" /> },
-          { href: `/stats`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5 text-sky-500" /> },
-          { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5 text-violet-500" /> },
+          { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
+          { href: `/match`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5" /> },
+          { href: `/stats`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5" /> },
+          { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
         ] : []),
       ]
     },
@@ -275,8 +275,8 @@ export default function Sidebar() {
       titleAr: "الحساب الشخصي",
       items: [
         ...(user ? [
-          { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5 text-blue-500" /> },
-          { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5 text-rose-500" /> }
+          { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
+          { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),
       ]
     },
@@ -284,13 +284,13 @@ export default function Sidebar() {
       titleEn: "Admin & Management",
       titleAr: "إدارة المنصة والمجتمع",
       items: [
-        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5 text-amber-500" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined }] : []),
-        { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5 text-yellow-500" /> },
-        { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5 text-orange-500" /> },
-        { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5 text-purple-500" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
+        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined }] : []),
+        { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5" /> },
+        { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5" /> },
+        { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
         ...(isOwner ? [
-          { href: "/users", labelEn: "Users List", labelAr: "قائمة المستخدمين", icon: <Users className="w-5 h-5 text-slate-400" /> },
-          { href: "/owner", labelEn: "Owner Control", labelAr: "التحكم الشامل", icon: <ShieldAlert className="w-5 h-5 text-red-500" /> },
+          { href: "/users", labelEn: "Users List", labelAr: "قائمة المستخدمين", icon: <Users className="w-5 h-5" /> },
+          { href: "/owner", labelEn: "Owner Control", labelAr: "التحكم الشامل", icon: <ShieldAlert className="w-5 h-5" /> },
         ] : [])
       ]
     }] : []),
@@ -298,8 +298,8 @@ export default function Sidebar() {
       titleEn: "Help & Support",
       titleAr: "المساعدة والدعم",
       items: [
-        { href: "/guide", labelEn: "Guide & Rules", labelAr: "الدليل والقوانين", icon: <BookOpen className="w-5 h-5 text-teal-500" /> },
-        ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support Desk", labelAr: "الدعم الفني والشكاوى", icon: <HeadphonesIcon className="w-5 h-5 text-cyan-500" />, badge: unreadSupportCount > 0 ? unreadSupportCount : undefined }] : []),
+        { href: "/guide", labelEn: "Guide & Rules", labelAr: "الدليل والقوانين", icon: <BookOpen className="w-5 h-5" /> },
+        ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support Desk", labelAr: "الدعم الفني والشكاوى", icon: <HeadphonesIcon className="w-5 h-5" />, badge: unreadSupportCount > 0 ? unreadSupportCount : undefined }] : []),
       ]
     }
   ];
@@ -429,7 +429,9 @@ export default function Sidebar() {
                           }`}
                         >
                           <div className="flex items-center gap-3 truncate">
-                            {link.icon}
+                            <div className={isActive ? "text-white" : ""}>
+                              {link.icon}
+                            </div>
                             <span className="truncate">{isAr ? link.labelAr : link.labelEn}</span>
                           </div>
                           {link.badge !== undefined && link.badge > 0 ? (

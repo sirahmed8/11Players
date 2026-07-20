@@ -117,7 +117,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     primaryPosition: player.primaryPosition,
     secondaryPosition: player.secondaryPosition,
     tertiaryPosition: player.tertiaryPosition,
-    playStyle: (player.playStyle || '').replace(/_/g, ' '),
+    playStyle: (player.playStyle || '').replace(/_/g, ' ').trim(),
     preferredFoot: player.preferredFoot,
     photoUrl: player.photoUrl || ''
   });
@@ -211,7 +211,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           attributes,
           stats,
           specialSkills,
-          playStyle: formData.playStyle
+          playStyle: formData.playStyle.replace(/ /g, '_')
         };
 
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
@@ -440,7 +440,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <CustomSelect
                     value={formData.playStyle}
                     placeholder={isRTL ? "اختر أسلوب اللعب" : "None"}
-                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p.replace(/_/g, ' ') }))]}
+                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p.replace(/_/g, ' '), label: p.replace(/_/g, ' ') }))]}
                     onChange={(v) => handleChange('playStyle', v)}
                     dropUp={true}
                   />

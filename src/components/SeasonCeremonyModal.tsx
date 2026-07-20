@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Crown, Sparkles, Send, CheckCircle2, ShieldAlert, Award, Calendar, RefreshCw, X } from "lucide-react";
 import { db } from "@/lib/firebase";
@@ -35,6 +35,25 @@ export default function SeasonCeremonyModal({
   const currentYear = new Date().getFullYear();
   const seasonName = `Season ${currentYear}`;
   const previousSeasonName = `Season ${currentYear - 1}`;
+  const [isFirstSeason, setIsFirstSeason] = useState(false);
+
+  // Check if this is the first season launch
+  useEffect(() => {
+    const checkFirstSeason = async () => {
+      if (!activeCommunityId) return;
+      try {
+        const { doc, getDoc } = await import("firebase/firestore");
+        const commDoc = await getDoc(doc(db, "communities", activeCommunityId));
+        if (commDoc.exists()) {
+          const data = commDoc.data();
+          setIsFirstSeason(!data.lastSeasonResetYear);
+        }
+      } catch (err) {
+        console.warn("Error checking first season:", err);
+      }
+    };
+    checkFirstSeason();
+  }, [activeCommunityId]);
 
   const winners = useMemo(() => {
     if (!players || players.length === 0) return null;
@@ -193,7 +212,8 @@ export default function SeasonCeremonyModal({
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.2 } }}
+          transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
           className="bg-slate-900 border border-amber-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
         >
           {/* Header */}
@@ -204,13 +224,20 @@ export default function SeasonCeremonyModal({
               </div>
               <div>
                 <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                  <span>{isAr ? "حفل تتويج الأبطال وخاتمة الموسم" : "Season Ceremony & Champions Coronation"}</span>
+                  <span>{isFirstSeason 
+                    ? (isAr ? "بدء الموسم الأول" : "Start First Season")
+                    : (isAr ? "حفل تتويج الأبطال وخاتمة الموسم" : "Season Ceremony & Champions Coronation")
+                  }</span>
                   <Sparkles className="w-5 h-5 text-amber-400" />
                 </h2>
                 <p className="text-xs text-amber-300/80 font-medium">
-                  {isAr
-                    ? `توزيع جوائز ${previousSeasonName} وتصفير الإحصائيات لانطلاق ${seasonName}`
-                    : `Awarding ${previousSeasonName} trophies & launching ${seasonName}`}
+                  {isFirstSeason
+                    ? (isAr ? `بدء ${seasonName} للمجتمع` : `Starting ${seasonName} for the community`)
+                    : (isAr
+                        ? `توزيع جوائز ${previousSeasonName} وتصفير الإحصائيات لانطلاق ${seasonName}`
+                        : `Awarding ${previousSeasonName} trophies & launching ${seasonName}`
+                      )
+                  }
                 </p>
               </div>
             </div>
@@ -414,23 +441,35 @@ export default function SeasonCeremonyModal({
                 </div>
                 <div>
                   <h3 className="text-xl font-black text-white">
-                    {isAr ? "هل أنت مستعد لاعتماد التتويج وبدء الموسم؟" : "Ready to Crown Champions & Launch Season?"}
+                    {isFirstSeason 
+                      ? (isAr ? "هل أنت مستعد لبدء الموسم الأول؟" : "Ready to Start the First Season?")
+                      : (isAr ? "هل أنت مستعد لاعتماد التتويج وبدء الموسم؟" : "Ready to Crown Champions & Launch Season?")
+                    }
                   </h3>
                   <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
-                    {isAr
-                      ? `سيتم حفظ ألقاب ${previousSeasonName} الدائمة، وإرسال الإشعارات، وتصفير إحصائيات الأهداف والصناعة لجميع اللاعبين لبدء ${seasonName}.`
-                      : `This will permanently archive ${previousSeasonName} trophies, dispatch notifications, and reset stats to 0 to launch ${seasonName}.`}
+                    {isFirstSeason
+                      ? (isAr
+                          ? `سيتم بدء ${seasonName} وإحصائيات جميع اللاعبين ستبدأ من الصفر.`
+                          : `This will start ${seasonName} and all player stats will begin from zero.`
+                        )
+                      : (isAr
+                          ? `سيتم حفظ ألقاب ${previousSeasonName} الدائمة، وإرسال الإشعارات، وتصفير إحصائيات الأهداف والصناعة لجميع اللاعبين لبدء ${seasonName}.`
+                          : `This will permanently archive ${previousSeasonName} trophies, dispatch notifications, and reset stats to 0 to launch ${seasonName}.`
+                        )
+                    }
                   </p>
                 </div>
 
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-xs flex items-center gap-3 text-start">
-                  <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
-                  <span>
-                    {isAr
-                      ? "تنبيه: تصفير الإحصائيات لا يمكن التراجع عنه، ولكن ستظل ألقاب وجوائز اللاعبين محفوظة للأبد في ملفاتهم وأرشيف المجتمع."
-                      : "Note: Resetting stats cannot be undone, but awarded trophies and season history will remain permanently archived."}
-                  </span>
-                </div>
+                {!isFirstSeason && (
+                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-xs flex items-center gap-3 text-start">
+                    <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
+                    <span>
+                      {isAr
+                        ? "تنبيه: تصفير الإحصائيات لا يمكن التراجع عنه، ولكن ستظل ألقاب وجوائز اللاعبين محفوظة للأبد في ملفاتهم وأرشيف المجتمع."
+                        : "Note: Resetting stats cannot be undone, but awarded trophies and season history will remain permanently archived."}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -474,7 +513,13 @@ export default function SeasonCeremonyModal({
                 className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
               >
                 <Trophy className="w-5 h-5 animate-bounce" />
-                <span>{isExecuting ? (isAr ? "جاري التتويج والتصفير..." : "Executing Ceremony...") : (isAr ? `تتويج الأبطال وبدء ${seasonName} 🚀` : `Crown Champions & Launch ${seasonName} 🚀`)}</span>
+                <span>{isExecuting 
+                  ? (isAr ? "جاري البدء..." : "Starting...") 
+                  : (isFirstSeason 
+                      ? (isAr ? `بدء ${seasonName} 🚀` : `Start ${seasonName} 🚀`)
+                      : (isAr ? `تتويج الأبطال وبدء ${seasonName} 🚀` : `Crown Champions & Launch ${seasonName} 🚀`)
+                    )
+                }</span>
               </button>
             )}
           </div>
