@@ -28,6 +28,7 @@ export default function Sidebar() {
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
+  const [pendingEditsCount, setPendingEditsCount] = useState(0);
   const lastNotifiedTimeRef = useRef<number>(0);
 
   // Close sidebar on route change for mobile
@@ -110,10 +111,10 @@ export default function Sidebar() {
       : query(collection(db, 'editRequests'), limit(20));
 
     const unsubEdits = onSnapshot(editsQuery, (snap) => {
-      if (!snap.empty) {
-        setUnreadNotifsCount(snap.size);
-      }
-    }, () => {});
+      setPendingEditsCount(snap.size || 0);
+    }, () => {
+      setPendingEditsCount(0);
+    });
 
     return () => unsubEdits();
   }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId]);
@@ -285,7 +286,7 @@ export default function Sidebar() {
       titleEn: "Admin & Management",
       titleAr: "إدارة المنصة والمجتمع",
       items: [
-        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined }] : []),
+        ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5" />, badge: pendingEditsCount > 0 ? pendingEditsCount : undefined }] : []),
         { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5" /> },
         { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5" /> },
         { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
@@ -354,7 +355,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3">
           <button onClick={toggleSidebar} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 relative">
             <Menu className="w-6 h-6" />
-            {(unreadInboxCount > 0 || unreadSupportCount > 0 || unreadNotifsCount > 0) && (
+            {(unreadInboxCount > 0 || unreadSupportCount > 0 || unreadNotifsCount > 0 || pendingEditsCount > 0) && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900" />
             )}
           </button>
