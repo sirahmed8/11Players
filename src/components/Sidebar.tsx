@@ -276,6 +276,7 @@ export default function Sidebar() {
       items: [
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
+          { href: "/achievements", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
           { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),
       ]

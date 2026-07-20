@@ -496,21 +496,95 @@ interface Candidate {
   psi: number;
 }
 
+function popcount(value: number): number {
+  let count = 0;
+  while (value) {
+    value &= value - 1;
+    count += 1;
+  }
+  return count;
+}
+
+function buildSlotOrder(slots: PESPosition[], psiMatrix: number[][]): number[] {
+  return Array.from({ length: slots.length }, (_, i) => i).sort((a, b) => {
+    if (slots[a] === 'GK' && slots[b] !== 'GK') return -1;
+    if (slots[b] === 'GK' && slots[a] !== 'GK') return 1;
+    const spreadA = Math.max(...psiMatrix[a]) - Math.min(...psiMatrix[a]);
+    const spreadB = Math.max(...psiMatrix[b]) - Math.min(...psiMatrix[b]);
+    return spreadA - spreadB;
+  });
+}
+
+function findOptimalAssignment(
+  psiMatrix: number[][],
+  slotOrder: number[],
+  playersCount: number,
+): number[] {
+  const slotsCount = slotOrder.length;
+  const maxMask = 1 << playersCount;
+  const dp = new Float64Array(maxMask).fill(-Infinity);
+  const choice = new Int32Array(maxMask).fill(-1);
+
+  dp[0] = 0;
+
+  for (let mask = 1; mask < maxMask; mask++) {
+    const assignedSlots = popcount(mask);
+    if (assignedSlots > slotsCount) continue;
+
+    const slotIndex = assignedSlots - 1;
+    let bestScore = -Infinity;
+    let bestPlayer = -1;
+
+    for (let p = 0; p < playersCount; p++) {
+      const bit = 1 << p;
+      if (!(mask & bit)) continue;
+      const prevMask = mask ^ bit;
+      const score = dp[prevMask] + psiMatrix[slotOrder[slotIndex]][p];
+      if (score > bestScore) {
+        bestScore = score;
+        bestPlayer = p;
+      }
+    }
+
+    dp[mask] = bestScore;
+    choice[mask] = bestPlayer;
+  }
+
+  let bestFinalMask = -1;
+  let bestFinalScore = -Infinity;
+  for (let mask = 0; mask < maxMask; mask++) {
+    if (popcount(mask) !== slotsCount) continue;
+    if (dp[mask] > bestFinalScore) {
+      bestFinalScore = dp[mask];
+      bestFinalMask = mask;
+    }
+  }
+
+  if (bestFinalMask < 0) {
+    return new Array(slotsCount).fill(-1);
+  }
+
+  const assignment = new Array(slotsCount).fill(-1);
+  let mask = bestFinalMask;
+  for (let slot = slotsCount - 1; slot >= 0; slot--) {
+    const playerIndex = choice[mask];
+    if (playerIndex < 0) break;
+    assignment[slot] = playerIndex;
+    mask ^= 1 << playerIndex;
+  }
+
+  return assignment;
+}
+
 /**
- * Assign players to formation slots using greedy assignment with
- * backtracking conflict resolution.
+ * Assign players to formation slots using optimal assignment across all viable candidates.
  *
- * Algorithm:
- *  1. For each slot, rank all unassigned candidates by PSI.
- *  2. Assign the best candidate; mark them as used.
- *  3. If a candidate is displaced from their primary position:
- *     a. Try their secondary position (if still open or if they beat the
- *        current holder via PSI comparison).
- *     b. Fall back to their tertiary position.
- *  4. Any remaining unassigned players are placed in the lowest-impact
- *     remaining slot with their out-of-position penalty.
+ * This algorithm uses a full slot-player PSI matrix and selects the assignment with the
+ * highest total score, ensuring fallback when a slot cannot be filled by a natural player.
+ * It prioritises specialist slots like GK while allowing secondary and tertiary players to
+ * occupy roles they can perform confidently.
  *
- * @param players   - Array of player profiles (length should equal slots).
+ * @param players   - Array of player profiles.
  * @param formation - The formation name to use.
  * @returns Array of `AssignedPlayer` objects.
  */
@@ -525,7 +599,6 @@ export function assignPlayersToFormation(
 
   const numSlots = Math.min(slots.length, players.length);
 
-  // Build PSI matrix: psiMatrix[slotIndex][playerIndex] = PSI
   const psiMatrix: number[][] = [];
   for (let s = 0; s < numSlots; s++) {
     psiMatrix[s] = [];
@@ -534,89 +607,26 @@ export function assignPlayersToFormation(
     }
   }
 
-  // Greedy assignment: slot-by-slot, pick the best unassigned player.
-  // We process GK first (slot 0) since it's the most specialised.
-  const assignment: number[] = new Array(numSlots).fill(-1); // slot → playerIndex
+  const slotOrder = buildSlotOrder(slots.slice(0, numSlots) as PESPosition[], psiMatrix);
+  const optimalAssignment = findOptimalAssignment(psiMatrix, slotOrder, players.length);
+
   const assignedPlayers = new Set<number>();
-
-  // Prioritise slots by how specialised they are (fewer good candidates).
-  // We measure "specialisation" as the standard deviation of PSI across candidates.
-  const slotOrder = Array.from({ length: numSlots }, (_, i) => i);
-  slotOrder.sort((a, b) => {
-    // GK always first
-    if (slots[a] === 'GK' && slots[b] !== 'GK') return -1;
-    if (slots[b] === 'GK' && slots[a] !== 'GK') return 1;
-
-    // Then by PSI spread (ascending – most specialised first)
-    const spreadA = Math.max(...psiMatrix[a]) - Math.min(...psiMatrix[a]);
-    const spreadB = Math.max(...psiMatrix[b]) - Math.min(...psiMatrix[b]);
-    return spreadA - spreadB;
-  });
-
-  for (const slotIdx of slotOrder) {
-    const candidates: Candidate[] = [];
-    for (let p = 0; p < players.length; p++) {
-      if (assignedPlayers.has(p)) continue;
-      candidates.push({ playerIndex: p, psi: psiMatrix[slotIdx][p] });
-    }
-
-    if (candidates.length === 0) continue;
-
-    // Sort descending by PSI
-    candidates.sort((a, b) => b.psi - a.psi);
-    const best = candidates[0];
-
-    assignment[slotIdx] = best.playerIndex;
-    assignedPlayers.add(best.playerIndex);
-  }
-
-  // ── Backtracking phase ──
-  // Check if any assigned player would be significantly better in another slot
-  // and the swap improves total PSI.
-  let improved = true;
-  let backtrackIterations = 0;
-  const MAX_BACKTRACK = 200;
-
-  while (improved && backtrackIterations < MAX_BACKTRACK) {
-    improved = false;
-    backtrackIterations++;
-
-    for (let s1 = 0; s1 < numSlots; s1++) {
-      for (let s2 = s1 + 1; s2 < numSlots; s2++) {
-        const p1 = assignment[s1];
-        const p2 = assignment[s2];
-        if (p1 < 0 || p2 < 0) continue;
-
-        const currentTotal = psiMatrix[s1][p1] + psiMatrix[s2][p2];
-        const swappedTotal = psiMatrix[s1][p2] + psiMatrix[s2][p1];
-
-        if (swappedTotal > currentTotal + 0.01) {
-          // Swap improves total PSI
-          assignment[s1] = p2;
-          assignment[s2] = p1;
-          improved = true;
-        }
-      }
-    }
-  }
-
-  // ── Build result ──
   const result: AssignedPlayer[] = [];
-  for (let s = 0; s < numSlots; s++) {
-    const pIdx = assignment[s];
-    if (pIdx < 0) continue;
 
+  for (let orderIndex = 0; orderIndex < numSlots; orderIndex++) {
+    const playerIndex = optimalAssignment[orderIndex];
+    const slotIdx = slotOrder[orderIndex];
+    if (playerIndex < 0 || playerIndex >= players.length) continue;
+    assignedPlayers.add(playerIndex);
     result.push({
-      ...players[pIdx],
-      assignedPosition: slots[s],
-      psi: psiMatrix[s][pIdx],
+      ...players[playerIndex],
+      assignedPosition: slots[slotIdx],
+      psi: psiMatrix[slotIdx][playerIndex],
     });
   }
 
-  // Handle any unassigned players (if players.length > slots.length)
   for (let p = 0; p < players.length; p++) {
     if (!assignedPlayers.has(p)) {
-      // Assign to their primary position with out-of-position treatment
       result.push({
         ...players[p],
         assignedPosition: players[p].primaryPosition,
