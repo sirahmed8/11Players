@@ -47,9 +47,9 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
         }`}
       >
         {/* Top Section - Photo and Basic Info */}
-        <div className="p-4 flex items-start gap-4">
+        <div className="p-4 flex items-start gap-3 sm:gap-4">
           {/* Photo */}
-          <div className={`relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 ${
+          <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 ${
             isCurrentUser ? 'border-emerald-500 shadow-md' : 'border-slate-200 dark:border-slate-600'
           }`}>
             {displayPhoto && !imgError ? (
@@ -63,7 +63,7 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
                 onError={() => setImgError(true)}
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-400 dark:text-slate-500 font-bold text-2xl">
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-400 dark:text-slate-500 font-bold text-xl sm:text-2xl">
                 {player.cardName.charAt(0).toUpperCase()}
               </div>
             )}
@@ -72,18 +72,18 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
           {/* Player Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className={`text-lg font-bold truncate ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'}`}>
+              <h3 className={`text-base sm:text-lg font-bold truncate ${isCurrentUser ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-800 dark:text-slate-200'}`}>
                 {player.cardName}
               </h3>
               {player.form && (
-                <div title="Current Form" className="bg-emerald-100 dark:bg-emerald-900/30 rounded-full p-1">
+                <div title="Current Form" className="bg-emerald-100 dark:bg-emerald-900/30 rounded-full p-1 flex-shrink-0">
                   <FormIcon form={player.form} className="w-3 h-3" />
                 </div>
               )}
             </div>
 
             {/* Position and Style */}
-            <div className="flex flex-wrap items-center gap-1.5 mb-2">
+            <div className="flex flex-wrap items-center gap-1 mb-2">
               <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
                 {player.primaryPosition}
               </span>
@@ -93,7 +93,7 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
                 </span>
               )}
               {player.playStyle && (
-                <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                <span className="text-xs font-medium text-slate-400 dark:text-slate-500 truncate">
                   • {player.playStyle.replace(/_/g, ' ').trim()}
                 </span>
               )}
@@ -113,8 +113,8 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
 
           {/* Overall Rating */}
           <div className="flex flex-col items-center justify-center flex-shrink-0">
-            <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${getOverallColor(overall)} flex items-center justify-center shadow-md`}>
-              <span className="text-2xl font-black text-white">{overall}</span>
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br ${getOverallColor(overall)} flex items-center justify-center shadow-md`}>
+              <span className="text-xl sm:text-2xl font-black text-white">{overall}</span>
             </div>
             {player.peerRatingAvg && player.peerRatingAvg > 0 && (
               <div className="flex items-center gap-0.5 mt-1">
@@ -126,16 +126,18 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
         </div>
 
         {/* Bottom Section - Actions */}
-        <div className="px-4 pb-4 pt-0 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/50 mt-2">
+        <div className="px-4 pb-4 pt-0">
           {/* Physical Info */}
-          <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <span className="font-medium">{player.height || 175} cm</span>
-            <span className="font-medium">{player.weight || 70} kg</span>
-            <span className="font-medium">{player.calculatedAge || 20} yo</span>
+          <div className="flex items-center justify-between mb-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="font-medium">{player.height || 175} cm</span>
+              <span className="font-medium">{player.weight || 70} kg</span>
+              <span className="font-medium">{player.calculatedAge || 20} yo</span>
+            </div>
           </div>
 
           {/* Captain Vote */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end">
             {onVoteCaptain && currentUserId && currentUserId !== player.uid && (
               <button
                 onClick={(e) => {

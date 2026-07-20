@@ -52,24 +52,45 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
 
   if (variant === "cards") {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 p-4" dir="ltr">
         {[...Array(8)].map((_, i) => (
           <div
             key={i}
-            className="h-72 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 flex flex-col justify-between relative overflow-hidden shadow-xl"
+            className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-md relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 dark:via-emerald-400/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-            <div className="flex justify-between items-center">
-              <div className="w-12 h-9 bg-amber-500/20 rounded-xl" />
-              <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700" />
+            
+            {/* Top Section - Photo and Info */}
+            <div className="flex items-start gap-3 sm:gap-4 mb-3">
+              {/* Photo skeleton */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-200 dark:bg-slate-700 border-2 border-slate-200 dark:border-slate-600 flex-shrink-0" />
+              
+              {/* Player info skeleton */}
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="w-3/4 h-5 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+                <div className="flex gap-1.5 flex-wrap">
+                  <div className="w-12 h-4 bg-slate-200 dark:bg-slate-700 rounded-md" />
+                  <div className="w-10 h-4 bg-slate-100 dark:bg-slate-800 rounded-md" />
+                </div>
+              </div>
+              
+              {/* Overall rating skeleton */}
+              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-slate-200 dark:bg-slate-700 flex-shrink-0" />
             </div>
-            <div className="space-y-3 my-auto">
-              <div className="w-4/5 h-6 bg-slate-200 dark:bg-slate-800 rounded-lg" />
-              <div className="w-1/2 h-4 bg-slate-200 dark:bg-slate-800 rounded-md" />
-            </div>
-            <div className="w-full h-11 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex items-center justify-between px-4">
-              <div className="w-16 h-4 bg-slate-200 dark:bg-slate-700 rounded" />
-              <div className="w-12 h-5 bg-emerald-500/20 rounded-md" />
+
+            {/* Bottom Section */}
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-700/50">
+              {/* Physical info skeleton */}
+              <div className="flex items-center gap-2 sm:gap-3 mb-3 flex-wrap">
+                <div className="w-10 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="w-10 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+                <div className="w-8 h-3 bg-slate-200 dark:bg-slate-700 rounded" />
+              </div>
+              
+              {/* Captain vote button skeleton */}
+              <div className="flex justify-end">
+                <div className="w-16 h-6 bg-slate-200 dark:bg-slate-700 rounded-lg" />
+              </div>
             </div>
           </div>
         ))}

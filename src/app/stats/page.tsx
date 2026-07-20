@@ -84,8 +84,8 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
         key={p.uid}
         className={`flex items-center justify-between p-4 transition-all duration-200 ${
           isCurrentUser
-            ? "bg-gradient-to-r from-slate-700 to-slate-600 text-white dark:from-slate-600 dark:to-slate-700 relative z-10 font-semibold border-l-4 border-emerald-500 shadow-md"
-            : "hover:bg-slate-50 dark:hover:bg-slate-700/30 border-l-4 border-transparent"
+            ? "bg-gradient-to-r from-slate-700 to-slate-600 text-white dark:from-slate-600 dark:to-slate-700 relative z-10 font-semibold shadow-md"
+            : "hover:bg-slate-50 dark:hover:bg-slate-700/30"
         }`}
       >
         <div className="flex items-center gap-4">
