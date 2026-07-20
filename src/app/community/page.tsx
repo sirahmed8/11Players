@@ -58,6 +58,10 @@ export default function CommunityPage() {
 
   const handleVoteCaptain = async (playerId: string) => {
     if (!user) return;
+    if (playerId === user.uid) {
+      toast.error(isAr ? "لا يمكنك التصويت لنفسك لتكون كابتن!" : "You cannot vote for yourself as captain!");
+      return;
+    }
     try {
       const targetPlayer = players.find(p => p.uid === playerId);
       if (!targetPlayer) return;

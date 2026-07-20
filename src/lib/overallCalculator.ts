@@ -26,7 +26,9 @@ export function calculateRealisticOverall(
   weight?: number,
   age?: number,
   peerRatingAvg?: number,
-  peerRatingCount?: number
+  peerRatingCount?: number,
+  preferredFoot?: string,
+  specialSkills?: string[]
 ): number {
   if (!attributes) return 40;
 
@@ -79,6 +81,46 @@ export function calculateRealisticOverall(
     }
   }
 
+  // Play Style Synergy Modifier with position
+  if (playStyle) {
+    const cleanStyle = playStyle.replace(/_/g, ' ').trim();
+    if (['CF', 'SS'].includes(position) && ['Goal Poacher', 'Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward'].includes(cleanStyle)) {
+      finalOverall += 1;
+    } else if (['AMF', 'CMF'].includes(position) && ['Creative Playmaker', 'Orchestrator', 'Classic No. 10', 'Hole Player'].includes(cleanStyle)) {
+      finalOverall += 1;
+    } else if (['CMF', 'DMF'].includes(position) && ['Box-to-Box', 'Anchor Man', 'The Destroyer'].includes(cleanStyle)) {
+      finalOverall += 1;
+    } else if (['LWF', 'RWF', 'LMF', 'RMF'].includes(position) && ['Prolific Winger', 'Roaming Flank', 'Cross Specialist'].includes(cleanStyle)) {
+      finalOverall += 1;
+    } else if (['CB', 'LB', 'RB'].includes(position) && ['Build Up', 'Offensive Full-back', 'Defensive Full-back', 'Extra Frontman'].includes(cleanStyle)) {
+      finalOverall += 1;
+    } else if (position === 'GK' && ['Offensive Goalkeeper', 'Defensive Goalkeeper'].includes(cleanStyle)) {
+      finalOverall += 1;
+    }
+  }
+
+  // Preferred Foot Nuance & Synergy
+  if (preferredFoot) {
+    if (preferredFoot === 'Ambidextrous' || preferredFoot.toLowerCase().includes('ambidextrous') || preferredFoot === 'both') {
+      finalOverall += 1; // Dual foot mastery boost
+    } else if (preferredFoot === 'Left' || preferredFoot.toLowerCase() === 'left') {
+      if (['LWF', 'LMF', 'LB'].includes(position)) {
+        finalOverall += 1; // Natural left-wing comfort
+      }
+    } else if (preferredFoot === 'Right' || preferredFoot.toLowerCase() === 'right') {
+      if (['RWF', 'RMF', 'RB'].includes(position)) {
+        finalOverall += 1; // Natural right-wing comfort
+      }
+    }
+  }
+
+  // Special Skills Impact (up to +2 boost for specialized traits)
+  if (specialSkills && Array.isArray(specialSkills) && specialSkills.length > 0) {
+    const skillCount = specialSkills.length;
+    if (skillCount >= 6) finalOverall += 2;
+    else if (skillCount >= 3) finalOverall += 1;
+  }
+
   // Community Peer Rating Modifier (±2.0 max, requires at least 3 ratings for stability)
   if (peerRatingCount && peerRatingCount >= 3 && peerRatingAvg !== undefined && peerRatingAvg > 0) {
     const peerModifier = Math.max(-2, Math.min(2, Math.round((peerRatingAvg - 6.0) * 0.5)));
@@ -89,6 +131,73 @@ export function calculateRealisticOverall(
   if (finalOverall < 40) finalOverall = 40;
 
   return finalOverall;
+}
+
+export function calculatePositionRating(
+  player: {
+    attributes?: PlayerAttributes;
+    approvedAttributes?: PlayerAttributes;
+    primaryPosition?: PESPosition;
+    secondaryPosition?: PESPosition;
+    tertiaryPosition?: PESPosition;
+    playStyle?: string;
+    height?: number;
+    weight?: number;
+    calculatedAge?: number;
+    age?: number;
+    peerRatingAvg?: number;
+    peerRatingCount?: number;
+    preferredFoot?: string;
+    specialSkills?: string[];
+  },
+  targetPosition: PESPosition
+): number {
+  const activeAttributes = player?.approvedAttributes || player?.attributes || ({} as any);
+  const primaryPos = player?.primaryPosition || 'CMF';
+  const age = player?.calculatedAge || player?.age;
+
+  const rawRating = calculateRealisticOverall(
+    activeAttributes,
+    targetPosition,
+    player?.playStyle || '',
+    player?.height,
+    player?.weight,
+    age,
+    player?.peerRatingAvg,
+    player?.peerRatingCount,
+    player?.preferredFoot,
+    player?.specialSkills
+  );
+
+  if (targetPosition === primaryPos) {
+    return rawRating;
+  }
+  if (player?.secondaryPosition && targetPosition === player.secondaryPosition) {
+    return Math.max(40, rawRating - 1);
+  }
+  if (player?.tertiaryPosition && targetPosition === player.tertiaryPosition) {
+    return Math.max(40, rawRating - 3);
+  }
+
+  // Out of position penalty based on position group distance
+  const getGroup = (pos: PESPosition) => {
+    if (pos === 'GK') return 0;
+    if (['CB', 'LB', 'RB'].includes(pos)) return 1;
+    if (['DMF', 'CMF', 'LMF', 'RMF', 'AMF'].includes(pos)) return 2;
+    if (['LWF', 'RWF', 'SS', 'CF'].includes(pos)) return 3;
+    return 2;
+  };
+
+  const primaryGroup = getGroup(primaryPos);
+  const targetGroup = getGroup(targetPosition);
+  const dist = Math.abs(primaryGroup - targetGroup);
+
+  let penalty = 2; // general unfamiliarity
+  if (dist === 1) penalty = 4;
+  else if (dist === 2) penalty = 7;
+  else if (dist === 3) penalty = 12; // e.g. GK as CF or CF as GK
+
+  return Math.max(40, rawRating - penalty);
 }
 
 export function getPlayerPositionRatings(player: {
@@ -103,27 +212,24 @@ export function getPlayerPositionRatings(player: {
   calculatedAge?: number;
   peerRatingAvg?: number;
   peerRatingCount?: number;
+  preferredFoot?: string;
+  specialSkills?: string[];
 }) {
   const activeAttributes = player?.approvedAttributes || player?.attributes || ({} as any);
   const primaryPos = player?.primaryPosition || 'CMF';
-  const primaryRating = calculateRealisticOverall(activeAttributes, primaryPos, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge, player?.peerRatingAvg, player?.peerRatingCount);
+  const primaryRating = calculatePositionRating(player as any, primaryPos);
 
   const ratings = [
     { position: primaryPos, rating: primaryRating, tier: 0 }
   ];
 
-  // Secondary: recalculate for the actual secondary position (not copy primary)
   if (player.secondaryPosition) {
-    const secondaryRating = calculateRealisticOverall(activeAttributes, player.secondaryPosition, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge, player?.peerRatingAvg, player?.peerRatingCount);
-    // Secondary position is usually less comfortable, so apply a small penalty
-    const adjustedSecondary = Math.max(40, secondaryRating - 1);
-    ratings.push({ position: player.secondaryPosition, rating: adjustedSecondary, tier: 1 });
+    const secondaryRating = calculatePositionRating(player as any, player.secondaryPosition);
+    ratings.push({ position: player.secondaryPosition, rating: secondaryRating, tier: 1 });
   }
 
-  // Tertiary: recalculate with a larger penalty for lower familiarity
   if (player.tertiaryPosition) {
-    let tertiaryRating = calculateRealisticOverall(activeAttributes, player.tertiaryPosition, player?.playStyle || '', player?.height, player?.weight, player?.calculatedAge, player?.peerRatingAvg, player?.peerRatingCount) - 3;
-    if (tertiaryRating < 40) tertiaryRating = 40;
+    const tertiaryRating = calculatePositionRating(player as any, player.tertiaryPosition);
     ratings.push({ position: player.tertiaryPosition, rating: tertiaryRating, tier: 2 });
   }
 

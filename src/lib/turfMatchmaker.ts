@@ -35,7 +35,7 @@ export interface TurfMatchmakingResult {
   teams: TurfTeam[];
   gkRotationSchedule: { teamId: string; playerName: string; matchNumber: number }[];
   fixtures: TurfFixture[];
-  matchType: 'league' | 'knockout' | 'winner_stays';
+  matchType: 'league' | 'knockout' | 'winner_stays' | 'friendly';
   numTeams: number;
   playersPerTeam: number;
   gkMode: 'fixed' | 'rotating';
@@ -170,7 +170,7 @@ export interface TurfConfig {
   fixedGkTeamB?: string;
   gkRotationInterval: 'per_match' | 'per_goal' | 'per_time';
   gkRotationMinutes?: number; // Only used when gkRotationInterval === 'per_time'
-  matchType: 'league' | 'knockout' | 'winner_stays';
+  matchType: 'league' | 'knockout' | 'winner_stays' | 'friendly';
   matchDurationMins: number;
   endCondition?: 'time' | 'goals' | 'both';
   targetGoals?: number;
@@ -221,6 +221,9 @@ export function generateTurfMatch(
   } else if (matchType === 'winner_stays') {
     // We don't generate fixed fixtures for winner_stays, it's dynamic
     fixtures = [];
+  } else if (matchType === 'friendly') {
+    // Casual continuous friendly without tournament brackets
+    fixtures = teams.length >= 2 ? [{ round: 1, teamA: teams[0].id, teamB: teams[1].id, label: '⚽ Casual Friendly (Continuous Play)' }] : [];
   }
   
   const gkRotationSchedule: TurfMatchmakingResult['gkRotationSchedule'] = [];

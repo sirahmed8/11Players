@@ -46,6 +46,28 @@ export default function AnnouncementsPage() {
   const [loadingHistory, setLoadingHistory] = useState(true);
 
   useEffect(() => {
+    try {
+      const saved = localStorage.getItem("announcement_draft");
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.titleEn) setTitleEn(draft.titleEn);
+        if (draft.titleAr) setTitleAr(draft.titleAr);
+        if (draft.bodyEn) setBodyEn(draft.bodyEn);
+        if (draft.bodyAr) setBodyAr(draft.bodyAr);
+        if (draft.link) setLink(draft.link);
+      }
+    } catch (e) {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (titleEn || titleAr || bodyEn || bodyAr || link) {
+        localStorage.setItem("announcement_draft", JSON.stringify({ titleEn, titleAr, bodyEn, bodyAr, link }));
+      }
+    } catch (e) {}
+  }, [titleEn, titleAr, bodyEn, bodyAr, link]);
+
+  useEffect(() => {
     const q = collection(db, "announcements");
     const unsub = onSnapshot(q, (snap) => {
       const list: Announcement[] = [];
@@ -74,7 +96,7 @@ export default function AnnouncementsPage() {
     setBroadcasting(true);
     try {
       const annId = `ann_${Date.now()}`;
-      const announcementData: Announcement = {
+      const announcementData: any = {
         id: annId,
         titleEn: titleEn.trim(),
         titleAr: titleAr.trim(),
@@ -82,7 +104,7 @@ export default function AnnouncementsPage() {
         bodyAr: bodyAr.trim(),
         priority,
         targetScope,
-        link: link.trim() || undefined,
+        link: link.trim() || null,
         senderUid: user?.uid || "",
         senderName: user?.displayName || (isAr ? "المسؤول" : "Admin"),
         communityId: targetScope === 'active_community' ? activeCommunityId || "" : "global",
@@ -102,26 +124,30 @@ export default function AnnouncementsPage() {
         snap.forEach(d => targetUids.push(d.id));
       }
 
-      // Batch send notifications (up to 500 per batch in firestore, chunking if needed)
+      // Batch send notifications cleanly
       const chunkSize = 400;
       for (let i = 0; i < targetUids.length; i += chunkSize) {
         const chunk = targetUids.slice(i, i + chunkSize);
         await Promise.all(chunk.map(async (recipientUid) => {
-          const notifId = `broadcast_${annId}`;
-          const notifPayload = {
-            id: notifId,
-            type: priority === 'urgent' ? 'admin' : 'updates',
-            title: titleEn.trim(),
-            titleAr: titleAr.trim(),
-            titleEn: titleEn.trim(),
-            body: bodyEn.trim(),
-            bodyAr: bodyAr.trim(),
-            bodyEn: bodyEn.trim(),
-            read: false,
-            createdAt: serverTimestamp(),
-            link: link.trim() || undefined
-          };
-          return setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
+          try {
+            const notifId = `broadcast_${annId}`;
+            const notifPayload: any = {
+              id: notifId,
+              type: priority === 'urgent' ? 'admin' : 'updates',
+              title: titleEn.trim(),
+              titleAr: titleAr.trim(),
+              titleEn: titleEn.trim(),
+              body: bodyEn.trim(),
+              bodyAr: bodyAr.trim(),
+              bodyEn: bodyEn.trim(),
+              read: false,
+              createdAt: serverTimestamp(),
+              link: link.trim() || null
+            };
+            await setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
+          } catch (notifErr) {
+            console.warn(`Failed notification for ${recipientUid}:`, notifErr);
+          }
         }));
       }
 
@@ -131,6 +157,7 @@ export default function AnnouncementsPage() {
       setBodyEn("");
       setBodyAr("");
       setLink("");
+      try { localStorage.removeItem("announcement_draft"); } catch (e) {}
     } catch (err) {
       console.error("Failed broadcasting:", err);
       toast.error(isAr ? "فشل بث الإشعار" : "Failed to broadcast notification");
@@ -157,17 +184,17 @@ export default function AnnouncementsPage() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-slate-900 via-slate-800 to-amber-950/80 rounded-3xl p-6 sm:p-10 text-white shadow-2xl border border-amber-500/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+            className="bg-slate-900 dark:bg-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
           >
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-3xl shrink-0">
+              <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">
                 📢
               </div>
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-slate-800 text-amber-400 border border-slate-700 mb-2">
                   ⚡ {isAr ? "مركز البث المباشر والإعلانات" : "Bilingual Push Broadcast Center"}
                 </span>
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight">
+                <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
                   {isAr ? "بث الإشعارات والإعلانات المزدوجة" : "Broadcast Push Notifications & Announcements"}
                 </h1>
                 <p className="text-sm text-slate-300 mt-1">
@@ -310,7 +337,7 @@ export default function AnnouncementsPage() {
               <button
                 type="submit"
                 disabled={broadcasting}
-                className="px-8 py-4 rounded-2xl font-black text-base shadow-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white shadow-orange-900/30 transition-all duration-200 active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                className="px-8 py-4 rounded-2xl font-black text-base shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-3 disabled:opacity-50"
               >
                 {broadcasting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 <span>{broadcasting ? (isAr ? "جاري بث الإشعارات..." : "Broadcasting Now...") : (isAr ? "بث الإشعار الآن للجميع" : "Broadcast Push Notification Now")}</span>

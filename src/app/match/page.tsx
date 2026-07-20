@@ -140,7 +140,7 @@ export default function MatchPage() {
         fixedGkTeamB: config.fixedGkTeamB,
         gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
         gkRotationMinutes: config.gkRotationMinutes,
-        matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+        matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
         matchDurationMins: config.matchDurationMins || 20,
         endCondition: config.endCondition || 'time',
         targetGoals: config.targetGoals || 3,
@@ -174,7 +174,7 @@ export default function MatchPage() {
         fixedGkTeamB: config.fixedGkTeamB,
         gkRotationInterval: (config.gkRotationInterval || matchData.turfResult.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
         gkRotationMinutes: config.gkRotationMinutes,
-        matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || matchData.turfResult.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+        matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || matchData.turfResult.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
         matchDurationMins: config.matchDurationMins || matchData.turfResult.matchDurationMins || 20,
         endCondition: config.endCondition || matchData.turfResult.endCondition || 'time',
         targetGoals: config.targetGoals || matchData.turfResult.targetGoals || 3,
@@ -278,7 +278,7 @@ export default function MatchPage() {
           fixedGkTeamB: config.fixedGkTeamB,
           gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
           gkRotationMinutes: config.gkRotationMinutes,
-          matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
+          matchType: (config.matchType === 'friendly' ? 'friendly' : config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays' | 'friendly',
           matchDurationMins: config.matchDurationMins || 20,
           endCondition: config.endCondition || 'time',
           targetGoals: config.targetGoals || 3,
@@ -317,6 +317,75 @@ export default function MatchPage() {
     }
   };
 
+  const handleVoteCaptain = async (candidateUid: string) => {
+    if (!user?.uid) {
+      toast.error(isAr ? "يرجى تسجيل الدخول أولاً للتصويت" : "Please log in to vote");
+      return;
+    }
+    if (user.uid === candidateUid) {
+      toast.error(isAr ? "لا يمكنك التصويت لنفسك ككابتن الفريق!" : "You cannot vote for yourself as captain!");
+      return;
+    }
+    const currentMatch = activeTab === "history" ? selectedHistoryMatch : matchData;
+    if (!activeCommunityId || !currentMatch?.id) return;
+
+    try {
+      const currentVotes = currentMatch.captainVotes || {};
+      const updatedVotes = {
+        ...currentVotes,
+        [user.uid]: candidateUid
+      };
+
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", currentMatch.id);
+      await setDoc(matchRef, { captainVotes: updatedVotes }, { merge: true });
+
+      if (currentMatch.id === matchData?.id || currentMatch.id === 'latest') {
+        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), { captainVotes: updatedVotes }, { merge: true });
+      }
+
+      toast.success(isAr ? "تم تسجيل صوتك للكابتن بنجاح! 👑" : "Your captain vote has been recorded! 👑");
+    } catch (err) {
+      console.error("Vote captain error:", err);
+      toast.error(isAr ? "حدث خطأ أثناء التصويت" : "Error recording vote");
+    }
+  };
+
+  const handleSaveTeamPositions = async (teamKey: 'teamA' | 'teamB', updatedTeam: any[], newFormation?: string) => {
+    const currentMatch = activeTab === "history" ? selectedHistoryMatch : matchData;
+    if (!activeCommunityId || !currentMatch?.id || !isAdmin || isViewingHistory) return;
+
+    try {
+      const updatedFormation = {
+        ...(currentMatch.formation || {}),
+        [teamKey]: newFormation || currentMatch.formation?.[teamKey] || (teamKey === 'teamA' ? '4-3-3' : '4-4-2')
+      };
+
+      const avgRating = updatedTeam.reduce((acc, p) => acc + (p.psi || p.overallRating || 60), 0) / Math.max(1, updatedTeam.length);
+      const updatedMetrics = {
+        ...(currentMatch.metrics || {}),
+        [`${teamKey}Overall`]: avgRating
+      };
+
+      const updatePayload = {
+        [teamKey]: updatedTeam,
+        formation: updatedFormation,
+        metrics: updatedMetrics
+      };
+
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", currentMatch.id);
+      await setDoc(matchRef, updatePayload, { merge: true });
+
+      if (currentMatch.id === matchData?.id || currentMatch.id === 'latest') {
+        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), updatePayload, { merge: true });
+      }
+
+      toast.success(isAr ? "تم تحديث مراكز وتشكيلة الفريق وحفظ التقييمات الواقعية!" : "Team formation, positions, and realistic OVR updated!");
+    } catch (err) {
+      console.error("Save positions error:", err);
+      toast.error(isAr ? "حدث خطأ أثناء حفظ التشكيلة" : "Failed to save team positions");
+    }
+  };
+
   const displayMatch = activeTab === "history" ? selectedHistoryMatch : matchData;
   const isViewingHistory = activeTab === "history" && Boolean(selectedHistoryMatch);
 
@@ -325,7 +394,7 @@ export default function MatchPage() {
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12">
         <main className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center mb-8">
-            <h1 className="text-4xl md:text-5xl font-black bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent mb-4">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4">
               {isAr ? "المباريات والتشكيلات" : "Matches & Lineups"}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto mb-6">
@@ -339,10 +408,10 @@ export default function MatchPage() {
               <div className="flex justify-center mb-6">
                 <button
                   onClick={() => setIsConfigModalOpen(true)}
-                  className="px-6 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-xl transition-all duration-200 flex items-center gap-2.5 active:scale-95 border border-emerald-400/30"
+                  className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg transition-all duration-200 flex items-center gap-2.5 active:scale-95"
                 >
                   <span className="text-xl">⚡</span>
-                  <span>{isAr ? "إنشاء مباراة جديدة أو فتح حجز (Hagaz)" : "Make a Match / Open Booking (Hagaz)"}</span>
+                  <span>{isAr ? "إنشاء مباراة جديدة أو فتح حجز" : "Make a Match / Open Booking"}</span>
                 </button>
               </div>
             )}
@@ -865,7 +934,13 @@ export default function MatchPage() {
 
               {/* Turf / Casual Match Display */}
               {displayMatch.status !== 'registering' && displayMatch.matchMode === 'turf' && displayMatch.turfResult && (
-                <TurfMatchDisplay turfResult={displayMatch.turfResult} isAr={isAr} />
+                <TurfMatchDisplay 
+                  turfResult={displayMatch.turfResult} 
+                  isAr={isAr} 
+                  captainVotes={displayMatch.captainVotes || {}}
+                  onVoteCaptain={handleVoteCaptain}
+                  currentUserUid={user?.uid}
+                />
               )}
 
               {/* Inter-Community Challenge Match Display & Access Enforcement */}
@@ -1030,6 +1105,13 @@ export default function MatchPage() {
                       color="blue" 
                       onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
                       recordedStats={displayMatch.recordedStats}
+                      isAdmin={isAdmin && !isViewingHistory}
+                      currentFormation={displayMatch.formation?.teamA || '4-3-3'}
+                      onFormationOrPositionChange={(updatedTeam, newForm) => handleSaveTeamPositions('teamA', updatedTeam, newForm)}
+                      captainVotes={displayMatch.captainVotes || {}}
+                      onVoteCaptain={handleVoteCaptain}
+                      currentUserUid={user?.uid}
+                      isAr={isAr}
                     />
                     
                     {/* Bench A Section */}
@@ -1086,6 +1168,13 @@ export default function MatchPage() {
                       isReversed={false}
                       onPlayerClick={(p) => setSelectedPlayer(p as unknown as PlayerProfile)} 
                       recordedStats={displayMatch.recordedStats}
+                      isAdmin={isAdmin && !isViewingHistory}
+                      currentFormation={displayMatch.formation?.teamB || '4-4-2'}
+                      onFormationOrPositionChange={(updatedTeam, newForm) => handleSaveTeamPositions('teamB', updatedTeam, newForm)}
+                      captainVotes={displayMatch.captainVotes || {}}
+                      onVoteCaptain={handleVoteCaptain}
+                      currentUserUid={user?.uid}
+                      isAr={isAr}
                     />
 
                     {/* Bench B Section */}

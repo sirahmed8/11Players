@@ -316,15 +316,15 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "الاسم الكامل" : "Full Name"}</label>
                   <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Card Name</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "الاسم على البطاقة" : "Card Name"}</label>
                   <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Date of Birth</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "تاريخ الميلاد" : "Date of Birth"}</label>
                   <div className="flex gap-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1.5">
                     <CustomSelect
                       value={formData.dateOfBirth ? formData.dateOfBirth.split('-')[2] : ''}
@@ -357,69 +357,69 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Height (cm)</label>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "الطول (سم)" : "Height (cm)"}</label>
                     <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                   </div>
                   <div>
-                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Weight (kg)</label>
+                    <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "الوزن (كجم)" : "Weight (kg)"}</label>
                     <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Primary Position</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "المركز الأساسي" : "Primary Position"}</label>
                   <CustomSelect
                     value={formData.primaryPosition}
-                    placeholder="Select Position"
+                    placeholder={isRTL ? "اختر المركز الأساسي" : "Select Position"}
                     options={POSITIONS.map(p => ({ value: p, label: p }))}
                     onChange={(v) => handleChange('primaryPosition', v)}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Secondary Position</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "المركز الثانوي" : "Secondary Position"}</label>
                   <CustomSelect
                     value={formData.secondaryPosition}
-                    placeholder="None"
-                    options={[{ value: '', label: 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
+                    placeholder={isRTL ? "لا يوجد" : "None"}
+                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
                     onChange={(v) => handleChange('secondaryPosition', v)}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Tertiary Position</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "المركز الثالث" : "Tertiary Position"}</label>
                   <CustomSelect
                     value={formData.tertiaryPosition}
-                    placeholder="None"
-                    options={[{ value: '', label: 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
+                    placeholder={isRTL ? "لا يوجد" : "None"}
+                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...POSITIONS.map(p => ({ value: p, label: p }))]}
                     onChange={(v) => handleChange('tertiaryPosition', v)}
                     dropUp={true}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Play Style</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "أسلوب اللعب" : "Play Style"}</label>
                   <CustomSelect
                     value={formData.playStyle}
-                    placeholder="None"
-                    options={[{ value: '', label: 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p }))]}
+                    placeholder={isRTL ? "اختر أسلوب اللعب" : "None"}
+                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p, label: p }))]}
                     onChange={(v) => handleChange('playStyle', v)}
                     dropUp={true}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Preferred Foot</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "القدم المفضلة" : "Preferred Foot"}</label>
                   <CustomSelect
                     value={formData.preferredFoot}
-                    placeholder="Select Foot"
+                    placeholder={isRTL ? "اختر القدم" : "Select Foot"}
                     options={[
-                      { value: 'Right', label: 'Right' },
-                      { value: 'Left', label: 'Left' },
-                      { value: 'Ambidextrous', label: 'Ambidextrous' }
+                      { value: 'Right', label: isRTL ? 'اليمنى' : 'Right' },
+                      { value: 'Left', label: isRTL ? 'اليسرى' : 'Left' },
+                      { value: 'Ambidextrous', label: isRTL ? 'كلتا القدمين' : 'Ambidextrous' }
                     ]}
                     onChange={(v) => handleChange('preferredFoot', v)}
                     dropUp={true}
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">Photo</label>
+                  <label className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">{isRTL ? "الصورة الشخصية" : "Photo"}</label>
                   <BackgroundRemover 
                     onImageReady={(url) => handleChange('photoUrl', url)} 
                     locale={(locale as 'en' | 'ar') ?? 'ar'} 

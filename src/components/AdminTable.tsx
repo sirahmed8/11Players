@@ -21,6 +21,7 @@ import { getAllPlayerCommunities } from '@/lib/playerUtils';
 import ManageUserCommunitiesModal from '@/components/ManageUserCommunitiesModal';
 import CustomSelect from '@/components/CustomSelect';
 import PendingEdits from '@/components/PendingEdits';
+import SkillsChecklist from '@/components/SkillsChecklist';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -55,6 +56,8 @@ interface AttrModal {
   secondaryPosition?: PESPosition | '';
   tertiaryPosition?: PESPosition | '';
   playStyle?: string;
+  preferredFoot?: string;
+  specialSkills?: string[];
 }
 
 const POSITIONS: PESPosition[] = ['CF', 'SS', 'LWF', 'RWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
@@ -350,6 +353,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       secondaryPosition: player.secondaryPosition || '',
       tertiaryPosition: player.tertiaryPosition || '',
       playStyle: player.playStyle || '',
+      preferredFoot: player.preferredFoot || 'Right',
+      specialSkills: player.specialSkills || [],
     });
   };
 
@@ -365,6 +370,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         defensiveAwareness: 40, ballWinning: 40, aggression: 40,
         gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
       },
+      preferredFoot: 'Right',
+      specialSkills: [],
     });
   };
 
@@ -376,7 +383,9 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       const secPos = attrModal.secondaryPosition !== undefined ? attrModal.secondaryPosition : (attrModal.player.secondaryPosition || '');
       const tertPos = attrModal.tertiaryPosition !== undefined ? attrModal.tertiaryPosition : (attrModal.player.tertiaryPosition || '');
       const style = attrModal.playStyle !== undefined ? attrModal.playStyle : (attrModal.player.playStyle || '');
-      const newOverall = calculateRealisticOverall(attrModal.attributes, pos, style, attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge, attrModal.player.peerRatingAvg, attrModal.player.peerRatingCount);
+      const foot = attrModal.preferredFoot !== undefined ? attrModal.preferredFoot : (attrModal.player.preferredFoot || 'Right');
+      const skills = attrModal.specialSkills !== undefined ? attrModal.specialSkills : (attrModal.player.specialSkills || []);
+      const newOverall = calculateRealisticOverall(attrModal.attributes, pos, style, attrModal.player.height, attrModal.player.weight, attrModal.player.calculatedAge, attrModal.player.peerRatingAvg, attrModal.player.peerRatingCount, foot, skills);
       const batch = writeBatch(db);
       const commIds = getAllPlayerCommunities(attrModal.player, activeCommunityId);
       const updatePayload = {
@@ -387,6 +396,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         secondaryPosition: secPos,
         tertiaryPosition: tertPos,
         playStyle: style,
+        preferredFoot: foot,
+        specialSkills: skills,
       };
       for (const commId of commIds) {
         const commRef = doc(db, 'communities', commId as string, 'players', attrModal.player.uid);
@@ -802,11 +813,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               dir={locale === 'ar' ? 'rtl' : 'ltr'}
             >
               <h2 className="mb-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                {t(locale, 'Edit Attributes & Positions', 'تعديل الطاقات والمراكز')}
+                {t(locale, 'Edit Attributes, Positions & Skills', 'تعديل الطاقات والمراكز والمهارات')}
               </h2>
               <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">{attrModal.player.fullName}</p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                     {t(locale, 'Primary Position', 'المركز الأساسي')}
@@ -836,6 +847,21 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    {t(locale, 'Tertiary Position', 'المركز الثالث')}
+                  </label>
+                  <CustomSelect
+                    value={attrModal.tertiaryPosition !== undefined ? attrModal.tertiaryPosition : (attrModal.player.tertiaryPosition || '')}
+                    onChange={(val) => setAttrModal(prev => ({ ...prev, tertiaryPosition: val as any }))}
+                    options={[
+                      { value: '', label: t(locale, 'None', 'بدون') },
+                      ...POSITIONS.map(p => ({ value: p, label: p }))
+                    ]}
+                    className="w-full text-xs"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
                     {t(locale, 'Play Style', 'أسلوب اللعب')}
                   </label>
                   <CustomSelect
@@ -848,6 +874,33 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     className="w-full text-xs"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">
+                    {t(locale, 'Preferred Foot', 'القدم المفضلة')}
+                  </label>
+                  <CustomSelect
+                    value={attrModal.preferredFoot !== undefined ? attrModal.preferredFoot : (attrModal.player.preferredFoot || 'Right')}
+                    onChange={(val) => setAttrModal(prev => ({ ...prev, preferredFoot: val }))}
+                    options={[
+                      { value: 'Right', label: t(locale, 'Right', 'اليمنى') },
+                      { value: 'Left', label: t(locale, 'Left', 'اليسرى') },
+                      { value: 'Ambidextrous', label: t(locale, 'Ambidextrous', 'كلتا القدمين') }
+                    ]}
+                    className="w-full text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="mb-6 p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  {t(locale, 'Special Skills', 'المهارات الخاصة')}
+                </label>
+                <SkillsChecklist
+                  selectedSkills={attrModal.specialSkills !== undefined ? attrModal.specialSkills : (attrModal.player.specialSkills || [])}
+                  onSkillsChange={(s) => setAttrModal(prev => ({ ...prev, specialSkills: s }))}
+                  locale={(locale as 'en' | 'ar') ?? 'ar'}
+                />
               </div>
 
               <div className="w-full flex justify-center py-2 overflow-x-hidden">

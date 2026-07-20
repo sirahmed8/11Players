@@ -10,6 +10,9 @@ import type { TurfMatchmakingResult, TurfTeam } from '@/lib/turfMatchmaker';
 interface TurfMatchDisplayProps {
   turfResult: TurfMatchmakingResult;
   isAr?: boolean;
+  captainVotes?: Record<string, string>;
+  onVoteCaptain?: (targetUid: string) => void;
+  currentUserUid?: string;
 }
 
 const OVR_BADGE = ({ ovr }: { ovr: number }) => {
@@ -25,8 +28,43 @@ const OVR_BADGE = ({ ovr }: { ovr: number }) => {
   );
 };
 
-const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: boolean; gkMode: string; onSubstitute: (teamId: string, playerUid: string) => void }) => {
+const TeamCard = ({
+  team,
+  isAr,
+  gkMode,
+  onSubstitute,
+  captainVotes = {},
+  onVoteCaptain,
+  currentUserUid
+}: {
+  team: TurfTeam;
+  isAr: boolean;
+  gkMode: string;
+  onSubstitute: (teamId: string, playerUid: string) => void;
+  captainVotes?: Record<string, string>;
+  onVoteCaptain?: (targetUid: string) => void;
+  currentUserUid?: string;
+}) => {
   const [expanded, setExpanded] = useState(true);
+
+  // Compute vote counts for this turf team
+  const { topCaptainUid, voteCounts } = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    let topUid = '';
+    let maxVotes = 0;
+    const teamUids = new Set(team.players.map(p => p.uid));
+
+    Object.values(captainVotes || {}).forEach(candidateUid => {
+      if (teamUids.has(candidateUid)) {
+        counts[candidateUid] = (counts[candidateUid] || 0) + 1;
+        if (counts[candidateUid] > maxVotes) {
+          maxVotes = counts[candidateUid];
+          topUid = candidateUid;
+        }
+      }
+    });
+    return { topCaptainUid: maxVotes > 0 ? topUid : (team.players[0]?.uid || ''), voteCounts: counts };
+  }, [captainVotes, team.players]);
 
   const teamColorClass = (() => {
     const colors = [
@@ -85,6 +123,10 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
               Math.max(1, Object.values(player.attributes || {}).length)
             );
 
+            const isCaptain = player.uid === topCaptainUid && (voteCounts[player.uid] || 0) > 0;
+            const voteCount = voteCounts[player.uid] || 0;
+            const canVote = Boolean(currentUserUid && currentUserUid !== player.uid);
+
             return (
               <div
                 key={player.uid}
@@ -100,10 +142,15 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
                       {player.cardName || player.fullName}
                     </span>
+                    {isCaptain && (
+                      <span className="px-1.5 py-0.5 text-[9px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-black rounded-md shadow-sm">
+                        ©️ {isAr ? 'الكابتن' : 'Captain'}
+                      </span>
+                    )}
                     {isGk && (
                       <span className="px-1.5 py-0.5 text-[9px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-md">
                         🥅 GK
@@ -116,6 +163,21 @@ const TeamCard = ({ team, isAr, gkMode, onSubstitute }: { team: TurfTeam; isAr: 
                 </div>
                 
                 <div className="flex items-center gap-2">
+                  {onVoteCaptain && (
+                    <button
+                      type="button"
+                      onClick={() => canVote && onVoteCaptain(player.uid)}
+                      disabled={!canVote}
+                      title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isAr ? 'صوت ككابتن' : 'Vote Captain')}
+                      className={`px-2 py-1 rounded-lg text-xs font-bold transition-all ${
+                        canVote
+                          ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black cursor-pointer'
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      👑 {voteCount > 0 ? voteCount : (isAr ? 'صوت' : 'Vote')}
+                    </button>
+                  )}
                   <OVR_BADGE ovr={ovr || 60} />
                   <button
                     onClick={() => onSubstitute(team.id, player.uid)}
@@ -651,7 +713,13 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
 };
 
 
-export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatchDisplayProps) {
+export default function TurfMatchDisplay({
+  turfResult,
+  isAr = false,
+  captainVotes = {},
+  onVoteCaptain,
+  currentUserUid
+}: TurfMatchDisplayProps) {
   const [showFixtures, setShowFixtures] = useState(true);
   const [localTeams, setLocalTeams] = useState<TurfTeam[]>(turfResult.teams);
   const [subTarget, setSubTarget] = useState<{ teamId: string, playerUid: string } | null>(null);
@@ -691,7 +759,7 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
           </div>
           <div>
             <h2 className="text-xl font-black">
-              {isAr ? 'حجز كورة عادي / خماسي' : 'Turf / Casual Match'}
+              {isAr ? 'مباريات الملاعب (خماسي / سداسي / سباعي)' : 'Turf / Casual Match'}
             </h2>
             <p className="text-xs text-white/80">{formatLabel}</p>
           </div>
@@ -707,7 +775,7 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
           </div>
           <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
             <Trophy className="w-3.5 h-3.5" />
-            {matchType === 'league' ? (isAr ? 'دوري' : 'League') : (isAr ? 'كأس' : 'Knockout')}
+            {matchType === 'friendly' ? (isAr ? 'ودية كاجوال' : 'Casual Friendly') : matchType === 'league' ? (isAr ? 'دوري' : 'League') : matchType === 'knockout' ? (isAr ? 'كأس' : 'Knockout') : (isAr ? 'الكسبان مستمر' : 'Winner Stays On')}
           </div>
           {gkMode === 'rotating' && (
             <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
@@ -732,6 +800,9 @@ export default function TurfMatchDisplay({ turfResult, isAr = false }: TurfMatch
             isAr={isAr}
             gkMode={gkMode}
             onSubstitute={(teamId, playerUid) => setSubTarget({ teamId, playerUid })}
+            captainVotes={captainVotes}
+            onVoteCaptain={onVoteCaptain}
+            currentUserUid={currentUserUid}
           />
         ))}
       </div>

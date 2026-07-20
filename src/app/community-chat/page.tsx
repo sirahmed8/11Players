@@ -33,6 +33,25 @@ export default function CommunityChatPage() {
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
   const [editingMessage, setEditingMessage] = useState<ChatMessage | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!activeCommunityId) return;
+    try {
+      const saved = localStorage.getItem(`community_chat_draft_${activeCommunityId}`);
+      if (saved) setText(saved);
+    } catch (e) {}
+  }, [activeCommunityId]);
+
+  useEffect(() => {
+    if (!activeCommunityId) return;
+    try {
+      if (text) {
+        localStorage.setItem(`community_chat_draft_${activeCommunityId}`, text);
+      } else {
+        localStorage.removeItem(`community_chat_draft_${activeCommunityId}`);
+      }
+    } catch (e) {}
+  }, [text, activeCommunityId]);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [reactingToMsgId, setReactingToMsgId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -221,8 +240,8 @@ export default function CommunityChatPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pt-24 pb-12" dir={isAr ? "rtl" : "ltr"}>
-        <main className="max-w-4xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pt-24 pb-12 overflow-x-hidden" dir={isAr ? "rtl" : "ltr"}>
+        <main className="max-w-4xl mx-auto px-4 h-[calc(100vh-140px)] flex flex-col overflow-x-hidden">
           <div className="bg-white dark:bg-slate-800 rounded-t-2xl p-4 border-b border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-3">
               <button onClick={() => router.push('/communities')} className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -243,7 +262,7 @@ export default function CommunityChatPage() {
 
           <div 
             ref={scrollRef}
-            className="flex-1 bg-slate-100 dark:bg-slate-900/50 p-4 md:p-6 overflow-y-auto flex flex-col gap-6"
+            className="flex-1 bg-slate-100 dark:bg-slate-900/50 p-4 md:p-6 overflow-y-auto overflow-x-hidden flex flex-col gap-6"
           >
             {loading ? (
               <SiteSkeletonLoader variant="list" />
@@ -308,8 +327,8 @@ export default function CommunityChatPage() {
                           )}
                           {msg.text && <p className="text-start" dir="auto">{msg.text}</p>}
                           
-                          {/* Quick Actions (Hover) - Moved to side */}
-                          <div className={`absolute top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700 p-1 ${isMe ? 'right-full mr-2 rtl:right-auto rtl:left-full rtl:ml-2' : 'left-full ml-2 rtl:left-auto rtl:right-full rtl:mr-2'}`}>
+                          {/* Quick Actions (Hover) - Positioned above bubble */}
+                          <div className={`absolute -top-9 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700 p-1 ${isMe ? 'right-0' : 'left-0'}`}>
                             <button onClick={() => setReplyTo(msg)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-500 transition-colors" title={isAr ? "رد" : "Reply"}>
                               <Reply className="w-3.5 h-3.5" />
                             </button>
@@ -422,11 +441,11 @@ export default function CommunityChatPage() {
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSend} className="flex gap-2 items-end">
-              <div className="flex-1 bg-slate-100 dark:bg-slate-900/50 rounded-xl border border-slate-300 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500 transition-all p-2 flex flex-col">
+            <form onSubmit={handleSend} className="w-full">
+              <div className="w-full bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-700 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all p-2 sm:p-2.5 shadow-sm flex flex-col">
                 
                 {imageFile && (
-                  <div className="flex items-center gap-2 p-2 mb-2 bg-white dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
+                  <div className="flex items-center gap-2 p-2 mb-2 bg-slate-50 dark:bg-slate-800 rounded-lg relative self-start shadow-sm border border-slate-200 dark:border-slate-700">
                     <Image src={URL.createObjectURL(imageFile)} alt="Preview" className="h-16 w-16 object-cover rounded-md" width={64} height={64} unoptimized />
                     <button type="button" onClick={() => setImageFile(null)} className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600">
                       <X className="w-3 h-3" />
@@ -434,9 +453,9 @@ export default function CommunityChatPage() {
                   </div>
                 )}
                 
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-full transition-colors">
+                <div className="flex items-center gap-1.5 sm:gap-2 w-full">
+                  <div className="relative shrink-0">
+                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl transition-colors">
                       <SmilePlus className="w-5 h-5" />
                     </button>
                     <AnimatePresence>
@@ -456,7 +475,7 @@ export default function CommunityChatPage() {
                     </AnimatePresence>
                   </div>
                   <input type="file" accept=".jpg,.jpeg,.png,.webp,.heic" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-full transition-colors">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-xl transition-colors shrink-0">
                     <ImageIcon className="w-5 h-5" />
                   </button>
                   <input 
@@ -465,19 +484,18 @@ export default function CommunityChatPage() {
                     onChange={e => setText(e.target.value)}
                     placeholder={cooldown > 0 ? (isAr ? `انتظر ${cooldown}ث` : `Wait ${cooldown}s`) : (isAr ? "اكتب رسالتك..." : "Type a message...")}
                     disabled={cooldown > 0 || uploadingImage}
-                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm p-1 disabled:opacity-50 text-start"
+                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm sm:text-base px-2 disabled:opacity-50 text-start min-w-0"
                     dir="auto"
                   />
+                  <button 
+                    type="submit"
+                    disabled={(!text.trim() && !imageFile) || cooldown > 0 || uploadingImage}
+                    className="w-10 h-10 sm:w-11 sm:h-11 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white font-black rounded-xl shadow-md transition-all flex items-center justify-center shrink-0 active:scale-95"
+                  >
+                    {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5 rtl:rotate-180" />}
+                  </button>
                 </div>
               </div>
-              
-              <button 
-                type="submit"
-                disabled={(!text.trim() && !imageFile) || cooldown > 0 || uploadingImage}
-                className="px-4 py-4 h-14 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white rounded-xl shadow-md transition-all flex items-center justify-center flex-shrink-0"
-              >
-                {uploadingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-              </button>
             </form>
           </div>
         </main>

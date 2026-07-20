@@ -19,7 +19,7 @@ export interface MatchConfig {
   fixedGkTeamB?: string;          // UID of fixed GK for Team B
   gkRotationInterval?: 'per_match' | 'per_goal' | 'per_time';
   gkRotationMinutes?: number;     // Minutes between GK rotations
-  matchType?: 'league' | 'knockout' | 'winner_stays';
+  matchType?: 'league' | 'knockout' | 'winner_stays' | 'friendly';
   matchDurationMins?: number;     // Duration per match
   endCondition?: 'time' | 'goals' | 'both'; // Target match condition
   targetGoals?: number;           // Goals needed to win / rotate
@@ -222,7 +222,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   }`}
                 >
                   <Shuffle className="w-4 h-4" />
-                  <span>{isAr ? 'حجز كورة عادي (خماسي / سداسي)' : 'Turf / Casual Match'}</span>
+                  <span>{isAr ? 'مباريات الملاعب (خماسي / سداسي / سباعي)' : 'Turf / Casual Match'}</span>
                 </button>
               </div>
 
@@ -644,9 +644,20 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                        <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5" />{isAr ? 'نوع البطولة' : 'Tournament'}</span>
+                        <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5" />{isAr ? 'نوع الحجز / البطولة' : 'Match / Tournament Type'}</span>
                       </label>
                       <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, matchType: 'friendly' }))}
+                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                            config.matchType === 'friendly'
+                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm font-black'
+                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                          <span>⚽ {isAr ? "حجز ودية (لعب مستمر دون بطولة)" : "Casual Friendly (No Tournament)"}</span>
+                        </button>
                         <div className="flex gap-1.5">
                           <button
                             type="button"
@@ -847,8 +858,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   {/* Summary */}
                   <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
                     {isAr
-                      ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
-                      : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
+                      ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'friendly' ? 'حجز ودية كاجوال' : config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
+                      : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'friendly' ? 'Casual Friendly' : config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
                     }
                   </div>
                 </div>

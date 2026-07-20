@@ -220,7 +220,7 @@ const PSI_WEIGHTS: Record<PESPosition, Partial<Record<keyof PlayerAttributes, nu
  * Mapping of formation name → ordered array of 11 position slots.
  * Index 0 is always GK.
  */
-const FORMATIONS: Record<string, PESPosition[]> = {
+export const FORMATIONS: Record<string, PESPosition[]> = {
   // 5v5
   '1-2-1': ['GK', 'CB', 'CMF', 'AMF', 'CF'],
   '2-1-1': ['GK', 'CB', 'CB', 'CMF', 'CF'],
@@ -513,7 +513,7 @@ interface Candidate {
  * @param formation - The formation name to use.
  * @returns Array of `AssignedPlayer` objects.
  */
-function assignPlayersToFormation(
+export function assignPlayersToFormation(
   players: PlayerProfile[],
   formation: string,
 ): AssignedPlayer[] {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ThemeProvider";
 import SettingsMenu from "@/components/SettingsMenu";
@@ -21,6 +21,7 @@ export default function Sidebar() {
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const { locale } = useLocale();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isAr = locale === "ar";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -352,7 +353,11 @@ export default function Sidebar() {
             {links.map((link) => {
               const baseHref = link.href.split("?")[0];
               const cleanPathname = pathname.replace(/\/$/, '') || '/';
-              const isActive = cleanPathname === baseHref;
+              let isActive = cleanPathname === baseHref;
+              if (cleanPathname === '/profile' && baseHref === '/profile') {
+                const currentUidParam = searchParams?.get('uid');
+                isActive = !currentUidParam || currentUidParam === user?.uid;
+              }
               const hasUnreadDot = (link.href === "/inbox" && unreadInboxCount > 0) || 
                                    (link.href === "/support" && unreadSupportCount > 0) || 
                                    (link.href === "/notifications" && unreadNotifsCount > 0);

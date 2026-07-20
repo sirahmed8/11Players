@@ -119,22 +119,31 @@ const PlayerCardCompact = React.memo(function PlayerCardCompact({ player, record
               <span className="text-[10px] font-bold text-amber-300">{player.peerRatingAvg.toFixed(1)}</span>
             </div>
           )}
-          {onVoteCaptain && currentUserId && (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onVoteCaptain(player.uid);
-              }}
-              className={`mt-1.5 p-1.5 rounded-full transition-all ${
-                player.captainVotes?.includes(currentUserId)
-                  ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
-                  : 'bg-slate-100 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:bg-slate-800 dark:hover:bg-amber-500/10'
-              }`}
-              title="Vote for Captain"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill={player.captainVotes?.includes(currentUserId) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
-            </button>
-          )}
+          <div className="flex flex-col items-center mt-1.5 gap-1">
+            {onVoteCaptain && currentUserId && currentUserId !== player.uid && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onVoteCaptain(player.uid);
+                }}
+                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold transition-all shadow-sm ${
+                  player.captainVotes?.includes(currentUserId)
+                    ? 'bg-amber-500 text-slate-950 dark:bg-amber-400 dark:text-slate-950 ring-2 ring-amber-300'
+                    : 'bg-slate-100 text-slate-600 hover:text-amber-600 hover:bg-amber-100 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-amber-500/20 dark:hover:text-amber-300'
+                }`}
+                title="Vote for Captain / تصويت كابتن"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={player.captainVotes?.includes(currentUserId) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+                <span>{player.captainVotes?.length || 0}</span>
+              </button>
+            )}
+            {(player.captainVotes?.length || 0) > 0 && (!onVoteCaptain || !currentUserId || currentUserId === player.uid) && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 text-[11px] font-extrabold" title="Total Captain Votes">
+                <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-amber-500"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg>
+                <span>{player.captainVotes?.length || 0}</span>
+              </div>
+            )}
+          </div>
         </div>
       </motion.div>
     </Link>
