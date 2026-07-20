@@ -74,7 +74,11 @@ export default function AchievementsPage() {
     );
   }
 
-  const achievements = getPlayerAchievements(player, locale === "ar" ? "ar" : "en");
+  const rawAchievements = getPlayerAchievements(player, locale === "ar" ? "ar" : "en");
+  // Deduplicate by id to avoid accidental duplicated definitions or double counting
+  const achievementsMap: Record<string, any> = {};
+  rawAchievements.forEach((a) => { achievementsMap[a.id] = a; });
+  const achievements = Object.values(achievementsMap);
   const earnedCount = achievements.filter((achievement) => achievement.earned).length;
   const totalCount = achievements.length;
   const trophyCount = player.trophies?.length || 0;
@@ -86,12 +90,12 @@ export default function AchievementsPage() {
     {
       icon: <Target className="w-5 h-5 text-emerald-500" />,
       label: isAr ? "الأهداف" : "Goals",
-      value: player.stats?.goals || 0,
+      value: Number(player.stats?.goals || 0),
     },
     {
       icon: <Handshake className="w-5 h-5 text-cyan-500" />,
       label: isAr ? "التمريرات الحاسمة" : "Assists",
-      value: player.stats?.assists || 0,
+      value: Number(player.stats?.assists || 0),
     },
     {
       icon: <Star className="w-5 h-5 text-amber-500" />,

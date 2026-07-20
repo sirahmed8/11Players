@@ -34,8 +34,7 @@ type SortKey =
   | 'primaryPosition'
   | 'calculatedAge'
   | 'preferredFoot'
-  | 'hasWarning'
-  | 'isVerifiedByAdmin'
+  | 'overallRating'
   | 'stats.goals'
   | 'stats.assists';
 
@@ -76,10 +75,8 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
       return player.calculatedAge;
     case 'preferredFoot':
       return player.preferredFoot;
-    case 'hasWarning':
-      return player.hasWarning ? 1 : 0;
-    case 'isVerifiedByAdmin':
-      return player.isVerifiedByAdmin ? 1 : 0;
+    case 'overallRating':
+      return player.overallRating || 0;
     case 'stats.goals':
       return player.stats?.goals || 0;
     case 'stats.assists':
@@ -472,8 +469,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     { key: 'primaryPosition', en: 'Position', ar: 'المركز' },
     { key: 'calculatedAge', en: 'Age', ar: 'العمر' },
     { key: 'preferredFoot', en: 'Foot', ar: 'القدم' },
-    { key: 'hasWarning', en: 'Warning', ar: 'تحذير' },
-    { key: 'isVerifiedByAdmin', en: 'Verified', ar: 'موثق' },
+    { key: 'overallRating', en: 'Overall', ar: 'التقييم' },
     { key: 'stats.goals', en: 'Goals', ar: 'أهداف' },
     { key: 'stats.assists', en: 'Assists', ar: 'تمريرات' },
     { key: null, en: 'Actions', ar: 'إجراءات' },
@@ -516,9 +512,9 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       </div>
       {/* Table */}
       <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
-        <table className="w-full min-w-[900px] text-sm" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-          <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
+        <table className="w-full min-w-[900px] text-sm table-fixed" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+          <thead className="table w-full">
+            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 table w-full">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
@@ -535,7 +531,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="block max-h-[560px] overflow-y-auto w-full">
             <AnimatePresence mode="popLayout">
               {paginatedPlayers.map((player) => (
                 <AdminTableRow
@@ -543,8 +539,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   player={player}
                   locale={locale}
                   loadingUid={loadingUid}
-                  onToggleWarning={handleToggleWarning}
-                  onToggleVerify={handleToggleVerify}
                   onOpenEditModal={(p) => setEditModal({ open: true, player: p })}
                   onOpenAttrModal={openAttrModal}
                   onOpenStatsModal={openStatsModal}
@@ -552,7 +546,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   onOpenResetModal={(p) => setPlayerToReset(p)}
                   onOpenDeleteModal={(p) => setPlayerToDelete(p)}
                   isOwner={isOwner}
-                  onOpenManageCommunitiesModal={isOwner ? (p) => setManageCommModal({ open: true, player: p }) : undefined}
                   pendingEditCount={pendingEditsByPlayer[player.uid] || 0}
                   onOpenSuggestionsModal={(p) => setSuggestionsModalPlayer(p)}
                 />

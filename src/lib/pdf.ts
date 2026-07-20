@@ -142,14 +142,18 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: '
 
       const imgData = canvas.toDataURL('image/png');
 
-      const targetWidth = pdfWidth; // Full width landscape
-      const targetHeight = (canvas.height * pdfWidth) / canvas.width;
+      // Scale the rendered canvas to fit within A4 page while preserving aspect
+      const scale = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
+      const targetWidth = canvas.width * scale;
+      const targetHeight = canvas.height * scale;
+      const xPos = (pdfWidth - targetWidth) / 2;
+      const yPos = (pdfHeight - targetHeight) / 2;
 
       if (i > 0) {
         pdf.addPage();
       }
 
-      pdf.addImage(imgData, 'PNG', 0, 0, targetWidth, targetHeight);
+      pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
     }
 
     pdf.save("master_player_directory.pdf");

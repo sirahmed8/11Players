@@ -224,12 +224,7 @@ export default function GlobalUsersTable() {
         </div>
         
         <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          <button
-            onClick={handleDeleteAllMock}
-            className="px-4 py-2 bg-red-600/10 hover:bg-red-600/20 text-red-600 dark:text-red-400 font-bold text-xs rounded-xl border border-red-500/30 transition-all active:scale-95 whitespace-nowrap"
-          >
-            🗑️ {isAr ? "حذف اللاعبين الوهميين" : "Delete Mock Players"}
-          </button>
+          {/* Mock player deletion removed per request */}
           <div className="relative w-full sm:w-72">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
