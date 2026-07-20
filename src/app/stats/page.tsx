@@ -77,31 +77,51 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
           : (p.stats as any)?.[statKey] || 0;
 
     const isCurrentUser = Boolean(currentUserUid && p.uid === currentUserUid);
+    const player = p;
 
     return (
       <div 
         key={p.uid}
-        className={`flex items-center justify-between p-4 transition-colors ${
+        className={`flex items-center justify-between p-4 transition-all duration-200 ${
           isCurrentUser
-            ? "bg-emerald-500 text-white dark:bg-emerald-600 relative z-10 font-bold"
-            : "hover:bg-slate-50 dark:hover:bg-slate-700/30"
+            ? "bg-gradient-to-r from-slate-700 to-slate-600 text-white dark:from-slate-600 dark:to-slate-700 relative z-10 font-semibold border-l-4 border-emerald-500 shadow-md"
+            : "hover:bg-slate-50 dark:hover:bg-slate-700/30 border-l-4 border-transparent"
         }`}
       >
         <div className="flex items-center gap-4">
-          <span className={`font-black w-6 text-center ${idx === 0 ? 'text-amber-500 text-lg' : idx === 1 ? 'text-slate-400 text-base' : idx === 2 ? 'text-amber-700 text-base' : 'text-slate-500 text-sm'}`}>{idx + 1}</span>
+          <div className={`font-black w-8 h-8 rounded-full flex items-center justify-center ${
+            idx === 0 ? 'bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-lg' : 
+            idx === 1 ? 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-700 shadow-md' : 
+            idx === 2 ? 'bg-gradient-to-br from-amber-600 to-amber-800 text-white shadow-md' : 
+            'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+          }`}>
+            {idx + 1}
+          </div>
           <Link href={`/profile?uid=${p.uid}`} className="flex items-center gap-3 group">
             <PlayerRowAvatar photoUrl={photo} cardName={p.cardName} />
             <div>
               <div className="flex items-center gap-2">
-                <span className={`font-bold group-hover:text-emerald-500 transition-colors ${isCurrentUser ? 'text-white font-black' : ''}`}>{p.cardName}</span>
+                <span className={`font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors ${isCurrentUser ? 'text-white font-semibold' : 'text-slate-800 dark:text-slate-200'}`}>{p.cardName}</span>
+                {player.form && (
+                  <span className="text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-1.5 py-0.5 rounded font-semibold">
+                    {player.form}
+                  </span>
+                )}
               </div>
-              <div className="text-xs text-slate-500 bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded inline-block mt-0.5 font-semibold">
-                {p.primaryPosition}
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                  {p.primaryPosition}
+                </span>
+                {p.playStyle && (
+                  <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                    {p.playStyle.replace(/_/g, ' ').trim()}
+                  </span>
+                )}
               </div>
             </div>
           </Link>
         </div>
-        <div className={`font-black text-xl ${isCurrentUser ? 'text-white' : 'text-slate-700 dark:text-slate-200'}`}>
+        <div className={`font-black text-2xl ${isCurrentUser ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
           {scoreVal}
         </div>
       </div>
