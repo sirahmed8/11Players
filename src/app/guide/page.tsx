@@ -21,9 +21,9 @@ export default function GuidePage() {
   }, []);
 
   const tabs: { id: Tab; label: string; Icon: React.FC<any>; color: string }[] = [
-    { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-emerald-500" },
+    { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-blue-500" },
     { id: 'positions', label: isAr ? "المراكز" : "Positions", Icon: Target, color: "text-red-500" },
-    { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", Icon: Shuffle, color: "text-blue-500" },
+    { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", Icon: Shuffle, color: "text-indigo-500" },
     { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", Icon: Star, color: "text-amber-500" },
     { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
   ];
@@ -36,7 +36,7 @@ export default function GuidePage() {
           {/* Real Luxury Sidebar during loading */}
           <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start">
             <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-              <h2 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4 px-2">
+              <h2 className="text-xl font-black text-blue-600 dark:text-blue-400 mb-4 px-2">
                 {isAr ? "دليل 11Players" : "11Players Guide"}
               </h2>
               <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
@@ -47,7 +47,7 @@ export default function GuidePage() {
                       key={tab.id}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
                         isActive 
-                        ? 'bg-emerald-500 text-white font-bold shadow-md' 
+                        ? 'bg-blue-600 text-white font-bold shadow-md' 
                         : 'text-slate-600 dark:text-slate-400 opacity-75'
                       }`}
                     >
@@ -65,7 +65,7 @@ export default function GuidePage() {
           {/* Luxury Shimmering Main Content Box */}
           <div className="flex-1 min-w-0 min-h-[80vh]">
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-10 shadow-xl border border-slate-200 dark:border-slate-800 space-y-8 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 dark:via-emerald-400/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 dark:via-blue-400/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
               
               <div className="space-y-4">
                 <div className="h-9 w-72 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
@@ -74,7 +74,7 @@ export default function GuidePage() {
               </div>
 
               <div className="space-y-4 pt-2">
-                <div className="h-7 w-64 bg-emerald-500/20 rounded-xl" />
+                <div className="h-7 w-64 bg-blue-500/20 rounded-xl" />
                 <div className="h-5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
                 <div className="h-5 w-4/5 bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
                 <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 h-16 w-full mt-4" />
@@ -103,7 +103,7 @@ export default function GuidePage() {
         {/* Sidebar Navigation */}
         <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start">
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-            <h2 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4 px-2">
+            <h2 className="text-xl font-black text-blue-600 dark:text-blue-400 mb-4 px-2">
               {isAr ? "دليل 11Players" : "11Players Guide"}
             </h2>
             <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
@@ -115,7 +115,7 @@ export default function GuidePage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
                       isActive 
-                      ? 'bg-emerald-500 text-white font-bold shadow-md' 
+                      ? 'bg-blue-600 text-white font-bold shadow-md' 
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
@@ -155,7 +155,7 @@ export default function GuidePage() {
                   </div>
 
                   <section>
-                    <h2 className="text-2xl font-bold mb-3 text-emerald-600 dark:text-emerald-400">
+                    <h2 className="text-2xl font-bold mb-3 text-blue-600 dark:text-blue-400">
                       {isAr ? "كيف يتم حساب التقييم الكلي (OVR)؟" : "How is the Overall Rating (OVR) calculated?"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
@@ -195,7 +195,7 @@ export default function GuidePage() {
                       { pos: "GK (Goalkeeper)", ar: "حارس مرمى", desc: isAr ? "حامي العرين. الطاقات الوحيدة المهمة هي حراسة المرمى والتمركز." : "The last line of defense. The only stats that matter are Goalkeeping and positioning." },
                     ].map((p, i) => (
                       <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-lg text-emerald-600 dark:text-emerald-400 mb-1">
+                        <div className="font-bold text-lg text-blue-600 dark:text-blue-400 mb-1">
                           {isAr ? p.ar : p.pos}
                         </div>
                         <div className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{p.desc}</div>
@@ -217,7 +217,7 @@ export default function GuidePage() {
                   <div className="grid sm:grid-cols-2 gap-4">
                     {PLAYER_STYLES.map((s) => (
                       <div key={s.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                        <div className="font-bold text-blue-600 dark:text-blue-400 mb-1">
                           {isAr ? s.ar : s.en}
                         </div>
                         <div className="text-slate-600 dark:text-slate-300 text-sm">
@@ -241,7 +241,7 @@ export default function GuidePage() {
                   <div className="grid sm:grid-cols-2 gap-4">
                     {SKILLS.map((s) => (
                       <div key={s.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                        <div className="font-bold text-blue-600 dark:text-blue-400 mb-1">
                           {isAr ? s.labelAr : s.label}
                         </div>
                         <div className="text-slate-600 dark:text-slate-300 text-sm">
@@ -261,67 +261,166 @@ export default function GuidePage() {
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🌍 {isAr ? "المجتمعات (Communities)" : "Communities"}
+                      🌍 {isAr ? "المجتمعات المتعددة (Multiple Communities)" : "Multiple Communities"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "الآن يمكنك إنشاء أو الانضمام إلى عدة مجتمعات مختلفة (مثل حجز الإثنين، حجز الجمعة). إحصائياتك تنفصل لكل مجتمع لضمان التنافس العادل!"
-                        : "You can now create or join multiple communities (e.g., Monday League, Friday League). Your stats are separated per community for fair competition!"}
+                        ? "يمكنك إنشاء أو الانضمام إلى عدة مجتمعات مختلفة (مثل حجز الإثنين، حجز الجمعة). إحصائياتك منفصلة لكل مجتمع لضمان التنافس العادل!"
+                        : "You can create or join multiple communities (e.g., Monday League, Friday League). Your stats are separated per community for fair competition!"}
                     </p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⚖️ {isAr ? "صناعة المباريات العادلة (Matchmaking)" : "Fair Matchmaking"}
+                      ⚖️ {isAr ? "صناعة المباريات الذكية (Smart Matchmaking)" : "Smart Matchmaking"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "تقوم الخوارزمية باختيار أفضل 22 لاعباً بناءً على مراكزهم (PSI)، وتقسيمهم لفريقين متكافئين تماماً بناءً على الطاقات. يتم تحويل الباقي لدكة البدلاء."
-                        : "The algorithm selects the best 22 players based on Position Specific Index (PSI), and divides them into perfectly balanced teams. The rest are sent to the bench."}
+                        ? "عندما تعمل حجز، يمكنك استخدام الموقع لتقسيم وتوزيع اللاعبين وتشكيل الفرق بشكل عادل بناءً على الطاقات والمراكز."
+                        : "When you book a match, you can use the platform to divide and distribute players, creating fair teams based on their stats and positions."}
                     </p>
                   </section>
                   
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ✅ {isAr ? "مراجعة الأقران وتوثيق الطاقات" : "Peer Reviews & Approvals"}
+                      ✅ {isAr ? "نظام تقييم الأقران (Peer Rating System)" : "Peer Rating System"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "طاقات اللاعبين تعتمد على مراجعة باقي اللاعبين (Peer Review) ليتم حساب المتوسط، ثم يعتمدها المسؤول لضمان عدم المبالغة في التقييمات وتوثيق البطاقة."
-                        : "Player attributes are based on Peer Reviews to calculate averages, which are then approved by the admin to prevent inflated stats and verify the card."}
+                        ? "نظام تقييم متبادل بين اللاعبين بعد المباريات، حيث يتم تسجيل كل شيء ومن ثم التواصل بمعلومات من قام بتقييمك."
+                        : "A mutual rating system between players after matches, where everything is recorded and you get notified about who rated you."}
                     </p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      📊 {isAr ? "تتبع الإحصائيات (Stats Tracking)" : "Stats Tracking"}
+                      🏆 {isAr ? "نظام البطولات والمواسم (Tournaments & Seasons)" : "Tournaments & Seasons System"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "يمكن لكل مجتمع تسجيل الأهداف والتمريرات الحاسمة وجوائز رجل المباراة في كل مباراة."
-                        : "Each community can record Goals, Assists, and MVP awards in every match."}
+                        ? "نظام بطولات أو دوري مستمر مع أي فكرة تخطر ببالك. كل شيء موجود على الموقع ويمكن للجميع رؤيته."
+                        : "A continuous tournament or league system with any idea you can think of. Everything is available on the platform and visible to everyone."}
                     </p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🌟 {isAr ? "المزاج والحالة (Mood & Form)" : "Mood & Form"}
+                      💡 {isAr ? "نصائح ذكية (Smart Advice)" : "Smart Advice"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "يمكن للاعبين تحديث حالتهم ومزاجهم (مثل ↗️، ↘️) قبل المباريات لعكس مستوى لياقتهم الحالية."
-                        : "Players can update their form/mood (e.g., ↗️, ↘️) before matches to reflect their current fitness level."}
+                        ? "نصائح تصل إليك بشكل دوري لمساعدتك في تحسين أدائك."
+                        : "Advice that comes to you periodically to help you improve your performance."}
                     </p>
                   </section>
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🏆 {isAr ? "نهاية الموسم وتوزيع الجوائز" : "Season End & Trophies"}
+                      ⭐ {isAr ? "رجل المباراة MOTM" : "Man of the Match (MOTM)"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">
                       {isAr 
-                        ? "مسؤول المجتمع يمكنه إنهاء الموسم في أي وقت، ليتم تصفير الإحصائيات (أهداف/أسيست) وتوزيع الجوائز (كرة ذهبية، حذاء ذهبي، صانع ألعاب) بشكل دائم على ملفات اللاعبين."
-                        : "The community admin can end the season at any time. This resets stats (Goals/Assists) to 0 and permanently awards trophies (Ballon d'Or, Golden Boot, Playmaker) to players' profiles."}
+                        ? "نظام لاختيار أفضل لاعب في كل مباراة."
+                        : "A system to select the best player in each match."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      � {isAr ? "شات المجتمع (Community Chat)" : "Community Chat"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "نظام شات للتواصل بين اللاعبين، بالإضافة إلى إمكانية مواجهة مجتمع ضد مجتمع (تحتاج شهرة الموقع)."
+                        : "A chat system for communication between players, plus the ability to have community vs community matches (requires platform popularity)."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      � {isAr ? "دعم اللغتين العربية والإنجليزية" : "Arabic & English Support"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "الموقع يدعم اللغتين العربية والإنجليزية بالكامل."
+                        : "The platform fully supports both Arabic and English languages."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      👑 {isAr ? "تصويت على كابتن الفريق" : "Team Captain Voting"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "نظام تصويت اللاعبين لاختيار كابتن الفريق."
+                        : "A player voting system to choose the team captain."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🎖️ {isAr ? "نظام المواسم والجوائز الرقمية" : "Seasons & Digital Trophies"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "نظام مواسم مع بطولات وجوائز رقمية للفائزين."
+                        : "A seasons system with tournaments and digital trophies for winners."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      ⚽ {isAr ? "ركلات الترجيح الذكية" : "Smart Penalty Shootouts"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "نظام ركلات الترجيح يختار أفضل اللاعبين للضربات."
+                        : "A penalty shootout system that selects the best players for penalty kicks."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🔄 {isAr ? "تعديل التشكيلة ديناميكي" : "Dynamic Lineup Changes"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "يمكنك تغيير التشكيلة داخل المباراة أو قبل البداية، ويظهر إذا كان اللاعب ضعيف في هذا المركز."
+                        : "You can change the lineup during the match or before it starts, and it shows if a player is weak in that position."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🟨🟥 {isAr ? "نظام الكروت الصفراء والحمراء والوقت الضائع" : "Yellow/Red Cards & Stoppage Time"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "نظام الكروت الصفراء والحمراء والوقت بدل الضائع لإدارة المباريات بشكل احترافي."
+                        : "Yellow and red cards system plus stoppage time for professional match management."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      📊 {isAr ? "تتبع الإحصائيات الشامل" : "Comprehensive Stats Tracking"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "تسجيل شامل للأهداف والتمريرات الحاسمة والمباريات اللعبة وكل شيء يخص الأداء."
+                        : "Comprehensive recording of goals, assists, matches played, and everything related to performance."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      🔮 {isAr ? "المزيد قادم" : "More Coming Soon"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "هناك الكثير من المميزات الأخرى القادمة، وإذا كان لديك أي فكرة فأخبرنا وسنقوم بتنفيذها!"
+                        : "There are many more features coming soon, and if you have any idea, let us know and we'll implement it!"}
                     </p>
                   </section>
                 </div>

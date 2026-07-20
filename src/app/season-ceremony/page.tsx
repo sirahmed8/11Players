@@ -103,40 +103,46 @@ export default function SeasonCeremonyPage() {
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen pb-24 bg-slate-50 dark:bg-slate-950 transition-colors duration-300">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-to-br from-amber-600/30 via-slate-900 to-amber-950/40 border-b border-amber-500/30 px-4 py-12 sm:px-8 sm:py-16">
-          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div className="text-center md:text-start space-y-3 max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-xs font-bold uppercase tracking-wider">
-                <Crown className="w-4 h-4 animate-bounce" />
-                <span>{isAr ? "حفل ختام الموسم والتتويج" : "Season Ceremony & Hall of Fame"}</span>
+        {/* Hero Section - Professional Card */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 pt-8">
+          <div className="bg-gradient-to-br from-amber-600 to-amber-700 rounded-3xl shadow-2xl shadow-amber-500/30 border-2 border-amber-400/30 p-8 sm:p-12 relative overflow-hidden">
+            {/* Decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+            
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-center md:text-start space-y-4 max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold uppercase tracking-wider">
+                  <Crown className="w-4 h-4 animate-bounce" />
+                  <span>{isAr ? "حفل ختام الموسم والتتويج" : "Season Ceremony & Hall of Fame"}</span>
+                </div>
+                <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-3">
+                  <span>{isAr ? `منصة أبطال الموسم` : `Season Champions Podium`}</span>
+                  <Sparkles className="w-8 h-8 text-yellow-300 shrink-0" />
+                </h1>
+                <p className="text-sm sm:text-base text-amber-50 font-medium leading-relaxed">
+                  {isAr
+                    ? `احتفل بفرسان وأبطال الموسم في مجتمع ${activeCommunity?.name || ""} واستعرض متصدرين الإحصائيات والألقاب الذهبية.`
+                    : `Celebrate the champions of ${activeCommunity?.name || "your community"} and explore top leaders across goals, assists, and MOTM awards.`}
+                </p>
               </div>
-              <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-3">
-                <span>{isAr ? `منصة أبطال الموسم` : `Season Champions Podium`}</span>
-                <Sparkles className="w-8 h-8 text-amber-400 shrink-0" />
-              </h1>
-              <p className="text-sm sm:text-base text-slate-300 font-medium">
-                {isAr
-                  ? `احتفل بفرسان وأبطال الموسم في مجتمع ${activeCommunity?.name || ""} واستعرض متصدرين الإحصائيات والألقاب الذهبية.`
-                  : `Celebrate the champions of ${activeCommunity?.name || "your community"} and explore top leaders across goals, assists, and MOTM awards.`}
-              </p>
-            </div>
 
-            {isAdmin && (
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="shrink-0"
-              >
-                <button
-                  onClick={() => setShowWizardModal(true)}
-                  className="px-6 py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm sm:text-base shadow-xl shadow-amber-500/20 flex items-center gap-3 transition-all border-2 border-amber-300/40"
+              {isAdmin && (
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="shrink-0"
                 >
-                  <Crown className="w-5 h-5 fill-slate-950" />
-                  <span>{isAr ? "بدء معالج حفل التتويج وتصفير الموسم 🚀" : "Launch Ceremony & Reset Wizard 🚀"}</span>
-                </button>
-              </motion.div>
-            )}
+                  <button
+                    onClick={() => setShowWizardModal(true)}
+                    className="px-8 py-4 rounded-2xl bg-white hover:bg-amber-50 text-amber-700 font-black text-sm sm:text-base shadow-xl shadow-black/20 flex items-center gap-3 transition-all border-2 border-amber-300"
+                  >
+                    <Crown className="w-5 h-5 fill-amber-700" />
+                    <span>{isAr ? "بدء معالج حفل التتويج وتصفير الموسم 🚀" : "Launch Ceremony & Reset Wizard 🚀"}</span>
+                  </button>
+                </motion.div>
+              )}
+            </div>
           </div>
         </div>
 

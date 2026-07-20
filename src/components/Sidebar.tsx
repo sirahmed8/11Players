@@ -424,7 +424,7 @@ export default function Sidebar() {
                           onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-200 font-bold text-sm group ${
                             isActive
-                              ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 scale-[1.02]"
+                              ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25 scale-[1.02]"
                               : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                           }`}
                         >
