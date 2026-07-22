@@ -345,6 +345,7 @@ export default function CommunityPage() {
         <OvrExplanationModal
           isOpen={isOvrInfoOpen}
           onClose={() => setIsOvrInfoOpen(false)}
+          player={user ? players.find(p => p.uid === user.uid) : null}
         />
 
         <PlayerComparisonModal

@@ -3,16 +3,94 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Sparkles, ShieldCheck, Activity, Users, Award, HelpCircle, Zap, Target, Crosshair, Dumbbell, Shield, Lightbulb, Compass } from "lucide-react";
+import { PESPosition } from "@/types";
+import { getTacticalSuggestions } from "@/lib/suggestionEngine";
+import { PLAYER_STYLES } from "@/components/PlayerStylePicker";
 import { useLocale } from "@/components/ThemeProvider";
 
 interface OvrExplanationModalProps {
   isOpen: boolean;
   onClose: () => void;
+  player?: any; // To pass in the player object for personalized hints
 }
 
-export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationModalProps) {
+export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExplanationModalProps) {
   const { locale } = useLocale();
   const isAr = locale === "ar";
+
+  // Calculate dynamic personalized hints if player exists
+  const suggestions = React.useMemo(() => {
+    if (!player) return null;
+    return getTacticalSuggestions(
+      player.approvedAttributes || player.attributes,
+      player.height,
+      player.weight,
+      player.preferredFoot
+    );
+  }, [player]);
+
+  const renderPersonalizedPositionHint = () => {
+    if (!suggestions || !player) {
+      return isAr
+        ? "تقييمك العام (OVR) يتأثر مباشرة بمركزك الأساسي. اختيار المركز الصحيح يعزز تقييمك."
+        : "Your OVR is directly calculated based on your primary position weights. Choosing the right position maximizes your OVR.";
+    }
+
+    const currentPos = player.primaryPosition || 'CMF';
+    const bestPos = suggestions.positions[0];
+
+    if (currentPos !== bestPos.position) {
+      return isAr
+        ? `مركزك الأساسي المختار هو (${currentPos})، لكن بناءً على طاقاتك وبنيتك، يعتقد الذكاء الاصطناعي أنك ستحصل على تقييم وأداء أفضل بكثير في مركز (${bestPos.position}) بنسبة تطابق ${bestPos.matchPercentage}%!`
+        : `Your chosen position is (${currentPos}), but based on your stats and build, our AI believes you'd get a much higher OVR and perform better at (${bestPos.position}) with a ${bestPos.matchPercentage}% match!`;
+    }
+    
+    return isAr
+      ? `رائع! مركزك الحالي (${currentPos}) هو الأنسب لك تماماً بناءً على طاقاتك بنسبة تطابق ${bestPos.matchPercentage}%. لقد اخترت المركز المثالي الذي يبرز قدراتك.`
+      : `Excellent! Your current position (${currentPos}) perfectly matches your attributes with a ${bestPos.matchPercentage}% synergy. You've picked the ideal role to maximize your OVR.`;
+  };
+
+  const renderPersonalizedStyleHint = () => {
+    if (!suggestions || !player) {
+      return isAr
+        ? "اختيار أسلوب لعب يناسب مراكزك مع تحديد مركز ثانٍ وثالث يعزز قوتك في التشكيلة."
+        : "Selecting a Playstyle that synergizes with your role plus setting 2nd/3rd positions boosts your team impact.";
+    }
+
+    const currentStyleId = player.playStyle;
+    const currentStyleObj = currentStyleId ? PLAYER_STYLES.find(s => s.id === currentStyleId) : null;
+    const currentStyleNameAr = currentStyleObj?.ar || 'غير محدد';
+    const currentStyleNameEn = currentStyleObj?.en || 'None';
+    
+    const bestStyle = suggestions.playStyles[0];
+
+    let styleAdvice = "";
+    if (!currentStyleId) {
+      styleAdvice = isAr
+        ? `لم تختر أسلوب لعب بعد! نقترح بشدة اختيار (${bestStyle.styleAr}) ليتناسب مع قدراتك.`
+        : `You haven't selected a Playstyle! We highly recommend choosing (${bestStyle.styleEn}) to match your abilities.`;
+    } else if (currentStyleId !== bestStyle.styleId) {
+      styleAdvice = isAr
+        ? `أسلوب لعبك الحالي هو (${currentStyleNameAr}). بينما نوصي بتجربة (${bestStyle.styleAr}) حيث يتطابق مع قدراتك بنسبة ${bestStyle.matchPercentage}%.`
+        : `Your playstyle is (${currentStyleNameEn}). However, the AI suggests trying (${bestStyle.styleEn}) which matches your abilities by ${bestStyle.matchPercentage}%.`;
+    } else {
+      styleAdvice = isAr
+        ? `أسلوب لعبك (${currentStyleNameAr}) متناغم تماماً مع قدراتك ومركزك!`
+        : `Your playstyle (${currentStyleNameEn}) perfectly synergizes with your abilities and position!`;
+    }
+
+    const hasSecondary = !!player.secondaryPosition;
+    const hasTertiary = !!player.tertiaryPosition;
+    
+    if (!hasSecondary || !hasTertiary) {
+      const posAdvice = isAr 
+        ? " تذكر أيضاً اختيار مراكز إضافية (ثاني وثالث) لزيادة فرص مشاركتك في التشكيلات المختلفة." 
+        : " Don't forget to set your 2nd & 3rd positions to boost your chances of fitting into various AI formations.";
+      styleAdvice += posAdvice;
+    }
+
+    return styleAdvice;
+  };
 
   return (
     <AnimatePresence>
@@ -53,24 +131,20 @@ export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationM
               <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-5 rounded-3xl border border-amber-500/40 shadow-sm space-y-3">
                 <div className="flex items-center gap-2.5 font-black text-amber-600 dark:text-amber-400 text-base">
                   <Lightbulb className="w-6 h-6 shrink-0 animate-bounce" />
-                  <span>{isAr ? "💡 نصائح وإرشادات هامة: تأثير المركز وأسلوب اللعب على تقييمك (Hints & Advices)" : "💡 Pro Advice & Hints: How Position & Playstyle Affect OVR"}</span>
+                  <span>{isAr ? "💡 نصيحة المساعد الذكي المخصصة لك (Personalized AI Advice)" : "💡 Personalized AI Advice for Your Profile"}</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-300">
                   <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-amber-500/20 shadow-2xs">
                     <span className="font-bold text-amber-600 dark:text-amber-400 block mb-1">
-                      {isAr ? "🎯 اختيار المركز الأساسي (Primary Position)" : "🎯 Primary Position Accuracy"}
+                      {isAr ? "🎯 مركزك الأساسي (Primary Position)" : "🎯 Your Primary Position"}
                     </span>
-                    {isAr
-                      ? "تقييمك العام (OVR) يتأثر مباشرة بمركزك الأساسي. إذا كانت قدراتك الدفاعية مرتفعة جداً وأنت تلعب في الدفاع، لكنك اخترت مركز المهاجم (CF) في ملفك، فسيكون تقييمك العام منخفضاً لأن معادلة المهاجم تعتمد على الوعي الهجومي والإنهاء والسرعة وليس الدفاع!"
-                      : "Your OVR is directly calculated based on your primary position weights. If your defensive abilities are 90+ but your primary position is set to CF (Forward), your calculated OVR will drop because CF weights heavily prioritize Finishing, Offensive Awareness, and Pace!"}
+                    {renderPersonalizedPositionHint()}
                   </div>
                   <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-amber-500/20 shadow-2xs">
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 block mb-1">
-                      {isAr ? "⚽ أسلوب اللعب والمراكز 2nd & 3rd (Playstyle Synergy)" : "⚽ Playstyle Synergy & 2nd/3rd Positions"}
+                      {isAr ? "⚽ التناغم والمراكز الإضافية (Synergy & Versatility)" : "⚽ Synergy & Versatility"}
                     </span>
-                    {isAr
-                      ? "اختيار أسلوب لعب يناسب مراكزك (مثل Goal Poacher للمهاجم أو Anchor Man للمدافع) مع تحديد مركز ثانٍ وثالث يعزز قوتك في التشكيلة ويسمح لنظام الذكاء الاصطناعي بوضعك في التشكيلة المثالية دون أي خصم في الكفاءة التكتيكية."
-                      : "Selecting a Playstyle that synergizes with your role (e.g. Goal Poacher for CFs or Anchor Man for DMFs) plus setting accurate 2nd & 3rd positions boosts your team impact and allows AI matchmaking to slot you into optimum formations seamlessly."}
+                    {renderPersonalizedStyleHint()}
                   </div>
                 </div>
               </div>

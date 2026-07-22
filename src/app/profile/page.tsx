@@ -576,6 +576,7 @@ function PlayerProfileContent() {
       <OvrExplanationModal
         isOpen={isOvrInfoOpen}
         onClose={() => setIsOvrInfoOpen(false)}
+        player={player}
       />
 
       <PlayerComparisonModal
