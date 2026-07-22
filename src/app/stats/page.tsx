@@ -15,6 +15,7 @@ import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import FormIcon from "@/components/FormIcon";
 import { RefreshCw, Trophy, Target, Zap, Award, Medal } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 function PlayerRowAvatar({ photoUrl, cardName }: { photoUrl?: string; cardName: string }) {
   const [imgError, setImgError] = React.useState(false);
@@ -154,15 +155,20 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
           <>
             {topThree.map((p, idx) => renderRow(p, idx))}
             {remainingPlayers.length > 0 && (
-              <div
-                className={`grid transition-[grid-template-rows,opacity] duration-200 ease-out ${
-                  isExpanded ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-                }`}
-              >
-                <div className="overflow-hidden divide-y divide-slate-100 dark:divide-slate-700/50 border-t border-slate-100 dark:border-slate-700/50">
-                  {remainingPlayers.map((p, idx) => renderRow(p, idx + 3))}
-                </div>
-              </div>
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    key="expanded-rows"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+                    className="overflow-hidden divide-y divide-slate-100 dark:divide-slate-700/50 border-t border-slate-100 dark:border-slate-700/50 will-change-[height,opacity]"
+                  >
+                    {remainingPlayers.map((p, idx) => renderRow(p, idx + 3))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             )}
           </>
         )}
@@ -180,12 +186,23 @@ function StatTable({ tableId, title, data, statKey, isOverall = false, isGA = fa
   );
 }
 
+const POS_GROUPS = [
+  { id: 'ALL', labelEn: 'All Positions', labelAr: 'كل المراكز', positions: [] as string[] },
+  { id: 'CF_SS', labelEn: 'Strikers (CF/SS)', labelAr: 'الهجوم (CF/SS)', positions: ['CF', 'SS'] },
+  { id: 'LWF_RWF', labelEn: 'Wingers (LWF/RWF)', labelAr: 'الأجنحة (LWF/RWF)', positions: ['LWF', 'RWF'] },
+  { id: 'AMF_CMF', labelEn: 'Playmakers (AMF/CMF/RMF/LMF)', labelAr: 'الوسط (AMF/CMF/RMF/LMF)', positions: ['AMF', 'CMF', 'RMF', 'LMF'] },
+  { id: 'DMF', labelEn: 'Defensive Mid (DMF)', labelAr: 'الارتكاز (DMF)', positions: ['DMF'] },
+  { id: 'CB_RB_LB', labelEn: 'Defenders (CB/RB/LB)', labelAr: 'الدفاع (CB/RB/LB)', positions: ['CB', 'RB', 'LB'] },
+  { id: 'GK', labelEn: 'Goalkeepers (GK)', labelAr: 'حراس المرمى (GK)', positions: ['GK'] },
+];
+
 export default function StatsPage() {
   const { players, loading, refreshPlayers } = usePlayers();
   const { locale } = useLocale();
   const { user } = useAuth();
   const isAr = locale === "ar";
   const [refreshing, setRefreshing] = React.useState(false);
+  const [selectedPosGroup, setSelectedPosGroup] = React.useState<string>('ALL');
 
   // All tables expanded by default — avoids the "loads 2 then the rest" perception on mobile
   const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({
@@ -218,41 +235,48 @@ export default function StatsPage() {
     return getPlayerOverall(p);
   }, []);
 
+  const filteredPlayers = React.useMemo(() => {
+    if (selectedPosGroup === 'ALL') return players;
+    const group = POS_GROUPS.find(g => g.id === selectedPosGroup);
+    if (!group || !group.positions.length) return players;
+    return players.filter(p => group.positions.includes(p.primaryPosition));
+  }, [players, selectedPosGroup]);
+
   const topScorers = React.useMemo(() => {
-    return [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0)).slice(0, 10);
-  }, [players]);
+    return [...filteredPlayers].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0)).slice(0, 10);
+  }, [filteredPlayers]);
 
   const topAssisters = React.useMemo(() => {
-    return [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, 10);
-  }, [players]);
+    return [...filteredPlayers].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0)).slice(0, 10);
+  }, [filteredPlayers]);
 
   const topGA = React.useMemo(() => {
-    return [...players].sort((a, b) => ((b.stats?.goals || 0) + (b.stats?.assists || 0)) - ((a.stats?.goals || 0) + (a.stats?.assists || 0))).slice(0, 10);
-  }, [players]);
+    return [...filteredPlayers].sort((a, b) => ((b.stats?.goals || 0) + (b.stats?.assists || 0)) - ((a.stats?.goals || 0) + (a.stats?.assists || 0))).slice(0, 10);
+  }, [filteredPlayers]);
 
   const topMVPs = React.useMemo(() => {
-    return [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0)).slice(0, 10);
-  }, [players]);
+    return [...filteredPlayers].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0)).slice(0, 10);
+  }, [filteredPlayers]);
 
   const ballonDOr = React.useMemo(() => {
-    return [...players].sort((a, b) => {
+    return [...filteredPlayers].sort((a, b) => {
       // Ballon d'Or formula: (Goals * 2) + (Assists * 1) + (MVPs * 5)
       const aScore = ((a.stats?.goals || 0) * 2) + ((a.stats?.assists || 0) * 1) + ((a.stats?.mvp || 0) * 5);
       const bScore = ((b.stats?.goals || 0) * 2) + ((b.stats?.assists || 0) * 1) + ((b.stats?.mvp || 0) * 5);
       return bScore - aScore;
     }).slice(0, 10);
-  }, [players]);
+  }, [filteredPlayers]);
 
   const highestRated = React.useMemo(() => {
-    return [...players].sort((a, b) => getOverall(b) - getOverall(a)).slice(0, 10);
-  }, [players, getOverall]);
+    return [...filteredPlayers].sort((a, b) => getOverall(b) - getOverall(a)).slice(0, 10);
+  }, [filteredPlayers, getOverall]);
 
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12" dir={isAr ? 'rtl' : 'ltr'}>
         
         <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-10 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+          <div className="mb-8 flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
             <div className="text-center md:text-start">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-1">
                 <h2 className="text-3xl md:text-4xl font-black">{isAr ? "قائمة المتصدرين العالمية" : "Global Leaderboards"}</h2>
@@ -261,7 +285,7 @@ export default function StatsPage() {
                   {isAr ? "تحديث حي ومباشر" : "Live Updates"}
                 </span>
               </div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm" dir={isAr ? "rtl" : "ltr"}>{isAr ? "الأفضل بين الأفضل في 11Players يتم تحديثهم تلقائياً." : "The best of the best in 11Players updated in real-time."}</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm" dir={isAr ? "rtl" : "ltr"}>{isAr ? "الأفضل بين الأفضل في 11Players حسب المراكز والأداء." : "The best of the best in 11Players ranked by position and match impact."}</p>
             </div>
             <button
               onClick={handleManualRefresh}
@@ -271,6 +295,36 @@ export default function StatsPage() {
               <RefreshCw className={`w-5 h-5 ${refreshing ? "animate-spin" : ""}`} />
               <span>{refreshing ? (isAr ? "جارٍ المزامنة..." : "Syncing...") : (isAr ? "تحديث ومزامنة الإحصائيات" : "Refresh & Sync Stats")}</span>
             </button>
+          </div>
+
+          {/* Position Leaderboard Filter Tabs */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {POS_GROUPS.map((grp) => {
+                const isActive = selectedPosGroup === grp.id;
+                const count = grp.id === 'ALL' 
+                  ? players.length 
+                  : players.filter(p => grp.positions.includes(p.primaryPosition)).length;
+                return (
+                  <button
+                    key={grp.id}
+                    onClick={() => setSelectedPosGroup(grp.id)}
+                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap transition-all flex items-center gap-2 border ${
+                      isActive
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20 scale-105"
+                        : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
+                    }`}
+                  >
+                    <span>{isAr ? grp.labelAr : grp.labelEn}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {loading ? (

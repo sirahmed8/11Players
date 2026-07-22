@@ -30,6 +30,8 @@ export default function Sidebar() {
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
   const [pendingEditsCount, setPendingEditsCount] = useState(0);
   const lastNotifiedTimeRef = useRef<number>(0);
+  const lastNotifToastTimeRef = useRef<number>(Date.now());
+  const lastEditToastTimeRef = useRef<number>(Date.now());
 
   // Close sidebar on route change for mobile
   useEffect(() => {
@@ -44,9 +46,42 @@ export default function Sidebar() {
     const q = query(collection(db, "users", user.uid, "notifications"), where("read", "==", false));
     const unsub = onSnapshot(q, (snap) => {
       setUnreadNotifsCount(snap.docs.length);
+
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const notifTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (data.createdAt ? new Date(data.createdAt).getTime() : Date.now());
+          const now = Date.now();
+          if (now - notifTime < 30000 && notifTime > lastNotifToastTimeRef.current && pathname !== "/notifications") {
+            lastNotifToastTimeRef.current = notifTime;
+            toast.custom((t) => (
+              <div
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  window.location.href = data.link || "/notifications";
+                }}
+                className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-amber-500/50 hover:scale-[1.02] transition-all"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl">🔔</span>
+                </div>
+                <div className="flex-1 w-0">
+                  <p className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-between">
+                    <span>{data.title || (isAr ? 'إشعار جديد' : 'New Notification')}</span>
+                    <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
+                    {data.body || ''}
+                  </p>
+                </div>
+              </div>
+            ), { duration: 6000, position: 'top-center' });
+          }
+        }
+      });
     });
     return () => unsub();
-  }, [user]);
+  }, [user, pathname, isAr]);
 
   // Listen for Global Chat Notifications (Admin/Moderator Inbox)
   useEffect(() => {
@@ -56,7 +91,6 @@ export default function Sidebar() {
     const unsub = onSnapshot(q, (snap) => {
       let unread = 0;
       let latestUnreadThread: any = null;
-
       snap.docs.forEach(docSnap => {
         const data = docSnap.data();
         if ((data.unreadCount && data.unreadCount > 0) || data.unreadForAdmin === true) {
@@ -112,12 +146,45 @@ export default function Sidebar() {
 
     const unsubEdits = onSnapshot(editsQuery, (snap) => {
       setPendingEditsCount(snap.size || 0);
+
+      snap.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const reqTime = data.requestedAt ? new Date(data.requestedAt).getTime() : Date.now();
+          const now = Date.now();
+          if (now - reqTime < 30000 && reqTime > lastEditToastTimeRef.current && pathname !== "/admin") {
+            lastEditToastTimeRef.current = reqTime;
+            toast.custom((t) => (
+              <div
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  window.location.href = "/admin?tab=edits";
+                }}
+                className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/50 hover:scale-[1.02] transition-all"
+              >
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+                  <span className="text-xl">⚡</span>
+                </div>
+                <div className="flex-1 w-0">
+                  <p className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-between">
+                    <span>{data.playerName || (isAr ? 'طلب مراجعة جديد' : 'New Review Request')}</span>
+                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
+                    {data.source === 'peer_ratings' ? (isAr ? 'تم اقتراح تقييم وقدرات جديدة للاعب' : 'Peer rating suggestion submitted') : (isAr ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile edit request submitted')}
+                  </p>
+                </div>
+              </div>
+            ), { duration: 6000, position: 'top-center' });
+          }
+        }
+      });
     }, () => {
       setPendingEditsCount(0);
     });
 
     return () => unsubEdits();
-  }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId]);
+  }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId, pathname, isAr]);
 
   // Listen for Global Chat Notifications (Regular User Support Desk)
   useEffect(() => {

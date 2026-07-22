@@ -8,13 +8,14 @@ import { useLocale } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import PlayerCardCompact from "@/components/PlayerCardCompact";
 import ConfirmModal from "@/components/ConfirmModal";
+import PlayerComparisonModal from "@/components/PlayerComparisonModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle } from "lucide-react";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft } from "lucide-react";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import OvrExplanationModal from "@/components/OvrExplanationModal";
-import { arrayRemove, arrayUnion, deleteDoc, doc, updateDoc, getDoc } from "firebase/firestore";
+import { arrayRemove, arrayUnion, deleteDoc, doc, updateDoc, getDoc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
@@ -28,33 +29,48 @@ export default function CommunityPage() {
 
   const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<"overall" | "goals" | "assists" | "mvp">("overall");
+  const [sortBy, setSortBy] = useState<"overall" | "position" | "goals" | "assists" | "mvp">("overall");
+  const [selectedPosFilter, setSelectedPosFilter] = useState<string>("ALL");
   const [isSortOpen, setIsSortOpen] = useState(false);
   const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
   const [isOvrInfoOpen, setIsOvrInfoOpen] = useState(false);
+  const [comparingPlayer, setComparingPlayer] = useState<any | null>(null);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"directory" | "pulse">("directory");
+
+  const handleOpenCompare = (player?: any) => {
+    setComparingPlayer(player || null);
+    setIsCompareModalOpen(true);
+  };
 
   const filteredPlayers = React.useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
-    if (!query) return [...players].sort((a, b) => {
+    let result = [...players];
+
+    if (selectedPosFilter !== "ALL") {
+      result = result.filter(p => p.primaryPosition === selectedPosFilter);
+    }
+
+    if (query) {
+      result = result.filter((p) => {
+        return (
+          p.fullName.toLowerCase().includes(query) ||
+          p.cardName.toLowerCase().includes(query) ||
+          p.primaryPosition.toLowerCase().includes(query)
+        );
+      });
+    }
+
+    return result.sort((a, b) => {
       if (sortBy === "overall") {
         return getPlayerOverall(b) - getPlayerOverall(a);
       }
-      return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
-    });
-    return players.filter((p) => {
-      return (
-        p.fullName.toLowerCase().includes(query) ||
-        p.cardName.toLowerCase().includes(query) ||
-        p.primaryPosition.toLowerCase().includes(query)
-      );
-    }).sort((a, b) => {
-      if (sortBy === "overall") {
-        return getPlayerOverall(b) - getPlayerOverall(a);
+      if (sortBy === "position") {
+        return a.primaryPosition.localeCompare(b.primaryPosition) || getPlayerOverall(b) - getPlayerOverall(a);
       }
       return (b.stats?.[sortBy] || 0) - (a.stats?.[sortBy] || 0);
     });
-  }, [players, searchQuery, sortBy]);
+  }, [players, searchQuery, sortBy, selectedPosFilter]);
 
   const handleVoteCaptain = async (playerId: string) => {
     if (!user || !activeCommunityId) return;
@@ -74,6 +90,21 @@ export default function CommunityPage() {
       await updateDoc(communityPlayerRef, {
         captainVotes: hasVoted ? arrayRemove(user.uid) : arrayUnion(user.uid)
       });
+      
+      if (!hasVoted) {
+        try {
+          await setDoc(doc(collection(db, `users/${playerId}/notifications`), `captain_vote_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'social',
+            title: isAr ? '👑 صوت كابتن جديد!' : '👑 New Captain Vote!',
+            body: isAr ? `قام أحد زملائك في المجتمع بالتصويت لك لتكون كابتن الفريق! مجموع أصواتك الآن: ${currentVotes.length + 1}.` : `A community teammate voted for you to be team captain! Your total votes: ${currentVotes.length + 1}.`,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/community'
+          });
+        } catch (e) {
+          console.warn("Could not send captain vote notification:", e);
+        }
+      }
       
       toast.success(hasVoted ? (isAr ? "تم إلغاء التصويت" : "Vote removed") : (isAr ? "تم التصويت كابتن! (+1)" : "Voted for captain! (+1)"));
     } catch (err) {
@@ -167,6 +198,14 @@ export default function CommunityPage() {
             {activeTab === "directory" && (
               <div className="flex items-center gap-2 justify-end w-full sm:w-auto">
                 <button
+                  onClick={() => handleOpenCompare()}
+                  className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 px-3 py-2 rounded-xl shadow-sm text-xs font-bold transition-all shrink-0"
+                >
+                  <ArrowRightLeft className="w-4 h-4" />
+                  <span>{isAr ? "مقارنة اللاعبين" : "Compare Players"}</span>
+                </button>
+
+                <button
                   onClick={() => setIsOvrInfoOpen(true)}
                   className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3 py-2 rounded-xl shadow-sm text-xs font-bold transition-all shrink-0"
                   title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
@@ -181,7 +220,7 @@ export default function CommunityPage() {
                     className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
                   >
                     <span className="font-semibold text-slate-700 dark:text-slate-300 text-xs">
-                      {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "overall" ? "Overall" : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                      {isAr ? "ترتيب حسب:" : "Sort by:"} {sortBy === "overall" ? "Overall" : sortBy === "position" ? (isAr ? "المركز" : "Position") : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
                     </span>
                     <motion.div animate={{ rotate: isSortOpen ? 180 : 0 }}>
                       <ChevronDown className="w-4 h-4 text-slate-500" />
@@ -195,13 +234,13 @@ export default function CommunityPage() {
                         exit={{ opacity: 0, y: -10 }}
                         className="absolute z-10 top-full mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden right-0"
                       >
-                        {(["overall", "goals", "assists", "mvp"] as const).map((s) => (
+                        {(["overall", "position", "goals", "assists", "mvp"] as const).map((s) => (
                           <button
                             key={s}
                             onClick={() => { setSortBy(s); setIsSortOpen(false); }}
                             className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-xs ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
                           >
-                            {s === "overall" ? "Overall" : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
+                            {s === "overall" ? "Overall" : s === "position" ? (isAr ? "المركز" : "Position") : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
                           </button>
                         ))}
                       </motion.div>
@@ -212,6 +251,33 @@ export default function CommunityPage() {
             )}
           </div>
 
+          {activeTab === "directory" && (
+            <div className="mb-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+              {(["ALL", "CF", "SS", "LWF", "RWF", "AMF", "CMF", "DMF", "CB", "RB", "LB", "GK"] as const).map((pos) => {
+                const isActive = selectedPosFilter === pos;
+                const count = pos === "ALL" ? players.length : players.filter(p => p.primaryPosition === pos).length;
+                return (
+                  <button
+                    key={pos}
+                    onClick={() => setSelectedPosFilter(pos)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-1.5 border ${
+                      isActive
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-sm scale-105"
+                        : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
+                    }`}
+                  >
+                    <span>{pos === "ALL" ? (isAr ? "كل المراكز" : "All Positions") : pos}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                      isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Directory Grid or Pulse Feed */}
           {activeTab === "pulse" ? (
             <CommunityPulseFeed />
@@ -219,27 +285,25 @@ export default function CommunityPage() {
             <SiteSkeletonLoader variant="cards" />
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <p className="text-slate-600 dark:text-slate-400">No players found.</p>
+              <p className="text-slate-600 dark:text-slate-400">{isAr ? "لا يوجد لاعبون بهذا الوصف أو المركز." : "No players found matching your criteria."}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              <AnimatePresence>
-                {filteredPlayers.map((player, index) => (
-                  <motion.div
-                    key={player.uid}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(index * 0.05, 0.5) }}
-                    layout
-                  >
-                    <PlayerCardCompact 
-                      player={player} 
-                      onVoteCaptain={handleVoteCaptain}
-                      currentUserId={user?.uid}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+              {filteredPlayers.map((player, index) => (
+                <motion.div
+                  key={player.uid}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.2 }}
+                >
+                  <PlayerCardCompact 
+                    player={player} 
+                    onVoteCaptain={handleVoteCaptain}
+                    onCompare={handleOpenCompare}
+                    currentUserId={user?.uid}
+                  />
+                </motion.div>
+              ))}
             </div>
           )}
         </main>
@@ -255,6 +319,13 @@ export default function CommunityPage() {
         <OvrExplanationModal
           isOpen={isOvrInfoOpen}
           onClose={() => setIsOvrInfoOpen(false)}
+        />
+
+        <PlayerComparisonModal
+          isOpen={isCompareModalOpen}
+          onClose={() => { setIsCompareModalOpen(false); setComparingPlayer(null); }}
+          initialPlayerA={comparingPlayer || (user ? players.find(p => p.uid === user.uid) : null)}
+          allPlayers={players}
         />
       </div>
     </ProtectedRoute>

@@ -21,6 +21,7 @@ import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles } from "lucide-
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/OvrExplanationModal";
 import SuggestPeerRatingModal from "@/components/SuggestPeerRatingModal";
+import PlayerComparisonModal from "@/components/PlayerComparisonModal";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -104,11 +105,13 @@ function PlayerProfileContent() {
   const effectiveUid = rawUid ? uid : user?.uid;
   const isViewingOwnProfile = Boolean(user?.uid && effectiveUid && user.uid === effectiveUid);
 
+  const { players } = usePlayers();
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isOvrInfoOpen, setIsOvrInfoOpen] = useState(false);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   useEffect(() => {
     if (!effectiveUid) {
@@ -352,7 +355,10 @@ function PlayerProfileContent() {
                   </div>
                 )}
                 
-                <PlayerCard player={player} />
+                <PlayerCard 
+                  player={player} 
+                  onCompare={() => setIsCompareModalOpen(true)}
+                />
               </div>
 
               {/* Right Column: SVG Pitch */}
@@ -555,6 +561,13 @@ function PlayerProfileContent() {
       <OvrExplanationModal
         isOpen={isOvrInfoOpen}
         onClose={() => setIsOvrInfoOpen(false)}
+      />
+
+      <PlayerComparisonModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        initialPlayerA={player}
+        allPlayers={players}
       />
     </div>
   );

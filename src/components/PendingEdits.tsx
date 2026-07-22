@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ConfirmModal from "@/components/ConfirmModal";
 import { getAllPlayerCommunities } from "@/lib/playerUtils";
-import { Edit3, Check, X, Shield, Brain, CircleDot, Wand2, Footprints, Plane, Target, Wind, Rocket, Zap, ArrowUpCircle, Dumbbell, Scale, HeartPulse, Axe, Hand, Users, AlertCircle, ArrowRight, XCircle, ChevronDown } from "lucide-react";
+import { Edit3, Check, X, Shield, Brain, Users, ArrowRight, ChevronDown, AlertCircle, Sparkles, Sliders, Layers, UserCheck } from "lucide-react";
 import SkillsChecklist from "@/components/SkillsChecklist";
 import type { PlayerAttributes, PESPosition } from "@/types";
 
@@ -48,8 +48,60 @@ const ATTRIBUTE_LABELS: Record<keyof PlayerAttributes, { en: string; ar: string 
   gkReach: { en: 'GK Reach', ar: 'مدى الوصول والارتماء' }
 };
 
+interface AttributeGroup {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  keys: (keyof PlayerAttributes)[];
+}
+
+const ATTRIBUTE_GROUPS: AttributeGroup[] = [
+  {
+    id: 'shooting',
+    titleEn: 'Shooting & Finishing',
+    titleAr: 'التسديد والإنهاء الهجومي',
+    keys: ['offensiveAwareness', 'finishing', 'kickingPower', 'heading']
+  },
+  {
+    id: 'passing',
+    titleEn: 'Passing & Playmaking',
+    titleAr: 'التمرير وصناعة اللعب',
+    keys: ['lowPass', 'loftedPass', 'ballControl']
+  },
+  {
+    id: 'dribbling',
+    titleEn: 'Dribbling & Agility',
+    titleAr: 'المراوغة والسرعة والرشاقة',
+    keys: ['dribbling', 'speed', 'acceleration', 'balance']
+  },
+  {
+    id: 'physical',
+    titleEn: 'Physical & Stamina',
+    titleAr: 'القوة الجسدية واللياقة والارتقاء',
+    keys: ['physicalContact', 'stamina', 'jump']
+  },
+  {
+    id: 'defense',
+    titleEn: 'Defense & Tackling',
+    titleAr: 'الدفاع وافتكاك الكرة والشراسة',
+    keys: ['defensiveAwareness', 'ballWinning', 'aggression']
+  },
+  {
+    id: 'goalkeeping',
+    titleEn: 'Goalkeeping',
+    titleAr: 'حراسة المرمى',
+    keys: ['gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach']
+  }
+];
+
 const POSITIONS: PESPosition[] = ['CF', 'SS', 'LWF', 'RWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
-const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner', 'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank', 'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up', 'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
+const PLAY_STYLES = [
+  'Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner',
+  'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank',
+  'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up',
+  'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher',
+  'Offensive Goalkeeper', 'Defensive Goalkeeper'
+];
 
 const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }: { 
   value: string | number; 
@@ -136,19 +188,18 @@ const EditCardItem = ({
 }: EditCardItemProps) => {
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, height: 0, transition: { duration: 0.15 } }}
       transition={{ type: "spring", damping: 25, stiffness: 300 }}
-      className="p-5 bg-slate-50/95 dark:bg-slate-800/95 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-400/80 dark:hover:border-amber-400/80 transition-all duration-300 relative group overflow-hidden"
+      className="p-5 bg-slate-50/95 dark:bg-slate-800/95 rounded-3xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow-sm hover:shadow-md hover:border-amber-400/80 dark:hover:border-amber-400/80 transition-all duration-300 relative group overflow-hidden"
     >
-      <div className={`absolute top-0 bottom-0 ${isAr ? 'right-0' : 'left-0'} w-1.5 ${edit.source === 'peer_ratings' ? 'bg-purple-500' : 'bg-blue-500'}`} />
+      <div className={`absolute top-0 bottom-0 ${isAr ? 'right-0' : 'left-0'} w-2 ${edit.source === 'peer_ratings' ? 'bg-purple-500' : 'bg-blue-500'}`} />
 
       <div className={`space-y-2 flex-1 ${isAr ? 'mr-3' : 'ml-3'}`}>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2.5 flex-wrap">
           <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
-            {edit.playerName || edit.profileData?.fullName || "Player"}
+            {edit.playerName || edit.profileData?.fullName || "Player Profile"}
           </span>
           {edit.profileData?.cardName && (
             <span className="text-xs bg-amber-500/20 text-amber-600 dark:text-amber-400 font-black px-2.5 py-0.5 rounded-lg border border-amber-500/30">
@@ -158,11 +209,12 @@ const EditCardItem = ({
           {edit.source === 'peer_ratings' ? (
             <span className="bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1.5 border border-purple-300/60 dark:border-purple-700/60 shadow-2xs">
               <Users className="w-3.5 h-3.5" />
-              {isAr ? `متوسط تقييم الزملاء (${edit.raterCount || 1} مقيّم)` : `Peer Rating Avg (${edit.raterCount || 1} raters)`}
+              {isAr ? `تقييم قدرات الزملاء (${edit.raterCount || 1} مقيّم)` : `Peer Ratings Suggestion (${edit.raterCount || 1} raters)`}
             </span>
           ) : (
             <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300 px-3 py-1 rounded-full font-bold text-xs flex items-center gap-1.5 border border-blue-300/60 dark:border-blue-700/60 shadow-2xs">
-              {isAr ? "طلب تعديل شخصي" : "Self Profile Edit"}
+              <UserCheck className="w-3.5 h-3.5" />
+              {isAr ? "طلب تعديل الملف والشخصية" : "Self Profile Edit Request"}
             </span>
           )}
         </div>
@@ -177,7 +229,7 @@ const EditCardItem = ({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2.5 w-full md:w-auto justify-end shrink-0">
+      <div className="flex flex-wrap gap-2 w-full md:w-auto justify-end shrink-0">
         <motion.button
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
@@ -185,7 +237,7 @@ const EditCardItem = ({
           className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-2xl transition-all shadow-md hover:shadow-lg hover:shadow-amber-500/20 flex items-center gap-2 text-sm"
         >
           <Edit3 className="w-4 h-4" />
-          {isAr ? "مراجعة وتعديل ومقارنة" : "Review, Diff & Edit"}
+          {isAr ? "مقارنة وتعديل (Diff & Review)" : "Compare & Edit Diff"}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -194,7 +246,7 @@ const EditCardItem = ({
           className="px-4 py-2.5 bg-emerald-600 text-white font-black rounded-2xl hover:bg-emerald-500 transition-all shadow-md hover:shadow-lg hover:shadow-emerald-600/20 flex items-center gap-2 text-sm"
         >
           <Check className="w-4 h-4" />
-          {isAr ? "اعتماد مباشر" : "Quick Approve"}
+          {isAr ? "اعتماد سريع" : "Quick Approve"}
         </motion.button>
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -297,11 +349,11 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
 
     setReviewFormData({
       fullName: edit.profileData?.fullName || edit.playerName || fetchedCurrent.fullName || "",
-      cardName: edit.profileData?.cardName || edit.cardName || fetchedCurrent.cardName || "",
+      cardName: edit.profileData?.cardName !== undefined ? edit.profileData.cardName : (edit.cardName || fetchedCurrent.cardName || ""),
       primaryPosition: edit.profileData?.primaryPosition || fetchedCurrent.primaryPosition || "CMF",
-      secondaryPosition: edit.profileData?.secondaryPosition || fetchedCurrent.secondaryPosition || "",
-      tertiaryPosition: edit.profileData?.tertiaryPosition || fetchedCurrent.tertiaryPosition || "",
-      playStyle: edit.profileData?.playStyle || fetchedCurrent.playStyle || "",
+      secondaryPosition: edit.profileData?.secondaryPosition !== undefined ? edit.profileData.secondaryPosition : (fetchedCurrent.secondaryPosition || ""),
+      tertiaryPosition: edit.profileData?.tertiaryPosition !== undefined ? edit.profileData.tertiaryPosition : (fetchedCurrent.tertiaryPosition || ""),
+      playStyle: edit.profileData?.playStyle !== undefined ? edit.profileData.playStyle : (fetchedCurrent.playStyle || ""),
       preferredFoot: edit.profileData?.preferredFoot || fetchedCurrent.preferredFoot || "Right",
       specialSkills: edit.profileData?.specialSkills || edit.specialSkills || fetchedCurrent.specialSkills || [],
       height: edit.profileData?.height || fetchedCurrent.height || 175,
@@ -452,21 +504,24 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       await batch.commit();
 
       try {
-        const titleText = edit.source === 'peer_ratings'
-          ? (isAr ? 'تم اعتماد تقييم الأداء والقدرات الجديد!' : 'New Peer Ability Ratings Approved!')
-          : (isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!');
-        const bodyText = edit.source === 'peer_ratings'
-          ? (isAr ? `قام مسؤول المجتمع بمراجعة واعتماد التقييمات الجديدة لقدراتك بنجاح. تقييمك العام الحالي: ${updateDataGlobal.overallRating || 'مُحدّث'}.` : `Your community admin approved new peer performance ability ratings. New OVR: ${updateDataGlobal.overallRating || 'Updated'}.`)
-          : (isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي وقدراته والموافقة عليه بنجاح.' : 'Your requested profile and attribute updates have been approved and applied.');
+        const targetUid = edit.playerId || edit.uid || edit.player?.uid;
+        if (targetUid) {
+          const titleText = edit.source === 'peer_ratings'
+            ? (isAr ? 'تم اعتماد تقييم الأداء والقدرات الجديد!' : 'New Peer Ability Ratings Approved!')
+            : (isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!');
+          const bodyText = edit.source === 'peer_ratings'
+            ? (isAr ? `قام مسؤول المجتمع بمراجعة واعتماد التقييمات الجديدة لقدراتك بنجاح. تقييمك العام الحالي: ${updateDataGlobal.overallRating || 'مُحدّث'}.` : `Your community admin approved new peer performance ability ratings. New OVR: ${updateDataGlobal.overallRating || 'Updated'}.`)
+            : (isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي وقدراته والموافقة عليه بنجاح.' : 'Your requested profile and attribute updates have been approved and applied.');
 
-        await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
-          type: 'stats',
-          title: titleText,
-          body: bodyText,
-          read: false,
-          createdAt: serverTimestamp(),
-          link: '/profile?uid=' + edit.playerId
-        });
+          await setDoc(doc(collection(db, `users/${targetUid}/notifications`), `edit_ok_${targetUid}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'stats',
+            title: titleText,
+            body: bodyText,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/profile?uid=' + targetUid
+          });
+        }
       } catch (err) {
         console.warn("Player notification send warning:", err);
       }
@@ -520,6 +575,19 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
           for (const edit of edits) {
             const collPath = edit._collection || (activeCommunityId ? `communities/${activeCommunityId}/editRequests` : 'editRequests');
             await deleteDoc(doc(db, collPath, edit.id));
+            const targetUid = edit.playerId || edit.uid || edit.player?.uid;
+            if (targetUid && edit.source !== 'peer_ratings') {
+              try {
+                await setDoc(doc(collection(db, `users/${targetUid}/notifications`), `edit_rej_${targetUid}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+                  type: 'system',
+                  title: isAr ? 'تم رفض التعديل - تقديم التماس؟' : 'Edit Rejected - Want to Appeal?',
+                  body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك مع إدارة المجتمع؟' : 'Your requested profile edit was not approved. Want to make an appeal with community management?',
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: '/support'
+                });
+              } catch (e) {}
+            }
           }
           setIsModalOpen(false);
           toast.success(isAr ? "تم رفض جميع التعديلات بنجاح!" : "All edits rejected successfully!");
@@ -540,9 +608,10 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, collPath, edit.id));
-          if (edit.source !== 'peer_ratings') {
+          const targetUid = edit.playerId || edit.uid || edit.player?.uid;
+          if (targetUid && edit.source !== 'peer_ratings') {
             try {
-              await setDoc(doc(collection(db, `users/${edit.playerId}/notifications`)), {
+              await setDoc(doc(collection(db, `users/${targetUid}/notifications`), `edit_rej_${targetUid}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
                 type: 'system',
                 title: isAr ? 'تم رفض التعديل - تقديم التماس؟' : 'Edit Rejected - Want to Appeal?',
                 body: isAr ? 'لم تتم الموافقة على تعديلاتك. هل ترغب في تقديم التماس ومراجعة طلبك مع إدارة المجتمع؟' : 'Your requested profile edit was not approved. Want to make an appeal with community management?',
@@ -595,65 +664,72 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
 
   if (loading) return null;
 
-  // Render unified Review Modal content shared by both inline and trigger-button modes
   const renderReviewModal = () => (
     <AnimatePresence>
       {reviewingEdit && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-3 sm:p-5 overflow-y-auto" dir={isAr ? 'rtl' : 'ltr'}>
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 24 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl w-full max-w-4xl p-6 md:p-8 shadow-2xl max-h-[92vh] flex flex-col my-auto"
+            className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl w-full max-w-5xl p-5 sm:p-8 shadow-2xl max-h-[92vh] flex flex-col my-auto overflow-hidden"
           >
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
+            {/* Header / Live Diff Bar */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-5 mb-6 border-b border-slate-200 dark:border-slate-800 gap-4 shrink-0">
               <div>
-                <h4 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 tracking-tight">
-                  <div className="p-2.5 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                    <Edit3 className="w-6 h-6" />
+                <div className="flex items-center gap-3">
+                  <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-500 border border-amber-500/20 shadow-inner">
+                    <Sliders className="w-6 h-6" />
                   </div>
-                  {isAr ? "مراجعة وتعديل التقييمات والقدرات (قارن واعتمد)" : "Review & Edit Player Ability Ratings"}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-                  {isAr
-                    ? "يمكنك تعديل أي رقم أو قدرة قبل الاعتماد. يتم حفظ التقييمات في قدرات اللاعب مع إخفاء أسماء المقيّمين."
-                    : "You can tweak any slider before approving. Rater names remain strictly anonymous to the player."}
-                </p>
+                  <div>
+                    <h4 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                      {isAr ? "مراجعة ومقارنة الاقتراح (Diff Review & Live Adjust)" : "Side-by-Side Diff & Live Sliders"}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
+                      {isAr
+                        ? "قارن بين البيانات الحالية والمقترحة وحرّك المؤشرات لمشاهدة التقييم العام (OVR) يتغير مباشرة قبل الاعتماد."
+                        : "Compare current DB values vs proposed edits. Tweak sliders to see real-time OVR recalculation before applying."}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3 bg-slate-100/90 dark:bg-slate-800/90 px-5 py-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-inner shrink-0">
+              {/* Live OVR Comparison Badge */}
+              <div className="flex items-center gap-4 bg-slate-100 dark:bg-slate-800/90 px-6 py-3 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-inner shrink-0 self-stretch sm:self-auto justify-center">
                 <div className="text-center">
-                  <div className="text-[10px] uppercase font-bold text-slate-400">{isAr ? "التقييم الحالي" : "Current OVR"}</div>
-                  <div className="text-xl font-black text-slate-600 dark:text-slate-300">{currentPlayerData?.overallRating || 70}</div>
+                  <div className="text-[10px] uppercase font-black text-slate-400">{isAr ? "التقييم الحالي" : "Current OVR"}</div>
+                  <div className="text-2xl font-black text-slate-600 dark:text-slate-300">{currentPlayerData?.overallRating || 70}</div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-amber-500 rtl:rotate-180" />
                 <div className="text-center">
-                  <div className="text-[10px] uppercase font-bold text-emerald-500">{isAr ? "بعد الاعتماد" : "New OVR"}</div>
-                  <div className="text-2xl font-black text-emerald-500 drop-shadow-xs animate-pulse">{predictedOverall}</div>
+                  <div className="text-[10px] uppercase font-black text-emerald-500">{isAr ? "بعد الاعتماد (حي)" : "Proposed OVR"}</div>
+                  <div className="text-3xl font-black text-emerald-500 drop-shadow-xs animate-pulse">{predictedOverall}</div>
                 </div>
               </div>
             </div>
 
+            {/* Anonymity Shield Banner for Peer Ratings */}
             {reviewingEdit.source === 'peer_ratings' && (
-              <div className="mb-6 p-4 bg-purple-50/90 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-2xl flex items-start gap-3.5 text-sm shadow-xs">
+              <div className="mb-6 p-4 bg-purple-50/90 dark:bg-purple-950/40 border border-purple-200 dark:border-purple-800/60 rounded-2xl flex items-start gap-3.5 text-sm shadow-xs shrink-0">
                 <div className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5">
                   <Shield className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="font-bold text-purple-900 dark:text-purple-200 block">
-                    {isAr ? "حماية خصوصية التقييم (سرية للمقيّم، مكشوفة للمشرف):" : "Rating Anonymity Protection (Anonymous to Player, Visible to Admin):"}
+                    {isAr ? "حماية سرية المقيّمين (سرية للاعب، مكشوفة للمشرف فقط):" : "Rater Confidentiality Shield (Anonymous to Player, Visible to Admin):"}
                   </span>
                   <span className="text-purple-700 dark:text-purple-300 text-xs leading-relaxed mt-0.5 block">
                     {isAr
-                      ? `قام ${reviewingEdit.raterCount || 1} لاعب بتقديم هذا التقييم. أسماء المقيّمين: [ ${reviewingEdit.raterNames?.join(', ') || 'زملاء'} ]. عند الموافقة سيتم تحديث قدرات اللاعب فقط ولن تظهر أسماء المقيّمين له لمنع أي حساسية أو تنمر.`
+                      ? `قام ${reviewingEdit.raterCount || 1} لاعب بتقديم هذا التقييم. أسماء المقيّمين: [ ${reviewingEdit.raterNames?.join(', ') || 'زملاء'} ]. عند اعتمادك سيتم تحديث قدرات اللاعب فقط دون إفشاء هويات المقيّمين.`
                       : `Submitted by ${reviewingEdit.raterCount || 1} peers. Raters: [ ${reviewingEdit.raterNames?.join(', ') || 'Peers'} ]. Once approved, only the attributes change; rater identities remain strictly confidential from the player.`}
                   </span>
                 </div>
               </div>
             )}
 
-            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 overflow-x-auto pb-2">
+            {/* Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2 overflow-x-auto pb-2 shrink-0">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -665,7 +741,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                 }`}
               >
                 <Brain className="w-4 h-4" />
-                <span>{isAr ? "قدرات ومؤهلات اللاعب (22 مهارة)" : "Player Attributes & Abilities (22 Stats)"}</span>
+                <span>{isAr ? "قدرات ومؤهلات اللاعب (22 مهارة مجزأة بوضوح)" : "Attributes & Ability Ratings (Grouped Diff)"}</span>
               </motion.button>
 
               <motion.button
@@ -678,62 +754,66 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                     : 'bg-slate-100/80 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 hover:bg-slate-200/80 dark:hover:bg-slate-800'
                 }`}
               >
-                <Users className="w-4 h-4" />
-                <span>{isAr ? "البيانات الأساسية والمقارنة" : "Profile Details Diff"}</span>
+                <Layers className="w-4 h-4" />
+                <span>{isAr ? "البيانات والشخصية (مقارنة الحقول)" : "Profile Details & Positions Diff"}</span>
               </motion.button>
             </div>
 
-            <div className="flex-1 overflow-y-auto pr-1 space-y-6">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto pr-1 space-y-6 custom-scrollbar">
               {activeReviewTab === 'attributes' ? (
-                <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                      {isAr ? "قارن بين التقييم الحالي في قاعدة البيانات والتقييم المقترح، وحرك المؤشر لتعديل أي رقم قبل الاعتماد:" : "Compare current vs proposed ratings, drag sliders to customize before approval:"}
-                    </p>
-                  </div>
+                <div className="space-y-6">
+                  {ATTRIBUTE_GROUPS.map((group) => (
+                    <div key={group.id} className="bg-slate-50/70 dark:bg-slate-800/40 p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-700/60">
+                      <h5 className="text-sm font-black text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                        {isAr ? group.titleAr : group.titleEn}
+                      </h5>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {ATTRIBUTE_KEYS.map((key) => {
-                      const oldVal = Number(currentPlayerData?.attributes?.[key]) || 60;
-                      const newVal = Number(reviewFormData.attributes?.[key] ?? oldVal);
-                      const diff = newVal - oldVal;
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {group.keys.map((key) => {
+                          const oldVal = Number(currentPlayerData?.attributes?.[key]) || 60;
+                          const newVal = Number(reviewFormData.attributes?.[key] ?? oldVal);
+                          const diff = newVal - oldVal;
 
-                      return (
-                        <div key={key} className="p-4 bg-slate-50/90 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl transition-all hover:border-emerald-500/50 shadow-xs">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                              {ATTRIBUTE_LABELS[key]?.[isAr ? 'ar' : 'en'] || key}
-                            </span>
-                            
-                            <div className="flex items-center gap-2 font-mono">
-                              <span className="text-xs text-slate-400 font-semibold" title="Current in database">
-                                {isAr ? `الحالي: ${oldVal}` : `Old: ${oldVal}`}
-                              </span>
-                              {diff !== 0 && (
-                                <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
-                                  diff > 0 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'
-                                }`}>
-                                  {diff > 0 ? `+${diff}` : diff}
+                          return (
+                            <div key={key} className="p-4 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl transition-all hover:border-emerald-500/50 shadow-2xs">
+                              <div className="flex justify-between items-center mb-2.5">
+                                <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                                  {ATTRIBUTE_LABELS[key]?.[isAr ? 'ar' : 'en'] || key}
                                 </span>
-                              )}
-                              <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 min-w-[2.5ch] text-end">
-                                {newVal}
-                              </span>
-                            </div>
-                          </div>
+                                
+                                <div className="flex items-center gap-2 font-mono">
+                                  <span className="text-xs text-slate-400 font-semibold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-900" title="Current in database">
+                                    {isAr ? `الحالي: ${oldVal}` : `Old: ${oldVal}`}
+                                  </span>
+                                  {diff !== 0 && (
+                                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-black ${
+                                      diff > 0 ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-red-500/20 text-red-600 dark:text-red-400'
+                                    }`}>
+                                      {diff > 0 ? `+${diff}` : diff}
+                                    </span>
+                                  )}
+                                  <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 min-w-[2.5ch] text-end">
+                                    {newVal}
+                                  </span>
+                                </div>
+                              </div>
 
-                          <input
-                            type="range"
-                            min="40"
-                            max="99"
-                            value={newVal}
-                            onChange={(e) => handleAttributeChange(key, Number(e.target.value))}
-                            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
+                              <input
+                                type="range"
+                                min="40"
+                                max="99"
+                                value={newVal}
+                                onChange={(e) => handleAttributeChange(key, Number(e.target.value))}
+                                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -872,7 +952,8 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
               )}
             </div>
 
-            <div className="flex flex-wrap justify-end gap-3 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800">
+            {/* Footer actions */}
+            <div className="flex flex-wrap justify-end gap-3 mt-6 pt-5 border-t border-slate-200 dark:border-slate-800 shrink-0">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -909,7 +990,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
   if (inlineMode) {
     return (
       <div dir={isAr ? 'rtl' : 'ltr'}>
-        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+        <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar">
           {edits.length === 0 ? (
             <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
               {isAr ? "لا توجد اقتراحات حالياً." : "No pending suggestions right now."}
@@ -966,7 +1047,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm overflow-y-auto"
             dir={isAr ? 'rtl' : 'ltr'}
           >
             <motion.div
@@ -974,7 +1055,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800"
+              className="bg-white dark:bg-slate-900 w-full max-w-4xl max-h-[90vh] flex flex-col rounded-3xl shadow-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 my-auto"
             >
               <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/80 dark:bg-slate-900 shrink-0">
                 <h3 className="text-xl font-black flex items-center gap-2.5 text-slate-900 dark:text-white tracking-tight">
@@ -1014,7 +1095,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto flex-1 space-y-4">
+              <div className="p-6 overflow-y-auto flex-1 space-y-4 custom-scrollbar">
                 {edits.length === 0 ? (
                   <div className="text-center py-12 text-slate-500 dark:text-slate-400 font-medium rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700">
                     {isAr ? "لا توجد اقتراحات حالياً." : "No pending suggestions right now."}
@@ -1051,4 +1132,3 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     </div>
   );
 }
-

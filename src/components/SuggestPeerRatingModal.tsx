@@ -7,7 +7,7 @@ import { useLocale } from "@/components/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, setDoc, doc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, setDoc, doc, getDoc, getDocs, query, where, serverTimestamp } from "firebase/firestore";
 import toast from "react-hot-toast";
 import type { PlayerProfile, PESPosition, PlayerAttributes } from "@/types";
 import AttributeSliders from "@/components/AttributeSliders";
@@ -28,7 +28,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const { user } = useAuth();
-  const { activeCommunityId } = useCommunity();
+  const { activeCommunityId, activeCommunity } = useCommunity();
 
   const [attributes, setAttributes] = useState<PlayerAttributes>(player.approvedAttributes || player.attributes || {} as PlayerAttributes);
   const [primaryPosition, setPrimaryPosition] = useState<PESPosition>((player.primaryPosition as PESPosition) || 'CMF');
@@ -171,6 +171,51 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
         status: "pending",
         updatedAt: serverTimestamp()
       }, { merge: true });
+
+      try {
+        const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+        let adminUidToNotify = activeCommunity?.adminUid;
+        if (!adminUidToNotify && activeCommunityId) {
+          try {
+            const cSnap = await getDoc(doc(db, "communities", activeCommunityId));
+            if (cSnap.exists()) adminUidToNotify = cSnap.data()?.adminUid;
+          } catch (e) {}
+        }
+
+        if (adminUidToNotify) {
+          await setDoc(doc(collection(db, `users/${adminUidToNotify}/notifications`), `peer_sugg_adm_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'stats',
+            title: isAr ? 'إقتراح جديد لتقييم وطاقات لاعب' : 'New Peer Rating & Stats Suggestion',
+            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات وتقييم اللاعب ${player.fullName}.` : `A community member submitted a rating/stats suggestion for ${player.fullName}.`,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/admin?tab=edits'
+          });
+        }
+        if (adminUidToNotify !== ownerUid) {
+          await setDoc(doc(collection(db, `users/${ownerUid}/notifications`), `peer_sugg_own_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'stats',
+            title: isAr ? 'إقتراح جديد لتقييم وطاقات لاعب' : 'New Peer Rating & Stats Suggestion',
+            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات اللاعب ${player.fullName}.` : `A community member submitted a rating suggestion for ${player.fullName}.`,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/admin?tab=edits'
+          });
+        }
+
+        if (user.uid !== player.uid) {
+          await setDoc(doc(collection(db, `users/${player.uid}/notifications`), `peer_sugg_usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'stats',
+            title: isAr ? '💡 إقتراح جديد لتحديث طاقاتك' : '💡 New Suggestion For Your Profile',
+            body: isAr ? `قام أحد زملائك بتقديم إقتراح لتحسين وتعديل طاقاتك ومراكزك. سيقوم مسؤول المجتمع بمراجعة الاقتراح واعتماده.` : `A teammate submitted a rating suggestion for your profile & stats. The community admin will review it soon.`,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/profile?uid=' + player.uid
+          });
+        }
+      } catch (notifErr) {
+        console.warn("Peer suggestion notification warning:", notifErr);
+      }
 
 
 

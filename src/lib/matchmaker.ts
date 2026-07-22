@@ -55,6 +55,8 @@ export interface MatchmakingResult {
       speed: number;
       stamina: number;
       defense: number;
+      attack: number;
+      versatility?: number;
     };
   };
 }
@@ -62,10 +64,10 @@ export interface MatchmakingResult {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 /** Maximum swap iterations for the team-balancing phase. */
-const MAX_BALANCE_ITERATIONS = 1000;
+const MAX_BALANCE_ITERATIONS = 2000;
 
 /** Convergence threshold – stop early when total variance drops below this. */
-const CONVERGENCE_THRESHOLD = 0.001;
+const CONVERGENCE_THRESHOLD = 0.0001;
 
 /**
  * Penalty multipliers applied when a player is used outside their
@@ -641,23 +643,35 @@ export function assignPlayersToFormation(
 // ─── Team Balancing ──────────────────────────────────────────────────────────
 
 /**
- * Calculate total variance between two teams across all metric categories.
+ * Calculate total variance between two teams across all metric categories including Attack & Versatility.
  */
 function calculateTotalVariance(
   metricsA: TeamMetrics,
   metricsB: TeamMetrics,
-): { overall: number; speed: number; stamina: number; defense: number; total: number } {
+  teamAPlayers?: PlayerProfile[],
+  teamBPlayers?: PlayerProfile[],
+): { overall: number; speed: number; stamina: number; defense: number; attack: number; versatility: number; total: number } {
   const diffOverall = Math.abs(metricsA.overall - metricsB.overall);
   const diffSpeed = Math.abs(metricsA.speed - metricsB.speed);
   const diffStamina = Math.abs(metricsA.stamina - metricsB.stamina);
   const diffDefense = Math.abs(metricsA.defense - metricsB.defense);
+  const diffAttack = Math.abs(metricsA.attack - metricsB.attack);
+
+  let diffVersatility = 0;
+  if (teamAPlayers && teamBPlayers) {
+    const versA = teamAPlayers.filter(p => p.secondaryPosition || p.tertiaryPosition).length;
+    const versB = teamBPlayers.filter(p => p.secondaryPosition || p.tertiaryPosition).length;
+    diffVersatility = Math.abs(versA - versB) * 0.15;
+  }
 
   return {
     overall: diffOverall,
     speed: diffSpeed,
     stamina: diffStamina,
     defense: diffDefense,
-    total: diffOverall + diffSpeed + diffStamina + diffDefense,
+    attack: diffAttack,
+    versatility: diffVersatility,
+    total: diffOverall * 2.0 + diffSpeed + diffStamina + diffDefense + diffAttack + diffVersatility,
   };
 }
 
@@ -747,6 +761,8 @@ function iterativeSwapBalance(
   let currentVariance = calculateTotalVariance(
     calculateTeamMetrics(a),
     calculateTeamMetrics(b),
+    a,
+    b,
   );
 
   for (let iter = 0; iter < MAX_BALANCE_ITERATIONS; iter++) {
@@ -768,9 +784,11 @@ function iterativeSwapBalance(
         const trialVariance = calculateTotalVariance(
           calculateTeamMetrics(a),
           calculateTeamMetrics(b),
+          a,
+          b,
         );
 
-        if (trialVariance.total < bestNewVariance - 0.0005) {
+        if (trialVariance.total < bestNewVariance - 0.0002) {
           bestSwap = [i, j];
           bestNewVariance = trialVariance.total;
         }
@@ -788,6 +806,8 @@ function iterativeSwapBalance(
       currentVariance = calculateTotalVariance(
         calculateTeamMetrics(a),
         calculateTeamMetrics(b),
+        a,
+        b,
       );
     } else {
       break;
@@ -820,7 +840,7 @@ const POSITION_CATEGORIES: Record<PESPosition, PositionCategory> = {
 
 /**
  * Check if two players are in compatible position groups for swapping.
- * GKs only swap with GKs. Others swap strictly within category or adjacent category.
+ * Evaluates 1st, 2nd, and 3rd positions to unlock flexible, realistic tactical rotation.
  */
 function arePositionCompatible(a: PlayerProfile, b: PlayerProfile): boolean {
   const catA = POSITION_CATEGORIES[a.primaryPosition || 'CMF'] || 'MID';
@@ -838,6 +858,21 @@ function arePositionCompatible(a: PlayerProfile, b: PlayerProfile): boolean {
     MID: ['DEF', 'ATK'],
     ATK: ['MID'],
   };
+
+  // Check multi-position compatibility (2nd and 3rd positions)
+  const aPosList = [a.primaryPosition, a.secondaryPosition, a.tertiaryPosition].filter(Boolean) as PESPosition[];
+  const bPosList = [b.primaryPosition, b.secondaryPosition, b.tertiaryPosition].filter(Boolean) as PESPosition[];
+
+  for (const posA of aPosList) {
+    const cA = POSITION_CATEGORIES[posA] || 'MID';
+    for (const posB of bPosList) {
+      const cB = POSITION_CATEGORIES[posB] || 'MID';
+      if (cA === 'GK' || cB === 'GK') continue;
+      if (cA === cB || adjacent[cA]?.includes(cB)) {
+        return true;
+      }
+    }
+  }
 
   return adjacent[catA]?.includes(catB) ?? false;
 }
@@ -910,7 +945,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   const metricsA = calculateTeamMetrics(teamA);
   const metricsB = calculateTeamMetrics(teamB);
   
-  const generateAdvice = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
+  const generateAdvice = (myTeam: AssignedPlayer[], oppTeam: AssignedPlayer[], myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
     let advice = "👔 Manager's Tactical Brief: ";
     
     // Pace & Physicality analysis
@@ -928,6 +963,12 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
       advice += "💪 Superior endurance and physical condition are on our side. Implement high-pressing trigger traps in the second half when their midfielders begin to fatigue. ";
     } else {
       advice += "⚖️ This fixture is tactically knife-edged. Midfield dominance, winning second balls, and clinical execution on corner kicks will determine the winner. ";
+    }
+
+    // Versatility & Depth Synergy
+    const versatileCount = myTeam.filter(p => p.secondaryPosition || p.tertiaryPosition).length;
+    if (versatileCount >= 4) {
+      advice += `🔄 Tactical Fluidity: With ${versatileCount} versatile multi-position players in our lineup, encourage seamless rotational interchanging between wide and central areas without losing defensive structure. `;
     }
     
     // Formation synergy & Counter-tactic
@@ -953,7 +994,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     return advice;
   };
 
-  const generateAdviceAr = (myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
+  const generateAdviceAr = (myTeam: AssignedPlayer[], oppTeam: AssignedPlayer[], myMetrics: TeamMetrics, oppMetrics: TeamMetrics, formation: string, oppFormation: string) => {
     let advice = "👔 ملخص تعليمات المدرب: ";
     
     if (myMetrics.speed > oppMetrics.speed + 1.5) {
@@ -972,6 +1013,11 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
       advice += "⚖️ المواجهة متكافئة وحساسة تكتيكياً إلى حد كبير. السيطرة على خط الوسط، والفوز بالكرات الثانية، والاستغلال الأمثل للكرات الثابتة والركنيات هو ما سيحسم نتيجة اللقاء. ";
     }
     
+    const versatileCount = myTeam.filter(p => p.secondaryPosition || p.tertiaryPosition).length;
+    if (versatileCount >= 4) {
+      advice += `🔄 المرونة التكتيكية: بوجود ${versatileCount} لاعبين متعددي المراكز في التشكيلة، اعتمد على تبادل المراكز السريع بين العمق والأطراف لإرباك رقابة الخصم مع الحفاظ على التوازن الدفاعي. `;
+    }
+
     if (formation === '4-3-3') {
       advice += `تشكيلة 4-3-3 تمنحنا انتشاراً وعرضاً مثالياً للملعب أمام تشكيلة الخصم ${oppFormation}. تأكد من بقاء الأجنحة على الخطوط الجانبية لعزل أظهرة الخصم في مواجهات فردية، مما يسمح للاعبي الوسط بالاختراق من العمق.`;
     } else if (formation === '4-4-2') {
@@ -994,10 +1040,10 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     return advice;
   };
 
-  const adviceA = generateAdvice(metricsA, metricsB, formationA, formationB);
-  const adviceB = generateAdvice(metricsB, metricsA, formationB, formationA);
-  const adviceA_Ar = generateAdviceAr(metricsA, metricsB, formationA, formationB);
-  const adviceB_Ar = generateAdviceAr(metricsB, metricsA, formationB, formationA);
+  const adviceA = generateAdvice(teamA, teamB, metricsA, metricsB, formationA, formationB);
+  const adviceB = generateAdvice(teamB, teamA, metricsB, metricsA, formationB, formationA);
+  const adviceA_Ar = generateAdviceAr(teamA, teamB, metricsA, metricsB, formationA, formationB);
+  const adviceB_Ar = generateAdviceAr(teamB, teamA, metricsB, metricsA, formationB, formationA);
 
   return {
     teamA,
@@ -1017,7 +1063,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     metrics: {
       teamAOverall: metricsA.overall,
       teamBOverall: metricsB.overall,
-      variance: calculateTotalVariance(metricsA, metricsB),
+      variance: calculateTotalVariance(metricsA, metricsB, teamA, teamB),
     },
   };
 }

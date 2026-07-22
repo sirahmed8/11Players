@@ -7,12 +7,17 @@ import { motion } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from './FormIcon';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import { useLocale } from '@/components/ThemeProvider';
+import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
+import OvrExplanationModal from '@/components/OvrExplanationModal';
+import { HelpCircle } from 'lucide-react';
 
 export interface PlayerCardProps {
   player: PlayerProfile;
   variant?: 'full' | 'compact';
   recordedStats?: Record<string, any>;
   onVoteCaptain?: (uid: string) => void;
+  onCompare?: (player: PlayerProfile) => void;
   currentUserId?: string;
 }
 
@@ -41,12 +46,23 @@ const PlayerCard = React.memo(function PlayerCard({
   variant = 'full',
   recordedStats,
   onVoteCaptain,
+  onCompare,
   currentUserId,
 }: PlayerCardProps) {
+  const { locale } = useLocale();
+  const isAr = locale === 'ar';
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = getPlayerOverall(player);
   const [imgError, setImgError] = useState(false);
+  const [showOvrModal, setShowOvrModal] = useState(false);
   const displayPhoto = player.photoUrl || (player as any).photoURL || player.googlePic || (player as any).userPic || '';
+
+  const formatPlayStyle = (val?: string) => {
+    if (!val) return null;
+    const cleaned = val.toLowerCase().replace(/ /g, '_').trim();
+    const match = PLAYER_STYLES.find(s => s.id === cleaned || s.en.toLowerCase() === val.toLowerCase() || s.ar === val);
+    return match ? (isAr ? match.ar : match.en) : val.replace(/_/g, ' ').trim();
+  };
 
   React.useEffect(() => {
     setImgError(false);
@@ -133,7 +149,7 @@ const PlayerCard = React.memo(function PlayerCard({
               {player.playStyle && (
                 <div className="mb-2">
                   <span className="text-xs font-medium text-amber-600 dark:text-amber-400 truncate block">
-                    {player.playStyle.replace(/_/g, ' ').trim()}
+                    {formatPlayStyle(player.playStyle)}
                   </span>
                 </div>
               )}
@@ -155,18 +171,35 @@ const PlayerCard = React.memo(function PlayerCard({
             </div>
 
             {/* Action buttons or Captain Voted status */}
-            {onVoteCaptain && (
-              <div className="flex-shrink-0">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onVoteCaptain(player.uid);
-                  }}
-                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition-all active:scale-95"
-                >
-                  Vote Captain
-                </button>
+            {(onVoteCaptain || onCompare) && (
+              <div className="flex flex-col gap-1.5 flex-shrink-0 justify-center">
+                {onVoteCaptain && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onVoteCaptain(player.uid);
+                    }}
+                    className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow transition-all active:scale-95"
+                  >
+                    {isAr ? "تصويت كابتن" : "Vote Captain"}
+                  </button>
+                )}
+                {onCompare && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onCompare(player);
+                    }}
+                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl shadow transition-all active:scale-95 flex items-center justify-center gap-1.5"
+                  >
+                    <span>⚖️</span>
+                    <span>{isAr ? "مقارنة" : "Compare"}</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -281,7 +314,7 @@ const PlayerCard = React.memo(function PlayerCard({
             {player.playStyle && (
               <>
                 <span>•</span>
-                <span className="text-amber-300 font-bold">{(player.playStyle || '').replace(/_/g, ' ').trim()}</span>
+                <span className="text-amber-300 font-bold">{formatPlayStyle(player.playStyle)}</span>
               </>
             )}
           </div>
@@ -310,11 +343,32 @@ const PlayerCard = React.memo(function PlayerCard({
         </div>
 
         {/* --- Attributes Grid (2 columns × 3 rows) --- */}
-        <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5">
+        <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5 relative group">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setShowOvrModal(true);
+            }}
+            className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 rounded-full bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 shadow-xs"
+            title={isAr ? "شرح كيفية حساب هذه الطاقات والتقييم" : "How are these card stats calculated?"}
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+          </button>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
             {calculateMainStats(activeAttributes).map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider">
+              <div 
+                key={label} 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  setShowOvrModal(true);
+                }}
+                className="flex items-center justify-between cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors"
+                title={isAr ? "اضغط لمعرفة طريقة حساب هذا المؤشر" : "Click to see formula breakdown"}
+              >
+                <span className="text-[11px] font-semibold text-amber-200/70 tracking-wider flex items-center gap-1">
                   {label}
                 </span>
                 <span
@@ -345,6 +399,39 @@ const PlayerCard = React.memo(function PlayerCard({
             </div>
           ))}
         </div>
+
+        {(onVoteCaptain || onCompare) && (
+          <div className="flex items-center gap-1.5 p-2 bg-slate-900/80 border-t border-amber-400/30">
+            {onVoteCaptain && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onVoteCaptain(player.uid);
+                }}
+                className="flex-1 py-1 px-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[11px] rounded-lg shadow transition-all active:scale-95"
+              >
+                {isAr ? "تصويت كابتن" : "Vote Captain"}
+              </button>
+            )}
+            {onCompare && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onCompare(player);
+                }}
+                className="flex-1 py-1 px-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-[11px] rounded-lg shadow transition-all active:scale-95 flex items-center justify-center gap-1"
+              >
+                <span>⚖️</span>
+                <span>{isAr ? "مقارنة" : "Compare"}</span>
+              </button>
+            )}
+          </div>
+        )}
+        <OvrExplanationModal isOpen={showOvrModal} onClose={() => setShowOvrModal(false)} />
       </motion.div>
     </CardWrapper>
   );

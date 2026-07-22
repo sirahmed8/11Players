@@ -1175,122 +1175,126 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       </div>
                     )}
                   </div>
-
-                  {/* Open Booking / Make a Match Registration Option */}
-                  <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 block">
-                        {isAr ? 'إنشاء حجز مفتوح للتسجيل (بدون اختيار لاعبين الآن)' : 'Open Booking Registration (No initial players required)'}
-                      </span>
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
-                        {isAr ? 'سيتمكن اللاعبون من تسجيل حضورهم لاحقاً حتى اكتمال العدد' : 'Players will sign up/check in later until capacity is reached'}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setConfig(prev => ({ ...prev, isOpenRegistration: !prev.isOpenRegistration }))}
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                        config.isOpenRegistration ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
-                      }`}
-                    >
-                      <div className="w-5 h-5 rounded-full bg-white shadow-md" />
-                    </button>
-                  </div>
-
-                  {/* Enable Cards & Disciplinary System Option */}
-                  <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center justify-between mt-3">
-                    <div>
-                      <span className="text-xs font-black text-red-800 dark:text-red-300 block">
-                        {isAr ? 'تفعيل نظام الإنذارات والكروت (أصفر / أحمر / إيقاف)' : 'Enable Cards & Disciplinary System (Yellow/Red/Suspensions)'}
-                      </span>
-                      <span className="text-[10px] text-red-600 dark:text-red-400">
-                        {isAr ? 'تسجيل الكروت أثناء المباراة وتطبيق الإيقاف التلقائي في الحجز التالي للكرت الأحمر' : 'Track cards during match & enforce suspensions for players with red cards'}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setConfig(prev => ({ ...prev, enableCardsSystem: prev.enableCardsSystem === false ? true : false }))}
-                      className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
-                        config.enableCardsSystem !== false ? 'bg-red-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
-                      }`}
-                    >
-                      <div className="w-5 h-5 rounded-full bg-white shadow-md" />
-                    </button>
-                  </div>
-
-                  {/* Player Selection */}
-                  <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${!config.isOpenRegistration && communityPlayers.length > 0 ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
-                    <div className="overflow-hidden">
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-xs font-black text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5" />
-                          {isAr ? 'من سيلعب؟' : 'Who\'s Playing?'}
-                        </label>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-amber-500">
-                            {selectedUids.size}/{communityPlayers.length} {isAr ? 'لاعب' : 'players'}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={toggleAll}
-                            className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
-                          >
-                            {selectedUids.size === allUids.length ? (isAr ? 'إلغاء الكل' : 'Deselect All') : (isAr ? 'تحديد الكل' : 'Select All')}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setShowPlayerPicker(p => !p)}
-                            className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
-                          >
-                            {showPlayerPicker ? (isAr ? 'إخفاء' : 'Hide') : (isAr ? 'تعديل' : 'Edit')}
-                          </button>
-                        </div>
-                      </div>
-                      <AnimatePresence>
-                        {showPlayerPicker && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
-                              {communityPlayers.map(p => (
-                                <button
-                                  key={p.uid}
-                                  type="button"
-                                  onClick={() => togglePlayer(p.uid)}
-                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                                    selectedUids.has(p.uid)
-                                      ? 'bg-emerald-500 text-white shadow-sm'
-                                      : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 line-through opacity-60'
-                                  } ${config.enableCardsSystem !== false && p.stats?.isSuspended ? 'border-2 border-red-500 bg-red-500/20 text-red-600 dark:text-red-400' : ''}`}
-                                >
-                                  {selectedUids.has(p.uid) ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
-                                  {p.cardName || p.fullName}
-                                  {config.enableCardsSystem !== false && p.stats?.isSuspended && (
-                                    <span title={isAr ? 'موقوف بسبب كرت أحمر' : 'Suspended (Red Card)'} className="px-1 py-0.5 bg-red-600 text-white rounded text-[9px] font-black">
-                                      🚫 {isAr ? 'موقوف' : 'Suspended'}
-                                    </span>
-                                  )}
-                                </button>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="p-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
-                    {isAr
-                      ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'friendly' ? 'حجز ودية كاجوال' : config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
-                      : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'friendly' ? 'Casual Friendly' : config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`
-                    }
-                  </div>
                 </div>
               )}
+
+              {/* Open Booking / Make a Match Registration Option */}
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl flex items-center justify-between mt-4">
+                <div>
+                  <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 block">
+                    {isAr ? 'إنشاء حجز مفتوح للتسجيل (بدون اختيار لاعبين الآن)' : 'Open Booking Registration (No initial players required)'}
+                  </span>
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                    {isAr ? 'سيتمكن اللاعبون من تسجيل حضورهم لاحقاً حتى اكتمال العدد' : 'Players will sign up/check in later until capacity is reached'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfig(prev => ({ ...prev, isOpenRegistration: !prev.isOpenRegistration }))}
+                  className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                    config.isOpenRegistration ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                  }`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                </button>
+              </div>
+
+              {/* Enable Cards & Disciplinary System Option */}
+              <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center justify-between mt-3">
+                <div>
+                  <span className="text-xs font-black text-red-800 dark:text-red-300 block">
+                    {isAr ? 'تفعيل نظام الإنذارات والكروت (أصفر / أحمر / إيقاف)' : 'Enable Cards & Disciplinary System (Yellow/Red/Suspensions)'}
+                  </span>
+                  <span className="text-[10px] text-red-600 dark:text-red-400">
+                    {isAr ? 'تسجيل الكروت أثناء المباراة وتطبيق الإيقاف التلقائي في الحجز التالي للكرت الأحمر' : 'Track cards during match & enforce suspensions for players with red cards'}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setConfig(prev => ({ ...prev, enableCardsSystem: prev.enableCardsSystem === false ? true : false }))}
+                  className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                    config.enableCardsSystem !== false ? 'bg-red-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                  }`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                </button>
+              </div>
+
+              {/* Player Selection */}
+              <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${!config.isOpenRegistration && communityPlayers.length > 0 ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
+                <div className="overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-xs font-black text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                      <Users className="w-3.5 h-3.5" />
+                      {isAr ? 'من سيلعب؟ (اختيار لاعبي المجتمع)' : 'Who\'s Playing? (Select Community Players)'}
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-amber-500">
+                        {selectedUids.size}/{communityPlayers.length} {isAr ? 'لاعب' : 'players'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={toggleAll}
+                        className="text-[10px] font-black px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+                      >
+                        {selectedUids.size === allUids.length ? (isAr ? 'إلغاء الكل' : 'Deselect All') : (isAr ? 'تحديد الكل' : 'Select All')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowPlayerPicker(p => !p)}
+                        className="text-[10px] font-black px-2 py-1 rounded-lg bg-amber-500 text-white hover:bg-amber-600 transition-colors"
+                      >
+                        {showPlayerPicker ? (isAr ? 'إخفاء' : 'Hide') : (isAr ? 'تعديل' : 'Edit')}
+                      </button>
+                    </div>
+                  </div>
+                  <AnimatePresence>
+                    {showPlayerPicker && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex flex-wrap gap-2 p-3 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-700 max-h-40 overflow-y-auto">
+                          {communityPlayers.map(p => (
+                            <button
+                              key={p.uid}
+                              type="button"
+                              onClick={() => togglePlayer(p.uid)}
+                              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
+                                selectedUids.has(p.uid)
+                                  ? 'bg-emerald-500 text-white shadow-sm'
+                                  : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 line-through opacity-60'
+                              } ${config.enableCardsSystem !== false && p.stats?.isSuspended ? 'border-2 border-red-500 bg-red-500/20 text-red-600 dark:text-red-400' : ''}`}
+                            >
+                              {selectedUids.has(p.uid) ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+                              {p.cardName || p.fullName}
+                              {config.enableCardsSystem !== false && p.stats?.isSuspended && (
+                                <span title={isAr ? 'موقوف بسبب كرت أحمر' : 'Suspended (Red Card)'} className="px-1 py-0.5 bg-red-600 text-white rounded text-[9px] font-black">
+                                  🚫 {isAr ? 'موقوف' : 'Suspended'}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Summary */}
+              <div className="p-3 mt-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
+                {activeTab === 'turf'
+                  ? (isAr
+                    ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'friendly' ? 'حجز ودية كاجوال' : config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
+                    : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into ${config.numTeams} teams — ${config.playersPerTeam}/team — ${config.gkMode === 'rotating' ? `rotating GK ${config.gkRotationInterval === 'per_goal' ? 'per goal' : config.gkRotationInterval === 'per_time' ? `every ${config.gkRotationMinutes}min` : 'per match'}` : 'fixed GK'} — ${config.matchType === 'friendly' ? 'Casual Friendly' : config.matchType === 'league' ? 'League' : config.matchType === 'knockout' ? 'Knockout' : 'Winner Stays On'} — ${config.matchDurationMins}min.`)
+                  : (isAr
+                    ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على فريقين (11 ضد 11 قانوني) بتوازن تقييمات الذكاء الاصطناعي.`
+                    : `Splitting ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} players` : 'players'} into two balanced 11v11 standard match teams with AI.`)
+                }
+              </div>
 
                 </>
               )}

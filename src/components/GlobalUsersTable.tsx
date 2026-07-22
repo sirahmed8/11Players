@@ -7,7 +7,7 @@ import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, Search, ArrowUpDown, Eye } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ConfirmModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
@@ -237,7 +237,8 @@ export default function GlobalUsersTable() {
           </div>
         </div>
       </div>
-      <div className="overflow-x-auto">
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
@@ -286,8 +287,91 @@ export default function GlobalUsersTable() {
         </table>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3.5">
+        {paginatedUsers.map(u => {
+          const photo = u.photoUrl || u.googlePic || (u as any).photoURL || (u as any).userPic || "";
+          const activeLocalComm = typeof window !== "undefined" ? localStorage.getItem("activeCommunityId") : null;
+          const commIds = Array.from(
+            new Set([
+              ...(u.memberCommunities || []),
+              ...(u.joinedCommunities || []),
+              ...(userCommMap[u.uid] || []),
+              ...((u as any).lastCommunityId ? [(u as any).lastCommunityId] : []),
+              ...((activeLocalComm && (userCommMap[u.uid] || u.memberCommunities?.includes(activeLocalComm))) ? [activeLocalComm] : []),
+            ].filter(Boolean))
+          ) as string[];
+
+          return (
+            <div key={u.uid} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 shadow-sm flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                {photo ? (
+                  <Image src={photo} alt={u.fullName} className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-emerald-500/30" width={48} height={48} referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold shrink-0 text-lg">
+                    {u.fullName?.charAt(0) || "?"}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold text-slate-900 dark:text-white truncate text-sm">{u.fullName}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium">{u.cardName || u.email || "N/A"}</div>
+                  {u.email && <div className="text-[11px] text-slate-400 truncate mt-0.5">{u.email}</div>}
+                </div>
+              </div>
+
+              {/* Communities */}
+              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2.5">
+                <span className="text-[10px] text-slate-400 block font-bold mb-1.5 uppercase tracking-wider">{isAr ? "المجتمعات" : "Communities"}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {commIds.length > 0 ? (
+                    commIds.map((c) => (
+                      <span key={c} className="text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
+                        {communitiesMap[c] || c}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-400 italic">{isAr ? "لا يوجد مجتمعات" : "No communities"}</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap">
+                <button
+                  onClick={() => setManageCommModal({ open: true, user: u })}
+                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>{isAr ? "المجتمعات" : "Communities"}</span>
+                </button>
+                <Link
+                  href={`/profile?uid=${u.uid}`}
+                  className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  <span>{isAr ? "الملف الشخصي" : "Profile"}</span>
+                </Link>
+                <button
+                  onClick={() => handleBanUser(u)}
+                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                  title={isAr ? "حظر / حذف" : "Ban / Delete User"}
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+        {filteredUsers.length === 0 && (
+          <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500">
+            {isAr ? "لا يوجد مستخدمين" : "No users found"}
+          </div>
+        )}
+      </div>
+
+      {/* Clean Standalone Pagination Bar */}
       {totalPages > 1 && (
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 flex items-center justify-between gap-4 flex-wrap">
+        <div className="mt-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg flex items-center justify-between gap-4 flex-wrap">
           <div className="text-xs font-bold text-slate-500">
             {isAr ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
           </div>
@@ -295,14 +379,14 @@ export default function GlobalUsersTable() {
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-50 disabled:pointer-events-none hover:border-emerald-500 transition-colors"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-40 disabled:pointer-events-none hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
             >
               {isAr ? "السابق" : "Previous"}
             </button>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-50 disabled:pointer-events-none hover:border-emerald-500 transition-colors"
+              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-40 disabled:pointer-events-none hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
             >
               {isAr ? "التالي" : "Next"}
             </button>

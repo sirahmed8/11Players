@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { doc, onSnapshot, collection, updateDoc, arrayUnion, arrayRemove, deleteDoc, setDoc } from "firebase/firestore";
+import { doc, onSnapshot, collection, updateDoc, arrayUnion, arrayRemove, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ThemeProvider";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -382,6 +382,18 @@ export default function MatchPage() {
       if (isAlreadyVotedForThisCandidate) {
         toast.success(isAr ? "تم إلغاء صوتك لكابتن الفريق" : "Your captain vote was removed");
       } else {
+        try {
+          await setDoc(doc(collection(db, `users/${candidateUid}/notifications`), `captain_vote_match_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+            type: 'social',
+            title: isAr ? '👑 صوت كابتن للمباراة!' : '👑 Match Captain Vote!',
+            body: isAr ? `قام أحد زملائك في المجتمع بالتصويت لك لتكون كابتن الفريق في المباراة!` : `A community teammate voted for you to be captain in the match!`,
+            read: false,
+            createdAt: serverTimestamp(),
+            link: '/match'
+          });
+        } catch (e) {
+          console.warn("Could not send match captain vote notification:", e);
+        }
         toast.success(isAr ? "تم تسجيل صوتك (+1) للكابتن بنجاح! 👑" : "Your captain vote (+1) has been recorded! 👑");
       }
     } catch (err) {

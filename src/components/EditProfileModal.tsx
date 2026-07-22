@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateDoc, doc, setDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { updateDoc, doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
@@ -16,6 +16,7 @@ import SkillsChecklist from '@/components/SkillsChecklist';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
 import { ChevronDown } from 'lucide-react';
+import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -25,7 +26,13 @@ interface EditProfileModalProps {
 }
 
 const POSITIONS: PESPosition[] = ['CF', 'SS', 'RWF', 'LWF', 'AMF', 'CMF', 'DMF', 'RMF', 'LMF', 'CB', 'RB', 'LB', 'GK'];
-const PLAY_STYLES = ['Goal Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward', 'Dummy Runner', 'Creative Playmaker', 'Hole Player', 'Classic No. 10', 'Prolific Winger', 'Roaming Flank', 'Cross Specialist', 'Orchestrator', 'Box-to-Box', 'The Destroyer', 'Anchor Man', 'Build Up', 'Extra Frontman', 'Offensive Full-back', 'Defensive Full-back', 'Full-back Finisher', 'Offensive Goalkeeper', 'Defensive Goalkeeper'];
+
+const normalizePlayStyleId = (val?: string) => {
+  if (!val) return '';
+  const cleaned = val.toLowerCase().replace(/ /g, '_').trim();
+  const found = PLAYER_STYLES.find(s => s.id === cleaned || s.en.toLowerCase() === val.toLowerCase() || s.ar === val);
+  return found ? found.id : val.replace(/ /g, '_');
+};
 
 const ATTRIBUTES_KEYS: (keyof PlayerAttributes)[] = [
   'offensiveAwareness', 'ballControl', 'dribbling', 'lowPass', 'loftedPass', 'finishing', 'heading',
@@ -33,6 +40,13 @@ const ATTRIBUTES_KEYS: (keyof PlayerAttributes)[] = [
   'defensiveAwareness', 'ballWinning', 'aggression',
   'gkAwareness', 'gkCatching', 'gkClearing', 'gkReflexes', 'gkReach'
 ];
+
+const DEFAULT_ATTRIBUTES: PlayerAttributes = {
+  offensiveAwareness: 40, ballControl: 40, dribbling: 40, lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
+  speed: 40, acceleration: 40, kickingPower: 40, jump: 40, physicalContact: 40, balance: 40, stamina: 40,
+  defensiveAwareness: 40, ballWinning: 40, aggression: 40,
+  gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
+};
 
 const CustomSelect = ({ value, options, placeholder, onChange, dropUp = false }: { 
   value: string | number; 
@@ -109,28 +123,21 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const isRTL = locale === 'ar';
   
   const [formData, setFormData] = useState({
-    fullName: player.fullName,
-    cardName: player.cardName,
-    dateOfBirth: player.dateOfBirth,
-    height: player.height,
-    weight: player.weight,
-    primaryPosition: player.primaryPosition,
-    secondaryPosition: player.secondaryPosition,
-    tertiaryPosition: player.tertiaryPosition,
-    playStyle: (player.playStyle || '').replace(/_/g, ' ').trim(),
-    preferredFoot: player.preferredFoot,
+    fullName: player.fullName || '',
+    cardName: player.cardName || '',
+    dateOfBirth: player.dateOfBirth || '',
+    height: player.height || 175,
+    weight: player.weight || 70,
+    primaryPosition: player.primaryPosition || 'CMF',
+    secondaryPosition: player.secondaryPosition || '',
+    tertiaryPosition: player.tertiaryPosition || '',
+    playStyle: normalizePlayStyleId(player.playStyle),
+    preferredFoot: player.preferredFoot || 'Right',
     photoUrl: player.photoUrl || ''
   });
   
-  const defaultAttributes: PlayerAttributes = {
-    offensiveAwareness: 40, ballControl: 40, dribbling: 40, lowPass: 40, loftedPass: 40, finishing: 40, heading: 40,
-    speed: 40, acceleration: 40, kickingPower: 40, jump: 40, physicalContact: 40, balance: 40, stamina: 40,
-    defensiveAwareness: 40, ballWinning: 40, aggression: 40,
-    gkAwareness: 40, gkCatching: 40, gkClearing: 40, gkReflexes: 40, gkReach: 40
-  };
-
   // Merge player attributes with defaults so every key has a value (min 40)
-  const [attributes, setAttributes] = useState<PlayerAttributes>({ ...defaultAttributes, ...(player.attributes || {}) });
+  const [attributes, setAttributes] = useState<PlayerAttributes>({ ...DEFAULT_ATTRIBUTES, ...(player.attributes || {}) });
   const [specialSkills, setSpecialSkills] = useState<string[]>(player.specialSkills || []);
   
   const [stats, setStats] = useState<CommunityStats>(
@@ -139,6 +146,30 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   );
   
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && player) {
+      setFormData({
+        fullName: player.fullName || '',
+        cardName: player.cardName || '',
+        dateOfBirth: player.dateOfBirth || '',
+        height: player.height || 175,
+        weight: player.weight || 70,
+        primaryPosition: player.primaryPosition || 'CMF',
+        secondaryPosition: player.secondaryPosition || '',
+        tertiaryPosition: player.tertiaryPosition || '',
+        playStyle: normalizePlayStyleId(player.playStyle),
+        preferredFoot: player.preferredFoot || 'Right',
+        photoUrl: player.photoUrl || ''
+      });
+      setAttributes({ ...DEFAULT_ATTRIBUTES, ...(player.attributes || {}) });
+      setSpecialSkills(player.specialSkills || []);
+      setStats(
+        (activeCommunityId && player.communityStats && player.communityStats[activeCommunityId]) 
+          || { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 }
+      );
+    }
+  }, [isOpen, player, activeCommunityId]);
 
   const handleChange = (field: string, value: string | number) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -168,7 +199,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
       if (isOwner || isAdmin) {
         const mergedAttributes = { ...player.attributes, ...attributes };
-        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '', formData.height || player.height, formData.weight || player.weight, age, player.peerRatingAvg, player.peerRatingCount, formData.preferredFoot);
+        const newOverall = calculateRealisticOverall(mergedAttributes, formData.primaryPosition || 'CMF', formData.playStyle || '', formData.height || player.height, formData.weight || player.weight, age, player.peerRatingAvg, player.peerRatingCount, formData.preferredFoot, specialSkills, player.stats);
         const updatePayload: any = {
           ...dataToSave,
           attributes: mergedAttributes,
@@ -190,15 +221,6 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         await setDoc(doc(db, 'players', player.uid), updatePayload, { merge: true });
         toast.success(isRTL ? 'تم حفظ التعديلات وتحديث التقييم العام بنجاح' : 'Changes & Overall Rating saved successfully');
       } else {
-        try {
-          await setDoc(doc(db, 'players', player.uid), dataToSave, { merge: true });
-          for (const commId of commIds) {
-            await setDoc(doc(db, 'communities', commId as string, 'players', player.uid), dataToSave, { merge: true });
-          }
-        } catch (e) {
-          console.warn("Safe profile write fallback to editRequest:", e);
-        }
-        
         const targetCommunityId = activeCommunityId || (commIds.length > 0 ? commIds[0] : null);
         const editPayload = {
           playerId: player.uid,
@@ -211,7 +233,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           attributes,
           stats,
           specialSkills,
-          playStyle: formData.playStyle.replace(/ /g, '_')
+          playStyle: formData.playStyle
         };
 
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
@@ -223,7 +245,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           try {
             // Notify the user who made the edit (their own card) with a button to view the diff
             if (user) {
-              const userNotifRef = doc(collection(db, `users/${user.uid}/notifications`), `edit_request_${Date.now()}`);
+              const userNotifRef = doc(collection(db, `users/${user.uid}/notifications`), `edit_request_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
               await setDoc(userNotifRef, {
                 type: 'stats',
                 title: isRTL ? 'تم إرسال طلب تعديل ملفك الشخصي' : 'Your Profile Edit Request Sent',
@@ -234,9 +256,22 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               });
             }
 
+            // Reliable adminUid lookup
+            let adminUidToNotify = activeCommunity?.adminUid;
+            if (!adminUidToNotify && targetCommunityId) {
+              try {
+                const commSnap = await getDoc(doc(db, 'communities', targetCommunityId));
+                if (commSnap.exists()) {
+                  adminUidToNotify = commSnap.data()?.adminUid;
+                }
+              } catch (e) {
+                console.warn("Could not fetch community adminUid:", e);
+              }
+            }
+
             // Notify admin
-            if (activeCommunity?.adminUid) {
-              const adminNotifRef = doc(collection(db, `users/${activeCommunity.adminUid}/notifications`), `edit_request_admin_${Date.now()}`);
+            if (adminUidToNotify) {
+              const adminNotifRef = doc(collection(db, `users/${adminUidToNotify}/notifications`), `edit_request_admin_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
               await setDoc(adminNotifRef, {
                 type: 'stats',
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
@@ -247,8 +282,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               });
             }
 
-            if (activeCommunity?.adminUid !== ownerUid) {
-              const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`), `edit_request_owner_${Date.now()}`);
+            if (adminUidToNotify !== ownerUid) {
+              const ownerNotifRef = doc(collection(db, `users/${ownerUid}/notifications`), `edit_request_owner_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`);
               await setDoc(ownerNotifRef, {
                 type: 'stats',
                 title: isRTL ? 'طلب تعديل ملف شخصي وقدرات' : 'Profile & Stats Edit Request',
@@ -440,7 +475,10 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <CustomSelect
                     value={formData.playStyle}
                     placeholder={isRTL ? "اختر أسلوب اللعب" : "None"}
-                    options={[{ value: '', label: isRTL ? 'لا يوجد' : 'None' }, ...PLAY_STYLES.map(p => ({ value: p.replace(/_/g, ' '), label: p.replace(/_/g, ' ') }))]}
+                    options={[
+                      { value: '', label: isRTL ? 'لا يوجد' : 'None' },
+                      ...PLAYER_STYLES.map(p => ({ value: p.id, label: isRTL ? p.ar : p.en }))
+                    ]}
                     onChange={(v) => handleChange('playStyle', v)}
                     dropUp={true}
                   />

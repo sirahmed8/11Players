@@ -438,6 +438,17 @@ export default function GuidePage() {
 
                   <section>
                     <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
+                      ⚖️ {isAr ? "مقارنة اللاعبين وجهًا لوجه (Player Comparison)" : "Head-to-Head Player Comparison"}
+                    </h2>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm">
+                      {isAr 
+                        ? "يمكنك مقارنة بطاقتين أو لاعبين وجهًا لوجه لعرض الفرق في الطاقات الـ22 والتقييم العام والإحصائيات، وتحديد نقطة التفوق في كل جانب سواء الهجوم، الدفاع، التمرير، أو اللياقة البدنية."
+                        : "Compare two player cards or profiles head-to-head to analyze exact differences across all 22 attributes, overall ratings, and match stats, highlighting clear tactical advantages in attack, defense, passing, and stamina."}
+                    </p>
+                  </section>
+
+                  <section>
+                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
                       🔮 {isAr ? "المزيد قادم" : "More Coming Soon"}
                     </h2>
                     <p className="text-slate-600 dark:text-slate-400 text-sm">

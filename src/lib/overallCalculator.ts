@@ -27,7 +27,9 @@ export function calculateRealisticOverall(
   age?: number,
   peerRatingAvg?: number,
   peerRatingCount?: number,
-  preferredFoot?: string
+  preferredFoot?: string,
+  specialSkills?: string[],
+  stats?: { goals?: number; assists?: number; mvp?: number; cleanSheets?: number; matchesPlayed?: number }
 ): number {
   if (!attributes) return 40;
 
@@ -82,18 +84,19 @@ export function calculateRealisticOverall(
 
   // Play Style Synergy Modifier with position
   if (playStyle) {
-    const cleanStyle = playStyle.replace(/_/g, ' ').trim();
-    if (['CF', 'SS'].includes(position) && ['Goal Poacher', 'Poacher', 'Fox in the Box', 'Target Man', 'Deep-Lying Forward'].includes(cleanStyle)) {
+    const cleanStyle = playStyle.toLowerCase().replace(/_/g, ' ').trim();
+    const cleanId = cleanStyle.replace(/ /g, '_');
+    if (['CF', 'SS'].includes(position) && (['goal poacher', 'poacher', 'fox in the box', 'target man', 'deep-lying forward'].includes(cleanStyle) || ['goal_poacher', 'fox_in_the_box', 'target_man', 'deep_lying_forward'].includes(cleanId))) {
       finalOverall += 1;
-    } else if (['AMF', 'CMF'].includes(position) && ['Creative Playmaker', 'Orchestrator', 'Classic No. 10', 'Hole Player'].includes(cleanStyle)) {
+    } else if (['AMF', 'CMF'].includes(position) && (['creative playmaker', 'orchestrator', 'classic no. 10', 'hole player'].includes(cleanStyle) || ['creative_playmaker', 'orchestrator', 'classic_no_10', 'hole_player'].includes(cleanId))) {
       finalOverall += 1;
-    } else if (['CMF', 'DMF'].includes(position) && ['Box-to-Box', 'Anchor Man', 'The Destroyer'].includes(cleanStyle)) {
+    } else if (['CMF', 'DMF'].includes(position) && (['box-to-box', 'anchor man', 'the destroyer'].includes(cleanStyle) || ['box_to_box', 'anchor_man', 'the_destroyer'].includes(cleanId))) {
       finalOverall += 1;
-    } else if (['LWF', 'RWF', 'LMF', 'RMF'].includes(position) && ['Prolific Winger', 'Roaming Flank', 'Cross Specialist'].includes(cleanStyle)) {
+    } else if (['LWF', 'RWF', 'LMF', 'RMF'].includes(position) && (['prolific winger', 'roaming flank', 'cross specialist'].includes(cleanStyle) || ['prolific_winger', 'roaming_flank', 'cross_specialist'].includes(cleanId))) {
       finalOverall += 1;
-    } else if (['CB', 'LB', 'RB'].includes(position) && ['Build Up', 'Offensive Full-back', 'Defensive Full-back', 'Extra Frontman'].includes(cleanStyle)) {
+    } else if (['CB', 'LB', 'RB'].includes(position) && (['build up', 'offensive full-back', 'defensive full-back', 'extra frontman'].includes(cleanStyle) || ['build_up', 'offensive_fullback', 'defensive_fullback', 'extra_frontman'].includes(cleanId))) {
       finalOverall += 1;
-    } else if (position === 'GK' && ['Offensive Goalkeeper', 'Defensive Goalkeeper'].includes(cleanStyle)) {
+    } else if (position === 'GK' && (['offensive goalkeeper', 'defensive goalkeeper'].includes(cleanStyle) || ['offensive_gk', 'defensive_gk'].includes(cleanId))) {
       finalOverall += 1;
     }
   }
@@ -140,6 +143,8 @@ export function calculatePositionRating(
     peerRatingAvg?: number;
     peerRatingCount?: number;
     preferredFoot?: string;
+    specialSkills?: string[];
+    stats?: { goals?: number; assists?: number; mvp?: number; cleanSheets?: number; matchesPlayed?: number };
   },
   targetPosition: PESPosition
 ): number {
@@ -156,7 +161,9 @@ export function calculatePositionRating(
     age,
     player?.peerRatingAvg,
     player?.peerRatingCount,
-    player?.preferredFoot
+    player?.preferredFoot,
+    player?.specialSkills,
+    player?.stats
   );
 
   if (targetPosition === primaryPos) {

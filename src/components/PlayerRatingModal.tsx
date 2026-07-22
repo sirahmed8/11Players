@@ -84,7 +84,7 @@ const ABILITY_NAMES: Record<string, { en: string; ar: string }> = {
 
 export default function PlayerRatingModal({ isOpen, onClose, matchId, players, isAr }: PlayerRatingModalProps) {
   const { user } = useAuth();
-  const { activeCommunityId } = useCommunity();
+  const { activeCommunityId, activeCommunity } = useCommunity();
   
   // Store detailed ability ratings per player: { [playerId]: { offensiveAwareness: 75, ... } }
   const [abilityRatings, setAbilityRatings] = useState<Record<string, Partial<PlayerAttributes>>>({});
@@ -320,6 +320,51 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
                 primaryPosition: targetPlayer.primaryPosition || 'CMF'
               }
             }, { merge: true });
+
+            try {
+              const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+              let adminUidToNotify = activeCommunity?.adminUid;
+              if (!adminUidToNotify && activeCommunityId) {
+                try {
+                  const cSnap = await getDoc(doc(db, "communities", activeCommunityId));
+                  if (cSnap.exists()) adminUidToNotify = cSnap.data()?.adminUid;
+                } catch (e) {}
+              }
+
+              if (adminUidToNotify) {
+                await setDoc(doc(collection(db, `users/${adminUidToNotify}/notifications`), `peer_rate_adm_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+                  type: 'stats',
+                  title: isAr ? 'إقتراح تقييم قدرات من اللاعبين' : 'New Peer Ability Rating Suggestion',
+                  body: isAr ? `تم تحديث متوسط تقييمات القدرات للاعب ${targetPlayer.fullName || 'لاعب'}. يرجى المراجعة.` : `Peer ability ratings updated for ${targetPlayer.fullName || 'player'}. Please review.`,
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: '/admin?tab=edits'
+                });
+              }
+              if (adminUidToNotify !== ownerUid) {
+                await setDoc(doc(collection(db, `users/${ownerUid}/notifications`), `peer_rate_own_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+                  type: 'stats',
+                  title: isAr ? 'إقتراح تقييم قدرات من اللاعبين' : 'New Peer Ability Rating Suggestion',
+                  body: isAr ? `تم تحديث متوسط تقييمات القدرات للاعب ${targetPlayer.fullName || 'لاعب'}.` : `Peer ability ratings updated for ${targetPlayer.fullName || 'player'}.`,
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: '/admin?tab=edits'
+                });
+              }
+
+              if (user && user.uid !== targetPlayerId) {
+                await setDoc(doc(collection(db, `users/${targetPlayerId}/notifications`), `peer_rate_usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
+                  type: 'stats',
+                  title: isAr ? '💡 تقييم قدرات جديد لملفك' : '💡 New Ability Ratings Suggestion',
+                  body: isAr ? `قام زملائك بتقييم واقتراح طاقات لقدراتك في المجتمع. سيتم مراجعة التقييم من قبل المسؤول.` : `Peers submitted ability rating suggestions for your profile. The community admin will review them soon.`,
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: '/profile?uid=' + targetPlayerId
+                });
+              }
+            } catch (notifErr) {
+              console.warn("Peer rating notification warning:", notifErr);
+            }
           }
         } catch (proposalErr) {
           console.warn('Could not aggregate peer rating proposal:', proposalErr);

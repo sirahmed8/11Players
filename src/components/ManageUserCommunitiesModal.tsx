@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { collection, getDocs, doc, deleteDoc, setDoc, updateDoc, writeBatch, arrayRemove, arrayUnion } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
@@ -37,6 +37,7 @@ export default function ManageUserCommunitiesModal({
   const [currentCommIds, setCurrentCommIds] = useState<string[]>([]);
   const [moveTargets, setMoveTargets] = useState<Record<string, string>>({});
   const [selectedAddComm, setSelectedAddComm] = useState<string>("");
+  const lastInitializedUid = useRef<string | null>(null);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -46,16 +47,23 @@ export default function ManageUserCommunitiesModal({
   }>({ isOpen: false, title: "", message: "", onConfirm: () => {} });
 
   useEffect(() => {
+    if (!isOpen) {
+      lastInitializedUid.current = null;
+      return;
+    }
     if (isOpen && user) {
-      const comms = Array.from(
-        new Set([
-          ...(user.memberCommunities || []),
-          ...(user.joinedCommunities || []),
-          ...((user as any).communities || []),
-          ...(user.activeCommunityId ? [user.activeCommunityId] : [])
-        ].filter(Boolean))
-      ) as string[];
-      setCurrentCommIds(comms);
+      if (lastInitializedUid.current !== user.uid) {
+        const comms = Array.from(
+          new Set([
+            ...(user.memberCommunities || []),
+            ...(user.joinedCommunities || []),
+            ...((user as any).communities || []),
+            ...(user.activeCommunityId ? [user.activeCommunityId] : [])
+          ].filter(Boolean))
+        ) as string[];
+        setCurrentCommIds(comms);
+        lastInitializedUid.current = user.uid;
+      }
 
       const fetchComms = async () => {
         setLoading(true);
