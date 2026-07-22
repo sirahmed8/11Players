@@ -581,6 +581,7 @@ function PlayerProfileContent() {
         isOpen={isOvrInfoOpen}
         onClose={() => setIsOvrInfoOpen(false)}
         player={player}
+        isOwnProfile={isViewingOwnProfile}
       />
 
       <PlayerComparisonModal

@@ -12,9 +12,10 @@ interface OvrExplanationModalProps {
   isOpen: boolean;
   onClose: () => void;
   player?: any; // To pass in the player object for personalized hints
+  isOwnProfile?: boolean;
 }
 
-export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExplanationModalProps) {
+export default function OvrExplanationModal({ isOpen, onClose, player, isOwnProfile = true }: OvrExplanationModalProps) {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
@@ -39,15 +40,21 @@ export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExpl
     const currentPos = player.primaryPosition || 'CMF';
     const bestPos = suggestions.positions[0];
 
+    const chosenStrEn = isOwnProfile ? "Your chosen position is" : "The player's chosen position is";
+    const chosenStrAr = isOwnProfile ? "مركزك الأساسي المختار هو" : "مركز اللاعب المختار هو";
+
+    const youdGetEn = isOwnProfile ? "you'd get" : "they'd get";
+    const youdGetAr = isOwnProfile ? "ستحصل على" : "سيحصل على";
+
     if (currentPos !== bestPos.position) {
       return isAr
-        ? `مركزك الأساسي المختار هو (${currentPos})، لكن بناءً على طاقاتك وبنيتك، يعتقد الذكاء الاصطناعي أنك ستحصل على تقييم وأداء أفضل بكثير في مركز (${bestPos.position}) بنسبة تطابق ${bestPos.matchPercentage}%!`
-        : `Your chosen position is (${currentPos}), but based on your stats and build, our AI believes you'd get a much higher OVR and perform better at (${bestPos.position}) with a ${bestPos.matchPercentage}% match!`;
+        ? `${chosenStrAr} (${currentPos})، لكن بناءً على الطاقات والبنية، يعتقد الذكاء الاصطناعي أن ${youdGetAr} تقييم وأداء أفضل بكثير في مركز (${bestPos.position}) بنسبة تطابق ${bestPos.matchPercentage}%!`
+        : `${chosenStrEn} (${currentPos}), but based on stats and build, our AI believes ${youdGetEn} a much higher OVR and perform better at (${bestPos.position}) with a ${bestPos.matchPercentage}% match!`;
     }
     
     return isAr
-      ? `رائع! مركزك الحالي (${currentPos}) هو الأنسب لك تماماً بناءً على طاقاتك بنسبة تطابق ${bestPos.matchPercentage}%. لقد اخترت المركز المثالي الذي يبرز قدراتك.`
-      : `Excellent! Your current position (${currentPos}) perfectly matches your attributes with a ${bestPos.matchPercentage}% synergy. You've picked the ideal role to maximize your OVR.`;
+      ? `رائع! المركز الحالي (${currentPos}) هو الأنسب تماماً بناءً على الطاقات بنسبة تطابق ${bestPos.matchPercentage}%.`
+      : `Excellent! The current position (${currentPos}) perfectly matches the attributes with a ${bestPos.matchPercentage}% synergy.`;
   };
 
   const renderPersonalizedStyleHint = () => {
@@ -64,19 +71,22 @@ export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExpl
     
     const bestStyle = suggestions.playStyles[0];
 
+    const yourStyleEn = isOwnProfile ? "Your playstyle is" : "The player's playstyle is";
+    const yourStyleAr = isOwnProfile ? "أسلوب لعبك هو" : "أسلوب لعب اللاعب هو";
+
     let styleAdvice = "";
     if (!currentStyleId) {
       styleAdvice = isAr
-        ? `لم تختر أسلوب لعب بعد! نقترح بشدة اختيار (${bestStyle.styleAr}) ليتناسب مع قدراتك.`
-        : `You haven't selected a Playstyle! We highly recommend choosing (${bestStyle.styleEn}) to match your abilities.`;
+        ? `لم يتم اختيار أسلوب لعب بعد! نقترح بشدة اختيار (${bestStyle.styleAr}).`
+        : `No Playstyle selected! We highly recommend choosing (${bestStyle.styleEn}).`;
     } else if (currentStyleId !== bestStyle.styleId) {
       styleAdvice = isAr
-        ? `أسلوب لعبك الحالي هو (${currentStyleNameAr}). بينما نوصي بتجربة (${bestStyle.styleAr}) حيث يتطابق مع قدراتك بنسبة ${bestStyle.matchPercentage}%.`
-        : `Your playstyle is (${currentStyleNameEn}). However, the AI suggests trying (${bestStyle.styleEn}) which matches your abilities by ${bestStyle.matchPercentage}%.`;
+        ? `${yourStyleAr} (${currentStyleNameAr}). بينما نوصي بتجربة (${bestStyle.styleAr}) حيث يتطابق بنسبة ${bestStyle.matchPercentage}%.`
+        : `${yourStyleEn} (${currentStyleNameEn}). However, the AI suggests trying (${bestStyle.styleEn}) which matches abilities by ${bestStyle.matchPercentage}%.`;
     } else {
       styleAdvice = isAr
-        ? `أسلوب لعبك (${currentStyleNameAr}) متناغم تماماً مع قدراتك ومركزك!`
-        : `Your playstyle (${currentStyleNameEn}) perfectly synergizes with your abilities and position!`;
+        ? `الأسلوب (${currentStyleNameAr}) متناغم تماماً!`
+        : `The playstyle (${currentStyleNameEn}) perfectly synergizes!`;
     }
 
     const hasSecondary = !!player.secondaryPosition;
@@ -84,8 +94,8 @@ export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExpl
     
     if (!hasSecondary || !hasTertiary) {
       const posAdvice = isAr 
-        ? " تذكر أيضاً اختيار مراكز إضافية (ثاني وثالث) لزيادة فرص مشاركتك في التشكيلات المختلفة." 
-        : " Don't forget to set your 2nd & 3rd positions to boost your chances of fitting into various AI formations.";
+        ? " يرجى تحديد المراكز الإضافية لزيادة التناغم." 
+        : " Set 2nd & 3rd positions to boost team synergy.";
       styleAdvice += posAdvice;
     }
 
@@ -131,12 +141,16 @@ export default function OvrExplanationModal({ isOpen, onClose, player }: OvrExpl
               <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-5 rounded-3xl border border-amber-500/40 shadow-sm space-y-3">
                 <div className="flex items-center gap-2.5 font-black text-amber-600 dark:text-amber-400 text-base">
                   <Lightbulb className="w-6 h-6 shrink-0 animate-bounce" />
-                  <span>{isAr ? "💡 نصيحة المساعد الذكي المخصصة لك (Personalized AI Advice)" : "💡 Personalized AI Advice for Your Profile"}</span>
+                  <span>{isAr 
+                    ? (isOwnProfile ? "💡 نصيحة المساعد الذكي المخصصة لك (Personalized AI Advice)" : "💡 نصيحة المساعد الذكي الخاصة باللاعب (AI Tactical Advice)") 
+                    : (isOwnProfile ? "💡 Personalized AI Advice for Your Profile" : "💡 AI Tactical Advice for this Player")}</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-700 dark:text-slate-300">
                   <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-amber-500/20 shadow-2xs">
                     <span className="font-bold text-amber-600 dark:text-amber-400 block mb-1">
-                      {isAr ? "🎯 مركزك الأساسي (Primary Position)" : "🎯 Your Primary Position"}
+                      {isAr 
+                        ? (isOwnProfile ? "🎯 مركزك الأساسي (Primary Position)" : "🎯 المركز الأساسي للاعب (Player's Primary Position)") 
+                        : (isOwnProfile ? "🎯 Your Primary Position" : "🎯 Player's Primary Position")}
                     </span>
                     {renderPersonalizedPositionHint()}
                   </div>

@@ -1,5 +1,6 @@
 import { PESPosition, PlayerAttributes } from '@/types';
 import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
+import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 export interface PositionSuggestion {
   position: PESPosition;
@@ -301,13 +302,13 @@ export function getTacticalSuggestions(
       }
     }
 
-    // Normalize match percentage between 40% and 99%
-    const maxPoss = 99;
-    const matchPercentage = Math.min(99, Math.max(40, Math.round((score / maxPoss) * 100)));
+    // Use exact OVR for perfect sorting
+    const trueOvr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, '', height, weight, 25, 0, 0);
+    const matchPercentage = Math.min(99, Math.max(40, Math.round((trueOvr / 99) * 100)));
 
     return {
       position: pos,
-      score,
+      score: trueOvr,
       matchPercentage,
       rationaleEn,
       rationaleAr

@@ -7,7 +7,7 @@ import { PESPosition, PlayerAttributes } from '@/types';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 import { useLocale } from '@/components/ThemeProvider';
 import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
-
+import { getPlayerOverall } from '@/lib/playerUtils';
 interface TacticalSuggestionsCardProps {
   attributes?: Partial<PlayerAttributes> | null;
   height?: number;
@@ -39,11 +39,14 @@ export default function TacticalSuggestionsCard({
   const topPos = suggestions.positions.slice(0, 3);
   const topStyles = suggestions.playStyles.slice(0, 2);
 
-  const handleApply = () => {
+  const handleApply = (positionIndex: number) => {
     if (!onApplySuggestions) return;
-    const primary = topPos[0]?.position || 'CF';
-    const secondary = topPos[1]?.position || 'SS';
-    const tertiary = topPos[2]?.position || 'AMF';
+    
+    const primary = topPos[positionIndex]?.position || 'CF';
+    const remaining = topPos.filter((_, i) => i !== positionIndex);
+    const secondary = remaining[0]?.position || 'SS';
+    const tertiary = remaining[1]?.position || 'AMF';
+
     const playStyle = topStyles[0]?.styleId || 'goal_poacher';
     onApplySuggestions({ primary, secondary, tertiary }, playStyle);
   };
@@ -135,17 +138,6 @@ export default function TacticalSuggestionsCard({
             </p>
           </div>
         </div>
-
-        {onApplySuggestions && (
-          <button
-            type="button"
-            onClick={handleApply}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all active:scale-95 shrink-0"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            <span>{isAr ? "تطبيق المراكز والأسلوب المقترح" : "Apply AI Recommendations"}</span>
-          </button>
-        )}
       </div>
 
       {/* AI Advice Banner */}
@@ -209,10 +201,29 @@ export default function TacticalSuggestionsCard({
                   </div>
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl font-black text-white bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">{item.position}</span>
+                    {playerProfile && (
+                      <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
+                        {isAr ? "متوقع:" : "Expected OVR:"} {getPlayerOverall({ ...playerProfile, primaryPosition: item.position })}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium mb-3">
                     {isAr ? item.rationaleAr : item.rationaleEn}
                   </p>
+                  
+                  {onApplySuggestions && isOwnProfile && (
+                    <button
+                      onClick={() => handleApply(idx)}
+                      className={`w-full py-2 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
+                        idx === 0 
+                          ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/20' 
+                          : 'bg-slate-700 hover:bg-slate-600 text-white'
+                      }`}
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      {isAr ? "تطبيق هذا المركز" : "Apply this Setup"}
+                    </button>
+                  )}
                 </div>
               );
             })}

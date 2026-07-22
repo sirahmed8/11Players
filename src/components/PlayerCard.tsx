@@ -431,7 +431,7 @@ const PlayerCard = React.memo(function PlayerCard({
             )}
           </div>
         )}
-        <OvrExplanationModal isOpen={showOvrModal} onClose={() => setShowOvrModal(false)} player={player} />
+        <OvrExplanationModal isOpen={showOvrModal} onClose={() => setShowOvrModal(false)} player={player} isOwnProfile={currentUserId === player.uid} />
       </motion.div>
     </CardWrapper>
   );
