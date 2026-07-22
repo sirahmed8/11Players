@@ -86,7 +86,17 @@ export function getTacticalSuggestions(
     switch (pos) {
       case 'GK': {
         const gkAvg = (gkAware + gkCatch + gkClear + gkReflex + gkReach) / 5;
-        score = gkAvg * 1.5 + (height - 170) * 0.8 + jump * 0.2;
+        // Normalize score: out of 100 max.
+        // If gk stats are very low (e.g. 40), penalty is high so it doesn't get suggested.
+        score = gkAvg * 0.85 + jump * 0.15;
+        if (height >= 185) score += 5;
+        else if (height < 180) score -= 5;
+        
+        // Massive penalty if user is clearly not a GK
+        if (gkAvg < 55) {
+          score -= 50;
+        }
+
         if (gkAvg >= 75 && height >= 185) {
           rationaleEn = 'Superior goalkeeper reflexes, reach, and tall height ideal for commanding the goal area.';
           rationaleAr = 'ردود فعل وحراسة مرمى ممتازة مع طول قامة مثالي للسيطرة على منطقة المرمى.';

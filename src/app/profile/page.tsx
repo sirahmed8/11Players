@@ -375,19 +375,21 @@ function PlayerProfileContent() {
 
         </motion.div>
 
-        {/* AI Tactical Analysis Section */}
-        <motion.section
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-        >
-          <TacticalSuggestionsCard
-            attributes={player.approvedAttributes || player.attributes}
-            height={player.height}
-            weight={player.weight}
-            preferredFoot={player.preferredFoot}
-          />
-        </motion.section>
+        {/* AI Tactical Analysis Section - Only visible to the profile owner */}
+        {isViewingOwnProfile && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <TacticalSuggestionsCard
+              attributes={player.approvedAttributes || player.attributes}
+              height={player.height}
+              weight={player.weight}
+              preferredFoot={player.preferredFoot}
+            />
+          </motion.section>
+        )}
 
         {/* Match Stats */}
         <motion.section
