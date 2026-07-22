@@ -313,8 +313,7 @@ export function calculateRealisticOverall(
     }
   }
 
-  // ── Special Skills Bonus ───────────────────────────────────────────────────
-  finalOverall += getSpecialSkillsBonus(specialSkills, position);
+
 
   // ── Community Peer Rating Modifier ────────────────────────────────────────
   // Requires 5+ ratings for stability (was 3); range ±3 (was ±2)

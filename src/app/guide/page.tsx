@@ -458,14 +458,6 @@ export default function GuidePage() {
                         ? "يمكنك مقارنة بطاقتين أو لاعبين وجهًا لوجه لعرض الفرق في الطاقات الـ22 والتقييم العام والإحصائيات، وتحديد نقطة التفوق في كل جانب سواء الهجوم، الدفاع، التمرير، أو اللياقة البدنية."
                         : "Compare two player cards or profiles head-to-head to analyze exact differences across all 22 attributes, overall ratings, and match stats, highlighting clear tactical advantages in attack, defense, passing, and stamina."}
                     </p>
-                    <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400 text-sm">
-                      <li>{isAr ? "مقارنة التقييم العام (OVR) مع شريط الفوز" : "Overall Rating (OVR) comparison with winner highlight bar"}</li>
-                      <li>{isAr ? "مقارنة الـ 6 مؤشرات الرئيسية (PAC, SHO, PAS, DRI, DEF, PHY) بأشرطة تصويرية" : "6 core stat bars (PAC, SHO, PAS, DRI, DEF, PHY) shown side-by-side"}</li>
-                      <li>{isAr ? "مقارنة كل الـ 22 طاقة الفردية تفصيلياً" : "All 22 individual attributes compared in detail"}</li>
-                      <li>{isAr ? "مقارنة المهارات الخاصة والتحقق من التطابق أو التميز" : "Special skills compared — unique skills highlighted in each player"}</li>
-                      <li>{isAr ? "مقارنة إحصائيات المباريات (الأهداف، التمريرات، المباريات، MVP)" : "Match stats compared (goals, assists, matches played, MVP count)"}</li>
-                      <li>{isAr ? "كيفية الفتح: من صفحة اللاعبين، اضغط على أيقونة المقارنة ↔ في بطاقة أي لاعب" : "How to open: from the Players page, click the ↔ Compare icon on any player card"}</li>
-                    </ul>
                   </section>
 
                   <section>
