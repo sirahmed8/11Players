@@ -1,6 +1,7 @@
 import PlayerStylePicker from '@/components/PlayerStylePicker';
 import AttributeSliders from '@/components/AttributeSliders';
 import SkillsChecklist from '@/components/SkillsChecklist';
+import TacticalSuggestionsCard from '@/components/TacticalSuggestionsCard';
 import { WizardState } from './types';
 
 export default function Step3Attributes({
@@ -23,6 +24,24 @@ export default function Step3Attributes({
       <div className="text-center mb-2">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">⚡ {txt.attrSkillsTitle}</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.attrSkillsSubtitle}</p>
+      </div>
+
+      <div className="mb-6">
+        <TacticalSuggestionsCard
+          attributes={state.attributes}
+          height={state.height}
+          weight={state.weight}
+          preferredFoot={state.preferredFoot}
+          onApplySuggestions={(positions, playStyle) => {
+            setState(prev => ({
+              ...prev,
+              primaryPosition: positions.primary,
+              secondaryPosition: positions.secondary,
+              tertiaryPosition: positions.tertiary,
+              playStyle: playStyle
+            }));
+          }}
+        />
       </div>
 
       <div className="space-y-4">

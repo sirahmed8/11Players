@@ -17,6 +17,7 @@ import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
 import { ChevronDown } from 'lucide-react';
 import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
+import TacticalSuggestionsCard from '@/components/TacticalSuggestionsCard';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -440,6 +441,25 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                     <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الوزن (كجم)" : "Weight (kg)"}</label>
                     <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder="70" />
                   </div>
+                </div>
+
+                <div className="md:col-span-2 my-4">
+                  <TacticalSuggestionsCard
+                    attributes={attributes}
+                    height={formData.height}
+                    weight={formData.weight}
+                    preferredFoot={formData.preferredFoot}
+                    onApplySuggestions={(positions, playStyle) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        primaryPosition: positions.primary,
+                        secondaryPosition: positions.secondary,
+                        tertiaryPosition: positions.tertiary,
+                        playStyle: playStyle
+                      }));
+                      toast.success(isRTL ? 'تم تطبيق المراكز وأسلوب اللعب المقترح من الذكاء الاصطناعي بنجاح!' : 'AI recommended positions and play style applied!');
+                    }}
+                  />
                 </div>
 
                 <div>
