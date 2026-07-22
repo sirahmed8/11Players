@@ -51,9 +51,8 @@ const ALL_ATTRIBUTES: { key: string; nameEn: string; nameAr: string; groupEn: st
 
 const GROUP_ORDER = ["Offensive", "Technical", "Physical", "Defensive", "Goalkeeper"];
 
-// Optimized player list row — no framer-motion to avoid scroll lag
-function PlayerListRow({ p, onClick }: { p: PlayerProfile; onClick: () => void }) {
-  const ovr = getPlayerOverall(p);
+// Optimized player list row — no framer-motion, receives pre-computed ovr to avoid scroll lag
+function PlayerListRow({ p, ovr, onClick }: { p: PlayerProfile; ovr: number; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -106,25 +105,33 @@ export default function PlayerComparisonModal({
     if (initialPlayerB) { setPlayerBId(initialPlayerB.uid); setIsSelectingB(false); }
   }, [initialPlayerA, initialPlayerB]);
 
+  const ovrMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const p of allPlayers) {
+      map.set(p.uid, getPlayerOverall(p));
+    }
+    return map;
+  }, [allPlayers]);
+
   const playerA = useMemo(() => allPlayers.find((p) => p.uid === playerAId) || null, [allPlayers, playerAId]);
   const playerB = useMemo(() => allPlayers.find((p) => p.uid === playerBId) || null, [allPlayers, playerBId]);
 
-  const ovrA = playerA ? getPlayerOverall(playerA) : 0;
-  const ovrB = playerB ? getPlayerOverall(playerB) : 0;
+  const ovrA = ovrMap.get(playerAId) ?? 0;
+  const ovrB = ovrMap.get(playerBId) ?? 0;
 
   const filteredForA = useMemo(() => {
     const q = searchA.toLowerCase().trim();
     return allPlayers
       .filter((p) => p.uid !== playerBId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
-      .sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
-  }, [allPlayers, searchA, playerBId]);
+      .sort((a, b) => (ovrMap.get(b.uid) ?? 0) - (ovrMap.get(a.uid) ?? 0));
+  }, [allPlayers, searchA, playerBId, ovrMap]);
 
   const filteredForB = useMemo(() => {
     const q = searchB.toLowerCase().trim();
     return allPlayers
       .filter((p) => p.uid !== playerAId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
-      .sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
-  }, [allPlayers, searchB, playerAId]);
+      .sort((a, b) => (ovrMap.get(b.uid) ?? 0) - (ovrMap.get(a.uid) ?? 0));
+  }, [allPlayers, searchB, playerAId, ovrMap]);
 
   const removeA = useCallback(() => { setPlayerAId(""); setIsSelectingA(true); setSearchA(""); }, []);
   const removeB = useCallback(() => { setPlayerBId(""); setIsSelectingB(true); setSearchB(""); }, []);
@@ -184,7 +191,7 @@ export default function PlayerComparisonModal({
                   {/* Optimized list — no animations on rows */}
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
                     {filteredForA.map((p) => (
-                      <PlayerListRow key={p.uid} p={p} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
+                      <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
                     ))}
                   </div>
                 </div>
@@ -241,7 +248,7 @@ export default function PlayerComparisonModal({
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
                     {filteredForB.map((p) => (
-                      <PlayerListRow key={p.uid} p={p} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
+                      <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
                     ))}
                   </div>
                 </div>

@@ -8,6 +8,7 @@ export interface PositionSuggestion {
   matchPercentage: number;
   rationaleEn: string;
   rationaleAr: string;
+  bestPlayStyle?: string;
 }
 
 export interface PlayStyleSuggestion {
@@ -32,7 +33,10 @@ export function getTacticalSuggestions(
   attributes: Partial<PlayerAttributes> | undefined | null,
   height: number = 175,
   weight: number = 70,
-  preferredFoot: string = 'Right'
+  preferredFoot: string = 'Right',
+  age: number = 25,
+  peerAvg: number = 0,
+  peerCount: number = 0
 ): {
   positions: PositionSuggestion[];
   playStyles: PlayStyleSuggestion[];
@@ -302,21 +306,48 @@ export function getTacticalSuggestions(
       }
     }
 
-    // Use exact OVR for perfect sorting
-    const trueOvr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, '', height, weight, 25, 0, 0);
-    const matchPercentage = Math.min(99, Math.max(40, Math.round((trueOvr / 99) * 100)));
+    // Find the best play style for this position
+    let bestOvr = 0;
+    let bestStyle = '';
+    
+    // Test without playstyle
+    const baseOvr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, '', height, weight, age, peerAvg, peerCount, preferredFoot);
+    bestOvr = baseOvr;
+    
+    const compatibleStyles = PLAYER_STYLES.filter(s => s.positions.includes(pos));
+    for (const style of compatibleStyles) {
+       const ovr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, style.id, height, weight, age, peerAvg, peerCount, preferredFoot);
+       if (ovr > bestOvr) {
+         bestOvr = ovr;
+         bestStyle = style.id;
+       }
+    }
+    
+    // Use exact max OVR for perfect sorting
+    const matchPercentage = Math.min(99, Math.max(40, Math.round((bestOvr / 99) * 100)));
 
     return {
       position: pos,
-      score: trueOvr,
+      score: bestOvr,
       matchPercentage,
       rationaleEn,
-      rationaleAr
+      rationaleAr,
+      bestPlayStyle: bestStyle
     };
   });
 
   // Sort positions descending by score
   posScores.sort((a, b) => b.score - a.score);
+
+  // Recalculate matchPercentage with relative spread: best pos = 99%, worst = ~45%
+  // This prevents all positions bunching at the same % when player OVR is e.g. 65-68
+  const maxScore = posScores[0]?.score || 99;
+  const minScore = posScores[posScores.length - 1]?.score || 40;
+  const scoreRange = maxScore - minScore || 1;
+  posScores.forEach((ps) => {
+    const relativePct = Math.round(45 + ((ps.score - minScore) / scoreRange) * 54);
+    ps.matchPercentage = Math.min(99, Math.max(45, relativePct));
+  });
 
   const topPosition = posScores[0]?.position || 'CF';
 

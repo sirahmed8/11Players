@@ -33,11 +33,18 @@ export default function TacticalSuggestionsCard({
   const isAr = locale === 'ar';
 
   const suggestions = useMemo(() => {
-    return getTacticalSuggestions(attributes, height, weight, preferredFoot);
-  }, [attributes, height, weight, preferredFoot]);
+    return getTacticalSuggestions(
+      attributes, 
+      height, 
+      weight, 
+      preferredFoot, 
+      playerProfile?.calculatedAge, 
+      playerProfile?.peerRatingAvg, 
+      playerProfile?.peerRatingCount
+    );
+  }, [attributes, height, weight, preferredFoot, playerProfile]);
 
   const topPos = suggestions.positions.slice(0, 3);
-  const topStyles = suggestions.playStyles.slice(0, 2);
 
   const handleApply = (positionIndex: number) => {
     if (!onApplySuggestions) return;
@@ -47,7 +54,7 @@ export default function TacticalSuggestionsCard({
     const secondary = remaining[0]?.position || 'SS';
     const tertiary = remaining[1]?.position || 'AMF';
 
-    const playStyle = topStyles[0]?.styleId || 'goal_poacher';
+    const playStyle = topPos[positionIndex]?.bestPlayStyle || 'goal_poacher';
     onApplySuggestions({ primary, secondary, tertiary }, playStyle);
   };
 
@@ -203,13 +210,22 @@ export default function TacticalSuggestionsCard({
                     <span className="text-2xl font-black text-white bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">{item.position}</span>
                     {playerProfile && (
                       <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
-                        {isAr ? "متوقع:" : "Expected OVR:"} {getPlayerOverall({ ...playerProfile, primaryPosition: item.position })}
+                        {isAr ? "متوقع:" : "Expected OVR:"} {getPlayerOverall({ ...playerProfile, primaryPosition: item.position, playStyle: item.bestPlayStyle })}
                       </span>
                     )}
                   </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium mb-3">
+                  <p className="text-[11px] text-slate-300 leading-relaxed font-medium mb-2">
                     {isAr ? item.rationaleAr : item.rationaleEn}
                   </p>
+                  
+                  {item.bestPlayStyle && (
+                    <div className="mb-3 px-2 py-1.5 bg-amber-500/10 rounded-lg border border-amber-500/20 flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-amber-400" />
+                      <span className="text-[11px] font-bold text-amber-400">
+                        {isAr ? "أسلوب اللعب المقترح:" : "Best Play Style:"} {PLAYER_STYLES.find(s => s.id === item.bestPlayStyle)?.[isAr ? 'ar' : 'en'] || item.bestPlayStyle}
+                      </span>
+                    </div>
+                  )}
                   
                   {onApplySuggestions && isOwnProfile && (
                     <button
@@ -230,40 +246,6 @@ export default function TacticalSuggestionsCard({
           </div>
         </div>
 
-        {/* Suggested Play Styles */}
-        <div className="pt-2">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400 mb-2.5 flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5" />
-            <span>{isAr ? "أسلوب اللعب الأكثر تناسباً مع قدراتك" : "Ideal Play Styles For Your Build & Abilities"}</span>
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {topStyles.map((style, idx) => (
-              <div
-                key={style.styleId}
-                className={`p-3.5 rounded-2xl border ${
-                  idx === 0
-                    ? 'bg-amber-950/40 border-amber-500/50 shadow-md'
-                    : 'bg-slate-800/60 border-slate-700/60'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-black text-white flex items-center gap-1.5">
-                    {idx === 0 && <span className="text-amber-400">⚡</span>}
-                    {isAr ? style.styleAr : style.styleEn}
-                  </span>
-                  <span className={`text-[11px] font-black px-2 py-0.5 rounded-full ${
-                    idx === 0 ? 'bg-amber-500 text-slate-950' : 'bg-slate-700 text-slate-300'
-                  }`}>
-                    {style.matchPercentage}% {isAr ? 'تطابق' : 'Match'}
-                  </span>
-                </div>
-                <p className="text-[11px] text-slate-300 leading-relaxed mt-1">
-                  {isAr ? style.rationaleAr : style.rationaleEn}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
     </div>
   );
