@@ -375,8 +375,8 @@ function PlayerProfileContent() {
 
         </motion.div>
 
-        {/* AI Tactical Analysis Section - Only visible to the profile owner */}
-        {isViewingOwnProfile && (
+        {/* AI Tactical Analysis Section - Visible to profile owner, admins, and owners */}
+        {(isViewingOwnProfile || isAdmin || isOwner) && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -387,6 +387,8 @@ function PlayerProfileContent() {
               height={player.height}
               weight={player.weight}
               preferredFoot={player.preferredFoot}
+              playerProfile={player}
+              isOwnProfile={isViewingOwnProfile}
             />
           </motion.section>
         )}

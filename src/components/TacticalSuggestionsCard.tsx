@@ -6,6 +6,7 @@ import { Sparkles, CheckCircle2, Shield, Zap, Target, ArrowRight } from 'lucide-
 import { PESPosition, PlayerAttributes } from '@/types';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 import { useLocale } from '@/components/ThemeProvider';
+import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
 
 interface TacticalSuggestionsCardProps {
   attributes?: Partial<PlayerAttributes> | null;
@@ -14,6 +15,8 @@ interface TacticalSuggestionsCardProps {
   preferredFoot?: string;
   onApplySuggestions?: (positions: { primary: PESPosition; secondary: PESPosition; tertiary: PESPosition }, playStyle: string) => void;
   compact?: boolean;
+  playerProfile?: any;
+  isOwnProfile?: boolean;
 }
 
 export default function TacticalSuggestionsCard({
@@ -22,7 +25,9 @@ export default function TacticalSuggestionsCard({
   weight = 70,
   preferredFoot = 'Right',
   onApplySuggestions,
-  compact = false
+  compact = false,
+  playerProfile,
+  isOwnProfile = true
 }: TacticalSuggestionsCardProps) {
   const { locale } = useLocale();
   const isAr = locale === 'ar';
@@ -41,6 +46,70 @@ export default function TacticalSuggestionsCard({
     const tertiary = topPos[2]?.position || 'AMF';
     const playStyle = topStyles[0]?.styleId || 'goal_poacher';
     onApplySuggestions({ primary, secondary, tertiary }, playStyle);
+  };
+
+  const renderPersonalizedPositionHint = () => {
+    if (!playerProfile) return null;
+
+    const currentPos = playerProfile.primaryPosition || 'CMF';
+    const bestPos = suggestions.positions[0];
+
+    const chosenStrEn = isOwnProfile ? "Your chosen position is" : "The player's chosen position is";
+    const chosenStrAr = isOwnProfile ? "مركزك المختار هو" : "المركز المختار للاعب هو";
+
+    const youdGetEn = isOwnProfile ? "you'd get" : "they'd get";
+    const youdGetAr = isOwnProfile ? "ستحصل على" : "سيحصل على";
+
+    if (currentPos !== bestPos.position) {
+      return isAr
+        ? `${chosenStrAr} (${currentPos})، لكن بناءً على الطاقات والبنية، يعتقد الذكاء الاصطناعي أن ${youdGetAr} تقييم وأداء أفضل بكثير في مركز (${bestPos.position}) بنسبة تطابق ${bestPos.matchPercentage}%!`
+        : `${chosenStrEn} (${currentPos}), but based on stats and build, our AI believes ${youdGetEn} a much higher OVR and perform better at (${bestPos.position}) with a ${bestPos.matchPercentage}% match!`;
+    }
+    
+    return isAr
+      ? `رائع! المركز الحالي (${currentPos}) هو الأنسب تماماً بناءً على الطاقات بنسبة تطابق ${bestPos.matchPercentage}%.`
+      : `Excellent! The current position (${currentPos}) perfectly matches the attributes with a ${bestPos.matchPercentage}% synergy.`;
+  };
+
+  const renderPersonalizedStyleHint = () => {
+    if (!playerProfile) return null;
+
+    const currentStyleId = playerProfile.playStyle;
+    const currentStyleObj = currentStyleId ? PLAYER_STYLES.find(s => s.id === currentStyleId) : null;
+    const currentStyleNameAr = currentStyleObj?.ar || 'غير محدد';
+    const currentStyleNameEn = currentStyleObj?.en || 'None';
+    
+    const bestStyle = suggestions.playStyles[0];
+
+    const yourStyleEn = isOwnProfile ? "Your playstyle is" : "The player's playstyle is";
+    const yourStyleAr = isOwnProfile ? "أسلوب لعبك هو" : "أسلوب لعب اللاعب هو";
+
+    let styleAdvice = "";
+    if (!currentStyleId) {
+      styleAdvice = isAr
+        ? `لم يتم اختيار أسلوب لعب بعد! نقترح بشدة اختيار (${bestStyle.styleAr}).`
+        : `No Playstyle selected! We highly recommend choosing (${bestStyle.styleEn}).`;
+    } else if (currentStyleId !== bestStyle.styleId) {
+      styleAdvice = isAr
+        ? `${yourStyleAr} (${currentStyleNameAr}). بينما نوصي بتجربة (${bestStyle.styleAr}) حيث يتطابق بنسبة ${bestStyle.matchPercentage}%.`
+        : `${yourStyleEn} (${currentStyleNameEn}). However, the AI suggests trying (${bestStyle.styleEn}) which matches abilities by ${bestStyle.matchPercentage}%.`;
+    } else {
+      styleAdvice = isAr
+        ? `الأسلوب (${currentStyleNameAr}) متناغم تماماً!`
+        : `The playstyle (${currentStyleNameEn}) perfectly synergizes!`;
+    }
+
+    const hasSecondary = !!playerProfile.secondaryPosition;
+    const hasTertiary = !!playerProfile.tertiaryPosition;
+    
+    if (!hasSecondary || !hasTertiary) {
+      const posAdvice = isAr 
+        ? " يرجى تحديد المراكز الإضافية لزيادة التناغم." 
+        : " Set 2nd & 3rd positions to boost team synergy.";
+      styleAdvice += posAdvice;
+    }
+
+    return styleAdvice;
   };
 
   return (
@@ -78,6 +147,34 @@ export default function TacticalSuggestionsCard({
           </button>
         )}
       </div>
+
+      {/* AI Advice Banner */}
+      {playerProfile && (
+        <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 rounded-2xl border border-amber-500/40 shadow-sm mb-5 space-y-3">
+          <div className="flex items-center gap-2.5 font-black text-amber-500 text-sm">
+            <Sparkles className="w-5 h-5 shrink-0 animate-bounce" />
+            <span>
+              {isAr 
+                ? isOwnProfile ? "💡 نصيحة مخصصة لك" : "💡 تحليل مخصص للاعب"
+                : isOwnProfile ? "💡 Personalized AI Advice for Your Profile" : "💡 Personalized AI Advice for this Player"}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+            <div className="p-3 bg-slate-900/60 rounded-xl border border-amber-500/20">
+              <span className="font-bold text-amber-400 block mb-1">
+                {isAr ? "🎯 المركز الأساسي" : "🎯 Primary Position"}
+              </span>
+              {renderPersonalizedPositionHint()}
+            </div>
+            <div className="p-3 bg-slate-900/60 rounded-xl border border-emerald-500/20">
+              <span className="font-bold text-emerald-400 block mb-1">
+                {isAr ? "⚽ التناغم والأسلوب" : "⚽ Synergy & Versatility"}
+              </span>
+              {renderPersonalizedStyleHint()}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Grid of Recommended Positions */}
       <div className="space-y-4">
