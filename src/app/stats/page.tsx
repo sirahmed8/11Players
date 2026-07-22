@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import FormIcon from "@/components/FormIcon";
-import { RefreshCw, Trophy, Target, Zap, Award, Medal } from "lucide-react";
+import { RefreshCw, Trophy, Target, Zap, Award, Medal, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 function PlayerRowAvatar({ photoUrl, cardName }: { photoUrl?: string; cardName: string }) {
@@ -203,6 +203,7 @@ export default function StatsPage() {
   const isAr = locale === "ar";
   const [refreshing, setRefreshing] = React.useState(false);
   const [selectedPosGroup, setSelectedPosGroup] = React.useState<string>('ALL');
+  const [isPosDropdownOpen, setIsPosDropdownOpen] = React.useState(false);
 
   // All tables expanded by default — avoids the "loads 2 then the rest" perception on mobile
   const [expandedTables, setExpandedTables] = React.useState<Record<string, boolean>>({
@@ -297,33 +298,59 @@ export default function StatsPage() {
             </button>
           </div>
 
-          {/* Position Leaderboard Filter Tabs */}
-          <div className="mb-8">
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-              {POS_GROUPS.map((grp) => {
-                const isActive = selectedPosGroup === grp.id;
-                const count = grp.id === 'ALL' 
-                  ? players.length 
-                  : players.filter(p => grp.positions.includes(p.primaryPosition)).length;
-                return (
-                  <button
-                    key={grp.id}
-                    onClick={() => setSelectedPosGroup(grp.id)}
-                    className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap transition-all flex items-center gap-2 border ${
-                      isActive
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20 scale-105"
-                        : "bg-white dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
-                    }`}
+          {/* Position Leaderboard Filter Dropdown */}
+          <div className="mb-8 flex justify-start">
+            <div className="relative">
+              <button 
+                onClick={() => setIsPosDropdownOpen(!isPosDropdownOpen)}
+                className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors"
+              >
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {isAr ? "تصفية حسب المركز:" : "Filter by Position:"}{" "}
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    {(() => {
+                      const grp = POS_GROUPS.find(g => g.id === selectedPosGroup);
+                      return grp ? (isAr ? grp.labelAr : grp.labelEn) : (isAr ? "كل المراكز" : "All Positions");
+                    })()}
+                  </span>
+                </span>
+                <motion.div animate={{ rotate: isPosDropdownOpen ? 180 : 0 }}>
+                  <ChevronDown className="w-4 h-4 text-slate-500" />
+                </motion.div>
+              </button>
+              <AnimatePresence>
+                {isPosDropdownOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-30 top-full mt-2 w-full sm:w-72 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl overflow-hidden"
                   >
-                    <span>{isAr ? grp.labelAr : grp.labelEn}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      isActive ? "bg-white/20 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
-                    }`}>
-                      {count}
-                    </span>
-                  </button>
-                );
-              })}
+                    {POS_GROUPS.map((grp) => {
+                      const count = grp.id === 'ALL' 
+                        ? players.length 
+                        : players.filter(p => grp.positions.includes(p.primaryPosition)).length;
+                      const isActive = selectedPosGroup === grp.id;
+                      return (
+                        <button
+                          key={grp.id}
+                          onClick={() => { setSelectedPosGroup(grp.id); setIsPosDropdownOpen(false); }}
+                          className={`flex items-center justify-between w-full text-start px-4 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700/60 font-semibold transition-colors ${
+                            isActive ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20" : "text-slate-700 dark:text-slate-300"
+                          }`}
+                        >
+                          <span>{isAr ? grp.labelAr : grp.labelEn}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            isActive ? "bg-emerald-600 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                          }`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 

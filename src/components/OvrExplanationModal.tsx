@@ -61,16 +61,16 @@ export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationM
                       {isAr ? "🎯 اختيار المركز الأساسي (Primary Position)" : "🎯 Primary Position Accuracy"}
                     </span>
                     {isAr
-                      ? "تقييمك العام (OVR) يتأثر مباشرة بمركزك الأساسي. إذا كانت قدراتك الدفاعية مرتفعة جداً واخترت مركز المهاجم (CF)، سيكون تقييمك العام منخفضاً لأن معادلة المهاجم تعتمد على الوعي الهجومي والإنهاء وليس الدفاع."
-                      : "Your OVR directly depends on your primary position. If your defensive stats are 90+ but your primary position is set to CF (Forward), your calculated OVR will be lower because CF weights focus on Shooting and Pace!"}
+                      ? "تقييمك العام (OVR) يتأثر مباشرة بمركزك الأساسي. إذا كانت قدراتك الدفاعية مرتفعة جداً وأنت تلعب في الدفاع، لكنك اخترت مركز المهاجم (CF) في ملفك، فسيكون تقييمك العام منخفضاً لأن معادلة المهاجم تعتمد على الوعي الهجومي والإنهاء والسرعة وليس الدفاع!"
+                      : "Your OVR is directly calculated based on your primary position weights. If your defensive abilities are 90+ but your primary position is set to CF (Forward), your calculated OVR will drop because CF weights heavily prioritize Finishing, Offensive Awareness, and Pace!"}
                   </div>
                   <div className="p-3 bg-white/80 dark:bg-slate-800/80 rounded-2xl border border-amber-500/20 shadow-2xs">
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 block mb-1">
-                      {isAr ? "⚽ أسلوب اللعب والمراكز الثانوية (Play Style & 2nd/3rd Pos)" : "⚽ Play Style & Secondary/Tertiary Positions"}
+                      {isAr ? "⚽ أسلوب اللعب والمراكز 2nd & 3rd (Playstyle Synergy)" : "⚽ Playstyle Synergy & 2nd/3rd Positions"}
                     </span>
                     {isAr
-                      ? "تحديد مركز ثانٍ وثالث واختيار أسلوب اللعب المناسب (مثل Box-to-Box أو Goal Poacher) يساعد الذكاء الاصطناعي على توزيعك بمرونة في التشكيلة المثالية دون تقليل كفاءة الفريق أو التوازن."
-                      : "Selecting secondary and tertiary positions alongside a synergy Play Style (like Box-to-Box or Anchor Man) enables the AI matchmaker to flexibly slot you into optimal formations without positional penalties."}
+                      ? "اختيار أسلوب لعب يناسب مراكزك (مثل Goal Poacher للمهاجم أو Anchor Man للمدافع) مع تحديد مركز ثانٍ وثالث يعزز قوتك في التشكيلة ويسمح لنظام الذكاء الاصطناعي بوضعك في التشكيلة المثالية دون أي خصم في الكفاءة التكتيكية."
+                      : "Selecting a Playstyle that synergizes with your role (e.g. Goal Poacher for CFs or Anchor Man for DMFs) plus setting accurate 2nd & 3rd positions boosts your team impact and allows AI matchmaking to slot you into optimum formations seamlessly."}
                   </div>
                 </div>
               </div>
@@ -166,11 +166,11 @@ export default function OvrExplanationModal({ isOpen, onClose }: OvrExplanationM
                   </div>
                   <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 font-medium">
                     <span className="font-bold text-emerald-500 block mb-1">DMF / CB / LB / RB</span>
-                    {isAr ? "التركيز على: الوعي الدفاعي، قطع الكرة، الالتحام الجسدي، والرأسيات." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}
+                    {isAr ? "التركيز على: الوعي الدفاعي، قطع الكرة، والالتحام الجسدي." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}
                   </div>
                   <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 font-medium">
-                    <span className="font-bold text-purple-500 block mb-1">{isAr ? "GK (حارس المرمى)" : "GK (Goalkeeper)"}</span>
-                    {isAr ? "التركيز حصرياً على: وعي الحارس، رد الفعل، الإمساك، التشتيت، والوصول." : "Exclusive focus on: GK Awareness, Reflexes, Catching, Clearing, & Reach."}
+                    <span className="font-bold text-purple-500 block mb-1">{isAr ? "GK (حراسة المرمى)" : "GK (Goalkeeping)"}</span>
+                    {isAr ? "التركيز على: وعي الحارس، رد فعل الحارس، الإمساك، الوصول، والتشتيت." : "Heavily weights: GK Reflexes, GK Reach, & GK Catching."}
                   </div>
                 </div>
               </div>

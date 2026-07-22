@@ -40,48 +40,15 @@ export default function Sidebar() {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
-  // Listen for Personal Notifications
+  // Listen for Personal Notifications (updates unread count badge; AdviceNotification.tsx handles the live toast popups)
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "users", user.uid, "notifications"), where("read", "==", false));
     const unsub = onSnapshot(q, (snap) => {
       setUnreadNotifsCount(snap.docs.length);
-
-      snap.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          const data = change.doc.data();
-          const notifTime = data.createdAt?.toDate ? data.createdAt.toDate().getTime() : (data.createdAt ? new Date(data.createdAt).getTime() : Date.now());
-          const now = Date.now();
-          if (now - notifTime < 30000 && notifTime > lastNotifToastTimeRef.current && pathname !== "/notifications") {
-            lastNotifToastTimeRef.current = notifTime;
-            toast.custom((t) => (
-              <div
-                onClick={() => {
-                  toast.dismiss(t.id);
-                  window.location.href = data.link || "/notifications";
-                }}
-                className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-amber-500/50 hover:scale-[1.02] transition-all"
-              >
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 flex items-center justify-center shrink-0">
-                  <span className="text-xl">🔔</span>
-                </div>
-                <div className="flex-1 w-0">
-                  <p className="text-sm font-black text-slate-900 dark:text-white flex items-center justify-between">
-                    <span>{data.title || (isAr ? 'إشعار جديد' : 'New Notification')}</span>
-                    <span className="w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse" />
-                  </p>
-                  <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 truncate font-medium">
-                    {data.body || ''}
-                  </p>
-                </div>
-              </div>
-            ), { duration: 6000, position: 'top-center' });
-          }
-        }
-      });
     });
     return () => unsub();
-  }, [user, pathname, isAr]);
+  }, [user]);
 
   // Listen for Global Chat Notifications (Admin/Moderator Inbox)
   useEffect(() => {
@@ -490,8 +457,9 @@ export default function Sidebar() {
                         <Link
                           key={link.href}
                           href={link.href}
-                          onClick={() => setIsOpen(false)}
-                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-200 font-bold text-sm group ${
+                          prefetch={true}
+                          onClick={() => React.startTransition(() => setIsOpen(false))}
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,transform] duration-150 font-bold text-sm group ${
                               isActive
                                 ? "bg-slate-800 text-white shadow-inner shadow-black/30 scale-[1.01]"
                                 : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
