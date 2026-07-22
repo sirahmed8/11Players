@@ -244,6 +244,33 @@ export default function OwnerPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <ProtectedRoute ownerOnly>
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12">
+          <main className="max-w-7xl mx-auto px-4 py-8">
+            <div className="mb-8">
+              <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mb-2" />
+              <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
+            </div>
+            <div className="grid lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-1 space-y-6">
+                <div className="bg-white dark:bg-slate-800 h-96 rounded-2xl border border-slate-200 dark:border-slate-700 animate-pulse" />
+                <div className="bg-red-50 dark:bg-red-900/10 h-40 rounded-2xl border border-red-200 dark:border-red-800/30 animate-pulse" />
+              </div>
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse mb-4" />
+                  <OwnerCommunitiesSkeleton />
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute ownerOnly>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12">
@@ -283,7 +310,7 @@ export default function OwnerPage() {
                       <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="e.g. 8xJ9..." />
                     </div>
                   </div>
-                  <div className="p-4 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700">
+                  <div className="p-4 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-colors">
                     <label className="flex items-center justify-between cursor-pointer group">
                       <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${isPrivate ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'} transition-colors`}>
@@ -300,18 +327,28 @@ export default function OwnerPage() {
                       <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
                     </label>
                   </div>
-                  <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isPrivate ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
-                    <div className="overflow-hidden">
-                      <div className="pt-1 pb-1">
-                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                        <div className="relative w-full">
-                          <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                          <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
+                  
+                  <AnimatePresence>
+                    {isPrivate && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pt-2">
+                          <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                          <div className="relative w-full">
+                            <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                            <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                  <button disabled={creating} className="w-full py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  
+                  <button disabled={creating} className="w-full mt-2 py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
                     {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء المجتمع" : "Create Community")}
                   </button>
                 </form>
@@ -332,8 +369,7 @@ export default function OwnerPage() {
             <div className="lg:col-span-2 space-y-8">
               <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
                 <h2 className="text-xl font-bold mb-4">{isAr ? "المجتمعات الحالية" : "Active Communities"}</h2>
-                {loading ? <OwnerCommunitiesSkeleton /> : (
-                  <div className="space-y-4">
+                <div className="space-y-4">
                     {communities.map(c => (
                       <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">
                         <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4">
@@ -366,7 +402,6 @@ export default function OwnerPage() {
                     ))}
                     {communities.length === 0 && <p className="text-slate-500">No communities exist yet.</p>}
                   </div>
-                )}
               </div>
             </div>
           </div>
@@ -432,14 +467,22 @@ export default function OwnerPage() {
                   </label>
                 </div>
                 
-                <div className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${isEditPrivate ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 mt-0 pointer-events-none'}`}>
-                  <div className="overflow-hidden">
-                    <div className="pt-1 pb-1">
-                      <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                      <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Password" />
-                    </div>
-                  </div>
-                </div>
+                <AnimatePresence>
+                  {isEditPrivate && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="pt-1 pb-1">
+                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                        <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Password" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 justify-end">

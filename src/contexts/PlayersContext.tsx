@@ -62,12 +62,31 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ child
               needsUpdate = true;
             }
 
+            // Sync OVR-influencing fields to prevent inconsistencies
+            const fieldsToSync: (keyof PlayerProfile)[] = [
+              'calculatedAge', 'peerRatingAvg', 'peerRatingCount',
+              'primaryPosition', 'playStyle', 'height', 'weight',
+              'preferredFoot', 'dateOfBirth', 'specialSkills',
+              'matchStarRatingAvg', 'matchStarRatingCount'
+            ];
+            for (const field of fieldsToSync) {
+              if (globalData[field] !== undefined && JSON.stringify(globalData[field]) !== JSON.stringify(commData[field])) {
+                (healedData as any)[field] = globalData[field];
+                needsUpdate = true;
+              }
+            }
+
             if (needsUpdate) {
-              batch.set(doc(db, "communities", activeCommunityId, "players", d.id), {
+              const updatePayload: any = {
                 ...(healedData.stats ? { stats: healedData.stats } : {}),
                 ...(healedData.overallRating ? { overallRating: healedData.overallRating } : {}),
                 ...(healedData.approvedAttributes ? { approvedAttributes: healedData.approvedAttributes } : {}),
-              }, { merge: true });
+              };
+              for (const field of fieldsToSync) {
+                if (healedData[field] !== undefined) updatePayload[field] = healedData[field];
+              }
+
+              batch.set(doc(db, "communities", activeCommunityId, "players", d.id), updatePayload, { merge: true });
               batchCount++;
             }
             liveRoster.push(needsUpdate ? healedData : commData);

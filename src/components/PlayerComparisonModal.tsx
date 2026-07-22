@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Zap, ArrowRightLeft, UserX } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ThemeProvider";
@@ -136,21 +136,22 @@ export default function PlayerComparisonModal({
   const removeA = useCallback(() => { setPlayerAId(""); setIsSelectingA(true); setSearchA(""); }, []);
   const removeB = useCallback(() => { setPlayerBId(""); setIsSelectingB(true); setSearchB(""); }, []);
 
-  if (!isOpen) return null;
-
   const showComparison = playerA && playerB;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto"
-      dir={isAr ? "rtl" : "ltr"}
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh]"
-      >
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto"
+          dir={isAr ? "rtl" : "ltr"}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ duration: 0.2 }}
+            className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh] my-auto"
+          >
         {/* Header */}
         <div className="p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -452,7 +453,9 @@ export default function PlayerComparisonModal({
             {isAr ? "إغلاق" : "Close"}
           </button>
         </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 }

@@ -38,13 +38,18 @@ export default function CommunityPage() {
   const [comparingPlayer, setComparingPlayer] = useState<any | null>(null);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"directory" | "pulse">("directory");
+  const [visibleCount, setVisibleCount] = useState(20);
 
   const handleOpenCompare = (player?: any) => {
     setComparingPlayer(player || null);
     setIsCompareModalOpen(true);
   };
 
-  const filteredPlayers = React.useMemo(() => {
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [searchQuery, selectedPosFilter, sortBy]);
+
+  const filteredPlayers = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     let result = [...players];
 
@@ -314,22 +319,35 @@ export default function CommunityPage() {
               <p className="text-slate-600 dark:text-slate-400">{isAr ? "لا يوجد لاعبون بهذا الوصف أو المركز." : "No players found matching your criteria."}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredPlayers.map((player, index) => (
-                <motion.div
-                  key={player.uid}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(index * 0.05, 0.3), duration: 0.2 }}
-                >
-                  <PlayerCardCompact 
-                    player={player} 
-                    onVoteCaptain={handleVoteCaptain}
-                    onCompare={handleOpenCompare}
-                    currentUserId={user?.uid}
-                  />
-                </motion.div>
-              ))}
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredPlayers.slice(0, visibleCount).map((player, index) => (
+                  <motion.div
+                    key={player.uid}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0, duration: 0.2 }}
+                  >
+                    <PlayerCardCompact 
+                      player={player} 
+                      onVoteCaptain={handleVoteCaptain}
+                      onCompare={handleOpenCompare}
+                      currentUserId={user?.uid}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+              
+              {visibleCount < filteredPlayers.length && (
+                <div className="flex justify-center pt-4 pb-8">
+                  <button
+                    onClick={() => setVisibleCount(prev => prev + 20)}
+                    className="px-6 py-3 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl transition-colors shadow-sm text-sm"
+                  >
+                    {isAr ? "عرض المزيد" : "Load More"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </main>

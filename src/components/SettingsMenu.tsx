@@ -152,53 +152,7 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
 
               {user && (
                 <>
-                  <div className="w-full flex flex-col">
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); setMainPageDropdownOpen(!mainPageDropdownOpen); }}
-                      className="w-full px-4 py-3 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Home className="w-4 h-4 text-blue-500" />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
-                          {isAr ? "الصفحة الرئيسية" : "Main Page"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500 dark:text-slate-400">
-                          {defaultPage === "/communities" ? (isAr ? "المجتمعات" : "Communities") :
-                           defaultPage === "/community" ? (isAr ? "مجتمعي" : "My Community") :
-                           defaultPage === "/profile" ? (isAr ? "حسابي" : "Profile") : (isAr ? "المجتمعات" : "Communities")}
-                        </span>
-                        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${mainPageDropdownOpen ? 'rotate-180' : ''}`} />
-                      </div>
-                    </button>
-                    <AnimatePresence>
-                      {mainPageDropdownOpen && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="overflow-hidden flex flex-col bg-slate-50/50 dark:bg-slate-900/20"
-                        >
-                          {[
-                            { value: "/communities", label: isAr ? "المجتمعات" : "Communities" },
-                            { value: "/community", label: isAr ? "مجتمعي" : "My Community" },
-                            { value: "/profile", label: isAr ? "حسابي" : "Profile" }
-                          ].map((opt) => (
-                            <button
-                              key={opt.value}
-                              onClick={(e) => { e.stopPropagation(); handleDefaultPageChange(opt.value); }}
-                              className={`text-start px-11 py-2 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors ${defaultPage === opt.value ? "text-emerald-500" : "text-slate-600 dark:text-slate-400"}`}
-                            >
-                              {opt.label}
-                            </button>
-                          ))}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  <div className="w-full h-px bg-slate-200 dark:bg-slate-700 my-1" />
+
                   <button
                     onClick={handleLogout}
                     className="w-full px-4 py-3 flex items-center gap-3 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors text-left group"

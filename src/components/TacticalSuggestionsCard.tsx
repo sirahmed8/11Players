@@ -138,7 +138,7 @@ export default function TacticalSuggestionsCard({
   };
 
   return (
-    <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 border border-emerald-500/40 shadow-2xl p-5 sm:p-6 text-white relative overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
+    <div className="rounded-3xl bg-slate-900 border border-emerald-500/40 shadow-2xl p-5 sm:p-6 text-white relative overflow-hidden" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Background glow around badge */}
       <div className="absolute -top-12 -right-12 w-44 h-44 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute -bottom-10 -left-10 w-36 h-36 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -248,19 +248,30 @@ export default function TacticalSuggestionsCard({
                     </div>
                   )}
                   
-                  {onApplySuggestions && isOwnProfile && (
-                    <button
-                      onClick={() => handleApply(idx)}
-                      className={`w-full py-2 rounded-xl text-xs font-black transition-all active:scale-95 flex items-center justify-center gap-1.5 ${
-                        idx === 0 
-                          ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/20' 
-                          : 'bg-slate-700 hover:bg-slate-600 text-white'
-                      }`}
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      {isAr ? "تطبيق هذا المركز" : "Apply this Setup"}
-                    </button>
-                  )}
+                  {onApplySuggestions && isOwnProfile && (() => {
+                    const isAlreadyApplied = playerProfile && 
+                      playerProfile.primaryPosition === item.position && 
+                      (!item.bestPlayStyle || playerProfile.playStyle === item.bestPlayStyle);
+                    
+                    return (
+                      <button
+                        onClick={() => !isAlreadyApplied && handleApply(idx)}
+                        disabled={isAlreadyApplied}
+                        className={`w-full py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+                          isAlreadyApplied
+                            ? 'bg-emerald-900/20 text-emerald-500/50 cursor-not-allowed border border-emerald-900/30'
+                            : idx === 0 
+                              ? 'bg-emerald-500 hover:bg-emerald-400 text-white shadow-md shadow-emerald-500/20 active:scale-95' 
+                              : 'bg-slate-700 hover:bg-slate-600 text-white active:scale-95'
+                        }`}
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        {isAlreadyApplied 
+                          ? (isAr ? "مُطبق بالفعل" : "Applied") 
+                          : (isAr ? "تطبيق هذا المركز" : "Apply this Setup")}
+                      </button>
+                    );
+                  })()}
                 </div>
               );
             })}
