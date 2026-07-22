@@ -23,6 +23,7 @@ import CustomSelect from '@/components/CustomSelect';
 import PendingEdits from '@/components/PendingEdits';
 import SkillsChecklist from '@/components/SkillsChecklist';
 import { Crown } from 'lucide-react';
+import { getPlayerOverall } from '@/lib/playerUtils';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -76,7 +77,7 @@ function getSortValue(player: PlayerProfile, key: SortKey): string | number | bo
     case 'preferredFoot':
       return player.preferredFoot;
     case 'overallRating':
-      return player.overallRating || 0;
+      return getPlayerOverall(player);
     case 'stats.goals':
       return player.stats?.goals || 0;
     case 'stats.assists':
@@ -560,14 +561,24 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       </div>
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
-        <table className="w-full min-w-[900px] text-sm table-fixed" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
-          <thead className="table w-full">
-            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 table w-full">
+        <table className="w-full min-w-[900px] text-sm" style={{ tableLayout: 'fixed' }} dir={locale === 'ar' ? 'rtl' : 'ltr'}>
+          <colgroup>
+            <col style={{ width: '22%' }} />
+            <col style={{ width: '16%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '7%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '8%' }} />
+            <col style={{ width: '24%' }} />
+          </colgroup>
+          <thead>
+            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
               {columns.map((col, idx) => (
                 <th
                   key={idx}
                   onClick={col.key ? () => handleSort(col.key!) : undefined}
-                  className={`px-4 py-3 text-left font-semibold text-emerald-600 dark:text-emerald-400 ${
+                  className={`px-4 py-3 font-semibold text-emerald-600 dark:text-emerald-400 ${
                     col.key ? 'cursor-pointer select-none transition-colors hover:text-emerald-500 dark:hover:text-emerald-300' : ''
                   } ${locale === 'ar' ? 'text-right' : 'text-left'}`}
                 >
@@ -579,7 +590,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
               ))}
             </tr>
           </thead>
-          <tbody className="block max-h-[560px] overflow-y-auto w-full">
+          <tbody>
             <AnimatePresence mode="popLayout">
               {paginatedPlayers.map((player) => (
                 <AdminTableRow

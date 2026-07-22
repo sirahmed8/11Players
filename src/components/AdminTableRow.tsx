@@ -50,7 +50,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.15 }}
-      className="table w-full border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+      className="border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
     >
       {/* Name */}
       <td className="px-4 py-3">

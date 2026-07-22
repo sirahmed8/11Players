@@ -54,12 +54,16 @@ export default function PlayerComparisonModal({
 
   const filteredForA = useMemo(() => {
     const q = searchA.toLowerCase().trim();
-    return allPlayers.filter((p) => p.uid !== playerBId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)));
+    return allPlayers
+      .filter((p) => p.uid !== playerBId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
+      .sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a)); // Sort by OVR desc
   }, [allPlayers, searchA, playerBId]);
 
   const filteredForB = useMemo(() => {
     const q = searchB.toLowerCase().trim();
-    return allPlayers.filter((p) => p.uid !== playerAId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)));
+    return allPlayers
+      .filter((p) => p.uid !== playerAId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
+      .sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a)); // Sort by OVR desc
   }, [allPlayers, searchB, playerAId]);
 
   const getAttrValue = (p: PlayerProfile | null, key: string): number => {
@@ -129,7 +133,7 @@ export default function PlayerComparisonModal({
                     />
                   </div>
                   <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredForA.slice(0, 15).map((p) => (
+                    {filteredForA.map((p) => (
                       <button
                         key={p.uid}
                         onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }}
@@ -214,7 +218,7 @@ export default function PlayerComparisonModal({
                     />
                   </div>
                   <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1 divide-y divide-slate-100 dark:divide-slate-800">
-                    {filteredForB.slice(0, 15).map((p) => (
+                    {filteredForB.map((p) => (
                       <button
                         key={p.uid}
                         onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }}
