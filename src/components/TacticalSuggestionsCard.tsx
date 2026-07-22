@@ -62,6 +62,7 @@ export default function TacticalSuggestionsCard({
     if (!playerProfile) return null;
 
     const currentPos = playerProfile.primaryPosition || 'CMF';
+    const currentStyle = playerProfile.playStyle || '';
     const bestPos = suggestions.positions[0];
 
     const chosenStrEn = isOwnProfile ? "Your chosen position is" : "The player's chosen position is";
@@ -69,6 +70,14 @@ export default function TacticalSuggestionsCard({
 
     const youdGetEn = isOwnProfile ? "you'd get" : "they'd get";
     const youdGetAr = isOwnProfile ? "ستحصل على" : "سيحصل على";
+
+    const alreadyBest = currentPos === bestPos.position && (!bestPos.bestPlayStyle || currentStyle === bestPos.bestPlayStyle);
+
+    if (alreadyBest) {
+      return isAr
+        ? `🏆 ممتاز! أنت بالفعل في أفضل مركز ممكن لك (${currentPos}) وأسلوب لعب مثالي! استمر بالتطوير والتحسّن في طاقاتك لرفع تقييمك!`
+        : `🏆 Perfect! ${isOwnProfile ? 'You are' : 'The player is'} already in the best possible position (${currentPos}) with an ideal play style! Focus on improving attributes to push the OVR even higher.`;
+    }
 
     if (currentPos !== bestPos.position) {
       return isAr
@@ -90,6 +99,8 @@ export default function TacticalSuggestionsCard({
     const currentStyleNameEn = currentStyleObj?.en || 'None';
     
     const bestStyle = suggestions.playStyles[0];
+    const bestPos = suggestions.positions[0];
+    const alreadyBestStyle = currentStyleId === bestStyle.styleId || currentStyleId === bestPos.bestPlayStyle;
 
     const yourStyleEn = isOwnProfile ? "Your playstyle is" : "The player's playstyle is";
     const yourStyleAr = isOwnProfile ? "أسلوب لعبك هو" : "أسلوب لعب اللاعب هو";
@@ -99,9 +110,13 @@ export default function TacticalSuggestionsCard({
       styleAdvice = isAr
         ? `لم يتم اختيار أسلوب لعب بعد! نقترح بشدة اختيار (${bestStyle.styleAr}).`
         : `No Playstyle selected! We highly recommend choosing (${bestStyle.styleEn}).`;
+    } else if (alreadyBestStyle) {
+      styleAdvice = isAr
+        ? `🏆 مثالي! أسلوب اللعب (${currentStyleNameAr}) هو الأمثل لبنيتك وقدراتك!`
+        : `🏆 Ideal! The playstyle (${currentStyleNameEn}) is the perfect match for this build and abilities!`;
     } else if (currentStyleId !== bestStyle.styleId) {
       styleAdvice = isAr
-        ? `${yourStyleAr} (${currentStyleNameAr}). بينما نوصي بتجربة (${bestStyle.styleAr}) حيث يتطابق بنسبة ${bestStyle.matchPercentage}%.`
+        ? `${yourStyleAr} (${currentStyleNameAr}). بينما نوصي بتجريب (${bestStyle.styleAr}) حيث يتطابق بنسبة ${bestStyle.matchPercentage}%.`
         : `${yourStyleEn} (${currentStyleNameEn}). However, the AI suggests trying (${bestStyle.styleEn}) which matches abilities by ${bestStyle.matchPercentage}%.`;
     } else {
       styleAdvice = isAr
@@ -210,7 +225,13 @@ export default function TacticalSuggestionsCard({
                     <span className="text-2xl font-black text-white bg-slate-800 px-2.5 py-1 rounded-xl border border-slate-700">{item.position}</span>
                     {playerProfile && (
                       <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
-                        {isAr ? "متوقع:" : "Expected OVR:"} {getPlayerOverall({ ...playerProfile, primaryPosition: item.position, playStyle: item.bestPlayStyle })}
+                        {isAr ? "متوقع:" : "Expected OVR:"} {getPlayerOverall({ 
+                          ...playerProfile, 
+                          primaryPosition: item.position, 
+                          playStyle: item.bestPlayStyle || playerProfile.playStyle,
+                          approvedAttributes: playerProfile.approvedAttributes || playerProfile.attributes,
+                          attributes: playerProfile.approvedAttributes || playerProfile.attributes,
+                        })}
                       </span>
                     )}
                   </div>

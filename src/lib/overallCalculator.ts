@@ -302,14 +302,21 @@ export function calculateRealisticOverall(
   }
 
   // ── Preferred Foot Synergy ─────────────────────────────────────────────────
+  // Winger logic uses INVERTED foot: left-footed players on RIGHT wing (RWF/RMF) can
+  // cut inside and shoot with dominant foot — modern inverted winger concept.
+  // Full-backs use NATURAL foot (LB=left, RB=right) for correct crossing/tracking.
   if (preferredFoot) {
     const foot = preferredFoot.toLowerCase();
     if (foot.includes('ambidextrous') || foot === 'both') {
       finalOverall += 2; // Dual foot mastery is a massive real-world advantage
     } else if (foot === 'left') {
-      if (['LWF', 'LMF', 'LB'].includes(position)) finalOverall += 1;
+      // Left foot: natural for LB, inverted winger bonus for RWF/RMF
+      if (['LB'].includes(position)) finalOverall += 1;
+      if (['RWF', 'RMF'].includes(position)) finalOverall += 1; // inverted winger
     } else if (foot === 'right') {
-      if (['RWF', 'RMF', 'RB'].includes(position)) finalOverall += 1;
+      // Right foot: natural for RB, inverted winger bonus for LWF/LMF
+      if (['RB'].includes(position)) finalOverall += 1;
+      if (['LWF', 'LMF'].includes(position)) finalOverall += 1; // inverted winger
     }
   }
 
