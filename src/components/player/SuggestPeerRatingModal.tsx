@@ -351,6 +351,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
               <SkillsChecklist
                 selectedSkills={specialSkills}
                 onSkillsChange={setSpecialSkills}
+                locale={isAr ? 'ar' : 'en'}
               />
             </div>
           </div>

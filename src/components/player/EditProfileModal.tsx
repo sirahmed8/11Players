@@ -589,6 +589,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               <SkillsChecklist
                 selectedSkills={specialSkills}
                 onSkillsChange={setSpecialSkills}
+                locale={locale as 'en' | 'ar'}
               />
             </div>
           </div>

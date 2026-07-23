@@ -107,7 +107,7 @@ interface SkillsChecklistProps {
 export default function SkillsChecklist({
   selectedSkills,
   onSkillsChange,
-  locale = 'ar',
+  locale = 'en',
 }: SkillsChecklistProps) {
   const txt = translations[locale];
   const [hoveredSkill, setHoveredSkill] = useState<string | null>(null);

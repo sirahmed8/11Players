@@ -946,6 +946,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                     <SkillsChecklist
                       selectedSkills={reviewFormData.specialSkills || []}
                       onSkillsChange={(skills) => handleBasicFieldChange('specialSkills', skills)}
+                      locale={isAr ? 'ar' : 'en'}
                     />
                   </div>
                 </div>
