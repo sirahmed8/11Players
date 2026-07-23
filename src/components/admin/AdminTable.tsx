@@ -164,14 +164,20 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                 p.peerRatingCount
               );
 
-              const topChoice = suggestions.positions[0];
+              const topChoice    = suggestions.positions[0];
+              const secondChoice = suggestions.positions[1];
+              const thirdChoice  = suggestions.positions[2];
               if (topChoice) {
-                const bestPos = topChoice.position;
-                const bestStyle = topChoice.bestPlayStyle || p.playStyle || 'Box-to-Box';
+                const bestPos    = topChoice.position;
+                const secondPos  = secondChoice?.position || '';
+                const thirdPos   = thirdChoice?.position || '';
+                const bestStyle  = topChoice.bestPlayStyle || p.playStyle || 'Box-to-Box';
 
                 const updates: any = {
-                  primaryPosition: bestPos,
-                  playStyle: bestStyle,
+                  primaryPosition:   bestPos,
+                  secondaryPosition: secondPos,
+                  tertiaryPosition:  thirdPos,
+                  playStyle:         bestStyle,
                 };
 
                 batch.update(doc(db, 'players', p.uid), updates);

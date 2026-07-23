@@ -163,6 +163,7 @@ export default function TacticalSuggestionsCard({
                 : "Deep analysis based on your 22 attributes, height, weight, and preferred foot"}
             </p>
           </div>
+        </div>
       </div>
 
       {/* AI Advice Banner */}
