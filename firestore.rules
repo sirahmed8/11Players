@@ -56,7 +56,7 @@ service cloud.firestore {
           (request.resource.data.ratedBy != null) ||
           (request.resource.data.type in ['stats', 'edit_request', 'suggestion', 'moderation'])
         );
-        allow update, delete: if request.auth != null && request.auth.uid == userId;
+        allow update, delete: if request.auth != null && (request.auth.uid == userId || isAdmin());
       }
     }
 

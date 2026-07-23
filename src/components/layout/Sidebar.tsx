@@ -458,7 +458,7 @@ export default function Sidebar() {
                           key={link.href}
                           href={link.href}
                           prefetch={true}
-                          onClick={() => React.startTransition(() => setIsOpen(false))}
+                          onClick={() => setIsOpen(false)}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,transform] duration-150 font-bold text-sm group ${
                               isActive
                                 ? "bg-slate-800 text-white shadow-inner shadow-black/30 scale-[1.01]"
