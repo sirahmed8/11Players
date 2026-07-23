@@ -215,13 +215,18 @@ export default function AdminPage() {
     generateMasterBulkPDF(players, isAr ? 'ar' : 'en');
   };
 
-  // Auto-update public site stats silently on every admin page load (best-effort)
+  // Auto-update public site stats silently on every admin page load (best-effort, owner only)
   useEffect(() => {
-    if (!isOwner || !user) return;
+    const OWNER_EMAIL = "a7medorabe7@gmail.com";
+    const OWNER_UID = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+    if (!user) return;
+    const isActualOwner = user.email?.toLowerCase() === OWNER_EMAIL || user.uid === OWNER_UID;
+    if (!isActualOwner) return;
+
     let cancelled = false;
     (async () => {
       try {
-        // Count all players
+        // Count all players and their ratings
         const playersSnap = await getDocs(collection(db, "players"));
         if (cancelled) return;
         let totalRating = 0;
@@ -250,16 +255,18 @@ export default function AdminPage() {
           totalPlayers: playersSnap.size,
           totalCommunities: commsSnap.data().count,
           totalMatches,
-          avgRating
+          avgRating,
+          updatedAt: new Date().toISOString()
         }, { merge: true });
+
+        console.log("[Stats] Public site stats updated:", { totalPlayers: playersSnap.size, totalCommunities: commsSnap.data().count, totalMatches, avgRating: avgRating.toFixed(1) });
       } catch (err) {
-        // Silent fail — public stats update is best-effort background work
-        console.warn("Auto public stats update skipped:", err);
+        console.warn("[Stats] Auto public stats update skipped:", err);
       }
     })();
     return () => { cancelled = true; };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOwner, user]);
+  }, [user?.uid]);
 
   const handleMakeMeAdmin = () => {
     if (!activeCommunityId || !user) return;
