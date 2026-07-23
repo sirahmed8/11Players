@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 
 const BackgroundRemover = dynamic(() => import('@/components/player/BackgroundRemover'), { ssr: false, loading: () => <p>Loading...</p> });
 import PlayerCard from '@/components/player/PlayerCard';
+import OnboardingAIAdvisor from './OnboardingAIAdvisor';
 import { WizardState } from './types';
 import { PlayerProfile } from '@/types';
 
@@ -10,17 +11,27 @@ export default function Step4PhotoSubmit({
   state,
   txt,
   handleFieldChange,
+  handleBulkChange,
   previewProfile,
   locale
 }: {
   state: WizardState;
   txt: any;
   handleFieldChange: (field: keyof WizardState, value: string | number) => void;
+  handleBulkChange?: (updates: Partial<WizardState>) => void;
   previewProfile: PlayerProfile;
   locale: string;
 }) {
   return (
     <div className="space-y-6">
+      {handleBulkChange && (
+        <OnboardingAIAdvisor 
+          state={state} 
+          locale={locale as 'en' | 'ar'} 
+          onApply={handleBulkChange} 
+        />
+      )}
+      
       <div className="text-center mb-2">
         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📸 {txt.photoTitle}</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.photoSubtitle}</p>

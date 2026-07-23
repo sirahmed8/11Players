@@ -4,7 +4,7 @@ const isVercel = !!process.env.VERCEL;
 
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development" || isVercel,
+  disable: true, // Disabled everywhere to fix App Router client-side navigation (RSC payload caching bug)
   register: true,
 });
 

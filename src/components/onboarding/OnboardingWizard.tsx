@@ -183,7 +183,6 @@ export default function OnboardingWizard() {
     setErrors({});
   }, [locale]);
 
-  /* ── Field change ── */
   const handleFieldChange = useCallback((field: keyof WizardState, value: string | number) => {
     setState((prev) => {
       const next = { ...prev, [field]: value };
@@ -195,6 +194,12 @@ export default function OnboardingWizard() {
       delete next[field];
       return next;
     });
+  }, []);
+
+  /* ── Bulk field change (e.g. AI Advisor) ── */
+  const handleBulkChange = useCallback((updates: Partial<WizardState>) => {
+    setState((prev) => ({ ...prev, ...updates }));
+    setErrors({});
   }, []);
 
   /* ── Positions ── */
@@ -437,6 +442,7 @@ export default function OnboardingWizard() {
                   state={state}
                   txt={txt}
                   handleFieldChange={handleFieldChange}
+                  handleBulkChange={handleBulkChange}
                   previewProfile={previewProfile}
                   locale={(locale as 'en' | 'ar') ?? 'ar'}
                 />
