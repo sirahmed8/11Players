@@ -61,6 +61,13 @@ service cloud.firestore {
       }
     }
 
+    // ── Announcements Collection ──
+
+    match /announcements/{announcementId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
     // ── Profile Edits (Pending Approvals) ──
 
     match /profileEdits/{editId} {

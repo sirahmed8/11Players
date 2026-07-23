@@ -59,28 +59,32 @@ export default function GlobalAnnouncementBanner() {
         initial={{ opacity: 0, y: -20, height: 0 }}
         animate={{ opacity: 1, y: 0, height: "auto" }}
         exit={{ opacity: 0, y: -20, height: 0 }}
-        className={`w-full px-4 py-3 border-b shadow-lg transition-colors z-50 relative ${
-          isUrgent
-            ? "bg-gradient-to-r from-red-600/90 via-amber-600/90 to-red-600/90 text-white border-red-500/50"
-            : "bg-gradient-to-r from-slate-900 via-amber-950/90 to-slate-900 text-white border-amber-500/40"
-        }`}
-        dir={isAr ? 'rtl' : 'ltr'}
+        className="w-full px-3 sm:px-4 pt-3 sm:pt-4 z-50 relative"
       >
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <span className="text-xl shrink-0 animate-bounce">{isUrgent ? '🚨' : '📢'}</span>
+        <div
+          className={`w-full max-w-6xl mx-auto px-4 py-3.5 sm:py-4 rounded-2xl shadow-2xl border backdrop-blur-md transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+            isUrgent
+              ? "bg-slate-900/95 text-slate-100 border-rose-500/40 shadow-rose-950/20"
+              : "bg-slate-900/95 text-slate-100 border-emerald-500/30 shadow-emerald-950/20"
+          }`}
+          dir={isAr ? 'rtl' : 'ltr'}
+        >
+          <div className="flex items-start sm:items-center gap-3 min-w-0 w-full">
+            <span className="text-xl shrink-0 animate-pulse">{isUrgent ? '🚨' : '📢'}</span>
             <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
-                  isUrgent ? 'bg-white text-red-600' : 'bg-amber-400 text-slate-950'
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                  isUrgent 
+                    ? 'bg-rose-500/15 text-rose-400 border-rose-500/30' 
+                    : 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
                 }`}>
                   {isAr ? "إعلان هام" : "ANNOUNCEMENT"}
                 </span>
-                <span className="font-bold text-sm truncate">
+                <span className="font-bold text-sm text-slate-100 truncate">
                   {isAr ? announcement.titleAr : announcement.titleEn}
                 </span>
               </div>
-              <p className="text-xs text-slate-200 mt-0.5 font-medium line-clamp-1">
+              <p className="text-xs text-slate-300 mt-1 font-medium line-clamp-2 sm:line-clamp-1">
                 {isAr ? announcement.bodyAr : announcement.bodyEn}
               </p>
             </div>
@@ -88,17 +92,17 @@ export default function GlobalAnnouncementBanner() {
 
           <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
             {announcement.link && (
-              <Link
+              <a
                 href={announcement.link}
-                className="px-3 py-1 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-black flex items-center gap-1 transition-all"
+                className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-md active:scale-95"
               >
                 <span>{isAr ? "عرض" : "View"}</span>
                 <ArrowRight className={`w-3.5 h-3.5 ${isAr ? 'rotate-180' : ''}`} />
-              </Link>
+              </a>
             )}
             <button
               onClick={handleDismiss}
-              className="p-1 rounded-lg bg-black/20 hover:bg-black/40 text-white/80 hover:text-white transition-colors"
+              className="p-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700/60 transition-colors"
               title={isAr ? "إخفاء الإعلان" : "Dismiss"}
             >
               <X className="w-4 h-4" />

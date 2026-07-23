@@ -12,6 +12,7 @@ import Step1PersonalInfo from './Step1PersonalInfo';
 import Step2Positions from './Step2Positions';
 import Step3Attributes from './Step3Attributes';
 import Step4PhotoSubmit from './Step4PhotoSubmit';
+import OnboardingAIAdvisor from './OnboardingAIAdvisor';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 import { WizardState } from './types';
 import { calculateAge } from '@/lib/playerUtils';
@@ -446,6 +447,13 @@ export default function OnboardingWizard() {
                   previewProfile={previewProfile}
                   locale={(locale as 'en' | 'ar') ?? 'ar'}
                 />
+                
+                <OnboardingAIAdvisor
+                  state={state}
+                  locale={(locale as 'en' | 'ar') ?? 'ar'}
+                  onApply={handleBulkChange}
+                />
+
                 <AnimatePresence>
                   {submitMessage && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-3 rounded-xl border ${submitMessage.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-500/10 border-red-400 dark:border-red-500/30 text-red-700 dark:text-red-300'}`}>

@@ -340,8 +340,8 @@ export default function Sidebar() {
     }
   ];
 
-  // Public pages should not reserve sidebar/top-bar space while auth resolves.
-  if (PUBLIC_ROUTES.includes(pathname)) {
+  // Public pages should not reserve sidebar/top-bar space for guests.
+  if ((!user || authLoading) && PUBLIC_ROUTES.includes(pathname)) {
     return null;
   }
 
@@ -393,10 +393,10 @@ export default function Sidebar() {
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900" />
             )}
           </button>
-          <Link href="/communities" className="flex items-center gap-2">
+          <a href="/communities" className="flex items-center gap-2">
             <Image src="/logo.jpg" alt="11Players" width={32} height={32} className="rounded-lg object-cover shadow-sm" priority />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl tracking-tight">11Players</span>
-          </Link>
+          </a>
         </div>
         <SettingsMenu direction="down" />
       </div>
@@ -425,10 +425,10 @@ export default function Sidebar() {
           
           {/* Logo Area (Fixed Header) */}
           <div className={`flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 ${isAr ? "rounded-tl-3xl md:rounded-t-3xl" : "rounded-tr-3xl md:rounded-t-3xl"}`} style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
-            <Link href="/communities" className="flex items-center gap-3">
+            <a href="/communities" className="flex items-center gap-3">
               <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
-            </Link>
+            </a>
             <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
               <X className="w-6 h-6" />
             </button>
@@ -454,11 +454,15 @@ export default function Sidebar() {
                       }
 
                       return (
-                        <Link
+                        <a
                           key={link.href}
                           href={link.href}
-                          prefetch={true}
-                          onClick={() => setIsOpen(false)}
+                          onClick={(e) => {
+                            setIsOpen(false);
+                            if (cleanPathname === baseHref) {
+                              e.preventDefault();
+                            }
+                          }}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,transform] duration-150 font-bold text-sm group ${
                               isActive
                                 ? "bg-slate-800 text-white shadow-inner shadow-black/30 scale-[1.01]"
@@ -480,7 +484,7 @@ export default function Sidebar() {
                           ) : ((link.href === "/notifications" && unreadNotifsCount > 0) || (link.href === "/inbox" && unreadInboxCount > 0) || (link.href === "/support" && unreadSupportCount > 0)) ? (
                             <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm shadow-red-500/50 flex-shrink-0" />
                           ) : null}
-                        </Link>
+                        </a>
                       );
                     })}
                   </div>
