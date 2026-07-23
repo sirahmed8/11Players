@@ -11,7 +11,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  trailingSlash: true,
+  trailingSlash: false,
   // Static export for Firebase; full SSR for Vercel (enables API routes, middleware, Blob)
   ...(isVercel ? {} : { output: "export" }),
   images: {
