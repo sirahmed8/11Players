@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+
 import { PlayerProfile } from "@/types";
 
 interface AdminTableRowProps {
@@ -45,13 +45,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
   const photo = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || "";
 
   return (
-    <motion.tr
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
-      className="border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
-    >
+    <tr className="border-b border-slate-100 dark:border-slate-800 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60">
       {/* Name */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
@@ -220,7 +214,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
           </button>
         </div>
       </td>
-    </motion.tr>
+    </tr>
   );
 });
 

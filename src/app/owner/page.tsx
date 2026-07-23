@@ -299,8 +299,8 @@ export default function OwnerPage() {
                   <div>
                     <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
                     <div className="relative w-full">
-                      <FileText className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      <input required value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="The best community for..." />
+                      <FileText className="w-5 h-5 absolute left-3 top-4 text-slate-400 pointer-events-none" />
+                      <textarea rows={2} value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 resize-none" placeholder={isAr ? "أفضل مجتمع للمباريات..." : "The best community for..."} />
                     </div>
                   </div>
                   <div>
@@ -328,28 +328,16 @@ export default function OwnerPage() {
                     </label>
                   </div>
                   
-                  <AnimatePresence>
-                    {isPrivate && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-2">
-                          <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                          <div className="relative w-full">
-                            <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                            <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                  <div className={`transition-all duration-300 overflow-hidden ${isPrivate ? 'max-h-24 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
+                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                    <div className="relative w-full">
+                      <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                      <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
+                    </div>
+                  </div>
                   
-                  <button disabled={creating} className="w-full mt-2 py-4 bg-emerald-600 text-white font-black rounded-xl hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/20 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
-                    {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء المجتمع" : "Create Community")}
+                  <button disabled={creating} className="w-full mt-4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                    {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء مجتمع جديد" : "Create New Community")}
                   </button>
                 </form>
               </div>

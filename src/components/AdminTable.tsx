@@ -591,7 +591,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
             </tr>
           </thead>
           <tbody>
-            <AnimatePresence mode="popLayout">
               {paginatedPlayers.map((player) => (
                 <AdminTableRow
                   key={player.uid}
@@ -609,7 +608,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   onOpenSuggestionsModal={(p) => setSuggestionsModalPlayer(p)}
                 />
               ))}
-            </AnimatePresence>
           </tbody>
         </table>
       </div>

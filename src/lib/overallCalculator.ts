@@ -310,13 +310,13 @@ export function calculateRealisticOverall(
     if (foot.includes('ambidextrous') || foot === 'both') {
       finalOverall += 2; // Dual foot mastery is a massive real-world advantage
     } else if (foot === 'left') {
-      // Left foot: natural for LB, inverted winger bonus for RWF/RMF
-      if (['LB'].includes(position)) finalOverall += 1;
-      if (['RWF', 'RMF'].includes(position)) finalOverall += 1; // inverted winger
+      // Left foot: natural for LB/LMF, inverted winger bonus for RWF
+      if (['LB', 'LMF'].includes(position)) finalOverall += 1;
+      if (['RWF'].includes(position)) finalOverall += 1; // inverted winger
     } else if (foot === 'right') {
-      // Right foot: natural for RB, inverted winger bonus for LWF/LMF
-      if (['RB'].includes(position)) finalOverall += 1;
-      if (['LWF', 'LMF'].includes(position)) finalOverall += 1; // inverted winger
+      // Right foot: natural for RB/RMF, inverted winger bonus for LWF
+      if (['RB', 'RMF'].includes(position)) finalOverall += 1;
+      if (['LWF'].includes(position)) finalOverall += 1; // inverted winger
     }
   }
 

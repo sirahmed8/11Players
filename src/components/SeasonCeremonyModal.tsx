@@ -8,6 +8,7 @@ import { doc, writeBatch, arrayUnion, serverTimestamp, setDoc } from "firebase/f
 import toast from "react-hot-toast";
 import type { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
+import confetti from 'canvas-confetti';
 
 interface SeasonCeremonyModalProps {
   isOpen: boolean;
@@ -188,12 +189,44 @@ export default function SeasonCeremonyModal({
             date: dateStr,
             author: isAr ? "إدارة المجتمع" : "Community Admin"
           });
+          
+          // Send notification to ALL players
+          players.forEach(async (p) => {
+            try {
+              const notifRef = doc(db, `users/${p.uid}/notifications`, `season_start_${currentYear}_${Date.now()}_${Math.random().toString(36).substring(2,6)}`);
+              await setDoc(notifRef, {
+                type: 'admin',
+                title: isAr ? `🚀 انطلاق الموسم الجديد: ${seasonName}!` : `🚀 New Season Started: ${seasonName}!`,
+                body: isAr
+                  ? `مرحباً بك في الموسم الجديد! إحصائياتك جاهزة للبدء من الصفر. بالتوفيق في الوصول للقمة والمنافسة على الألقاب!`
+                  : `Welcome to the new season! Your stats are fresh and ready. Good luck reaching the top and competing for titles!`,
+                read: false,
+                createdAt: serverTimestamp()
+              });
+            } catch (e) {}
+          });
+
         } catch (e) {
           console.warn("Could not post season broadcast announcement:", e);
         }
       }
 
       onRefresh();
+      
+      // Confetti effect to celebrate the new season!
+      const duration = 3 * 1000;
+      const animationEnd = Date.now() + duration;
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
+
+      const interval: any = setInterval(function() {
+        const timeLeft = animationEnd - Date.now();
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+        const particleCount = 50 * (timeLeft / duration);
+        confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+      }, 250);
+
       toast.success(
         isAr
           ? "🎉 تم تتويج الأبطال ومنح الجوائز وبدء الموسم الجديد بنجاح!"

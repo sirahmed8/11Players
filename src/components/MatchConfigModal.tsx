@@ -604,26 +604,26 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 <button
                   type="button"
                   onClick={() => { setActiveTab('standard'); setConfig(prev => ({ ...prev, matchMode: 'standard' })); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all ${
+                  className={`flex-1 flex flex-row items-center justify-center gap-2 p-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
                     activeTab === 'standard'
                       ? 'bg-emerald-600 text-white shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
-                  <span>⚽</span>
+                  <span className="text-sm">⚽</span>
                   <span>{isAr ? 'مباراة قانونية (11 × 11)' : 'Standard (11v11)'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => { setActiveTab('turf'); setConfig(prev => ({ ...prev, matchMode: 'turf' })); }}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all ${
+                  className={`flex-1 flex flex-row items-center justify-center gap-2 p-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
                     activeTab === 'turf'
                       ? 'bg-amber-500 text-white shadow-md'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                   }`}
                 >
                   <Shuffle className="w-4 h-4" />
-                  <span>{isAr ? 'مباريات الملاعب (خماسي / سداسي / سباعي)' : 'Turf / Casual Match'}</span>
+                  <span>{isAr ? 'ملاعب خماسي / سداسي' : 'Turf / Casual'}</span>
                 </button>
               </div>
 
@@ -1179,19 +1179,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
               )}
 
               {/* Open Booking / Make a Match Registration Option */}
-              <div className="p-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl flex items-center justify-between mt-4">
-                <div>
-                  <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 block">
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl flex items-center justify-between mt-4">
+                <div className="flex-1 pr-2">
+                  <span className="text-sm font-black text-emerald-800 dark:text-emerald-300 block leading-snug">
                     {isAr ? 'إنشاء حجز مفتوح للتسجيل (بدون اختيار لاعبين الآن)' : 'Open Booking Registration (No initial players required)'}
                   </span>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400">
+                  <span className="text-xs text-emerald-600 dark:text-emerald-400 leading-snug block mt-1">
                     {isAr ? 'سيتمكن اللاعبون من تسجيل حضورهم لاحقاً حتى اكتمال العدد' : 'Players will sign up/check in later until capacity is reached'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setConfig(prev => ({ ...prev, isOpenRegistration: !prev.isOpenRegistration }))}
-                  className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 shrink-0 ${
                     config.isOpenRegistration ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
                   }`}
                 >
@@ -1200,19 +1200,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
               </div>
 
               {/* Enable Cards & Disciplinary System Option */}
-              <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center justify-between mt-3">
-                <div>
-                  <span className="text-xs font-black text-red-800 dark:text-red-300 block">
+              <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-2xl flex items-center justify-between mt-3">
+                <div className="flex-1 pr-2">
+                  <span className="text-sm font-black text-red-800 dark:text-red-300 block leading-snug">
                     {isAr ? 'تفعيل نظام الإنذارات والكروت (أصفر / أحمر / إيقاف)' : 'Enable Cards & Disciplinary System (Yellow/Red/Suspensions)'}
                   </span>
-                  <span className="text-[10px] text-red-600 dark:text-red-400">
+                  <span className="text-xs text-red-600 dark:text-red-400 leading-snug block mt-1">
                     {isAr ? 'تسجيل الكروت أثناء المباراة وتطبيق الإيقاف التلقائي في الحجز التالي للكرت الأحمر' : 'Track cards during match & enforce suspensions for players with red cards'}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setConfig(prev => ({ ...prev, enableCardsSystem: prev.enableCardsSystem === false ? true : false }))}
-                  className={`w-11 h-6 rounded-full transition-colors flex items-center px-0.5 ${
+                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 shrink-0 ${
                     config.enableCardsSystem !== false ? 'bg-red-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
                   }`}
                 >

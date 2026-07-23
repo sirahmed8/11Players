@@ -17,6 +17,8 @@ interface TacticalSuggestionsCardProps {
   compact?: boolean;
   playerProfile?: any;
   isOwnProfile?: boolean;
+  currentPrimaryPosition?: string;
+  currentPlayStyle?: string;
 }
 
 export default function TacticalSuggestionsCard({
@@ -27,7 +29,9 @@ export default function TacticalSuggestionsCard({
   onApplySuggestions,
   compact = false,
   playerProfile,
-  isOwnProfile = true
+  isOwnProfile = true,
+  currentPrimaryPosition,
+  currentPlayStyle
 }: TacticalSuggestionsCardProps) {
   const { locale } = useLocale();
   const isAr = locale === 'ar';
@@ -65,18 +69,18 @@ export default function TacticalSuggestionsCard({
     const currentStyle = playerProfile.playStyle || '';
     const bestPos = suggestions.positions[0];
 
-    const chosenStrEn = isOwnProfile ? "Your chosen position is" : "The player's chosen position is";
-    const chosenStrAr = isOwnProfile ? "مركزك المختار هو" : "المركز المختار للاعب هو";
+    const chosenStrEn = isOwnProfile ? "Your chosen position is" : "His chosen position is";
+    const chosenStrAr = isOwnProfile ? "مركزك المختار هو" : "مركزه المختار هو";
 
-    const youdGetEn = isOwnProfile ? "you'd get" : "they'd get";
+    const youdGetEn = isOwnProfile ? "you'd get" : "he'd get";
     const youdGetAr = isOwnProfile ? "ستحصل على" : "سيحصل على";
 
     const alreadyBest = currentPos === bestPos.position && (!bestPos.bestPlayStyle || currentStyle === bestPos.bestPlayStyle);
 
     if (alreadyBest) {
       return isAr
-        ? `🏆 ممتاز! أنت بالفعل في أفضل مركز ممكن لك (${currentPos}) وأسلوب لعب مثالي! استمر بالتطوير والتحسّن في طاقاتك لرفع تقييمك!`
-        : `🏆 Perfect! ${isOwnProfile ? 'You are' : 'The player is'} already in the best possible position (${currentPos}) with an ideal play style! Focus on improving attributes to push the OVR even higher.`;
+        ? `🏆 ممتاز! ${isOwnProfile ? 'أنت' : 'اللاعب'} بالفعل في أفضل مركز ممكن (${currentPos}) وأسلوب لعب مثالي! استمر بالتطوير والتحسّن في طاقاتك لرفع التقييم!`
+        : `🏆 Perfect! ${isOwnProfile ? 'You are' : 'He is'} already in the best possible position (${currentPos}) with an ideal play style! Focus on improving attributes to push the OVR even higher.`;
     }
 
     if (currentPos !== bestPos.position) {
@@ -102,8 +106,8 @@ export default function TacticalSuggestionsCard({
     const bestPos = suggestions.positions[0];
     const alreadyBestStyle = currentStyleId === bestStyle.styleId || currentStyleId === bestPos.bestPlayStyle;
 
-    const yourStyleEn = isOwnProfile ? "Your playstyle is" : "The player's playstyle is";
-    const yourStyleAr = isOwnProfile ? "أسلوب لعبك هو" : "أسلوب لعب اللاعب هو";
+    const yourStyleEn = isOwnProfile ? "Your playstyle is" : "His playstyle is";
+    const yourStyleAr = isOwnProfile ? "أسلوب لعبك هو" : "أسلوب لعبه هو";
 
     let styleAdvice = "";
     if (!currentStyleId) {
@@ -164,7 +168,7 @@ export default function TacticalSuggestionsCard({
 
       {/* AI Advice Banner */}
       {playerProfile && (
-        <div className="bg-gradient-to-r from-amber-500/15 via-orange-500/10 to-amber-500/15 p-4 rounded-2xl border border-amber-500/40 shadow-sm mb-5 space-y-3">
+        <div className="bg-amber-500/10 p-4 rounded-2xl border border-amber-500/40 shadow-sm mb-5 space-y-3">
           <div className="flex items-center gap-2.5 font-black text-amber-500 text-sm">
             <Sparkles className="w-5 h-5 shrink-0 animate-bounce" />
             <span>
@@ -249,9 +253,10 @@ export default function TacticalSuggestionsCard({
                   )}
                   
                   {onApplySuggestions && isOwnProfile && (() => {
-                    const isAlreadyApplied = playerProfile && 
-                      playerProfile.primaryPosition === item.position && 
-                      (!item.bestPlayStyle || playerProfile.playStyle === item.bestPlayStyle);
+                    const actualPos = currentPrimaryPosition || playerProfile?.primaryPosition;
+                    const actualStyle = currentPlayStyle || playerProfile?.playStyle;
+                    const isAlreadyApplied = actualPos === item.position && 
+                      (!item.bestPlayStyle || actualStyle === item.bestPlayStyle);
                     
                     return (
                       <button

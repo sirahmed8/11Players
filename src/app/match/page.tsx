@@ -17,6 +17,7 @@ import { usePlayers } from "@/contexts/PlayersContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import RecordStatsModal from "@/components/RecordStatsModal";
 import PlayerRatingModal from "@/components/PlayerRatingModal";
+import EditMatchModal from "@/components/EditMatchModal";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import TurfMatchDisplay from "@/components/TurfMatchDisplay";
 import LiveMatchController from "@/components/LiveMatchController";
@@ -40,6 +41,8 @@ export default function MatchPage() {
   const [error, setError] = useState("");
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
@@ -238,6 +241,19 @@ export default function MatchPage() {
     } catch (err) {
       console.error(err);
       toast.error(isAr ? "حدث خطأ أثناء إنهاء الحجز" : "Failed to end booking");
+    }
+  };
+
+  const handleDeleteMatch = async () => {
+    if (!activeCommunityId || !matchData) return;
+    if (!window.confirm(isAr ? "هل أنت متأكد من رغبتك في حذف المباراة تماماً؟ لن يتم نقلها للأرشيف." : "Are you sure you want to completely delete this match? It will not be archived.")) return;
+    try {
+      await deleteDoc(doc(db, "communities", activeCommunityId, "matches", "latest"));
+      await deleteDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id));
+      toast.success(isAr ? "تم حذف المباراة بنجاح" : "Match completely deleted");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "حدث خطأ أثناء الحذف" : "Failed to delete match");
     }
   };
 
@@ -455,18 +471,7 @@ export default function MatchPage() {
                 : "View upcoming match lineups and tactics, or explore historical matches and recorded statistics."}
             </p>
 
-            {/* Admin Make a Match / Open Booking Action Button */}
-            {isAdmin && (
-              <div className="flex justify-center mb-6">
-                <button
-                  onClick={() => setIsConfigModalOpen(true)}
-                  className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg transition-all duration-200 flex items-center gap-2.5 active:scale-95"
-                >
-                  <span className="text-xl">⚡</span>
-                  <span>{isAr ? "إنشاء مباراة جديدة أو فتح حجز" : "Make a Match / Open Booking"}</span>
-                </button>
-              </div>
-            )}
+
 
             {/* Tab Switcher */}
             <div className="flex justify-center mb-8">
@@ -545,12 +550,25 @@ export default function MatchPage() {
                 )}
                 
                 {isAdmin && !isViewingHistory && (
-                  <div className="w-full mt-4 flex justify-center">
+                  <div className="w-full mt-4 flex flex-col sm:flex-row justify-center gap-3">
                     <button 
                       onClick={() => setIsRecordModalOpen(true)}
                       className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 transition-transform active:scale-95"
                     >
                       {isAr ? "إنهاء المباراة وتسجيل الإحصائيات" : "End Match & Record Stats"}
+                    </button>
+                    <button 
+                      onClick={() => setIsEditModalOpen(true)}
+                      className="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-white font-bold rounded-xl shadow-lg shadow-amber-500/30 transition-transform active:scale-95"
+                    >
+                      {isAr ? "تعديل التفاصيل" : "Edit Details"}
+                    </button>
+                    <button 
+                      onClick={handleDeleteMatch}
+                      className="px-6 py-3 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2"
+                    >
+                      <span>🗑️</span>
+                      {isAr ? "حذف الحجز" : "Delete"}
                     </button>
                   </div>
                 )}
@@ -773,20 +791,41 @@ export default function MatchPage() {
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-amber-500/20 text-amber-400 border border-amber-500/30 mb-3 animate-pulse">
                         🔥 {isAr ? "حجز مفتوح للتسجيل" : "Open Booking / Registration"}
                       </span>
-                      <h2 className="text-3xl md:text-4xl font-black tracking-tight">
+                      <h2 className="text-3xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-amber-200 to-yellow-500 bg-clip-text text-transparent">
                         {isAr ? "تسجيل الحضور للمباراة القادمة" : "Sign Up for Next Match"}
                       </h2>
-                      <p className="text-sm text-slate-300 mt-1">
-                        {isAr ? "سجل حضورك ليتم إدراج اسمك في التشكيل وسحب الفرق عند اكتمال العدد" : "Check in to enter the draft and generate balanced teams once capacity is reached."}
+                      <p className="text-sm md:text-base text-slate-300 mt-2 max-w-lg font-medium leading-relaxed">
+                        {isAr ? "سجل حضورك ليتم إدراج اسمك في التشكيل وسحب الفرق عند اكتمال العدد. المقاعد محدودة!" : "Check in to enter the draft and generate balanced teams once capacity is reached. Seats are limited!"}
                       </p>
                     </div>
-                    <div className="flex flex-col items-start md:items-end gap-2 bg-black/30 p-4 rounded-2xl border border-white/10 w-full md:w-auto">
-                      <div className="text-sm font-bold text-amber-300">
+                    <div className="flex flex-col items-center gap-2 bg-black/40 backdrop-blur-md p-6 rounded-3xl border border-white/10 w-full md:w-auto shadow-inner">
+                      <div className="text-sm font-bold text-amber-400 tracking-wider uppercase">
                         {isAr ? "المقاعد المحجوزة" : "Checked In Players"}
                       </div>
-                      <div className="text-3xl font-black font-mono text-white">
-                        {(displayMatch.signedUpPlayerUids || []).length} / {displayMatch.maxPlayers || ((displayMatch.config?.playersPerTeam || 6) * (displayMatch.config?.numTeams || 2))}
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-5xl font-black font-mono text-white">
+                          {(displayMatch.signedUpPlayerUids || []).length}
+                        </span>
+                        <span className="text-xl font-bold text-slate-500">
+                          / {displayMatch.maxPlayers || ((displayMatch.config?.playersPerTeam || 6) * (displayMatch.config?.numTeams || 2))}
+                        </span>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="w-full bg-slate-800/50 rounded-full h-3 md:h-4 overflow-hidden border border-white/5 relative">
+                    <div 
+                      className={`h-full transition-all duration-1000 ease-out relative ${
+                        (displayMatch.signedUpPlayerUids || []).length >= (displayMatch.maxPlayers || ((displayMatch.config?.playersPerTeam || 6) * (displayMatch.config?.numTeams || 2)))
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
+                          : 'bg-gradient-to-r from-amber-500 to-yellow-400'
+                      }`}
+                      style={{ 
+                        width: `${Math.min(100, ((displayMatch.signedUpPlayerUids || []).length / (displayMatch.maxPlayers || ((displayMatch.config?.playersPerTeam || 6) * (displayMatch.config?.numTeams || 2)))) * 100)}%` 
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
                     </div>
                   </div>
 
@@ -1389,6 +1428,14 @@ export default function MatchPage() {
         isOpen={isRecordModalOpen} 
         onClose={() => setIsRecordModalOpen(false)} 
         matchData={matchData} 
+      />
+
+      {/* Edit Match Modal */}
+      <EditMatchModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        matchData={matchData}
+        communityId={activeCommunityId || ""}
       />
 
       {/* Player Rating Modal */}

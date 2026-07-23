@@ -344,18 +344,6 @@ const PlayerCard = React.memo(function PlayerCard({
 
         {/* --- Attributes Grid (2 columns × 3 rows) --- */}
         <div className="mx-3 mb-3 rounded-xl bg-amber-900/40 backdrop-blur-sm p-2.5 relative group">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setShowOvrModal(true);
-            }}
-            className="absolute top-1 right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-1 rounded-full bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 shadow-xs"
-            title={isAr ? "شرح كيفية حساب هذه الطاقات والتقييم" : "How are these card stats calculated?"}
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-          </button>
           <div className="grid grid-cols-2 gap-x-6 gap-y-2">
             {calculateMainStats(activeAttributes).map(({ label, value }) => (
               <div 

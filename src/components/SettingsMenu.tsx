@@ -29,30 +29,6 @@ export default function SettingsMenu({ direction = "down" }: { direction?: "up" 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const [defaultPage, setDefaultPage] = useState("/communities");
-
-  useEffect(() => {
-    if (user) {
-      getDoc(doc(db, "players", user.uid)).then(snap => {
-        if (snap.exists() && snap.data().defaultPage) {
-          setDefaultPage(snap.data().defaultPage);
-        }
-      });
-    }
-  }, [user]);
-
-  const handleDefaultPageChange = async (page: string) => {
-    setDefaultPage(page);
-    setMainPageDropdownOpen(false);
-    if (user) {
-      try {
-        await updateDoc(doc(db, "players", user.uid), { defaultPage: page });
-      } catch (err) {
-        console.error("Failed to save default page", err);
-      }
-    }
-  };
-
   const handleLogout = async () => {
     try {
       await logout();

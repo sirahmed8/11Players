@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Eye, Trash2, Users } from "lucide-react";
 import { PlayerProfile } from "@/types";
@@ -43,7 +42,7 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
       <td className="px-6 py-4">
         <div className="flex items-center gap-3">
           {photo ? (
-            <Image src={photo} alt={u.fullName} className="w-10 h-10 rounded-full object-cover shrink-0" width={40} height={40} referrerPolicy="no-referrer" />
+            <img src={photo} alt={u.fullName} className="w-10 h-10 rounded-full object-cover shrink-0" width={40} height={40} referrerPolicy="no-referrer" loading="lazy" />
           ) : (
             <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 font-bold shrink-0">
               {u.fullName?.charAt(0) || "?"}

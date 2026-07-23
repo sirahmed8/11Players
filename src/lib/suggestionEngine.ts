@@ -216,65 +216,69 @@ export function getTacticalSuggestions(
         break;
       }
 
-      case 'LMF': {
-        score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-        if (isLeftFoot || isAmbi) {
-          score += 4;
-          rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the left.';
-          rationaleAr = 'لاعب وسط أيسر لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليسار.';
-        } else {
-          rationaleEn = 'Pacy wide operator on the left, favoring right-footed inverted combinations.';
-          rationaleAr = 'لاعب سريع على الجهة اليسرى، يفضل الدخول للعمق بقدمه اليمنى لتبادل التمريرات.';
-        }
-        break;
+    case 'LMF': {
+      score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
+      if (isLeftFoot || isAmbi) {
+        score += 4;
+        rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the left.';
+        rationaleAr = 'لاعب وسط أيسر لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليسار.';
+      } else {
+        score -= 2;
+        rationaleEn = 'Pacy wide operator on the left, but playing inverted which limits crossing options.';
+        rationaleAr = 'لاعب سريع على الجهة اليسرى، لكنه يلعب بقدم يمنى مما يحد من خيارات العرضيات.';
       }
+      break;
+    }
 
-      case 'RMF': {
-        score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-        if (isRightFoot || isAmbi) {
-          score += 4;
-          rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the right.';
-          rationaleAr = 'لاعب وسط أيمن لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليمين.';
-        } else {
-          rationaleEn = 'Pacy wide operator on the right, favoring left-footed inverted combinations.';
-          rationaleAr = 'لاعب سريع على الجهة اليمنى، يفضل الدخول للعمق بقدمه اليسرى لتبادل التمريرات.';
-        }
-        break;
+    case 'RMF': {
+      score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
+      if (isRightFoot || isAmbi) {
+        score += 4;
+        rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the right.';
+        rationaleAr = 'لاعب وسط أيمن لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليمين.';
+      } else {
+        score -= 2;
+        rationaleEn = 'Pacy wide operator on the right, but playing inverted which limits crossing options.';
+        rationaleAr = 'لاعب سريع على الجهة اليمنى، لكنه يلعب بقدم يسرى مما يحد من خيارات العرضيات.';
       }
+      break;
+    }
 
-      case 'LWF': {
-        score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
-        if (isRightFoot && finishing >= 75) {
-          score += 5;
-          rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
-          rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
-        } else if (isLeftFoot && loftedPass >= 75) {
-          score += 3;
-          rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
-          rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
-        } else {
-          rationaleEn = 'Explosive pace and dribbling skills specifically tailored for advanced wing attacks.';
-          rationaleAr = 'سرعة متفجرة ومهارات مراوغة مصممة خصيصاً لقيادة الهجمات من الأجنحة المتقدمة.';
-        }
-        break;
+    case 'LWF': {
+      score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
+      if (isRightFoot || isAmbi) {
+        score += 5;
+        rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
+        rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
+      } else if (isLeftFoot && loftedPass >= 75) {
+        score += 1;
+        rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
+        rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+      } else {
+        score -= 2;
+        rationaleEn = 'Explosive pace and dribbling, but playing on the left with a left foot limits cutting inside.';
+        rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يسرى على اليسار يحد من الدخول للعمق.';
       }
+      break;
+    }
 
-      case 'RWF': {
-        score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
-        if (isLeftFoot && finishing >= 75) {
-          score += 5;
-          rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
-          rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
-        } else if (isRightFoot && loftedPass >= 75) {
-          score += 3;
-          rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
-          rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
-        } else {
-          rationaleEn = 'Explosive pace and dribbling skills specifically tailored for advanced wing attacks.';
-          rationaleAr = 'سرعة متفجرة ومهارات مراوغة مصممة خصيصاً لقيادة الهجمات من الأجنحة المتقدمة.';
-        }
-        break;
+    case 'RWF': {
+      score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
+      if (isLeftFoot || isAmbi) {
+        score += 5;
+        rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
+        rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
+      } else if (isRightFoot && loftedPass >= 75) {
+        score += 1;
+        rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
+        rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+      } else {
+        score -= 2;
+        rationaleEn = 'Explosive pace and dribbling, but playing on the right with a right foot limits cutting inside.';
+        rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يمنى على اليمين يحد من الدخول للعمق.';
       }
+      break;
+    }
 
       case 'SS': {
         score = (offAware * 0.18 + ballControl * 0.18 + dribbling * 0.16 + finishing * 0.15 + speed * 0.10 + accel * 0.10 + lowPass * 0.08 + kickPower * 0.05);

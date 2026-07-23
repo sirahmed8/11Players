@@ -189,9 +189,9 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  {/* Optimized list — no animations on rows */}
+                  {/* Optimized list — no animations on rows, limited to 50 items to fix scroll lag */}
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
-                    {filteredForA.map((p) => (
+                    {filteredForA.slice(0, 50).map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
                     ))}
                   </div>
@@ -248,7 +248,7 @@ export default function PlayerComparisonModal({
                     />
                   </div>
                   <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
-                    {filteredForB.map((p) => (
+                    {filteredForB.slice(0, 50).map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
                     ))}
                   </div>

@@ -38,6 +38,7 @@ export default function NotificationsPage() {
   const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
+  const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
   
   const isAr = locale === "ar";
 
@@ -281,8 +282,11 @@ export default function NotificationsPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, x: -30, height: 0 }}
                       transition={{ duration: 0.2 }}
-                      className={`p-4 sm:p-6 transition-colors overflow-hidden ${!notif.read ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}`}
-                      onClick={() => !notif.read && markAsRead(notif.id)}
+                      className={`p-4 sm:p-6 transition-colors overflow-hidden cursor-pointer ${!notif.read ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "hover:bg-slate-50 dark:hover:bg-slate-800/50"}`}
+                      onClick={() => {
+                        if (!notif.read) markAsRead(notif.id);
+                        setSelectedNotif(notif);
+                      }}
                     >
                       <div className="flex items-start gap-4">
                         <div className={`mt-0.5 w-10 h-10 flex items-center justify-center shrink-0 rounded-full aspect-square ${!notif.read ? "bg-white dark:bg-slate-800 shadow-sm" : "bg-slate-100 dark:bg-slate-800"}`}>
@@ -345,6 +349,75 @@ export default function NotificationsPage() {
             message={isAr ? "هل أنت متأكد من رغبتك في حذف جميع الإشعارات؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to delete all notifications? This action cannot be undone."}
             isDestructive={true}
           />
+          
+          {/* Notification Details Modal */}
+          <AnimatePresence>
+            {selectedNotif && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+                  onClick={() => setSelectedNotif(null)}
+                />
+                <motion.div
+                  initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                  animate={{ scale: 1, opacity: 1, y: 0 }}
+                  exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                  className="relative bg-white dark:bg-slate-900 p-6 md:p-8 rounded-3xl shadow-2xl max-w-lg w-full border border-slate-200 dark:border-slate-800 max-h-[90vh] flex flex-col"
+                  dir={isAr ? 'rtl' : 'ltr'}
+                >
+                  <div className="flex items-start gap-4 mb-6">
+                    <div className="w-12 h-12 flex items-center justify-center shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm text-2xl">
+                      {getIconForType(selectedNotif.type)}
+                    </div>
+                    <div className="flex-1 min-w-0 pt-1">
+                      <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight">
+                        {isAr ? (selectedNotif.titleAr || selectedNotif.title) : (selectedNotif.titleEn || selectedNotif.title)}
+                      </h2>
+                      <div className="text-sm font-bold text-slate-400 mt-2">
+                        {selectedNotif.createdAt?.toDate ? new Date(selectedNotif.createdAt.toDate()).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto mb-6 pr-2 custom-scrollbar">
+                    <div className="p-5 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl">
+                      <p className="text-base text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap font-medium">
+                        {isAr ? (selectedNotif.bodyAr || selectedNotif.body) : (selectedNotif.bodyEn || selectedNotif.body)}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      onClick={() => setSelectedNotif(null)}
+                      className="flex-1 py-3 px-4 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      {isAr ? "إغلاق" : "Close"}
+                    </button>
+                    {selectedNotif.link && (
+                      <Link
+                        href={selectedNotif.link}
+                        onClick={() => setSelectedNotif(null)}
+                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-center transition-all flex items-center justify-center gap-2 ${
+                          selectedNotif.link.includes('/support')
+                            ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-lg shadow-amber-500/20'
+                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20'
+                        }`}
+                      >
+                        {selectedNotif.link.includes('/support')
+                          ? (isAr ? "⚖️ فتح تذكرة التماس" : "⚖️ Open Appeal Ticket")
+                          : (isAr ? "عرض التفاصيل الكاملة" : "View Full Details")}
+                        <ArrowRight className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
         </main>
       </div>
     </ProtectedRoute>

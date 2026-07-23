@@ -10,8 +10,9 @@ import SeasonCeremonyModal from "@/components/SeasonCeremonyModal";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { Trophy, Crown, Sparkles, Award, Medal, Shield, Star, Calendar, ArrowRight, History } from "lucide-react";
 import { motion } from "framer-motion";
-import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import toast from "react-hot-toast";
 import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
 import Image from "next/image";
 
@@ -31,7 +32,7 @@ interface SeasonHistoryDoc {
 export default function SeasonCeremonyPage() {
   const { players, loading, refreshPlayers } = usePlayers();
   const { activeCommunityId, activeCommunity, loadingCommunity } = useCommunity();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isOwner } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
@@ -64,6 +65,20 @@ export default function SeasonCeremonyPage() {
     };
     fetchHistory();
   }, [activeCommunityId]);
+
+  const handleDeleteSeason = async (seasonId: string) => {
+    if (!activeCommunityId) return;
+    if (!window.confirm(isAr ? "هل أنت متأكد من حذف أرشيف هذا الموسم بالكامل؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to completely delete this season's archive? This cannot be undone.")) return;
+    
+    try {
+      await deleteDoc(doc(db, `communities/${activeCommunityId}/seasonHistory`, seasonId));
+      setHistory(prev => prev.filter(h => h.id !== seasonId));
+      toast.success(isAr ? "تم حذف أرشيف الموسم بنجاح" : "Season archive deleted successfully");
+    } catch (err) {
+      console.error("Error deleting season:", err);
+      toast.error(isAr ? "فشل الحذف" : "Failed to delete season");
+    }
+  };
 
   const winners = useMemo(() => {
     if (!players || players.length === 0) return null;
@@ -473,9 +488,20 @@ export default function SeasonCeremonyPage() {
                         <Trophy className="w-5 h-5 text-amber-500" />
                         <span>{isAr ? `موسم ${doc.seasonYear}` : `Season ${doc.seasonYear}`}</span>
                       </span>
-                      <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                        {doc.totalPlayers || 0} {isAr ? "لاعب" : "Players"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                          {doc.totalPlayers || 0} {isAr ? "لاعب" : "Players"}
+                        </span>
+                        {isOwner && (
+                          <button
+                            onClick={() => handleDeleteSeason(doc.id)}
+                            className="p-1.5 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-red-500 transition-colors"
+                            title={isAr ? "حذف الموسم" : "Delete Season"}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-4 space-y-3 text-sm">

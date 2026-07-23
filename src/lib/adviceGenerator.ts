@@ -303,10 +303,14 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
 
     // Filter out recently sent advice titles to guarantee fresh, non-repetitive suggestions every time
     const freshAdvices = advices.filter(ad => !recentTitles.has(ad.titleEn) && !recentTitles.has(ad.titleAr));
-    const poolToUse = freshAdvices.length > 0 ? freshAdvices : advices;
+    
+    // Strictly enforce deduplication: if no fresh advice is available, return nothing
+    if (freshAdvices.length === 0) {
+      return [];
+    }
 
-    // Select 1 random advice from the pool so the user receives exactly one fresh notification
-    const shuffled = poolToUse.sort(() => 0.5 - Math.random());
+    // Select 1 random advice from the fresh pool so the user receives exactly one fresh notification
+    const shuffled = freshAdvices.sort(() => 0.5 - Math.random());
     const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {

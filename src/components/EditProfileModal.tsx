@@ -449,6 +449,10 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                     height={formData.height}
                     weight={formData.weight}
                     preferredFoot={formData.preferredFoot}
+                    playerProfile={player}
+                    isOwnProfile={true}
+                    currentPrimaryPosition={formData.primaryPosition}
+                    currentPlayStyle={formData.playStyle}
                     onApplySuggestions={(positions, playStyle) => {
                       setFormData(prev => ({
                         ...prev,
