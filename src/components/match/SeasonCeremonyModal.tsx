@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Crown, Sparkles, Send, CheckCircle2, ShieldAlert, Award, Calendar, RefreshCw, X } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { doc, writeBatch, arrayUnion, serverTimestamp, setDoc } from "firebase/firestore";
@@ -88,14 +88,15 @@ export default function SeasonCeremonyModal({
   const handleExecuteCeremony = async () => {
     if (!activeCommunityId) return;
     setIsExecuting(true);
-    const batch = writeBatch(db);
     const dateStr = new Date().toISOString();
 
     try {
+      // We will commit the history & comm tag separately
+      const initBatch = writeBatch(db);
       // 1. Save Season Archive / History only if not the very first season.
       if (!isFirstSeason) {
         const seasonHistoryRef = doc(db, `communities/${activeCommunityId}/seasonHistory`, `season_${currentYear - 1}`);
-        await setDoc(seasonHistoryRef, {
+        initBatch.set(seasonHistoryRef, {
           seasonYear: currentYear - 1,
           closedAt: serverTimestamp(),
           winners: {
@@ -110,45 +111,56 @@ export default function SeasonCeremonyModal({
 
       // Update community last reset year tag
       const commRef = doc(db, 'communities', activeCommunityId);
-      batch.update(commRef, { lastSeasonResetYear: currentYear });
+      initBatch.set(commRef, { lastSeasonResetYear: currentYear }, { merge: true });
+      await initBatch.commit();
 
-      // 2. Process all players: award trophies & reset stats
-      players.forEach(p => {
-        const docRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-        const updates: any = {
-          'stats.goals': 0,
-          'stats.assists': 0,
-          'stats.mvp': 0,
-          'stats.matchesPlayed': 0,
-        };
+      // 2. Process all players in chunks to avoid > 500 writes limit per batch
+      const batchSize = 200;
+      for (let i = 0; i < players.length; i += batchSize) {
+        const batch = writeBatch(db);
+        const chunk = players.slice(i, i + batchSize);
 
-        const newTrophies: any[] = [];
-        if (winners.ballonDor && p.uid === winners.ballonDor.uid) {
-          newTrophies.push({ name: "Ballon d'Or", season: previousSeasonName, icon: "👑", date: dateStr });
-        }
-        if (winners.topScorer && p.uid === winners.topScorer.uid) {
-          newTrophies.push({ name: "Golden Boot", season: previousSeasonName, icon: "⚽", date: dateStr });
-        }
-        if (winners.topAssister && p.uid === winners.topAssister.uid) {
-          newTrophies.push({ name: "Playmaker", season: previousSeasonName, icon: "🎯", date: dateStr });
-        }
-        if (winners.topMVP && p.uid === winners.topMVP.uid) {
-          newTrophies.push({ name: "Season MVP", season: previousSeasonName, icon: "⭐", date: dateStr });
-        }
-        if (winners.topDefender && p.uid === winners.topDefender.uid) {
-          newTrophies.push({ name: "Golden Shield", season: previousSeasonName, icon: "🛡️", date: dateStr });
-        }
+        chunk.forEach(p => {
+          const docRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
+          
+          const newTrophies: any[] = [];
+          if (winners.ballonDor && p.uid === winners.ballonDor.uid) {
+            newTrophies.push({ name: "Ballon d'Or", season: previousSeasonName, icon: "👑", date: dateStr });
+          }
+          if (winners.topScorer && p.uid === winners.topScorer.uid) {
+            newTrophies.push({ name: "Golden Boot", season: previousSeasonName, icon: "⚽", date: dateStr });
+          }
+          if (winners.topAssister && p.uid === winners.topAssister.uid) {
+            newTrophies.push({ name: "Playmaker", season: previousSeasonName, icon: "🎯", date: dateStr });
+          }
+          if (winners.topMVP && p.uid === winners.topMVP.uid) {
+            newTrophies.push({ name: "Season MVP", season: previousSeasonName, icon: "⭐", date: dateStr });
+          }
+          if (winners.topDefender && p.uid === winners.topDefender.uid) {
+            newTrophies.push({ name: "Golden Shield", season: previousSeasonName, icon: "🛡️", date: dateStr });
+          }
 
-        if (newTrophies.length > 0) {
-          updates.trophies = arrayUnion(...newTrophies);
-          const globalDocRef = doc(db, 'players', p.uid);
-          batch.set(globalDocRef, { trophies: arrayUnion(...newTrophies) }, { merge: true });
-        }
+          const setPayload: any = {
+            stats: {
+              goals: 0,
+              assists: 0,
+              mvp: 0,
+              matchesPlayed: 0
+            }
+          };
 
-        batch.update(docRef, updates);
-      });
+          if (newTrophies.length > 0) {
+            setPayload.trophies = arrayUnion(...newTrophies);
+            const globalDocRef = doc(db, 'players', p.uid);
+            batch.set(globalDocRef, { trophies: arrayUnion(...newTrophies) }, { merge: true });
+          }
 
-      await batch.commit();
+          // Use set with merge: true to avoid errors if the community player document doesn't fully exist
+          batch.set(docRef, setPayload, { merge: true });
+        });
+
+        await batch.commit();
+      }
 
       // 3. Dispatch Multi-stage notifications right after successful batch commit
       if (sendWinnerNotifs) {
@@ -429,13 +441,31 @@ export default function SeasonCeremonyModal({
                 </div>
 
                 <div className="space-y-4">
-                  <label className="flex items-start gap-4 p-4 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={sendWinnerNotifs}
-                      onChange={e => setSendWinnerNotifs(e.target.checked)}
-                      className="mt-1 w-5 h-5 rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-900"
-                    />
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendWinnerNotifs ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
+                    <div className="relative mt-1 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all duration-300"
+                         style={{
+                           borderColor: sendWinnerNotifs ? '#f59e0b' : '#475569',
+                           backgroundColor: sendWinnerNotifs ? '#f59e0b' : 'transparent'
+                         }}>
+                      <input
+                        type="checkbox"
+                        checked={sendWinnerNotifs}
+                        onChange={e => setSendWinnerNotifs(e.target.checked)}
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                      />
+                      <AnimatePresence>
+                        {sendWinnerNotifs && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={3} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-2">
                         <span>{isAr ? "إشعارات التهنئة الفردية للأبطال الفائزين 🏆" : "Personal Winner Notifications 🏆"}</span>
@@ -448,13 +478,31 @@ export default function SeasonCeremonyModal({
                     </div>
                   </label>
 
-                  <label className="flex items-start gap-4 p-4 bg-slate-800/80 rounded-2xl border border-slate-700 cursor-pointer hover:border-amber-500/50 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={sendCommunityBroadcast}
-                      onChange={e => setSendCommunityBroadcast(e.target.checked)}
-                      className="mt-1 w-5 h-5 rounded border-slate-600 bg-slate-700 text-amber-500 focus:ring-amber-500 focus:ring-offset-slate-900"
-                    />
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendCommunityBroadcast ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
+                    <div className="relative mt-1 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all duration-300"
+                         style={{
+                           borderColor: sendCommunityBroadcast ? '#f59e0b' : '#475569',
+                           backgroundColor: sendCommunityBroadcast ? '#f59e0b' : 'transparent'
+                         }}>
+                      <input
+                        type="checkbox"
+                        checked={sendCommunityBroadcast}
+                        onChange={e => setSendCommunityBroadcast(e.target.checked)}
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                      />
+                      <AnimatePresence>
+                        {sendCommunityBroadcast && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
+                          >
+                            <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={3} />
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-2">
                         <span>{isAr ? "إعلان عام للمجتمع ببدء الموسم الجديد 📢" : "Community Announcement Broadcast 📢"}</span>
