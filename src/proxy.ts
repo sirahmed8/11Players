@@ -9,7 +9,7 @@ export const config = {
   ],
 };
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Skip API routes from maintenance redirect
   const pathname = request.nextUrl.pathname;
   if (pathname.startsWith("/api/") || pathname.startsWith("/maintenance")) {

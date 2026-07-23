@@ -1,6 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-pitch-light: #22c55e;
+  --color-pitch-dark: #15803d;
+  --color-pitch-deep: #14532d;
+  --color-pitch-boundary: #ffffff;
+  
+  --color-card-light: #ffffff;
+  --color-card-dark: #1e293b;
+  
+  --color-bg-light: #f8fafc;
+  --color-bg-dark: #0f172a;
+}
 
 :root {
   --background: #f8fafc;
