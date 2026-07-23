@@ -93,7 +93,6 @@ export default function ProtectedRoute({
 
   return (
     <>
-      <GlobalAnnouncementBanner />
       <AdviceNotification />
       {children}
     </>
