@@ -23,8 +23,9 @@ import ManageUserCommunitiesModal from '@/components/community/ManageUserCommuni
 import CustomSelect from '@/components/ui/CustomSelect';
 import PendingEdits from '@/components/admin/PendingEdits';
 import SkillsChecklist from '@/components/player/SkillsChecklist';
-import { Crown } from 'lucide-react';
+import { Crown, Sparkles } from 'lucide-react';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 interface AdminTableProps {
   players: PlayerProfile[];
@@ -127,6 +128,77 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     player: null,
   });
   const [loadingUid, setLoadingUid] = useState<string | null>(null);
+
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => Promise<void> | void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+
+  const handleApplyAIToAllPlayers = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: locale === 'ar' ? 'تطبيق اختيار الذكاء الاصطناعي الأفضل للجميع' : 'Apply AI Best Choice to All Players',
+      message: locale === 'ar'
+        ? `هل أنت متأكد من تحليل طاقات جميع اللاعبين (${players.length}) وتحديد وحفظ المركز الأساسي وأسلوب اللعب الأنسب لكل لاعب تلقائياً في قاعدة البيانات؟`
+        : `Are you sure you want to analyze all (${players.length}) players and save their AI-recommended primary position & play style directly to the database?`,
+      onConfirm: async () => {
+        try {
+          const { getTacticalSuggestions } = await import('@/lib/suggestionEngine');
+          let count = 0;
+
+          const batchSize = 350;
+          for (let i = 0; i < players.length; i += batchSize) {
+            const batch = writeBatch(db);
+            const chunk = players.slice(i, i + batchSize);
+
+            chunk.forEach((p) => {
+              const suggestions = getTacticalSuggestions(
+                p.attributes,
+                p.height || 175,
+                p.weight || 70,
+                p.preferredFoot || 'Right',
+                p.calculatedAge,
+                p.peerRatingAvg,
+                p.peerRatingCount
+              );
+
+              const topChoice = suggestions.positions[0];
+              if (topChoice) {
+                const bestPos = topChoice.position;
+                const bestStyle = topChoice.bestPlayStyle || p.playStyle || 'Box-to-Box';
+
+                const updates: any = {
+                  primaryPosition: bestPos,
+                  playStyle: bestStyle,
+                };
+
+                batch.update(doc(db, 'players', p.uid), updates);
+
+                if (activeCommunityId) {
+                  batch.update(doc(db, 'communities', activeCommunityId, 'players', p.uid), updates);
+                }
+                count++;
+              }
+            });
+
+            await batch.commit();
+          }
+
+          toast.success(
+            locale === 'ar'
+              ? `تم تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لـ ${count} لاعب بنجاح! ⚡`
+              : `Successfully applied AI best choices to ${count} players! ⚡`
+          );
+          onRefresh();
+        } catch (err) {
+          console.error('Failed to apply AI choices to all:', err);
+          toast.error(locale === 'ar' ? 'فشل تطبيق خيارات الذكاء الاصطناعي' : 'Failed to apply AI choices');
+        }
+      },
+    });
+  };
 
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [playerToDelete, setPlayerToDelete] = useState<PlayerProfile | null>(null);
@@ -585,6 +657,14 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   return (
     <>
       <div className="mb-4 flex flex-wrap justify-end gap-3">
+        <button
+          onClick={handleApplyAIToAllPlayers}
+          className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2 text-sm font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95"
+          title={t(locale, 'Apply AI best position & play style to all players', 'تطبيق أفضل مركز وأسلوب لعب من الذكاء الاصطناعي على جميع اللاعبين')}
+        >
+          <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+          <span>{t(locale, 'Apply AI Best to All Players', 'تطبيق اختيار الذكاء الاصطناعي للجميع')}</span>
+        </button>
         <button
           onClick={handleExportCSV}
           className="flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
@@ -1297,6 +1377,14 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
     </>
   );
 }

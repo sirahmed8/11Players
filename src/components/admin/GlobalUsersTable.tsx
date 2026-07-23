@@ -7,7 +7,7 @@ import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -167,6 +167,67 @@ export default function GlobalUsersTable() {
     });
   };
 
+  const handleApplyAIToAllGlobalUsers = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? "تطبيق اختيار الذكاء الاصطناعي الأفضل للجميع" : "Apply AI Best Choice to All Players",
+      message: isAr
+        ? `هل أنت متأكد من تحليل طاقات جميع المستخدمين (${users.length}) وتطبيق أفضل مركز وأسلوب لعب من الذكاء الاصطناعي وحفظها في قاعدة البيانات؟`
+        : `Are you sure you want to analyze all (${users.length}) users and save their AI-recommended primary position & play style directly to the database?`,
+      onConfirm: async () => {
+        try {
+          const { writeBatch, doc } = await import("firebase/firestore");
+          const { getTacticalSuggestions } = await import("@/lib/suggestionEngine");
+          let count = 0;
+
+          const batchSize = 350;
+          for (let i = 0; i < users.length; i += batchSize) {
+            const batch = writeBatch(db);
+            const chunk = users.slice(i, i + batchSize);
+
+            chunk.forEach((p) => {
+              const suggestions = getTacticalSuggestions(
+                p.attributes,
+                p.height || 175,
+                p.weight || 70,
+                p.preferredFoot || 'Right',
+                p.calculatedAge,
+                p.peerRatingAvg,
+                p.peerRatingCount
+              );
+
+              const topChoice = suggestions.positions[0];
+              if (topChoice) {
+                const bestPos = topChoice.position;
+                const bestStyle = topChoice.bestPlayStyle || p.playStyle || 'Box-to-Box';
+
+                const updates: any = {
+                  primaryPosition: bestPos,
+                  playStyle: bestStyle,
+                };
+
+                batch.update(doc(db, 'players', p.uid), updates);
+                count++;
+              }
+            });
+
+            await batch.commit();
+          }
+
+          toast.success(
+            isAr
+              ? `تم تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لـ ${count} لاعب بنجاح! ⚡`
+              : `Successfully applied AI best choices to ${count} players! ⚡`
+          );
+          fetchUsers();
+        } catch (err) {
+          console.error("Failed to apply AI choices to all users:", err);
+          toast.error(isAr ? "فشل تطبيق خيارات الذكاء الاصطناعي" : "Failed to apply AI choices");
+        }
+      }
+    });
+  };
+
   const handleSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -223,8 +284,15 @@ export default function GlobalUsersTable() {
           </span>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          {/* Mock player deletion removed per request */}
+        <div className="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
+          <button
+            onClick={handleApplyAIToAllGlobalUsers}
+            className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95 shrink-0"
+            title={isAr ? "تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لجميع اللاعبين" : "Apply AI best position & play style to all users"}
+          >
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+            <span>{isAr ? "تطبيق خيار الذكاء الاصطناعي للجميع" : "Apply AI Best to All"}</span>
+          </button>
           <div className="relative w-full sm:w-72">
             <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input 
