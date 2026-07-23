@@ -1,7 +1,7 @@
-import PlayerStylePicker from '@/components/PlayerStylePicker';
-import AttributeSliders from '@/components/AttributeSliders';
-import SkillsChecklist from '@/components/SkillsChecklist';
-import TacticalSuggestionsCard from '@/components/TacticalSuggestionsCard';
+import PlayerStylePicker from '@/components/player/PlayerStylePicker';
+import AttributeSliders from '@/components/player/AttributeSliders';
+import SkillsChecklist from '@/components/player/SkillsChecklist';
+import TacticalSuggestionsCard from '@/components/match/TacticalSuggestionsCard';
 import { WizardState } from './types';
 
 export default function Step3Attributes({

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import GlobalUsersTable from "@/components/GlobalUsersTable";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import GlobalUsersTable from "@/components/admin/GlobalUsersTable";
 
 export default function UsersPage() {
   return (

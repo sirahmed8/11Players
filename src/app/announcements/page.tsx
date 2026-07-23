@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, setDoc, doc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { Bell, Send, Trash2, AlertTriangle, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2 } from "lucide-react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import CustomDropdown from "@/components/CustomDropdown";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export interface Announcement {
   id: string;

@@ -3,15 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { collection, getDocs, getCountFromServer, onSnapshot, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import CommunityChallengeModal, { CommunityChallenge } from "@/components/CommunityChallengeModal";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import CommunityChallengeModal, { CommunityChallenge } from "@/components/community/CommunityChallengeModal";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
 
 export default function CommunitiesPage() {
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
@@ -23,7 +24,6 @@ export default function CommunitiesPage() {
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [passwordInput, setPasswordInput] = useState<{ [key: string]: string }>({});
-  const [userProfile, setUserProfile] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   // Challenge modal state
@@ -76,25 +76,8 @@ export default function CommunitiesPage() {
         setCommunities(data);
 
         if (user) {
-          const { doc, onSnapshot, collection, query, where, getDocs, setDoc } = await import("firebase/firestore");
-          const unsub = onSnapshot(doc(db, "players", user.uid), async (userDoc) => {
-            if (userDoc.exists()) {
-              setUserProfile(userDoc.data());
-            } else if (user.email) {
-              try {
-                const q = query(collection(db, "players"), where("email", "==", user.email));
-                const querySnap = await getDocs(q);
-                if (!querySnap.empty) {
-                  const existingData = querySnap.docs[0].data();
-                  await setDoc(doc(db, "players", user.uid), { ...existingData, uid: user.uid }, { merge: true });
-                  setUserProfile(existingData);
-                }
-              } catch (e) {
-                console.error("Profile sync by email in communities error:", e);
-              }
-            }
-          });
-          return () => unsub();
+          // Profile syncing logic now moved to useAuthProfile hook
+          // but we still need to wait for communities to load.
         }
       } catch (err) {
         console.error("Failed to fetch data", err);
@@ -104,6 +87,8 @@ export default function CommunitiesPage() {
     };
     fetchData();
   }, [user]);
+
+  const { userProfile, setUserProfile } = useAuthProfile(user);
 
   const handleJoin = async (community: Community) => {
     if (!user) {

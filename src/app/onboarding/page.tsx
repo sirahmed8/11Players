@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import OnboardingWizard from "@/components/OnboardingWizard";
-import { useLocale, useTheme } from "@/components/ThemeProvider";
-import SettingsMenu from "@/components/SettingsMenu";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import OnboardingWizard from "@/components/onboarding/OnboardingWizard";
+import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
+import SettingsMenu from "@/components/layout/SettingsMenu";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function OnboardingPage() {

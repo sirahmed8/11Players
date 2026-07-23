@@ -3,8 +3,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useLocale, useTheme } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, setDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { SupportThread, ChatMessage } from "@/types";
@@ -12,7 +12,7 @@ import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, HeadphonesIcon, Sparkl
 import { motion, AnimatePresence } from "framer-motion";
 import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import toast from "react-hot-toast";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
 export default function SupportPage() {

@@ -3,13 +3,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { useLocale, useTheme } from "@/components/ThemeProvider";
+import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Users, TrendingUp, ShieldCheck, Loader2, LogIn, BellRing, Sparkles, Smartphone } from "lucide-react";
-import SettingsMenu from "@/components/SettingsMenu";
+import SettingsMenu from "@/components/layout/SettingsMenu";
 
 export default function Home() {
   const { locale, toggleLocale, t } = useLocale();

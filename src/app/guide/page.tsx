@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, Target, Shuffle, Star, Rocket, Globe, Scale, CheckCircle2, BarChart3, Trophy } from "lucide-react";
-import { PLAYER_STYLES } from "@/components/PlayerStylePicker";
-import { SKILLS } from "@/components/SkillsChecklist";
+import { PLAYER_STYLES } from "@/components/player/PlayerStylePicker";
+import { SKILLS } from "@/components/player/SkillsChecklist";
 
 type Tab = 'overview' | 'positions' | 'playstyles' | 'skills' | 'features' | 'rules';
 

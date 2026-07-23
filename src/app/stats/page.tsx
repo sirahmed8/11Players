@@ -4,16 +4,16 @@ import React from "react";
 import Image from "next/image";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useAuth } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { PlayerProfile } from "@/types";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { User } from "lucide-react";
 import Link from "next/link";
 import { toast } from "react-hot-toast";
 
 import { getPlayerOverall } from "@/lib/playerUtils";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import FormIcon from "@/components/FormIcon";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import FormIcon from "@/components/ui/FormIcon";
 import { RefreshCw, Trophy, Target, Zap, Award, Medal, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 

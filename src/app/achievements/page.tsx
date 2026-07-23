@@ -2,13 +2,13 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import { doc, onSnapshot, getDoc } from "firebase/firestore";
 import { getPlayerAchievements } from "@/lib/achievements";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import Link from "next/link";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";

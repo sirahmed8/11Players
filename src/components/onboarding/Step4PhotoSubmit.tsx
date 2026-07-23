@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion';
-import BackgroundRemover from '@/components/BackgroundRemover';
-import PlayerCard from '@/components/PlayerCard';
+import dynamic from 'next/dynamic';
+
+const BackgroundRemover = dynamic(() => import('@/components/player/BackgroundRemover'), { ssr: false, loading: () => <p>Loading...</p> });
+import PlayerCard from '@/components/player/PlayerCard';
 import { WizardState } from './types';
 import { PlayerProfile } from '@/types';
 

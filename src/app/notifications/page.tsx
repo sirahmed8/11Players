@@ -2,38 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, query, orderBy, onSnapshot, writeBatch, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, CheckCircle2, Info, Loader2, Trophy, ArrowRight, ChevronDown, Trash2 } from "lucide-react";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { Bell, CheckCircle2, Info, Trophy, ChevronDown, Trash2, ArrowRight } from "lucide-react";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import ConfirmModal from "@/components/ConfirmModal";
-
-type NotificationType = "system" | "match" | "hint" | "advices" | "admin" | "owner" | "updates" | "stats" | "trophies";
-
-interface UserNotification {
-  id: string;
-  title: string;
-  titleAr?: string;
-  titleEn?: string;
-  body: string;
-  bodyAr?: string;
-  bodyEn?: string;
-  read: boolean;
-  createdAt: any;
-  type: NotificationType;
-  link?: string;
-}
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+import { useNotifications, NotificationType, UserNotification } from "@/hooks/useNotifications";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
-  const [notifications, setNotifications] = useState<UserNotification[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { notifications, setNotifications, loading } = useNotifications(user);
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [typeFilter, setTypeFilter] = useState<NotificationType | "all">("all");
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
@@ -42,29 +26,7 @@ export default function NotificationsPage() {
   
   const isAr = locale === "ar";
 
-  useEffect(() => {
-    if (!user) return;
 
-    const q = query(
-      collection(db, "users", user.uid, "notifications"),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      let notifs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as UserNotification));
-      try {
-        const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
-        notifs = notifs.filter(n => !deletedIds.includes(n.id));
-      } catch (e) {}
-      setNotifications(notifs);
-      setLoading(false);
-    }, (error) => {
-      console.error("Error loading notifications:", error);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [user]);
 
   const markAsRead = async (id: string) => {
     if (!user) return;

@@ -1,16 +1,16 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { ThemeProvider, LocaleProvider } from "@/components/ThemeProvider";
+import { ThemeProvider, LocaleProvider } from "@/components/ui/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayersProvider } from "@/contexts/PlayersContext";
 import { CommunityProvider } from "@/contexts/CommunityContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
-import Footer from "@/components/Footer";
-import Sidebar from "@/components/Sidebar";
-import InstallPWA from "@/components/InstallPWA";
-import RouteGuard from "@/components/RouteGuard";
-import UpdateNotification from "@/components/UpdateNotification";
-import SiteRatingModal from "@/components/SiteRatingModal";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import Footer from "@/components/layout/Footer";
+import Sidebar from "@/components/layout/Sidebar";
+import InstallPWA from "@/components/layout/InstallPWA";
+import RouteGuard from "@/components/auth/RouteGuard";
+import UpdateNotification from "@/components/layout/UpdateNotification";
+import SiteRatingModal from "@/components/ui/SiteRatingModal";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/next";
 

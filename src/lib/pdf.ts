@@ -1,8 +1,7 @@
 import { PlayerProfile } from "@/types";
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import PDFPlayerCard from '@/components/PDFPlayerCard';
-import PDFBulkTable from '@/components/PDFBulkTable';
+import PDFBulkTable from '@/components/player/PDFBulkTable';
 import { getPlayerOverall } from '@/lib/playerUtils';
 
 export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 'ar' = 'en'): Promise<void> {
@@ -22,6 +21,7 @@ export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 
     document.body.appendChild(container);
 
     // Render the React component
+    const { default: PDFPlayerCard } = await import('@/components/player/PDFPlayerCard');
     const root = createRoot(container);
     root.render(React.createElement(PDFPlayerCard, { player: profile, locale }));
 

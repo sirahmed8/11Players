@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import SVGPitchPicker from '@/components/SVGPitchPicker';
+import SVGPitchPicker from '@/components/match/SVGPitchPicker';
 import { WizardState } from './types';
 import { PESPosition } from '@/types';
 

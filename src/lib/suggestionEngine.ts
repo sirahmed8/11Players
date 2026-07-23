@@ -1,5 +1,5 @@
 import { PESPosition, PlayerAttributes } from '@/types';
-import { PLAYER_STYLES } from '@/components/PlayerStylePicker';
+import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 
 export interface PositionSuggestion {

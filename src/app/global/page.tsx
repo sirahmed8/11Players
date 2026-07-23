@@ -1,16 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
-import PlayerCardCompact from "@/components/PlayerCardCompact";
+import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { useAuth } from "@/contexts/AuthContext";
 
 import { ChevronDown, Loader2 } from "lucide-react";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function GlobalLeaderboardPage() {

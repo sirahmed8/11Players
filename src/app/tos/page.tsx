@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useLocale } from "@/components/ThemeProvider";
+import { useLocale } from "@/components/ui/ThemeProvider";
 
 export default function TosPage() {
   const { locale } = useLocale();

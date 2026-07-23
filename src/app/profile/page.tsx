@@ -5,24 +5,25 @@ import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, getDoc, 
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
-import { useLocale } from "@/components/ThemeProvider";
-import PlayerCard from "@/components/PlayerCard";
-import FormIcon from "@/components/FormIcon";
+import { useLocale } from "@/components/ui/ThemeProvider";
+import PlayerCard from "@/components/player/PlayerCard";
+import FormIcon from "@/components/ui/FormIcon";
 import { PlayerProfile } from "@/types";
 import { generateProfilePDF } from "@/lib/pdf";
-import EditProfileModal from "@/components/EditProfileModal";
-import SVGPitchDisplay from "@/components/SVGPitchDisplay";
+import EditProfileModal from "@/components/player/EditProfileModal";
+import SVGPitchDisplay from "@/components/match/SVGPitchDisplay";
 import { getPlayerPositionRatings } from "@/lib/overallCalculator";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { SKILLS } from "@/components/SkillsChecklist";
+import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles } from "lucide-react";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import OvrExplanationModal from "@/components/OvrExplanationModal";
-import SuggestPeerRatingModal from "@/components/SuggestPeerRatingModal";
-import PlayerComparisonModal from "@/components/PlayerComparisonModal";
-import TacticalSuggestionsCard from "@/components/TacticalSuggestionsCard";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import OvrExplanationModal from "@/components/player/OvrExplanationModal";
+import SuggestPeerRatingModal from "@/components/player/SuggestPeerRatingModal";
+import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
+import TacticalSuggestionsCard from "@/components/match/TacticalSuggestionsCard";
+import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -81,7 +82,7 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-import ProtectedRoute from "@/components/ProtectedRoute";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
 export default function PlayerProfilePage() {
   return (
@@ -93,8 +94,11 @@ export default function PlayerProfilePage() {
   );
 }
 
+import { useCommunity } from "@/contexts/CommunityContext";
+
 function PlayerProfileContent() {
   const router = useRouter();
+  const { activeCommunityId } = useCommunity();
   const searchParams = useSearchParams();
   const rawUid = searchParams.get("uid");
   const uid = (rawUid && rawUid !== "undefined" && rawUid !== "null") ? rawUid : null;
@@ -107,80 +111,16 @@ function PlayerProfileContent() {
   const isViewingOwnProfile = Boolean(user?.uid && effectiveUid && user.uid === effectiveUid);
 
   const { players } = usePlayers();
-  const [player, setPlayer] = useState<PlayerProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isOvrInfoOpen, setIsOvrInfoOpen] = useState(false);
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
+  const { player, setPlayer, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid);
+
   useEffect(() => {
-    if (!effectiveUid) {
-      if (!authLoading) setLoading(false);
-      return;
-    }
-
-    if (!player) {
-      setLoading(true);
-    }
-    
-    const unsub = onSnapshot(
-      doc(db, "players", effectiveUid),
-      async (snap) => {
-        if (snap.exists()) {
-          const d = snap.data();
-          setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
-          setLoading(false);
-        } else {
-          // Check if player exists in active community before giving up
-          const activeCommId = typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null;
-          if (activeCommId) {
-            try {
-              const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
-              if (commSnap.exists()) {
-                const cd = commSnap.data();
-                setPlayer({ uid: commSnap.id, ...cd, attributes: cd.attributes || {}, stats: cd.stats || {} } as PlayerProfile);
-                setLoading(false);
-                return;
-              }
-            } catch (e) {
-              console.error("Fallback community profile lookup failed:", e);
-            }
-          }
-
-          if (user?.email && isViewingOwnProfile) {
-            try {
-              const q = query(collection(db, "players"), where("email", "==", user.email));
-              const querySnap = await getDocs(q);
-              if (!querySnap.empty) {
-                const existingData = querySnap.docs[0].data();
-                await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
-                setPlayer({ uid: effectiveUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
-                setLoading(false);
-                return;
-              }
-            } catch (e) {
-              console.error("Profile sync by email error:", e);
-            }
-          }
-
-          setPlayer(null);
-          setLoading(false);
-          // Only redirect to onboarding if the user navigated to their OWN profile directly without param
-          if (isViewingOwnProfile && !rawUid) {
-            router.push("/onboarding");
-          }
-        }
-      },
-      (err) => {
-        console.error("Profile onSnapshot error:", err);
-        setLoading(false);
-      }
-    );
-
-    return () => unsub();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveUid, authLoading, user?.uid, router]);
+    if (!effectiveUid && !authLoading) setLoading(false);
+  }, [effectiveUid, authLoading, setLoading]);
 
   const canExport = user?.uid === effectiveUid || isAdmin;
 

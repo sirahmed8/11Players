@@ -1,167 +1,14 @@
 import { PESPosition, PlayerAttributes } from '@/types';
-
-type Weights = Record<keyof PlayerAttributes, number>;
-
-// ─── POSITION WEIGHTS ────────────────────────────────────────────────────────
-// All weights per position sum to exactly 1.0
-const POSITION_WEIGHTS: Record<PESPosition, Weights> = {
-  CF: {
-    offensiveAwareness: 0.18, finishing: 0.18, kickingPower: 0.09, speed: 0.09,
-    acceleration: 0.07, heading: 0.07, physicalContact: 0.06, ballControl: 0.06,
-    dribbling: 0.05, jump: 0.05, balance: 0.04, stamina: 0.04,
-    lowPass: 0.01, loftedPass: 0.01,
-    defensiveAwareness: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  SS: {
-    offensiveAwareness: 0.14, ballControl: 0.14, dribbling: 0.13, finishing: 0.10,
-    lowPass: 0.09, speed: 0.09, acceleration: 0.08, kickingPower: 0.06,
-    balance: 0.05, stamina: 0.05, loftedPass: 0.04, heading: 0.03,
-    jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  RWF: {
-    speed: 0.19, acceleration: 0.15, dribbling: 0.14, ballControl: 0.10,
-    offensiveAwareness: 0.09, lowPass: 0.07, finishing: 0.07, loftedPass: 0.06,
-    kickingPower: 0.05, balance: 0.05, stamina: 0.03,
-    heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  LWF: {
-    speed: 0.19, acceleration: 0.15, dribbling: 0.14, ballControl: 0.10,
-    offensiveAwareness: 0.09, lowPass: 0.07, finishing: 0.07, loftedPass: 0.06,
-    kickingPower: 0.05, balance: 0.05, stamina: 0.03,
-    heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  AMF: {
-    lowPass: 0.18, ballControl: 0.15, dribbling: 0.13, offensiveAwareness: 0.11,
-    loftedPass: 0.10, kickingPower: 0.07, finishing: 0.06, speed: 0.06,
-    acceleration: 0.05, balance: 0.05, stamina: 0.04,
-    heading: 0, jump: 0, physicalContact: 0, defensiveAwareness: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  CMF: {
-    lowPass: 0.18, loftedPass: 0.13, stamina: 0.13, ballControl: 0.11,
-    dribbling: 0.09, defensiveAwareness: 0.08, ballWinning: 0.07,
-    physicalContact: 0.06, speed: 0.05, acceleration: 0.05, balance: 0.05,
-    offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0,
-    jump: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  RMF: {
-    speed: 0.16, stamina: 0.14, loftedPass: 0.13, lowPass: 0.11,
-    dribbling: 0.10, ballControl: 0.10, acceleration: 0.09,
-    offensiveAwareness: 0.06, balance: 0.05, defensiveAwareness: 0.06,
-    finishing: 0, heading: 0, kickingPower: 0, jump: 0, physicalContact: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  LMF: {
-    speed: 0.16, stamina: 0.14, loftedPass: 0.13, lowPass: 0.11,
-    dribbling: 0.10, ballControl: 0.10, acceleration: 0.09,
-    offensiveAwareness: 0.06, balance: 0.05, defensiveAwareness: 0.06,
-    finishing: 0, heading: 0, kickingPower: 0, jump: 0, physicalContact: 0, ballWinning: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  DMF: {
-    defensiveAwareness: 0.21, ballWinning: 0.16, stamina: 0.14, physicalContact: 0.11,
-    lowPass: 0.09, loftedPass: 0.08, jump: 0.06, heading: 0.06,
-    speed: 0.05, aggression: 0.04,
-    ballControl: 0, dribbling: 0, offensiveAwareness: 0, finishing: 0,
-    acceleration: 0, kickingPower: 0, balance: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  CB: {
-    defensiveAwareness: 0.24, ballWinning: 0.19, physicalContact: 0.15,
-    heading: 0.12, jump: 0.10, stamina: 0.06, speed: 0.06,
-    aggression: 0.04, lowPass: 0.04,
-    loftedPass: 0, offensiveAwareness: 0, ballControl: 0, dribbling: 0,
-    finishing: 0, acceleration: 0, kickingPower: 0, balance: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  LB: {
-    speed: 0.16, stamina: 0.14, defensiveAwareness: 0.14, acceleration: 0.10,
-    ballWinning: 0.09, loftedPass: 0.10, lowPass: 0.09,
-    dribbling: 0.06, ballControl: 0.06, physicalContact: 0.06,
-    offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0,
-    jump: 0, balance: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  RB: {
-    speed: 0.16, stamina: 0.14, defensiveAwareness: 0.14, acceleration: 0.10,
-    ballWinning: 0.09, loftedPass: 0.10, lowPass: 0.09,
-    dribbling: 0.06, ballControl: 0.06, physicalContact: 0.06,
-    offensiveAwareness: 0, finishing: 0, heading: 0, kickingPower: 0,
-    jump: 0, balance: 0, aggression: 0,
-    gkAwareness: 0, gkCatching: 0, gkClearing: 0, gkReflexes: 0, gkReach: 0,
-  },
-  GK: {
-    gkAwareness: 0.22, gkReflexes: 0.20, gkCatching: 0.16, gkClearing: 0.14,
-    gkReach: 0.12, jump: 0.06, physicalContact: 0.05, defensiveAwareness: 0.05,
-    offensiveAwareness: 0, ballControl: 0, dribbling: 0, lowPass: 0,
-    finishing: 0, heading: 0, speed: 0, acceleration: 0, kickingPower: 0,
-    balance: 0, stamina: 0, ballWinning: 0, aggression: 0, loftedPass: 0,
-  },
-};
+import { POSITION_WEIGHTS, SKILL_POSITION_RELEVANCE } from './pesConstants';
 
 // ─── DIMINISHING RETURNS CURVE ───────────────────────────────────────────────
 // Attributes > 85 yield compressed returns (like real football games)
-// Attributes < 45 have a soft floor to prevent complete zeroing
-function applyAttributeCurve(rawValue: number): number {
-  const clamped = Math.max(1, Math.min(99, rawValue));
-  if (clamped < 45) {
-    // Soft floor: scale up slightly so very low attrs don't completely tank OVR
-    return 45 - (45 - clamped) * 0.7;
-  }
-  if (clamped <= 85) {
-    return clamped;
-  }
-  // Diminishing returns above 85: each point above 85 is worth only 0.55 OVR points
+function applyAttributeCurve(val: number): number {
+  if (val <= 60) return val;
+  const clamped = Math.min(val, 99);
+  if (clamped <= 85) return 60 + (clamped - 60) * 1.0;
   return 85 + (clamped - 85) * 0.55;
 }
-
-// ─── SPECIAL SKILLS RELEVANCE MAP ────────────────────────────────────────────
-const SKILL_POSITION_RELEVANCE: Record<string, PESPosition[]> = {
-  'Low Punt': ['GK'],
-  'Long Throw': ['GK'],
-  'GK Long Throw': ['GK'],
-  'Penalty Specialist': ['CF', 'SS', 'AMF'],
-  'Scissor Feint': ['LWF', 'RWF', 'SS', 'CF'],
-  'Flip Flap': ['LWF', 'RWF', 'SS', 'AMF'],
-  'Marseille Turn': ['LWF', 'RWF', 'SS', 'AMF', 'CMF'],
-  'Sombrero': ['LWF', 'RWF', 'SS'],
-  'Cross Over Turn': ['LWF', 'RWF'],
-  'Cur Step': ['LWF', 'RWF', 'SS'],
-  'Double Touch': ['SS', 'CF', 'AMF'],
-  'Feint Feint': ['AMF', 'CMF', 'SS'],
-  'Knuckle Shot': ['CF', 'AMF', 'SS'],
-  'Rabona': ['LWF', 'RWF'],
-  'No Look Pass': ['AMF', 'CMF', 'SS'],
-  'Pinpoint Crossing': ['LWF', 'RWF', 'LMF', 'RMF', 'LB', 'RB'],
-  'Long Range Drive': ['CMF', 'AMF', 'CF'],
-  'Chip Shot Control': ['CF', 'SS', 'AMF'],
-  'Heading': ['CF', 'CB', 'DMF'],
-  'Loop': ['CF', 'SS'],
-  'First Time Shot': ['CF', 'SS', 'RWF', 'LWF'],
-  'Outside Curler': ['CF', 'LWF', 'RWF', 'CMF'],
-  'Acrobatic Finishing': ['CF', 'SS'],
-  'Heel Trick': ['CF', 'SS', 'AMF'],
-  'First Time Pass': ['CMF', 'AMF', 'DMF', 'LMF', 'RMF'],
-  'Through Passing': ['AMF', 'CMF'],
-  'Weighted Pass': ['CMF', 'AMF', 'DMF'],
-  'One Touch Pass': ['CMF', 'AMF'],
-  'Outside Receiver': ['LWF', 'RWF'],
-  'Long Ball Expert': ['CB', 'DMF', 'LB', 'RB'],
-  'GK Distribution': ['GK'],
-  'Man Marking': ['CB', 'DMF', 'LB', 'RB'],
-  'Interception': ['DMF', 'CB', 'CMF'],
-  'Covering': ['CB', 'DMF', 'LB', 'RB'],
-  'Track Back': ['LMF', 'RMF', 'CMF'],
-  'Aerial Superiority': ['CB', 'CF', 'GK'],
-  'Blocker': ['CB', 'DMF'],
-  'Fighting Spirit': ['CF', 'CMF', 'DMF'],
-  'Acrobatic Clear': ['GK', 'CB'],
-};
 
 function getSpecialSkillsBonus(specialSkills: string[] | undefined, position: PESPosition): number {
   if (!specialSkills || specialSkills.length === 0) return 0;
@@ -319,8 +166,6 @@ export function calculateRealisticOverall(
       if (['LWF'].includes(position)) finalOverall += 1; // inverted winger
     }
   }
-
-
 
   // ── Community Peer Rating Modifier ────────────────────────────────────────
   // Requires 5+ ratings for stability (was 3); range ±3 (was ±2)

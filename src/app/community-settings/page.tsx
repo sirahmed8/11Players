@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useLocale } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Loader2, Save, Settings2 } from "lucide-react";

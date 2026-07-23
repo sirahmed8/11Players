@@ -4,16 +4,16 @@ import React, { useState, useMemo, useEffect } from "react";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useLocale } from "@/components/ThemeProvider";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import SeasonCeremonyModal from "@/components/SeasonCeremonyModal";
+import { useLocale } from "@/components/ui/ThemeProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import SeasonCeremonyModal from "@/components/match/SeasonCeremonyModal";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { Trophy, Crown, Sparkles, Award, Medal, Shield, Star, Calendar, ArrowRight, History } from "lucide-react";
 import { motion } from "framer-motion";
 import { collection, getDocs, query, orderBy, deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import Image from "next/image";
 
 interface SeasonHistoryDoc {

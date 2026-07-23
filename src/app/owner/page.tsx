@@ -2,16 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import { useLocale } from "@/components/ThemeProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useLocale } from "@/components/ui/ThemeProvider";
 import { collection, getDocs, doc, setDoc, getDoc, updateDoc, deleteDoc, writeBatch, arrayUnion, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import GlobalUsersTable from "@/components/GlobalUsersTable";
+import GlobalUsersTable from "@/components/admin/GlobalUsersTable";
 import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
-import ConfirmModal from "@/components/ConfirmModal";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 
 function OwnerCommunitiesSkeleton() {
   return (

@@ -4,26 +4,28 @@ import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { doc, onSnapshot, collection, updateDoc, arrayUnion, arrayRemove, deleteDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useLocale } from "@/components/ThemeProvider";
-import ProtectedRoute from "@/components/ProtectedRoute";
-import PlayerCard from "@/components/PlayerCard";
+import { useLocale } from "@/components/ui/ThemeProvider";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import PlayerCard from "@/components/player/PlayerCard";
 import { PlayerProfile } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
-import MatchPitchDisplay from "@/components/MatchPitchDisplay";
-import PlayerCardCompact from "@/components/PlayerCardCompact";
+import MatchPitchDisplay from "@/components/match/MatchPitchDisplay";
+import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { usePlayers } from "@/contexts/PlayersContext";
+import { useMatchData } from "@/hooks/useMatchData";
+
 import { useRouter, useSearchParams } from "next/navigation";
-import RecordStatsModal from "@/components/RecordStatsModal";
-import PlayerRatingModal from "@/components/PlayerRatingModal";
-import EditMatchModal from "@/components/EditMatchModal";
-import SiteSkeletonLoader from "@/components/SiteSkeletonLoader";
-import TurfMatchDisplay from "@/components/TurfMatchDisplay";
-import LiveMatchController from "@/components/LiveMatchController";
-import MatchConfigModal, { MatchConfig } from "@/components/MatchConfigModal";
-import { generateTurfMatch } from "@/lib/turfMatchmaker";
-import { balanceTeams } from "@/lib/matchmaker";
+import RecordStatsModal from "@/components/match/RecordStatsModal";
+import PlayerRatingModal from "@/components/player/PlayerRatingModal";
+import EditMatchModal from "@/components/match/EditMatchModal";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import TurfMatchDisplay from "@/components/match/TurfMatchDisplay";
+import LiveMatchController from "@/components/match/LiveMatchController";
+import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
+import { generateTurfMatch } from "@/lib/engine";
+import { balanceTeams } from "@/lib/engine";
 import toast from "react-hot-toast";
 
 export default function MatchPage() {
@@ -36,9 +38,8 @@ export default function MatchPage() {
   const { activeCommunityId } = useCommunity();
   const { players } = usePlayers();
   
-  const [matchData, setMatchData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const { matchData, loading, error, historyMatches, historyLoading } = useMatchData(activeCommunityId);
+
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerProfile | null>(null);
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -51,50 +52,7 @@ export default function MatchPage() {
   const [activeTab, setActiveTab] = useState<'current' | 'history'>(() => {
     return searchParams.get('tab') === 'history' ? 'history' : 'current';
   });
-  const [historyMatches, setHistoryMatches] = useState<any[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedHistoryMatch, setSelectedHistoryMatch] = useState<any>(null);
-
-  useEffect(() => {
-    if (!activeCommunityId) return;
-    const unsub = onSnapshot(doc(db, "communities", activeCommunityId, "matches", "latest"), (docSnap) => {
-      if (docSnap.exists()) {
-        setMatchData(docSnap.data());
-      } else {
-        setMatchData(null);
-      }
-      setLoading(false);
-    }, (err) => {
-      console.error(err);
-      setError(isAr ? "فشل في جلب تفاصيل المباراة." : "Failed to load match details.");
-      setLoading(false);
-    });
-
-    setHistoryLoading(true);
-    const unsubHistory = onSnapshot(collection(db, "communities", activeCommunityId, "matches"), (snapshot) => {
-      const list: any[] = [];
-      snapshot.forEach((docSnap) => {
-        if (docSnap.id !== "latest") {
-          list.push({ id: docSnap.id, ...docSnap.data() });
-        }
-      });
-      list.sort((a, b) => {
-        const timeA = a.finishedAt || a.generatedAt || "";
-        const timeB = b.finishedAt || b.generatedAt || "";
-        return timeB.localeCompare(timeA);
-      });
-      setHistoryMatches(list);
-      setHistoryLoading(false);
-    }, (err) => {
-      console.error("Failed to load match history:", err);
-      setHistoryLoading(false);
-    });
-
-    return () => {
-      unsub();
-      unsubHistory();
-    };
-  }, [isAr, activeCommunityId]);
 
   const handleToggleSignInToBooking = async () => {
     if (!activeCommunityId || !user || !matchData || isSubmittingBooking) return;
@@ -382,10 +340,8 @@ export default function MatchPage() {
       }
 
       // Optimistic instant UI update (+1 or -1 immediately)
-      if (activeTab === "history") {
+      if (currentMatch.id !== "latest") {
         setSelectedHistoryMatch((prev: any) => prev ? { ...prev, captainVotes: currentVotes } : prev);
-      } else {
-        setMatchData((prev: any) => prev ? { ...prev, captainVotes: currentVotes } : prev);
       }
 
       const matchRef = doc(db, "communities", activeCommunityId, "matches", currentMatch.id);
@@ -965,6 +921,7 @@ export default function MatchPage() {
                 if (!motm) return null;
                 return (
                   <motion.div
+                    id="motm-banner-export"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     className="bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 rounded-3xl p-6 md:p-8 text-slate-950 shadow-2xl border-2 border-yellow-200 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden"
@@ -974,7 +931,7 @@ export default function MatchPage() {
                       <div className="relative">
                         <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-slate-900 border-2 border-amber-300 shadow-xl overflow-hidden flex items-center justify-center shrink-0 text-3xl font-black text-amber-400">
                           {motm.photoUrl ? (
-                            <img src={motm.photoUrl} alt={motm.name} className="w-full h-full object-cover" />
+                            <Image src={motm.photoUrl} alt={motm.name} className="w-full h-full object-cover" width={96} height={96} />
                           ) : (
                             motm.name?.slice(0, 2).toUpperCase() || '🌟'
                           )}
@@ -1019,6 +976,43 @@ export default function MatchPage() {
                         </>
                       )}
                     </div>
+                    
+                    {/* Export MVP Graphic Button */}
+                    <button
+                      onClick={async () => {
+                        try {
+                          const html2canvas = (await import('html2canvas')).default;
+                          const el = document.getElementById('motm-banner-export');
+                          if (!el) return;
+                          
+                          // Temporarily hide the export button itself during capture
+                          const btn = el.querySelector('#motm-export-btn') as HTMLElement;
+                          if (btn) btn.style.display = 'none';
+                          
+                          const canvas = await html2canvas(el, {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: null
+                          });
+                          
+                          if (btn) btn.style.display = '';
+                          
+                          const link = document.createElement('a');
+                          link.download = `${motm.name.replace(/\s+/g, '_')}_MOTM.png`;
+                          link.href = canvas.toDataURL('image/png');
+                          link.click();
+                        } catch (err) {
+                          console.error('Failed to export MOTM graphic', err);
+                        }
+                      }}
+                      id="motm-export-btn"
+                      className="absolute top-4 left-4 p-2 bg-black/20 hover:bg-black/30 rounded-full text-white transition-colors z-20"
+                      title={isAr ? "تصدير صورة النجم" : "Export MOTM Graphic"}
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                    </button>
                   </motion.div>
                 );
               })()}
