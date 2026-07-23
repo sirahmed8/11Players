@@ -9,8 +9,7 @@ import FormIcon from '@/components/ui/FormIcon';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import { useLocale } from '@/components/ui/ThemeProvider';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
-import OvrExplanationModal from '@/components/player/OvrExplanationModal';
-import { HelpCircle } from 'lucide-react';
+
 
 export interface PlayerCardProps {
   player: PlayerProfile;
@@ -54,7 +53,7 @@ const PlayerCard = React.memo(function PlayerCard({
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = getPlayerOverall(player);
   const [imgError, setImgError] = useState(false);
-  const [showOvrModal, setShowOvrModal] = useState(false);
+
   const displayPhoto = player.photoUrl || (player as any).photoURL || player.googlePic || (player as any).userPic || '';
 
   const formatPlayStyle = (val?: string) => {
@@ -265,21 +264,8 @@ const PlayerCard = React.memo(function PlayerCard({
           </div>
 
           {/* Overall Number */}
-          <div className="mt-1 flex items-center gap-1">
-            <div className="text-4xl font-extrabold text-white drop-shadow-md leading-none">
-              {overall}
-            </div>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                setShowOvrModal(true);
-              }}
-              className="p-1 text-amber-200/50 hover:text-amber-200 transition-colors cursor-pointer"
-              title={isAr ? "طريقة حساب التقييم" : "How is OVR calculated?"}
-            >
-              <HelpCircle className="w-4 h-4" />
-            </button>
+          <div className="mt-1 text-4xl font-extrabold text-white drop-shadow-md leading-none">
+            {overall}
           </div>
 
           {/* Peer Rating Badge */}
@@ -426,7 +412,6 @@ const PlayerCard = React.memo(function PlayerCard({
             )}
           </div>
         )}
-        <OvrExplanationModal isOpen={showOvrModal} onClose={() => setShowOvrModal(false)} player={player} isOwnProfile={currentUserId === player.uid} />
       </motion.div>
     </CardWrapper>
   );
