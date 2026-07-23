@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Users, TrendingUp, ShieldCheck, Loader2, LogIn, BellRing, Sparkles, Smartphone } from "lucide-react";
+import { Users, TrendingUp, ShieldCheck, Loader2, LogIn, BellRing, Sparkles, Smartphone, Trophy, Medal, Star, MessageSquare, Repeat, Goal, Languages, Timer } from "lucide-react";
 import SettingsMenu from "@/components/layout/SettingsMenu";
 
 export default function Home() {
@@ -98,33 +98,63 @@ export default function Home() {
   const features = [
     {
       icon: <Users className="w-8 h-8 text-emerald-500" />,
-      title: isAr ? "تنظيم اللاعبين" : "Player Management",
-      desc: isAr ? "إدارة مجتمع اللاعبين بسهولة، وإنشاء بطاقات احترافية لكل لاعب تحتوي على مهاراته وإحصائياته." : "Easily manage your player community, and create professional cards for each player with their skills and stats."
-    },
-    {
-      icon: <TrendingUp className="w-8 h-8 text-amber-500" />,
-      title: isAr ? "تتبع الإحصائيات" : "Stat Tracking",
-      desc: isAr ? "تتبع الأهداف والتمريرات الحاسمة والمباريات التي تم لعبها. كل لاعب يحصل على تقييم دقيق يتحدث باستمرار." : "Track goals, assists, and matches played. Every player gets an accurate rating that updates constantly."
+      title: isAr ? "المجتمعات المتعددة" : "Multiple Communities",
+      desc: isAr ? "أنشئ أو انضم لعدة مجتمعات (مثل حجز الإثنين، حجز الجمعة). إحصائياتك منفصلة لكل مجتمع لضمان التنافس العادل!" : "Create or join multiple communities. Your stats are separated per community for fair competition!"
     },
     {
       icon: <ShieldCheck className="w-8 h-8 text-blue-500" />,
-      title: isAr ? "موازنة الفرق" : "Team Balancing",
-      desc: isAr ? "استخدام خوارزميات ذكية لتقسيم اللاعبين إلى فرق متوازنة بناءً على طاقاتهم ومراكزهم لضمان التنافسية." : "Use smart algorithms to divide players into balanced teams based on their stats and positions to ensure competitiveness."
-    },
-    {
-      icon: <BellRing className="w-8 h-8 text-purple-500" />,
-      title: isAr ? "النصائح والإشعارات" : "Advices & Notifications",
-      desc: isAr ? "تلقي تنبيهات وإشعارات ونصائح ذكية حول المباريات والنتائج وحالة مجتمعك بشكل فوري." : "Receive instant alerts, smart advices, and notifications about matches, results, and your community status."
+      title: isAr ? "صناعة المباريات الذكية" : "Smart Matchmaking",
+      desc: isAr ? "استخدم الموقع لتقسيم اللاعبين وتشكيل الفرق بشكل عادل بناءً على الطاقات والمراكز." : "Use the platform to divide players into fair teams based on their stats and positions."
     },
     {
       icon: <Sparkles className="w-8 h-8 text-rose-500" />,
-      title: isAr ? "إحصائيات وتقييمات متقدمة" : "Advanced Stats & Ratings",
-      desc: isAr ? "احصل على تقييمات مفصلة كالمحترفين تعتمد على الطول والوزن ومراجعات الأقران." : "Get detailed pro-level stats and ratings based on height, weight, and peer reviews."
+      title: isAr ? "نظام تقييم الأقران" : "Peer Rating System",
+      desc: isAr ? "نظام تقييم متبادل بين اللاعبين بعد المباريات لضمان دقة طاقات اللاعبين من آراء زملائهم." : "A mutual rating system between players after matches to ensure accurate stats."
+    },
+    {
+      icon: <Trophy className="w-8 h-8 text-amber-500" />,
+      title: isAr ? "نظام البطولات والمواسم" : "Tournaments & Seasons",
+      desc: isAr ? "نظام دوري مستمر مع أي فكرة تخطر ببالك. كل شيء متاح على الموقع للجميع." : "A continuous league system with customizable ideas. Everything is visible to everyone."
+    },
+    {
+      icon: <Medal className="w-8 h-8 text-yellow-500" />,
+      title: isAr ? "الإنجازات" : "Achievements",
+      desc: isAr ? "تابع إنجازاتك، الجوائز الموسمية، ومتوسطاتك في لوحة إنجازات تعرض تقدمك وجوائزك." : "Track your achievements, seasonal awards, and averages in your personal trophy dashboard."
+    },
+    {
+      icon: <BellRing className="w-8 h-8 text-purple-500" />,
+      title: isAr ? "النصائح الذكية" : "Smart Advice",
+      desc: isAr ? "تلقي نصائح بشكل دوري لمساعدتك في تحسين أدائك ومستواك في الملعب." : "Receive periodic advice to help you improve your performance on the pitch."
+    },
+    {
+      icon: <Star className="w-8 h-8 text-orange-500" />,
+      title: isAr ? "رجل المباراة MOTM" : "Man of the Match",
+      desc: isAr ? "نظام لاختيار أفضل لاعب في كل مباراة وتوثيق إنجازه." : "A system to select and document the best player in each match."
+    },
+    {
+      icon: <MessageSquare className="w-8 h-8 text-cyan-500" />,
+      title: isAr ? "شات المجتمع" : "Community Chat",
+      desc: isAr ? "تواصل مع لاعبي مجتمعك ونظم مباريات وتحديات بين المجتمعات الأخرى." : "Chat with your community players and organize matches and cross-community challenges."
+    },
+    {
+      icon: <Repeat className="w-8 h-8 text-teal-500" />,
+      title: isAr ? "تعديل التشكيلة ديناميكي" : "Dynamic Lineups",
+      desc: isAr ? "تغيير التشكيلة داخل المباراة أو قبلها، مع تنبيهات إذا كان اللاعب ضعيفاً في مركزه." : "Change lineups dynamically with alerts if a player is weak in their assigned position."
+    },
+    {
+      icon: <Goal className="w-8 h-8 text-red-500" />,
+      title: isAr ? "ركلات الترجيح الذكية" : "Smart Penalties",
+      desc: isAr ? "نظام ركلات الترجيح الذي يختار أفضل اللاعبين للتسديد بناءً على طاقاتهم." : "A penalty shootout system that selects the best penalty takers based on stats."
+    },
+    {
+      icon: <Timer className="w-8 h-8 text-pink-500" />,
+      title: isAr ? "كروت ووقت ضائع" : "Cards & Stoppage",
+      desc: isAr ? "إدارة احترافية للمباريات عبر تسجيل الكروت الملونة وحساب الوقت بدل الضائع." : "Professional match management tracking cards and stoppage time."
     },
     {
       icon: <Smartphone className="w-8 h-8 text-indigo-500" />,
-      title: isAr ? "تطبيق متكامل" : "Installable App",
-      desc: isAr ? "ثبّت الموقع كتطبيق على هاتفك أو حاسوبك للحصول على تجربة أسرع وأكثر سلاسة." : "Install the site as an app on your phone or computer for a faster, smoother experience."
+      title: isAr ? "تطبيق متكامل وتعدد لغات" : "App & Localization",
+      desc: isAr ? "ثبّت الموقع كتطبيق على هاتفك، مع دعم كامل للغتين العربية والإنجليزية." : "Install the site as an app on your phone, with full Arabic & English support."
     }
   ];
 
@@ -176,6 +206,34 @@ export default function Home() {
             {t("tagline")}
           </p>
         </motion.div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="w-full max-w-5xl px-6 py-12 z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+          {[
+            { value: "40+", label: isAr ? "لاعب مسجل" : "Registered Players" },
+            { value: "3+", label: isAr ? "مجتمعات نشطة" : "Active Communities" },
+            { value: "7.8", label: isAr ? "متوسط التقييم" : "Avg Rating" },
+            { value: "100+", label: isAr ? "مباراة ملعوبة" : "Matches Played" },
+          ].map((stat, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm hover:shadow-md transition-shadow"
+            >
+              <div className="text-3xl md:text-5xl font-black bg-gradient-to-br from-emerald-600 to-teal-800 dark:from-emerald-400 dark:to-teal-600 bg-clip-text text-transparent mb-2">
+                {stat.value}
+              </div>
+              <div className="text-sm md:text-base font-semibold text-slate-600 dark:text-slate-400">
+                {stat.label}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* Features / Explanation Section */}
