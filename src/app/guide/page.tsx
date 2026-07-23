@@ -155,19 +155,80 @@ export default function GuidePage() {
                     </p>
                   </div>
 
-                  <section>
-                    <h2 className="text-2xl font-bold mb-3 text-blue-600 dark:text-blue-400">
-                      {isAr ? "كيف يتم حساب التقييم الكلي (OVR)؟" : "How is the Overall Rating (OVR) calculated?"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                      {isAr 
-                        ? "يتم حساب التقييم الكلي بناءً على مركز اللاعب الأساسي. كل مركز له طاقات أساسية ذات وزن أكبر. على سبيل المثال، المهاجم يعتمد بشكل كبير على الإنهاء، بينما يعتمد قلب الدفاع على افتكاك الكرة."
-                        : "The Overall Rating is calculated based on the player's primary position. Each position has key attributes that carry more weight. For example, a Forward relies heavily on Finishing, while a Center Back relies on Ball Winning."}
-                    </p>
+                  <section className="space-y-6">
+                    <div>
+                      <h2 className="text-2xl font-bold mb-2 text-emerald-600 dark:text-emerald-400">
+                        {isAr ? "كيف يتم حساب التقييم الكلي (OVR) وإحصائيات البطاقة؟" : "How is Overall Rating (OVR) & Card Stats Calculated?"}
+                      </h2>
+                      <p className="text-slate-600 dark:text-slate-400 font-medium">
+                        {isAr 
+                          ? "معادلة واقعية تعتمد على المركز ومستوحاة من المحاكيات الاحترافية"
+                          : "Realistic, position-based formula inspired by pro simulations"}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700">
+                      <h3 className="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">
+                        {isAr ? "شرح إحصائيات البطاقة (PAC, SHO, PAS, DRI, DEF, PHY)" : "Card Profile Stats Explained (PAC, SHO, PAS, DRI, DEF, PHY)"}
+                      </h3>
+                      <p className="text-slate-600 dark:text-slate-400 mb-4 text-sm">
+                        {isAr 
+                          ? "التقييمات الستة الرئيسية المعروضة على بطاقتك هي متوسطات دقيقة مشتقة من طاقاتك الـ 22 الأساسية:"
+                          : "The 6 headline ratings displayed on your physical player card are precise composites derived from your 22 core abilities:"}
+                      </p>
+                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-400">
+                        <li><strong className="text-slate-800 dark:text-slate-200">PAC (السرعة):</strong> {isAr ? "متوسط السرعة + التسارع" : "Average of: Speed + Acceleration"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">SHO (التسديد):</strong> {isAr ? "متوسط الإنهاء + قوة التسديد + الوعي الهجومي" : "Average of: Finishing + Kicking Power + Offensive Awareness"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">PAS (التمرير):</strong> {isAr ? "متوسط التمرير القصير + التمرير الطويل" : "Average of: Low Pass + Lofted Pass"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">DRI (المراوغة):</strong> {isAr ? "متوسط المراوغة + التحكم بالكرة + التوازن" : "Average of: Dribbling + Ball Control + Balance"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">DEF (الدفاع):</strong> {isAr ? "متوسط الوعي الدفاعي + افتكاك الكرة + الشراسة" : "Average of: Defensive Awareness + Ball Winning + Aggression"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">PHY (البدنية):</strong> {isAr ? "متوسط الالتحام البدني + التحمل + القفز" : "Average of: Physical Contact + Stamina + Jump"}</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                        {isAr ? "1. أوزان الطاقات حسب المركز" : "1. Position-Specific Attribute Weights"}
+                      </h3>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        {isAr 
+                          ? "التقييم الكلي ليس مجرد متوسط بسيط لجميع الطاقات الـ 21. بدلاً من ذلك، تعتمد الطاقات ذات الوزن الأكبر على مركزك الأساسي:"
+                          : "OVR is not a simple average of all 21 abilities. Instead, heavily weighted attributes depend on your primary position:"}
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-2 mb-4">
+                        <li><strong>CF / SS / RWF / LWF:</strong> {isAr ? "التركيز على: الوعي الهجومي، الإنهاء، السرعة، والتسارع." : "Heavily weights: Offensive Awareness, Finishing, Speed, & Acceleration."}</li>
+                        <li><strong>AMF / CMF / RMF / LMF:</strong> {isAr ? "التركيز على: التمرير القصير/الطويل، التحكم بالكرة، والمراوغة." : "Heavily weights: Low/Lofted Pass, Ball Control, & Dribbling."}</li>
+                        <li><strong>DMF / CB / LB / RB:</strong> {isAr ? "التركيز على: الوعي الدفاعي، افتكاك الكرة، والالتحام البدني." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}</li>
+                        <li><strong>GK:</strong> {isAr ? "التركيز على: ردود أفعال الحارس، الوصول، والتقاط الكرة." : "Heavily weights: GK Reflexes, GK Reach, & GK Catching."}</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                        {isAr ? "2. المعدلات البدنية والعمرية" : "2. Physical & Age Modifiers"}
+                      </h3>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        {isAr 
+                          ? "الطول والوزن يعدلان سمات الأداء. على سبيل المثال، قلوب الدفاع أو الحراس الطوال (+185 سم) يحصلون على مكافآت وصول بدني، بينما يؤثر العمر والبنية قليلاً على التحمل والتوازن."
+                          : "Height and Weight (BMI) adjust performance traits. For instance, tall CBs or GKs (185cm+) receive physical reach bonuses, while age and build slightly refine stamina and balance consistency."}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                        {isAr ? "3. تقييمات الأقران وإجماع الإدارة" : "3. Peer Ratings & Admin Consensus"}
+                      </h3>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        {isAr 
+                          ? "يمكن للأقران اقتراح تحديثات للطاقات وتقييم الأداء في المباريات. يقوم مسؤولو المجتمع بمراجعة واعتماد هذه المتوسطات لضمان توازن الفرق أثناء المباريات."
+                          : "Peers can suggest ability updates and rate match performances. Community Admins review and approve these consensus averages to guarantee balanced squads during matchmaking."}
+                      </p>
+                    </div>
+                    
                     <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30">
                       <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                         {isAr 
-                          ? "💡 يتم تقييم المركز الثانوي والثالث بنفس طريقة الأساسي ولكن بنسبة كفاءة أقل قليلاً (ينخفض التقييم)."
+                          ? "💡 يتم حساب المراكز الثانوية والثالثة بنفس الطريقة ولكن مع عقوبة كفاءة طفيفة (تقييم أقل)."
                           : "💡 Secondary and Tertiary positions are calculated similarly but with a slight efficiency penalty (lower rating)."}
                       </p>
                     </div>

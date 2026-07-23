@@ -14,7 +14,7 @@ import { generateTurfMatch } from "@/lib/engine";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import PendingRequests from "@/components/admin/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
-import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, query, where, collectionGroup } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, ShieldCheck, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
@@ -213,6 +213,44 @@ export default function AdminPage() {
 
   const handleBulkPdf = () => {
     generateMasterBulkPDF(players, isAr ? 'ar' : 'en');
+  };
+
+  const [updatingStats, setUpdatingStats] = useState(false);
+
+  const handleUpdatePublicStats = async () => {
+    if (!isOwner) return;
+    setUpdatingStats(true);
+    try {
+      const playersCountRef = await getCountFromServer(collection(db, "players"));
+      const commsCountRef = await getCountFromServer(collection(db, "communities"));
+      const matchesCountRef = await getCountFromServer(collectionGroup(db, "matches"));
+      
+      let allPlayersQuery = await getDocs(collection(db, "players"));
+      let totalRating = 0;
+      let ratedCount = 0;
+      allPlayersQuery.forEach(doc => {
+        const data = doc.data();
+        if (data.overallRating) {
+          totalRating += data.overallRating;
+          ratedCount++;
+        }
+      });
+      const avgRating = ratedCount > 0 ? (totalRating / ratedCount) : 7.8;
+      
+      await setDoc(doc(db, "system", "public_stats"), {
+        totalPlayers: playersCountRef.data().count,
+        totalCommunities: commsCountRef.data().count,
+        totalMatches: matchesCountRef.data().count,
+        avgRating: avgRating
+      }, { merge: true });
+
+      toast.success(isAr ? "تم تحديث الإحصائيات العامة للموقع بنجاح!" : "Public site stats updated successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل تحديث الإحصائيات العامة" : "Failed to update public stats");
+    } finally {
+      setUpdatingStats(false);
+    }
   };
 
   const handleMakeMeAdmin = () => {
@@ -414,6 +452,16 @@ export default function AdminPage() {
                     </div>
 
                     <div className="flex flex-col gap-2.5">
+                      {isOwner && (
+                        <button
+                          onClick={handleUpdatePublicStats}
+                          disabled={updatingStats}
+                          className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-white dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 mb-2"
+                        >
+                          <Target className="w-4 h-4 text-emerald-400" />
+                          <span>{updatingStats ? (isAr ? "جارٍ التحديث..." : "Updating...") : (isAr ? "تحديث إحصائيات الموقع العامة" : "Update Public Site Stats")}</span>
+                        </button>
+                      )}
                       {(isOwner || players.length === 0) && (
                         <button
                           onClick={handleMakeMeAdmin}

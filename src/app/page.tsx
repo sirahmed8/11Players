@@ -19,6 +19,32 @@ export default function Home() {
   const [cookieConsent, setCookieConsent] = useState(true);
   const [loginInProgress, setLoginInProgress] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [publicStats, setPublicStats] = useState({
+    players: "40+",
+    communities: "3+",
+    avgRating: "7.8",
+    matches: "100+"
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const statsDoc = await getDoc(doc(db, "system", "public_stats"));
+        if (statsDoc.exists()) {
+          const data = statsDoc.data();
+          setPublicStats({
+            players: data.totalPlayers ? `${data.totalPlayers}+` : "40+",
+            communities: data.totalCommunities ? `${data.totalCommunities}+` : "3+",
+            avgRating: data.avgRating ? data.avgRating.toFixed(1) : "7.8",
+            matches: data.totalMatches ? `${data.totalMatches}+` : "100+"
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching public stats:", err);
+      }
+    };
+    fetchStats();
+  }, []);
 
   const { scrollYProgress } = useScroll();
   const yBg = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
@@ -158,6 +184,14 @@ export default function Home() {
     }
   ];
 
+  const statsList = [
+    { value: publicStats.players, label: isAr ? "لاعب مسجل" : "Registered Players" },
+    { value: publicStats.communities, label: isAr ? "مجتمعات نشطة" : "Active Communities" },
+    { value: publicStats.avgRating, label: isAr ? "متوسط التقييم" : "Avg Rating" },
+    { value: publicStats.matches, label: isAr ? "مباراة ملعوبة" : "Matches Played" },
+  ];
+
+
   if (authLoading || isRedirecting) {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
@@ -170,6 +204,7 @@ export default function Home() {
       </main>
     );
   }
+
 
   return (
     <main className="min-h-screen flex flex-col items-center relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
@@ -211,12 +246,7 @@ export default function Home() {
       {/* Stats Section */}
       <section className="w-full max-w-5xl px-6 py-12 z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-          {[
-            { value: "40+", label: isAr ? "لاعب مسجل" : "Registered Players" },
-            { value: "3+", label: isAr ? "مجتمعات نشطة" : "Active Communities" },
-            { value: "7.8", label: isAr ? "متوسط التقييم" : "Avg Rating" },
-            { value: "100+", label: isAr ? "مباراة ملعوبة" : "Matches Played" },
-          ].map((stat, idx) => (
+          {statsList.map((stat, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 20 }}

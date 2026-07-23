@@ -95,7 +95,7 @@ service cloud.firestore {
     // ── System Configuration ──
 
     match /system/{docId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null || docId == 'public_stats';
       allow write: if isAdmin();
     }
 
