@@ -177,12 +177,12 @@ export default function GuidePage() {
                           : "The 6 headline ratings displayed on your physical player card are precise composites derived from your 22 core abilities:"}
                       </p>
                       <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li><strong className="text-slate-800 dark:text-slate-200">PAC (السرعة):</strong> {isAr ? "متوسط السرعة + التسارع" : "Average of: Speed + Acceleration"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">SHO (التسديد):</strong> {isAr ? "متوسط الإنهاء + قوة التسديد + الوعي الهجومي" : "Average of: Finishing + Kicking Power + Offensive Awareness"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">PAS (التمرير):</strong> {isAr ? "متوسط التمرير القصير + التمرير الطويل" : "Average of: Low Pass + Lofted Pass"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">DRI (المراوغة):</strong> {isAr ? "متوسط المراوغة + التحكم بالكرة + التوازن" : "Average of: Dribbling + Ball Control + Balance"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">DEF (الدفاع):</strong> {isAr ? "متوسط الوعي الدفاعي + افتكاك الكرة + الشراسة" : "Average of: Defensive Awareness + Ball Winning + Aggression"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">PHY (البدنية):</strong> {isAr ? "متوسط الالتحام البدني + التحمل + القفز" : "Average of: Physical Contact + Stamina + Jump"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PAC (السرعة):" : "PAC (Pace):"}</strong> {isAr ? "متوسط السرعة + التسارع" : "Average of: Speed + Acceleration"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "SHO (التسديد):" : "SHO (Shooting):"}</strong> {isAr ? "متوسط الإنهاء + قوة التسديد + الوعي الهجومي" : "Average of: Finishing + Kicking Power + Offensive Awareness"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PAS (التمرير):" : "PAS (Passing):"}</strong> {isAr ? "متوسط التمرير القصير + التمرير الطويل" : "Average of: Low Pass + Lofted Pass"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "DRI (المراوغة):" : "DRI (Dribbling):"}</strong> {isAr ? "متوسط المراوغة + التحكم بالكرة + التوازن" : "Average of: Dribbling + Ball Control + Balance"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "DEF (الدفاع):" : "DEF (Defense):"}</strong> {isAr ? "متوسط الوعي الدفاعي + افتكاك الكرة + الشراسة" : "Average of: Defensive Awareness + Ball Winning + Aggression"}</li>
+                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PHY (البدنية):" : "PHY (Physicality):"}</strong> {isAr ? "متوسط الالتحام البدني + التحمل + القفز" : "Average of: Physical Contact + Stamina + Jump"}</li>
                       </ul>
                     </div>
 
