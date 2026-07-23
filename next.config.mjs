@@ -11,8 +11,9 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  trailingSlash: true,
   // Static export for Firebase; full SSR for Vercel (enables API routes, middleware, Blob)
-  ...(isVercel ? {} : { output: "export", trailingSlash: true }),
+  ...(isVercel ? {} : { output: "export" }),
   images: {
     // Vercel handles image optimisation natively; Firebase needs unoptimized
     unoptimized: !isVercel,
