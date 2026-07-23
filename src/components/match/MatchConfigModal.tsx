@@ -5,7 +5,7 @@ import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X, Brain, 
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { matchConfigSchema } from '@/schemas/matchSchema';
 import toast from 'react-hot-toast';
-import { generateTurfMatch } from '@/lib/engine';
+import { generateTurfMatch, FORMATIONS, assignPlayersToFormation } from '@/lib/engine';
 import { balanceTeams } from '@/lib/engine';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 
@@ -61,6 +61,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     playerIndex: number;
     player: any;
   } | null>(null);
+  const [aiPitchView, setAiPitchView] = useState(false);
 
   const [config, setConfig] = useState<MatchConfig>({
     date: '',
@@ -254,6 +255,67 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       setPreviewData({ ...previewData, ...result });
     }
     setSelectedForSwap(null);
+    setAiPitchView(false);
+  };
+
+  // ── AI Best to All: optimise positions then re-assign to formation ──
+  const handleApplyAIOptimalAll = () => {
+    if (!previewData) return;
+
+    const optimizePlayer = (p: any) => {
+      const suggestions = getTacticalSuggestions(
+        p.attributes,
+        p.height || 175,
+        p.weight || 70,
+        p.preferredFoot || 'Right',
+        p.calculatedAge,
+        p.peerRatingAvg,
+        p.peerRatingCount
+      );
+      const best = suggestions.positions[0];
+      return {
+        ...p,
+        primaryPosition: best?.position || p.primaryPosition || 'CMF',
+        playStyle: best?.bestPlayStyle || p.playStyle || 'Box-to-Box',
+      };
+    };
+
+    if (previewData.matchMode === 'standard') {
+      const optA = (previewData.teamA || []).map(optimizePlayer);
+      const optB = (previewData.teamB || []).map(optimizePlayer);
+
+      // Pick formation that best fits 11 players per team
+      const pick433 = FORMATIONS['4-3-3'];
+      const formationKey = '4-3-3';
+
+      const assignedA = assignPlayersToFormation(optA, formationKey);
+      const assignedB = assignPlayersToFormation(optB, formationKey);
+
+      setPreviewData((prev: any) => ({
+        ...prev,
+        teamA: assignedA,
+        teamB: assignedB,
+        aiFormation: formationKey,
+      }));
+      setAiPitchView(true);
+    } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
+      const updated = JSON.parse(JSON.stringify(previewData.turfResult));
+      if (updated.teams) {
+        updated.teams = updated.teams.map((t: any) => ({
+          ...t,
+          players: (t.players || []).map(optimizePlayer),
+        }));
+      }
+      if (updated.bench) updated.bench = updated.bench.map(optimizePlayer);
+      setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
+      setAiPitchView(true);
+    }
+
+    toast.success(
+      isAr
+        ? 'تم تحليل جميع اللاعبين وتحديد مراكزهم المثلى! ⚡'
+        : 'AI analysed all players & optimised their positions! ⚡'
+    );
   };
 
   const handlePlayerSwapClick = (teamIndex: number | 'bench', playerIndex: number, player: any) => {
@@ -351,20 +413,38 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                         <span>
-                          {isAr
-                            ? 'التبديل الذكي: اضغط على أي لاعب في فريق ثم اضغط على لاعب آخر في فريق آخر أو الاحتياط للتبديل وإعادة حساب التقييم فوراً.'
-                            : 'Smart Swap: Click any player on one team, then click another on a different team or bench to swap & recalculate ratings.'}
+                          {aiPitchView
+                            ? (isAr ? '⚡ عرض التشكيلة المثلى بناءً على تحليل الذكاء الاصطناعي لكل لاعب. اضغط "إعادة توزيع" للعودة.' : '⚡ AI-optimised formation view. Hit Regenerate to go back to default.')
+                            : (isAr
+                              ? 'التبديل الذكي: اضغط على أي لاعب في فريق ثم اضغط على لاعب آخر في فريق آخر أو الاحتياط للتبديل وإعادة حساب التقييم فوراً.'
+                              : 'Smart Swap: Click any player on one team, then click another on a different team or bench to swap & recalculate ratings.')
+                          }
                         </span>
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleRegeneratePreview}
-                      className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95 shrink-0"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>{isAr ? 'إعادة توزيع' : 'Regenerate'}</span>
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                      <button
+                        type="button"
+                        onClick={handleApplyAIOptimalAll}
+                        className={`inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl font-black text-xs transition-all shadow-md active:scale-95 shrink-0 ${
+                          aiPitchView
+                            ? 'bg-purple-700 text-white shadow-purple-700/30 cursor-default opacity-80'
+                            : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20'
+                        }`}
+                        title={isAr ? 'تطبيق المراكز وأساليب اللعب المثلى من الذكاء الاصطناعي لجميع اللاعبين وعرض التشكيلة على الملعب' : 'Apply AI best position & play style to all players and show formation on pitch'}
+                      >
+                        <Zap className="w-4 h-4 fill-white text-white" />
+                        <span>{isAr ? 'تطبيق خيار الذكاء الاصطناعي للجميع' : 'Apply AI Best to All'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRegeneratePreview}
+                        className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95 shrink-0"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'إعادة توزيع' : 'Regenerate'}</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Turf Mode Preview */}
@@ -484,7 +564,107 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   {/* Standard 11v11 Preview */}
                   {previewData.matchMode === 'standard' && (
                     <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* ── AI PITCH VIEW ── */}
+                      {aiPitchView && (() => {
+                        // Formation positions → pitch (x%, y%) coords
+                        const PITCH_COORDS: Record<string, {x:number;y:number}> = {
+                          GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
+                          RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
+                          CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
+                          LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
+                        };
+
+                        const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean) => (
+                          <div className="flex-1 relative min-h-0">
+                            <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex items-center justify-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
+                              <span className="text-slate-700 dark:text-slate-200">{label}</span>
+                            </div>
+                            <div
+                              className="relative w-full rounded-xl overflow-hidden border border-emerald-600/40"
+                              style={{
+                                background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
+                                paddingTop: '130%',
+                              }}
+                            >
+                              {/* Pitch markings */}
+                              <div className="absolute inset-0 pointer-events-none">
+                                {/* centre line */}
+                                <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
+                                {/* centre circle */}
+                                <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
+                                {/* goal boxes */}
+                                <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
+                                <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
+                              </div>
+
+                              {/* Player dots */}
+                              {team.map((p: any, i: number) => {
+                                const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+                                const coords = PITCH_COORDS[pos] || {x:50,y:50};
+                                // If flipped, invert y for team B
+                                const y = flipped ? 100 - coords.y : coords.y;
+                                const ovr = p.overallRating || p?.stats?.overallRating || 70;
+                                const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
+                                return (
+                                  <div
+                                    key={p.uid || i}
+                                    className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
+                                    style={{left:`${coords.x}%`, top:`${y}%`}}
+                                  >
+                                    {/* OVR badge */}
+                                    <div
+                                      className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
+                                      style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                                    >
+                                      {ovr}
+                                    </div>
+                                    {/* Position tag */}
+                                    <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
+                                      {pos}
+                                    </div>
+                                    {/* Name */}
+                                    <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
+                                      {name}
+                                    </div>
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                      {p.cardName || p.fullName} · {pos} · OVR {ovr}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+
+                        return (
+                          <div className="space-y-4">
+                            {/* Stats bar */}
+                            <div className="flex items-center justify-between text-xs font-black gap-3">
+                              <div className="flex items-center gap-2">
+                                <span className="w-3 h-3 rounded-full bg-blue-500"/>
+                                <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
+                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamAAvg || '—'}</span>
+                              </div>
+                              <div className="text-slate-400 text-xs">4-3-3</div>
+                              <div className="flex items-center gap-2">
+                                <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamBAvg || '—'}</span>
+                                <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>
+                                <span className="w-3 h-3 rounded-full bg-red-500"/>
+                              </div>
+                            </div>
+                            {/* Side-by-side pitches */}
+                            <div className="flex gap-3" style={{minHeight:420}}>
+                              {renderHalfPitch(previewData.teamA || [], isAr ? 'الفريق أ' : 'Team A', '#3B82F6', false)}
+                              {renderHalfPitch(previewData.teamB || [], isAr ? 'الفريق ب' : 'Team B', '#EF4444', true)}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* ── DEFAULT LIST VIEW ── */}
+                      {!aiPitchView && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
                           { name: isAr ? 'الفريق الأول' : 'Team A', list: previewData.teamA, avg: previewData.metrics?.teamAAvg || 70, tIdx: 0, color: '#3B82F6' },
                           { name: isAr ? 'الفريق الثاني' : 'Team B', list: previewData.teamB, avg: previewData.metrics?.teamBAvg || 70, tIdx: 1, color: '#EF4444' },
@@ -547,10 +727,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             </div>
                           );
                         })}
-                      </div>
+                      </div>}
 
-                      {/* Bench */}
-                      {previewData.bench && previewData.bench.length > 0 && (
+                      {/* Bench — list mode only */}
+                      {!aiPitchView && previewData.bench && previewData.bench.length > 0 && (
                         <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
                           <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
                             <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
