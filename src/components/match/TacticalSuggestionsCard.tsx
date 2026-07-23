@@ -164,6 +164,16 @@ export default function TacticalSuggestionsCard({
             </p>
           </div>
         </div>
+
+        {onApplySuggestions && isOwnProfile && (
+          <button
+            onClick={() => handleApply(0)}
+            className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all active:scale-95 shrink-0"
+          >
+            <Zap className="w-4 h-4 fill-slate-950 text-slate-950" />
+            <span>{isAr ? "تطبيق اختيار الذكاء الاصطناعي الأفضل" : "Apply AI Best Choice"}</span>
+          </button>
+        )}
       </div>
 
       {/* AI Advice Banner */}
