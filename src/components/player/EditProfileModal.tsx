@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { updateDoc, doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -17,10 +17,11 @@ import CommunityStatsEditor from '@/components/community/CommunityStatsEditor';
 import SkillsChecklist from '@/components/player/SkillsChecklist';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
 import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Upload, Loader2 } from 'lucide-react';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
 import TacticalSuggestionsCard from '@/components/match/TacticalSuggestionsCard';
 import { playerProfileSchema } from '@/schemas/playerSchema';
+import BlobPhotoUpload from '@/components/player/BlobPhotoUpload';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -552,6 +553,15 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 </div>
                 <div className="md:col-span-2">
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الصورة الشخصية" : "Photo"}</label>
+                  {/* Vercel Blob direct upload (only available on Vercel SSR deployment) */}
+                  {typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') && (
+                    <BlobPhotoUpload
+                      uid={player.uid}
+                      currentUrl={formData.photoUrl}
+                      isRTL={isRTL}
+                      onUploaded={(url) => handleChange('photoUrl', url)}
+                    />
+                  )}
                   <BackgroundRemover 
                     onImageReady={(url) => handleChange('photoUrl', url)} 
                     locale={(locale as 'en' | 'ar') ?? 'ar'} 

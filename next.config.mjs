@@ -1,18 +1,21 @@
 import withPWAInit from "@ducanh2912/next-pwa";
 
+const isVercel = !!process.env.VERCEL;
+
 const withPWA = withPWAInit({
   dest: "public",
-  disable: process.env.NODE_ENV === "development",
+  disable: process.env.NODE_ENV === "development" || isVercel,
   register: true,
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: "export",
-  trailingSlash: true,
+  // Static export for Firebase; full SSR for Vercel (enables API routes, middleware, Blob)
+  ...(isVercel ? {} : { output: "export", trailingSlash: true }),
   images: {
-    unoptimized: true,
+    // Vercel handles image optimisation natively; Firebase needs unoptimized
+    unoptimized: !isVercel,
     remotePatterns: [
       {
         protocol: 'https',
@@ -28,7 +31,12 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
     ],
   },
   webpack: (config, { isServer }) => {
