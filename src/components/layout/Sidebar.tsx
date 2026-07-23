@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, cloneElement } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import SettingsMenu from "@/components/layout/SettingsMenu";
@@ -22,6 +22,7 @@ export default function Sidebar() {
   const { locale } = useLocale();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const isAr = locale === "ar";
 
   const [isOpen, setIsOpen] = useState(false);
@@ -32,6 +33,30 @@ export default function Sidebar() {
   const lastNotifiedTimeRef = useRef<number>(0);
   const lastNotifToastTimeRef = useRef<number>(Date.now());
   const lastEditToastTimeRef = useRef<number>(Date.now());
+  const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
+
+  // Synchronously check if Firebase auth credentials exist in localStorage
+  const [hasCachedUser] = useState<boolean>(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return Object.keys(localStorage).some((k) => k.startsWith("firebase:authUser"));
+    } catch (e) {
+      return false;
+    }
+  });
+
+  // Auto-scroll sidebar container to active link on route load
+  useEffect(() => {
+    if (activeLinkRef.current) {
+      try {
+        activeLinkRef.current.scrollIntoView({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "instant" as ScrollBehavior,
+        });
+      } catch (e) {}
+    }
+  }, [pathname]);
 
   // Close sidebar on route change for mobile
   useEffect(() => {
@@ -341,12 +366,14 @@ export default function Sidebar() {
   ];
 
   // Public pages should not reserve sidebar/top-bar space for guests.
-  if ((!user || authLoading) && PUBLIC_ROUTES.includes(pathname)) {
+  const isGuest = (!user && !authLoading && !hasCachedUser) || (authLoading && !hasCachedUser);
+
+  if (isGuest && PUBLIC_ROUTES.includes(pathname)) {
     return null;
   }
 
   // Hide sidebar completely when user is not logged in
-  if (!user && !authLoading) {
+  if (!user && !authLoading && !hasCachedUser) {
     return null;
   }
   
@@ -455,12 +482,20 @@ export default function Sidebar() {
 
                       return (
                         <a
+                          ref={isActive ? activeLinkRef : null}
                           key={link.href}
                           href={link.href}
                           onClick={(e) => {
                             setIsOpen(false);
                             if (cleanPathname === baseHref) {
                               e.preventDefault();
+                              return;
+                            }
+                            e.preventDefault();
+                            try {
+                              router.push(link.href);
+                            } catch (err) {
+                              window.location.href = link.href;
                             }
                           }}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,transform] duration-150 font-bold text-sm group ${
