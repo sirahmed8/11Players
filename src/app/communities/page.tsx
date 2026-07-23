@@ -60,6 +60,9 @@ export default function CommunitiesPage() {
   }, [authLoading, user, router]);
 
   useEffect(() => {
+    // Don't fetch until auth is resolved and user is logged in
+    if (authLoading || !user) return;
+
     const fetchData = async () => {
       try {
         const snap = await getDocs(collection(db, "communities"));
@@ -69,16 +72,17 @@ export default function CommunitiesPage() {
             const countSnap = await getCountFromServer(collection(db, "communities", d.id, "players"));
             count = countSnap.data().count;
           } catch (e) {
-            console.error("Failed to get count", e);
+            // Fallback: count docs manually if getCountFromServer fails
+            try {
+              const fallbackSnap = await getDocs(collection(db, "communities", d.id, "players"));
+              count = fallbackSnap.size;
+            } catch (e2) {
+              console.error("Failed to get player count", e2);
+            }
           }
           return { id: d.id, ...d.data(), playerCount: count } as Community & { playerCount: number };
         }));
         setCommunities(data);
-
-        if (user) {
-          // Profile syncing logic now moved to useAuthProfile hook
-          // but we still need to wait for communities to load.
-        }
       } catch (err) {
         console.error("Failed to fetch data", err);
       } finally {
@@ -86,7 +90,7 @@ export default function CommunitiesPage() {
       }
     };
     fetchData();
-  }, [user]);
+  }, [user, authLoading]);
 
   const { userProfile, setUserProfile } = useAuthProfile(user);
 
