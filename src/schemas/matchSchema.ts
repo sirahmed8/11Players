@@ -7,7 +7,7 @@ export const matchConfigSchema = z.object({
   cost: z.string().optional(),
   notes: z.string().max(500, "Notes are too long").optional(),
   matchMode: z.enum(["standard", "turf"]).optional(),
-  numTeams: z.number().min(2, "Must be at least 2 teams").max(4, "Maximum 4 teams").optional(),
+  numTeams: z.number().min(2, "Must be at least 2 teams").max(6, "Maximum 6 teams").optional(),
   playersPerTeam: z.number().min(4, "Minimum 4 players").max(11, "Maximum 11 players").optional(),
   gkMode: z.enum(["fixed", "rotating", "no_gk"]).optional(),
   fixedGkTeamA: z.string().optional(),

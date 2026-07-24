@@ -203,7 +203,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     try {
       matchConfigSchema.parse(finalConfig);
     } catch (e: any) {
-      const errorMsg = e.errors ? e.errors.map((err: any) => err.message).join(', ') : 'Please fill in all required fields (Date, Time, Location).';
+      const errorMsg = e.issues ? e.issues.map((err: any) => err.message).join(', ') : 'Please fill in all required fields (Date, Time, Location).';
       toast.error(errorMsg);
       console.error('Match config validation error:', e);
       return;
