@@ -1320,14 +1320,16 @@ function partitionPlayersMulti(players: PlayerProfile[], numTeams: number): Play
     categories[cat].push(p);
   });
 
+  let globalPickIndex = 0;
   const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
   catKeys.forEach(cat => {
     const sortedCat = sortPlayersByOvrDesc(categories[cat]);
     for (let i = 0; i < sortedCat.length; i++) {
-      const round = Math.floor(i / numTeams);
-      let teamIdx = i % numTeams;
+      const round = Math.floor(globalPickIndex / numTeams);
+      let teamIdx = globalPickIndex % numTeams;
       if (round % 2 !== 0) teamIdx = numTeams - 1 - teamIdx;
       teams[teamIdx].push(sortedCat[i]);
+      globalPickIndex++;
     }
   });
 

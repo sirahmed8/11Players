@@ -1103,7 +1103,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{isAr ? 'عدد الفرق' : 'Number of Teams'}</span>
                       </label>
                       <div className="flex gap-1.5">
-                        {[2, 3, 4].map(n => (
+                        {[2, 3, 4, 5, 6].map(n => (
                           <button
                             key={n}
                             type="button"
