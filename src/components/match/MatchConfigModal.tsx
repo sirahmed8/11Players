@@ -399,7 +399,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
             dir={isAr ? 'rtl' : 'ltr'}
           >
             <div className="p-6 overflow-y-auto overflow-x-visible flex-1">
-              {step === 'preview' && previewData ? (
+              <AnimatePresence mode="wait">
+                {step === 'preview' && previewData ? (
+                  <motion.div
+                    key="preview"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
                 <div className="space-y-6">
                   {/* Preview Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
@@ -801,8 +809,50 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </div>
                   )}
                 </div>
-              ) : (
-                <>
+                
+                {/* Preview Footer */}
+                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedForSwap(null);
+                      setStep('config');
+                    }}
+                    className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none flex items-center gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    <span>{isAr ? 'عودة للإعدادات' : 'Back to Config'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const finalConfig: MatchConfig = {
+                        ...config,
+                        selectedPlayerUids: config.isOpenRegistration
+                          ? []
+                          : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
+                              ? Array.from(selectedUids)
+                              : undefined),
+                      };
+                      onGenerate(finalConfig, previewData);
+                      onClose();
+                    }}
+                    className="flex-1 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none flex items-center justify-center gap-2"
+                  >
+                    <Check className="w-5 h-5" />
+                    <span>{isAr ? 'اعتماد التشكيلة وحفظ المباراة' : 'Confirm & Save Match'}</span>
+                  </button>
+                </div>
+                </motion.div>
+                ) : (
+                  <motion.div
+                    key="config"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <>
                   <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
                 <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xl">⚙️</span>
                 <span>{isAr ? 'إعدادات المباراة' : 'Match Configuration'}</span>
@@ -1506,42 +1556,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
               </div>
 
                 </>
-              )}
-
-              {step === 'preview' ? (
-                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedForSwap(null);
-                      setStep('config');
-                    }}
-                    className="px-5 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none flex items-center gap-2"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>{isAr ? 'عودة للإعدادات' : 'Back to Config'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const finalConfig: MatchConfig = {
-                        ...config,
-                        selectedPlayerUids: config.isOpenRegistration
-                          ? []
-                          : (communityPlayers.length > 0 && selectedUids.size < communityPlayers.length
-                              ? Array.from(selectedUids)
-                              : undefined),
-                      };
-                      onGenerate(finalConfig, previewData);
-                      onClose();
-                    }}
-                    className="flex-1 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none flex items-center justify-center gap-2"
-                  >
-                    <Check className="w-5 h-5" />
-                    <span>{isAr ? 'اعتماد التشكيلة وحفظ المباراة' : 'Confirm & Save Match'}</span>
-                  </button>
-                </div>
-              ) : (
+                
+                {/* Config Footer */}
                 <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
                   <button
                     type="button"
@@ -1559,7 +1575,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     {!config.isOpenRegistration && <Brain className="w-4 h-4 animate-bounce" />}
                   </button>
                 </div>
+              </motion.div>
               )}
+              </AnimatePresence>
             </div>
           </motion.div>
         </motion.div>

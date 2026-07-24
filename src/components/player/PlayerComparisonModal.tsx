@@ -61,7 +61,7 @@ function PlayerListRow({ p, ovr, onClick }: { p: PlayerProfile; ovr: number; onC
       <div className="flex items-center gap-2.5">
         <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 text-slate-700 dark:text-slate-200">
           {p.photoUrl ? (
-            <Image src={p.photoUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
+            <img src={p.photoUrl} alt="" width={32} height={32} className="w-full h-full object-cover" loading="lazy" />
           ) : (
             p.cardName?.charAt(0) || "?"
           )}
@@ -142,13 +142,13 @@ export default function PlayerComparisonModal({
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto"
+          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-slate-950/95"
           dir={isAr ? "rtl" : "ltr"}
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 15 }}
             transition={{ duration: 0.2 }}
             className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh] my-auto"
           >
@@ -169,7 +169,7 @@ export default function PlayerComparisonModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-8">
+        <div className="flex-1 overflow-y-auto overscroll-contain transform-gpu p-4 sm:p-6 space-y-8" style={{ WebkitOverflowScrolling: "touch" }}>
 
           {/* Player Selector Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
@@ -189,9 +189,9 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  {/* Optimized list — no animations on rows, limited to 50 items to fix scroll lag */}
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
-                    {filteredForA.slice(0, 50).map((p) => (
+                  {/* Optimized list — no animations on rows, limited to 20 items to fix scroll lag */}
+                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu">
+                    {filteredForA.slice(0, 20).map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
                     ))}
                   </div>
@@ -201,7 +201,7 @@ export default function PlayerComparisonModal({
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-blue-500/40 shadow-lg shrink-0 flex items-center justify-center font-black text-xl text-slate-700 dark:text-slate-200">
                       {playerA.photoUrl ? (
-                        <Image src={playerA.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
+                        <img src={playerA.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
                       ) : (
                         playerA.cardName?.charAt(0) || "?"
                       )}
@@ -247,8 +247,8 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain">
-                    {filteredForB.slice(0, 50).map((p) => (
+                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu">
+                    {filteredForB.slice(0, 20).map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
                     ))}
                   </div>
@@ -258,7 +258,7 @@ export default function PlayerComparisonModal({
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-amber-500/40 shadow-lg shrink-0 flex items-center justify-center font-black text-xl text-slate-700 dark:text-slate-200">
                       {playerB.photoUrl ? (
-                        <Image src={playerB.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
+                        <img src={playerB.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
                       ) : (
                         playerB.cardName?.charAt(0) || "?"
                       )}

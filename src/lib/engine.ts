@@ -1311,6 +1311,80 @@ export interface TurfConfig {
   enableCardsSystem?: boolean;
 }
 
+function partitionPlayersMulti(players: PlayerProfile[], numTeams: number): PlayerProfile[][] {
+  const teams: PlayerProfile[][] = Array.from({ length: numTeams }, () => []);
+  const categories: Record<PositionCategory, PlayerProfile[]> = { GK: [], DEF: [], MID: [], ATK: [] };
+  
+  players.forEach(p => {
+    const cat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
+    categories[cat].push(p);
+  });
+
+  const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
+  catKeys.forEach(cat => {
+    const sortedCat = sortPlayersByOvrDesc(categories[cat]);
+    for (let i = 0; i < sortedCat.length; i++) {
+      const round = Math.floor(i / numTeams);
+      let teamIdx = i % numTeams;
+      if (round % 2 !== 0) teamIdx = numTeams - 1 - teamIdx;
+      teams[teamIdx].push(sortedCat[i]);
+    }
+  });
+
+  return teams;
+}
+
+function iterativeSwapBalanceMulti(teams: PlayerProfile[][]): PlayerProfile[][] {
+  const currentTeams = teams.map(t => [...t]);
+  const getTeamAvg = (team: PlayerProfile[]) => {
+    if (team.length === 0) return 0;
+    const total = team.reduce((sum, p) => sum + (p.overallRating || 70), 0);
+    return total / team.length;
+  };
+  const getVariance = (teamsArray: PlayerProfile[][]) => {
+    const avgs = teamsArray.map(getTeamAvg);
+    return Math.max(...avgs) - Math.min(...avgs);
+  };
+
+  let currentVar = getVariance(currentTeams);
+  for (let iter = 0; iter < 50; iter++) {
+    if (currentVar < 0.5) break;
+    let bestSwap: { t1: number; p1: number; t2: number; p2: number } | null = null;
+    let bestNewVar = currentVar;
+
+    const avgs = currentTeams.map((t, i) => ({ idx: i, avg: getTeamAvg(t) }));
+    avgs.sort((a, b) => b.avg - a.avg);
+    const t1 = avgs[0].idx;
+    const t2 = avgs[avgs.length - 1].idx;
+
+    for (let p1 = 0; p1 < currentTeams[t1].length; p1++) {
+      for (let p2 = 0; p2 < currentTeams[t2].length; p2++) {
+        if (!arePositionCompatible(currentTeams[t1][p1], currentTeams[t2][p2])) continue;
+        const temp1 = currentTeams[t1][p1];
+        currentTeams[t1][p1] = currentTeams[t2][p2];
+        currentTeams[t2][p2] = temp1;
+        const trialVar = getVariance(currentTeams);
+        if (trialVar < bestNewVar - 0.05) {
+          bestSwap = { t1, p1, t2, p2 };
+          bestNewVar = trialVar;
+        }
+        currentTeams[t2][p2] = currentTeams[t1][p1];
+        currentTeams[t1][p1] = temp1;
+      }
+    }
+    if (bestSwap) {
+      const { t1, p1, t2, p2 } = bestSwap;
+      const temp = currentTeams[t1][p1];
+      currentTeams[t1][p1] = currentTeams[t2][p2];
+      currentTeams[t2][p2] = temp;
+      currentVar = getVariance(currentTeams);
+    } else {
+      break;
+    }
+  }
+  return currentTeams;
+}
+
 /**
  * Main turf matchmaking function.
  * Distributes available players across N teams using Serpentine draft,
@@ -1336,8 +1410,9 @@ export function generateTurfMatch(
     avgOvr: 0
   }] : [];
 
-  // Run Serpentine draft
-  const draftedTeams = serpentineDraftStrategy(activePlayers, numTeams);
+  // Run Positional Draft & Swap Balancing
+  let draftedTeams = partitionPlayersMulti(activePlayers, numTeams);
+  draftedTeams = iterativeSwapBalanceMulti(draftedTeams);
 
   // Build TurfTeam objects
   const teams: TurfTeam[] = draftedTeams.map((players, idx) => {
