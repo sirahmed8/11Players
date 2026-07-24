@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { updateDoc, doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { updateDoc, doc, setDoc, getDoc, collection, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCommunity } from '@/contexts/CommunityContext';
@@ -225,6 +225,39 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         console.error('Validation error:', e);
         setIsSaving(false);
         return;
+      }
+
+      // Username uniqueness and 7-day cooldown check
+      const newCardName = formData.cardName.trim().toUpperCase();
+      if (newCardName !== (player.cardName || '').trim().toUpperCase()) {
+        if (!isOwner && !isAdmin) {
+          const lastChange = player.lastCardNameChange;
+          if (lastChange) {
+            const daysSince = (Date.now() - new Date(lastChange).getTime()) / (1000 * 60 * 60 * 24);
+            if (daysSince < 7) {
+              const remaining = Math.ceil(7 - daysSince);
+              toast.error(isRTL ? `يمكنك تغيير الاسم مرة واحدة كل 7 أيام. متبقي ${remaining} أيام.` : `You can only change your card name once every 7 days. ${remaining} days remaining.`);
+              setIsSaving(false);
+              return;
+            }
+          }
+        }
+        
+        try {
+          const q = query(collection(db, "players"), where("cardName", "==", newCardName));
+          const snap = await getDocs(q);
+          const isDuplicate = !snap.empty && snap.docs.some(d => d.id !== player.uid);
+          if (isDuplicate) {
+            toast.error(isRTL ? 'هذا الاسم مستخدم بالفعل، يرجى اختيار اسم آخر.' : 'This card name is already in use. Please choose another.');
+            setIsSaving(false);
+            return;
+          }
+        } catch (err) {
+          console.warn("Could not verify card name uniqueness:", err);
+        }
+        
+        dataToSave.lastCardNameChange = new Date().toISOString();
+        dataToSave.cardName = newCardName;
       }
 
       const commIds = getAllPlayerCommunities(player, activeCommunityId);

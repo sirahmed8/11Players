@@ -4,7 +4,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import { useRouter } from "next/navigation";
 
-export function usePlayerProfile(effectiveUid: string | null | undefined, user: any, isViewingOwnProfile: boolean, rawUid: string | null) {
+export function usePlayerProfile(effectiveUid: string | null | undefined, user: any, isViewingOwnProfile: boolean, rawUid: string | null, activeCommunityId?: string | null) {
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -27,7 +27,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
           setLoading(false);
         } else {
           // Check if player exists in active community before giving up
-          const activeCommId = typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null;
+          const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
           if (activeCommId) {
             try {
               const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));

@@ -34,7 +34,7 @@ export default function MatchPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isOwner } = useAuth();
   const { activeCommunityId } = useCommunity();
   const { players } = usePlayers();
   
@@ -225,8 +225,8 @@ export default function MatchPage() {
       }
       const playerIds = availablePlayers.map((p) => p.uid);
 
-      if (!config.isOpenRegistration && playerIds.length < 4) {
-        toast.error(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.`);
+      if (!config.isOpenRegistration && playerIds.length < 22) {
+        toast.error(isAr ? `توزيع الفرق يتطلب 22 لاعب على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
         return;
       }
 
@@ -722,7 +722,7 @@ export default function MatchPage() {
                   <p className="text-slate-500 max-w-md">
                     {isAr ? "يرجى الانتظار حتى تقوم الإدارة بتشكيل الفرق." : "Please wait for admins to generate the next match."}
                   </p>
-                  {isAdmin && (
+                  {isOwner && (
                     <button
                       onClick={() => setIsConfigModalOpen(true)}
                       className="mt-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg transition-transform active:scale-95 flex items-center gap-2"

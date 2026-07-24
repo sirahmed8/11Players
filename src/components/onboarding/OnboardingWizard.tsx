@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
@@ -272,6 +272,19 @@ export default function OnboardingWizard() {
       setSubmitMessage({ type: 'error', text: 'Validation failed. Please check all fields.' });
       console.error(e);
       return;
+    }
+
+    try {
+      const q = query(collection(db, "players"), where("cardName", "==", state.cardName.trim().toUpperCase()));
+      const snap = await getDocs(q);
+      const isDuplicate = !snap.empty && snap.docs.some(d => d.id !== user.uid);
+      if (isDuplicate) {
+        setSubmitMessage({ type: 'error', text: locale === 'ar' ? 'هذا الاسم مستخدم بالفعل، يرجى اختيار اسم آخر.' : 'This card name is already in use. Please choose another.' });
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (err) {
+      console.warn("Could not verify card name uniqueness:", err);
     }
 
     try {

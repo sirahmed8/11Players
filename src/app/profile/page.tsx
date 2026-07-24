@@ -116,7 +116,7 @@ function PlayerProfileContent() {
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
-  const { player, setPlayer, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid);
+  const { player, setPlayer, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
 
   useEffect(() => {
     if (!effectiveUid && !authLoading) setLoading(false);

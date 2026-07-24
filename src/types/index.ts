@@ -99,6 +99,7 @@ export interface PlayerProfile {
   googleName?: string;
   fullName: string;
   cardName: string;
+  lastCardNameChange?: string; // ISO string of when cardName was last changed
   dateOfBirth: string; // YYYY-MM-DD
   calculatedAge: number;
   height: number; // cm

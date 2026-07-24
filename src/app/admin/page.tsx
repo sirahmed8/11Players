@@ -103,8 +103,8 @@ export default function AdminPage() {
       }
       const playerIds = availablePlayers.map((p) => p.uid);
 
-      if (!config.isOpenRegistration && playerIds.length < 4) {
-        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.\u200F` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.\u200F`);
+      if (!config.isOpenRegistration && playerIds.length < 22) {
+        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 22 لاعب على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
         setMatchmakingLoading(false);
         return;
       }
@@ -444,14 +444,16 @@ export default function AdminPage() {
                     </div>
 
                     <div className="flex flex-col gap-2.5">
-                      <button
-                        onClick={() => setIsConfigModalOpen(true)}
-                        disabled={matchmakingLoading}
-                        className="w-full py-3.5 px-5 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
-                      >
-                        <Swords className="w-5 h-5 text-emerald-600" />
-                        <span>{matchmakingLoading ? (isAr ? "جارٍ التشكيل..." : "Generating Squads...") : (isAr ? "بدء تشكيل الفرق الآن" : "Run AI Matchmaking")}</span>
-                      </button>
+                      {isOwner && (
+                        <button
+                          onClick={() => setIsConfigModalOpen(true)}
+                          disabled={matchmakingLoading}
+                          className="w-full py-3.5 px-5 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
+                        >
+                          <Swords className="w-5 h-5 text-emerald-600" />
+                          <span>{matchmakingLoading ? (isAr ? "جارٍ التشكيل..." : "Generating Squads...") : (isAr ? "بدء تشكيل الفرق الآن" : "Run AI Matchmaking")}</span>
+                        </button>
+                      )}
 
                       <button
                         onClick={async () => {
