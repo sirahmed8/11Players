@@ -484,7 +484,7 @@ export default function CommunityChatPage() {
                     onChange={e => setText(e.target.value)}
                     placeholder={cooldown > 0 ? (isAr ? `انتظر ${cooldown}ث` : `Wait ${cooldown}s`) : (isAr ? "اكتب رسالتك..." : "Type a message...")}
                     disabled={cooldown > 0 || uploadingImage}
-                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm sm:text-base px-2 disabled:opacity-50 text-start min-w-0"
+                    className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-base md:text-sm px-2 disabled:opacity-50 text-start min-w-0"
                     dir="auto"
                   />
                   <button 
@@ -552,3 +552,4 @@ export default function CommunityChatPage() {
     </ProtectedRoute>
   );
 }
+

@@ -104,7 +104,7 @@ export default function AdminPage() {
       const playerIds = availablePlayers.map((p) => p.uid);
 
       if (!config.isOpenRegistration && playerIds.length < 4) {
-        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.`);
+        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 4 لاعبين على الأقل. يوجد حالياً ${playerIds.length}.\u200F` : `Matchmaking requires at least 4 players. Currently have ${playerIds.length}.\u200F`);
         setMatchmakingLoading(false);
         return;
       }
@@ -348,7 +348,7 @@ export default function AdminPage() {
             toast.success(isAr ? "تم إزالتك بنجاح" : "Successfully removed as Admin");
           } catch (err) {
             console.error(err);
-            toast.error("Failed to remove admin");
+            toast.error(isAr ? "فشل إزالة المشرف" : "Failed to remove admin");
           }
         }
       });
@@ -374,7 +374,7 @@ export default function AdminPage() {
             toast.success(isAr ? "تم إضافتك كمسؤول بنجاح" : "Successfully added as Admin");
           } catch (err) {
             console.error(err);
-            toast.error("Failed to add admin");
+            toast.error(isAr ? "فشل إضافة المشرف" : "Failed to add admin");
           }
         }
       });
@@ -597,7 +597,7 @@ export default function AdminPage() {
               <PendingRequests />
 
               {loading ? (
-                <SiteSkeletonLoader variant="cards" />
+                <SiteSkeletonLoader variant="table" />
               ) : (
                 <AdminTable players={players} onRefresh={refreshPlayers || (() => {})} />
               )}
@@ -622,3 +622,6 @@ export default function AdminPage() {
     </ProtectedRoute>
   );
 }
+
+
+

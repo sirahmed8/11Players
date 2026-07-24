@@ -477,7 +477,7 @@ export default function SupportPage() {
                       onChange={e => setText(e.target.value)}
                       placeholder={isAr ? "اكتب رسالتك للدعم الفني..." : "Type your message to support..."}
                       disabled={uploadingImage}
-                      className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm py-1.5 px-1 font-medium disabled:opacity-50"
+                      className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-base md:text-sm py-1.5 px-1 font-medium disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -499,3 +499,4 @@ export default function SupportPage() {
     </ProtectedRoute>
   );
 }
+

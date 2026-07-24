@@ -720,7 +720,7 @@ export default function InboxPage() {
                             onChange={e => setReplyText(e.target.value)}
                             placeholder={isAr ? "اكتب ردك للاعب..." : "Type your reply to player..."}
                             disabled={uploadingImage}
-                            className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm py-1.5 px-1 font-medium disabled:opacity-50"
+                            className="flex-1 bg-transparent border-none focus:ring-0 outline-none text-base md:text-sm py-1.5 px-1 font-medium disabled:opacity-50"
                           />
                         </div>
                       </div>
@@ -754,3 +754,4 @@ export default function InboxPage() {
     </ProtectedRoute>
   );
 }
+

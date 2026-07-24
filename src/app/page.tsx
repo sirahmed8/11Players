@@ -199,7 +199,7 @@ export default function Home() {
           <Loader2 className="w-12 h-12 text-emerald-500" />
         </motion.div>
         <p className="mt-4 font-bold text-slate-500 dark:text-slate-400 animate-pulse">
-          {isAr ? "جاري تحميل 11Players..." : "Loading 11Players..."}
+          {isAr ? "جاري تحميل 11Players...\u200F" : "Loading 11Players..."}
         </p>
       </main>
     );
@@ -209,18 +209,7 @@ export default function Home() {
   return (
     <main className="min-h-screen flex flex-col items-center relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
       
-      {/* Header Controls */}
-      <header className="w-full max-w-6xl flex justify-between items-center py-4 px-6 z-50 sticky top-0 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-transparent transition-all">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm border border-emerald-500/20" priority />
-          <h1 className="text-xl md:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-            11Players
-          </h1>
-        </div>
-        <div className="flex gap-2 items-center">
-          <SettingsMenu />
-        </div>
-      </header>
+
 
       {/* Hero Section */}
       <section className="w-full flex-1 flex flex-col items-center justify-center text-center px-6 py-20 z-10 min-h-[80vh]">
@@ -344,7 +333,8 @@ export default function Home() {
                 : "bg-slate-900 text-white border-slate-800 shadow-black/60"
             }`}
           >
-            <p className="text-sm font-medium leading-relaxed">
+            <motion.div className="absolute inset-0 rounded-2xl pointer-events-none border-2 border-emerald-500" animate={{ opacity: [0, 1, 0] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }} />
+              <p className="text-sm font-medium leading-relaxed">
               {t("privacy_banner")}
             </p>
             <div className="flex justify-end gap-2">
@@ -361,3 +351,7 @@ export default function Home() {
     </main>
   );
 }
+
+
+
+

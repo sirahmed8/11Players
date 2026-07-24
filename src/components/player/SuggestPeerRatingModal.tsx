@@ -186,7 +186,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
           await setDoc(doc(collection(db, `users/${adminUidToNotify}/notifications`), `peer_sugg_adm_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
             type: 'stats',
             title: isAr ? 'إقتراح جديد لتقييم وطاقات لاعب' : 'New Peer Rating & Stats Suggestion',
-            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات وتقييم اللاعب ${player.fullName}.` : `A community member submitted a rating/stats suggestion for ${player.fullName}.`,
+            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات وتقييم اللاعب ${player.fullName}.\u200F` : `A community member submitted a rating/stats suggestion for ${player.fullName}.\u200F`,
             read: false,
             createdAt: serverTimestamp(),
             link: '/admin?tab=edits'
@@ -196,7 +196,7 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
           await setDoc(doc(collection(db, `users/${ownerUid}/notifications`), `peer_sugg_own_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
             type: 'stats',
             title: isAr ? 'إقتراح جديد لتقييم وطاقات لاعب' : 'New Peer Rating & Stats Suggestion',
-            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات اللاعب ${player.fullName}.` : `A community member submitted a rating suggestion for ${player.fullName}.`,
+            body: isAr ? `قام أحد أعضاء المجتمع بتقديم إقتراح لتعديل طاقات اللاعب ${player.fullName}.\u200F` : `A community member submitted a rating suggestion for ${player.fullName}.\u200F`,
             read: false,
             createdAt: serverTimestamp(),
             link: '/admin?tab=edits'
@@ -385,3 +385,4 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
     </AnimatePresence>
   );
 }
+

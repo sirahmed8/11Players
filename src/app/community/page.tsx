@@ -153,16 +153,16 @@ export default function CommunityPage() {
             </div>
             
             <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-              <div className="relative flex-1 md:w-72">
+              <motion.div className="relative flex-1 md:w-72" initial="idle" whileFocus="focus">
+                  <motion.div className="absolute -inset-0.5 rounded-xl border-2 border-emerald-500 pointer-events-none z-0" variants={{ idle: { opacity: 0, scale: 0.95 }, focus: { opacity: 0.5, scale: 1 } }} transition={{ duration: 0.2 }} />
                 <Search className="w-5 h-5 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
                   placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search by name or position..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
-                />
-              </div>
+                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-base md:text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" />
+                </motion.div>
 
               <button
                 onClick={() => setIsLeaveModalOpen(true)}
@@ -376,3 +376,5 @@ export default function CommunityPage() {
     </ProtectedRoute>
   );
 }
+
+

@@ -48,13 +48,7 @@ body {
 }
 
 /* Hide default scrollbars globally */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { display: none; } ::-webkit-scrollbar-track { background: transparent; }
 
 /* Hide number input arrows */
 input[type="number"]::-webkit-inner-spin-button,
@@ -66,17 +60,7 @@ input[type="number"] {
   -moz-appearance: textfield; /* Firefox */
 }
 
-::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.4);
-  border-radius: 8px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.8);
-}
-html, body, * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.5) transparent;
-}
+html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 
 /* Custom UI Scrollbar overrides */
 .custom-scrollbar {
@@ -91,3 +75,4 @@ html, body, * {
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
 }
+

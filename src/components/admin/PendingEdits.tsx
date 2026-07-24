@@ -510,7 +510,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
             ? (isAr ? 'تم اعتماد تقييم الأداء والقدرات الجديد!' : 'New Peer Ability Ratings Approved!')
             : (isAr ? 'تمت الموافقة على تعديلاتك!' : 'Profile Edits Approved!');
           const bodyText = edit.source === 'peer_ratings'
-            ? (isAr ? `قام مسؤول المجتمع بمراجعة واعتماد التقييمات الجديدة لقدراتك بنجاح. تقييمك العام الحالي: ${updateDataGlobal.overallRating || 'مُحدّث'}.` : `Your community admin approved new peer performance ability ratings. New OVR: ${updateDataGlobal.overallRating || 'Updated'}.`)
+            ? (isAr ? `قام مسؤول المجتمع بمراجعة واعتماد التقييمات الجديدة لقدراتك بنجاح. تقييمك العام الحالي: ${updateDataGlobal.overallRating || 'مُحدّث'}.\u200F` : `Your community admin approved new peer performance ability ratings. New OVR: ${updateDataGlobal.overallRating || 'Updated'}.`)
             : (isAr ? 'تمت مراجعة طلب تعديل ملفك الشخصي وقدراته والموافقة عليه بنجاح.' : 'Your requested profile and attribute updates have been approved and applied.');
 
           await setDoc(doc(collection(db, `users/${targetUid}/notifications`), `edit_ok_${targetUid}_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`), {
@@ -1133,3 +1133,4 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     </div>
   );
 }
+
