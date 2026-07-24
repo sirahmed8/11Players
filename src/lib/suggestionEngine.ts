@@ -332,7 +332,7 @@ export function getTacticalSuggestions(
 
     return {
       position: pos,
-      score: bestOvr,
+      score: score, // use internal score to respect foot bonuses
       matchPercentage,
       rationaleEn,
       rationaleAr,

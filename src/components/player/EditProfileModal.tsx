@@ -530,46 +530,6 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   />
                 </div>
 
-                {/* ── AI Fill All Positions Button ── */}
-                <div className="md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const suggestions = getTacticalSuggestions(
-                        attributes,
-                        formData.height || 175,
-                        formData.weight || 70,
-                        formData.preferredFoot || 'Right',
-                        player.calculatedAge,
-                        player.peerRatingAvg,
-                        player.peerRatingCount
-                      );
-                      const [first, second, third] = suggestions.positions;
-                      const bestStyle = first?.bestPlayStyle || formData.playStyle || '';
-                      setFormData(prev => ({
-                        ...prev,
-                        primaryPosition: first?.position || prev.primaryPosition,
-                        secondaryPosition: second?.position || '',
-                        tertiaryPosition: third?.position || '',
-                        playStyle: bestStyle,
-                      }));
-                      toast.success(
-                        isRTL
-                          ? `✅ تم ملء المراكز الثلاثة وأسلوب اللعب بتوصية الذكاء الاصطناعي!`
-                          : `✅ AI filled all 3 positions & play style based on your attributes!`
-                      );
-                    }}
-                    className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black text-sm shadow-lg shadow-purple-500/20 transition-all active:scale-95"
-                  >
-                    <Zap className="w-4 h-4 fill-white text-white" />
-                    <span>{isRTL ? '⚡ تطبيق أفضل المراكز وأسلوب اللعب من الذكاء الاصطناعي' : '⚡ Apply AI Best Positions & Play Style'}</span>
-                  </button>
-                  <p className="mt-1.5 text-center text-xs text-slate-400 dark:text-slate-500 font-medium">
-                    {isRTL
-                      ? 'يملأ الذكاء الاصطناعي المراكز الأساسي والثانوي والثالث وأسلوب اللعب تلقائياً بناءً على قدراتك'
-                      : 'Auto-fills Primary, Secondary & Tertiary position + Play Style based on your 22 attributes'}
-                  </p>
-                </div>
 
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "المركز الأساسي" : "Primary Position"}</label>
