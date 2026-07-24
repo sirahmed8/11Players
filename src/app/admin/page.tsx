@@ -9,12 +9,13 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminTable from "@/components/admin/AdminTable";
 import { motion } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
-import { balanceTeams } from "@/lib/engine";
-import { generateTurfMatch } from "@/lib/engine";
+import { balanceTeams, generateTurfMatch } from "@/lib/engine";
+import { getTacticalSuggestions } from "@/lib/suggestionEngine";
+import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import PendingRequests from "@/components/admin/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
-import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, query, where } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, query, where, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, ShieldCheck, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
@@ -211,6 +212,70 @@ export default function AdminPage() {
     }
   };
 
+  const handleApplyAIToAll = async () => {
+    if (!activeCommunityId) return;
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? 'تطبيق ذكاء اصطناعي على الجميع' : 'Apply AI to All Players',
+      message: isAr ? 'هل أنت متأكد من تطبيق أفضل المراكز والتقييم لجميع اللاعبين؟ سيتم استبدال المراكز الحالية.' : 'Are you sure you want to apply best AI positions and OVR for all players? This will overwrite their current positions.',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const loadingToast = toast.loading(isAr ? 'جاري تطبيق الذكاء الاصطناعي...' : 'Applying AI to all...');
+        try {
+          const CHUNK_SIZE = 200;
+          for (let i = 0; i < players.length; i += CHUNK_SIZE) {
+            const batch = writeBatch(db);
+            const chunk = players.slice(i, i + CHUNK_SIZE);
+            chunk.forEach(player => {
+              const suggestions = getTacticalSuggestions(
+                player.attributes || {},
+                player.height || 175,
+                player.weight || 70,
+                player.preferredFoot || 'Right',
+                player.calculatedAge || 25,
+                player.peerRatingAvg,
+                player.peerRatingCount
+              );
+              const [first, second, third] = suggestions.positions;
+              const bestStyle = first?.bestPlayStyle || player.playStyle || '';
+              const newPrimary = first?.position || player.primaryPosition;
+              const newSecondary = second?.position || '';
+              const newTertiary = third?.position || '';
+              const newOverall = calculateRealisticOverall(
+                player.attributes || {},
+                newPrimary || 'CMF',
+                bestStyle,
+                player.height || 175,
+                player.weight || 70,
+                player.calculatedAge || 25,
+                player.peerRatingAvg,
+                player.peerRatingCount,
+                player.preferredFoot || 'Right',
+                player.specialSkills || [],
+                player.stats
+              );
+              const updates = {
+                primaryPosition: newPrimary,
+                secondaryPosition: newSecondary,
+                tertiaryPosition: newTertiary,
+                playStyle: bestStyle,
+                overallRating: newOverall
+              };
+              batch.set(doc(db, "players", player.uid), updates, { merge: true });
+              batch.set(doc(db, "communities", activeCommunityId, "players", player.uid), updates, { merge: true });
+            });
+            await batch.commit();
+          }
+          toast.success(isAr ? 'تم التطبيق بنجاح!' : 'AI Applied successfully!', { id: loadingToast });
+          if (refreshPlayers) refreshPlayers();
+        } catch (error) {
+          console.error(error);
+          toast.error(isAr ? 'فشل التطبيق' : 'Failed to apply AI', { id: loadingToast });
+        }
+      }
+    });
+  };
+
   const handleBulkPdf = () => {
     generateMasterBulkPDF(players, isAr ? 'ar' : 'en');
   };
@@ -357,7 +422,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Organized Luxury Control Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
                   {/* Card 1: Matchmaking Engine (Primary CTA) */}
                   <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-900/90 dark:to-teal-950 text-white p-6 shadow-xl flex flex-col justify-between border border-emerald-400/30">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
@@ -488,8 +553,37 @@ export default function AdminPage() {
                         <UserX className="w-4 h-4 text-red-500" />
                         <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
                       </button>
-
                     </div>
+                  </div>
+
+                  {/* Card 4: AI Tools */}
+                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                          <Sparkles className="w-6 h-6" />
+                        </div>
+                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                          {isAr ? "الذكاء الاصطناعي" : "AI TOOLS"}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+                        {isAr ? "تطبيق AI للجميع" : "Apply AI to All"}
+                      </h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
+                        {isAr
+                          ? "تطبيق أفضل المراكز (الأساسي، الثانوي، الثالث) وأسلوب اللعب لجميع اللاعبين باستخدام الذكاء الاصطناعي بناءً على إحصائياتهم."
+                          : "Auto-fill the best Primary, Secondary, Tertiary positions & play style for all players using AI based on their attributes."}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleApplyAIToAll}
+                      className="w-full py-3.5 px-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2.5"
+                    >
+                      <Sparkles className="w-5 h-5 fill-white text-white" />
+                      <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
+                    </button>
                   </div>
                 </div>
               </div>

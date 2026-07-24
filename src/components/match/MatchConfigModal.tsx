@@ -447,75 +447,161 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </div>
                   </div>
 
-                  {/* Turf Mode Preview */}
-                  {previewData.matchMode === 'turf' && previewData.turfResult && (
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
-                          const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
-                          return (
-                            <div
-                              key={`turf-team-${tIdx}`}
-                              className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
-                                isTeamSelected
-                                  ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
-                                  : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
-                              }`}
-                            >
-                              <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
-                                <div className="flex items-center gap-2.5">
-                                  <span
-                                    className="w-3.5 h-3.5 rounded-full shadow-sm"
-                                    style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
-                                  />
-                                  <h3 className="font-black text-slate-900 dark:text-white text-base">
-                                    {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
-                                  </h3>
-                                </div>
-                                <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
-                                  <Trophy className="w-3.5 h-3.5" />
-                                  <span>OVR: {team.totalOvr || 70}</span>
-                                </div>
-                              </div>
+                  {/* Helper for AI Pitch View */}
+                  {(() => {
+                    const PITCH_COORDS: Record<string, {x:number;y:number}> = {
+                      GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
+                      RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
+                      CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
+                      LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
+                    };
 
-                              <div className="space-y-2 flex-1">
-                                {team.players?.map((player: any, pIdx: number) => {
-                                  const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
-                                  const ovr = player.overallRating || player?.stats?.overallRating || 70;
-                                  return (
-                                    <button
-                                      key={player.uid || `t-${tIdx}-p-${pIdx}`}
-                                      type="button"
-                                      onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
-                                      className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
-                                        isSelected
-                                          ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
-                                          : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
-                                      }`}
-                                    >
-                                      <div className="flex items-center gap-2.5 min-w-0">
-                                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
-                                          isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                        }`}>
-                                          {player.primaryPosition ? player.primaryPosition.slice(0, 3) : 'PL'}
-                                        </div>
-                                        <span className="font-bold text-sm truncate">
-                                          {player.fullName || player.cardName || 'Unknown Player'}
-                                        </span>
-                                      </div>
-                                      <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
-                                        isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                      }`}>
-                                        {ovr}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
+                    const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean, formation?: string) => (
+                      <div className="flex-1 relative min-h-0 min-w-[200px]">
+                        <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
+                            <span className="text-slate-700 dark:text-slate-200">{label}</span>
+                          </div>
+                          {formation && <span className="text-[10px] text-slate-500">{formation}</span>}
+                        </div>
+                        <div
+                          className="relative w-full rounded-xl overflow-hidden border border-emerald-600/40"
+                          style={{
+                            background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
+                            paddingTop: '130%',
+                          }}
+                        >
+                          {/* Pitch markings */}
+                          <div className="absolute inset-0 pointer-events-none">
+                            <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
+                            <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
+                            <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
+                            <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
+                          </div>
+
+                          {/* Player dots */}
+                          {team.map((p: any, i: number) => {
+                            const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+                            const coords = PITCH_COORDS[pos] || {x:50,y:50};
+                            const y = flipped ? 100 - coords.y : coords.y;
+                            const ovr = p.overallRating || p?.stats?.overallRating || 70;
+                            const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
+                            return (
+                              <div
+                                key={p.uid || i}
+                                className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
+                                style={{left:`${coords.x}%`, top:`${y}%`}}
+                              >
+                                <div
+                                  className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
+                                  style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                                >
+                                  {ovr}
+                                </div>
+                                <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
+                                  {pos}
+                                </div>
+                                <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
+                                  {name}
+                                </div>
+                                <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                  {p.cardName || p.fullName} · {pos} · OVR {ovr}
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
+                            );
+                          })}
+                        </div>
                       </div>
+                    );
+
+                    return (
+                      <>
+                        {/* Turf Mode Preview */}
+                        {previewData.matchMode === 'turf' && previewData.turfResult && (
+                    <div className="space-y-6">
+                      {aiPitchView ? (
+                        <div className="flex flex-wrap gap-3">
+                          {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
+                            const teamColor = team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : tIdx === 2 ? '#10B981' : '#F59E0B');
+                            return renderHalfPitch(
+                              team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players || [],
+                              team.name || `Team ${String.fromCharCode(65 + tIdx)}`,
+                              teamColor,
+                              tIdx % 2 !== 0,
+                              team.formation
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
+                            const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
+                            return (
+                              <div
+                                key={`turf-team-${tIdx}`}
+                                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
+                                  isTeamSelected
+                                    ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
+                                    : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                                  <div className="flex items-center gap-2.5">
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-full shadow-sm"
+                                      style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
+                                    />
+                                    <h3 className="font-black text-slate-900 dark:text-white text-base">
+                                      {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
+                                    </h3>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
+                                    <Trophy className="w-3.5 h-3.5" />
+                                    <span>OVR: {team.totalOvr || 70}</span>
+                                  </div>
+                                </div>
+
+                                <div className="space-y-2 flex-1">
+                                  {(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players)?.map((player: any, pIdx: number) => {
+                                    const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
+                                    const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                                    const pos = player.assignedPosition || player.primaryPosition || 'CMF';
+                                    return (
+                                      <button
+                                        key={player.uid || `t-${tIdx}-p-${pIdx}`}
+                                        type="button"
+                                        onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
+                                        className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
+                                          isSelected
+                                            ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                            : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
+                                        }`}
+                                      >
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
+                                            isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                          }`}>
+                                            {pos.slice(0, 3)}
+                                          </div>
+                                          <span className="font-bold text-sm truncate">
+                                            {player.fullName || player.cardName || 'Unknown Player'}
+                                          </span>
+                                        </div>
+                                        <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                          isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                        }`}>
+                                          {ovr}
+                                        </span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
 
                       {/* Bench / Reserves */}
                       {previewData.turfResult.bench && previewData.turfResult.bench.length > 0 && (
@@ -566,78 +652,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     <div className="space-y-6">
                       {/* ── AI PITCH VIEW ── */}
                       {aiPitchView && (() => {
-                        // Formation positions → pitch (x%, y%) coords
-                        const PITCH_COORDS: Record<string, {x:number;y:number}> = {
-                          GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
-                          RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
-                          CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
-                          LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
-                        };
-
-                        const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean) => (
-                          <div className="flex-1 relative min-h-0">
-                            <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex items-center justify-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
-                              <span className="text-slate-700 dark:text-slate-200">{label}</span>
-                            </div>
-                            <div
-                              className="relative w-full rounded-xl overflow-hidden border border-emerald-600/40"
-                              style={{
-                                background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
-                                paddingTop: '130%',
-                              }}
-                            >
-                              {/* Pitch markings */}
-                              <div className="absolute inset-0 pointer-events-none">
-                                {/* centre line */}
-                                <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
-                                {/* centre circle */}
-                                <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
-                                {/* goal boxes */}
-                                <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
-                                <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
-                              </div>
-
-                              {/* Player dots */}
-                              {team.map((p: any, i: number) => {
-                                const pos = p.assignedPosition || p.primaryPosition || 'CMF';
-                                const coords = PITCH_COORDS[pos] || {x:50,y:50};
-                                // If flipped, invert y for team B
-                                const y = flipped ? 100 - coords.y : coords.y;
-                                const ovr = p.overallRating || p?.stats?.overallRating || 70;
-                                const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
-                                return (
-                                  <div
-                                    key={p.uid || i}
-                                    className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
-                                    style={{left:`${coords.x}%`, top:`${y}%`}}
-                                  >
-                                    {/* OVR badge */}
-                                    <div
-                                      className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
-                                      style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
-                                    >
-                                      {ovr}
-                                    </div>
-                                    {/* Position tag */}
-                                    <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
-                                      {pos}
-                                    </div>
-                                    {/* Name */}
-                                    <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
-                                      {name}
-                                    </div>
-                                    {/* Tooltip */}
-                                    <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                      {p.cardName || p.fullName} · {pos} · OVR {ovr}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-
                         return (
                           <div className="space-y-4">
                             {/* Stats bar */}
@@ -764,6 +778,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       )}
                     </div>
                   )}
+                      </>
+                    );
+                  })()}
 
                   {/* Tips & Tactics Box */}
                   {((previewData.turfResult && previewData.turfResult.tipsAndTactics && previewData.turfResult.tipsAndTactics.length > 0) ||

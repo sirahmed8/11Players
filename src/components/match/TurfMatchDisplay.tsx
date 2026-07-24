@@ -28,6 +28,64 @@ const OVR_BADGE = ({ ovr }: { ovr: number }) => {
   );
 };
 
+
+const PITCH_COORDS: Record<string, {x:number;y:number}> = {
+  GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
+  RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
+  CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
+  LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
+};
+
+const renderMiniPitch = (team: any[], color: string, formation?: string) => {
+  return (
+    <div
+      className="relative w-full rounded-b-none overflow-hidden border-b border-emerald-600/40"
+      style={{
+        background: 'repeating-linear-gradient(180deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
+        paddingTop: '65%',
+      }}
+    >
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute left-1/2 bottom-0 -translate-x-1/2 w-16 h-16 rounded-full border border-white/20" style={{bottom:'-32px'}}/>
+        <div className="absolute left-1/4 right-1/4 bottom-0 h-[15%] border-t border-x border-white/20"/>
+        <div className="absolute left-1/3 right-1/3 top-0 h-[10%] border-b border-x border-white/20"/>
+      </div>
+
+      {team.map((p: any, i: number) => {
+        const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+        const coords = PITCH_COORDS[pos] || {x:50,y:50};
+        const y = coords.y * 0.7 + 5; 
+        const ovr = Math.round(
+          (Object.values(p.attributes || {}) as number[]).reduce((a: number, b: number) => a + b, 0) / 
+          Math.max(1, Object.values(p.attributes || {}).length)
+        ) || 70;
+        const name = (p.cardName || p.fullName || '?').split(' ')[0];
+        
+        return (
+          <div
+            key={p.uid || i}
+            className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
+            style={{left:`${coords.x}%`, top:`${y}%`}}
+          >
+            <div
+              className="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center font-black text-[9px] sm:text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
+              style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+            >
+              {ovr}
+            </div>
+            <div className="mt-0.5 px-1 py-0.5 rounded-[4px] bg-slate-900/80 text-white text-[6px] font-black uppercase tracking-wider whitespace-nowrap leading-none">
+              {pos}
+            </div>
+            <div className="mt-0.5 text-[6px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[40px] text-center leading-tight">
+              {name}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
 const TeamCard = ({
   team,
   isAr,
@@ -65,6 +123,12 @@ const TeamCard = ({
     });
     return { topCaptainUid: maxVotes > 0 ? topUid : (team.players[0]?.uid || ''), voteCounts: counts };
   }, [captainVotes, team.players]);
+
+
+  const teamHex = (() => {
+    const idx = parseInt(team.id.replace('team_', '')) - 1;
+    return ['#059669', '#2563EB', '#F59E0B', '#E11D48'][idx % 4];
+  })();
 
   const teamColorClass = (() => {
     const colors = [
@@ -110,7 +174,12 @@ const TeamCard = ({
         </div>
       </div>
 
+      
+      {/* Mini Pitch View */}
+      {renderMiniPitch(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players, teamHex, team.formation)}
+
       {/* Players List */}
+
       {expanded && (
         <div className="p-4 space-y-2">
           {team.players.map((player, idx) => {
@@ -730,11 +799,12 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
 }: TurfMatchDisplayProps) {
   const [showFixtures, setShowFixtures] = useState(true);
   const [localTeams, setLocalTeams] = useState<TurfTeam[]>(turfResult.teams);
+  const [localWaitingTeams, setLocalWaitingTeams] = useState<TurfTeam[]>(turfResult.waitingTeams || []);
   const [subTarget, setSubTarget] = useState<{ teamId: string, playerUid: string } | null>(null);
 
-  // When turfResult updates (e.g. from MatchConfigModal generation), reset localTeams
   useEffect(() => {
     setLocalTeams(turfResult.teams);
+    setLocalWaitingTeams(turfResult.waitingTeams || []);
   }, [turfResult]);
 
   const {
@@ -874,6 +944,60 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
         </motion.div>
       )}
 
+      
+      {/* Benched Players (Waiting Teams) */}
+      {localWaitingTeams.length > 0 && localWaitingTeams[0]?.players?.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-200 dark:border-slate-700"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+              <Users className="w-4 h-4 text-slate-500" />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-800 dark:text-slate-200">{isAr ? 'دكة البدلاء' : 'Benched Players'}</h3>
+              <p className="text-xs text-slate-500">{isAr ? 'قم بتبديلهم إلى أي فريق' : 'Substitute them into any team'}</p>
+            </div>
+          </div>
+          <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+            {localWaitingTeams.flatMap(team => team.players).map(player => {
+              const ovr = Math.round(Object.values(player.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(player.attributes || {}).length));
+              return (
+                <div key={player.uid} className="flex items-center gap-3 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                  <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 shrink-0 overflow-hidden">
+                    {player.photoUrl ? (
+                      <Image src={player.photoUrl} alt={player.fullName} width={32} height={32} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-sm font-black text-slate-500">
+                        {(player.cardName || player.fullName || '?').charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-bold text-sm text-slate-900 dark:text-white truncate">
+                      {player.cardName || player.fullName}
+                    </div>
+                    <div className="text-[10px] text-slate-500">{player.primaryPosition}</div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <OVR_BADGE ovr={ovr || 60} />
+                    <button
+                      onClick={() => setSubTarget({ teamId: 'waiting', playerUid: player.uid })}
+                      title={isAr ? "دخول كبديل" : "Sub In"}
+                      className="p-1.5 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-lg transition-colors"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
       {/* Substitution Modal */}
       <AnimatePresence>
         {subTarget && (
@@ -905,120 +1029,182 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
               </div>
 
               <div className="p-4 overflow-y-auto">
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 font-bold">
-                  {isAr ? 'قم باختيار لاعب بديل من الفرق المريحة (خارج الملعب) أو دع الذكاء الاصطناعي يختار أفضل بديل متاح.' : 'Choose a substitute from resting teams or let AI auto-select the best fit.'}
-                </p>
-
-                <button
-                  onClick={() => {
-                    // AI Selection Logic
-                    const targetTeam = localTeams.find(t => t.id === subTarget.teamId)!;
-                    const targetPlayer = targetTeam.players.find(p => p.uid === subTarget.playerUid)!;
-                    const targetPos = targetPlayer.primaryPosition || 'CMF';
-
-                    // Get all players not in the current active team
-                    let candidateTeams = localTeams.filter(t => t.id !== subTarget.teamId);
-                    
-                    const candidates = candidateTeams.flatMap(t => t.players.map(p => ({ player: p, sourceTeamId: t.id })));
-                    
-                    // Simple heuristic: same primary position, closest OVR
-                    const targetOvr = Math.round(Object.values(targetPlayer.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(targetPlayer.attributes || {}).length));
-                    
-                    const sortedCandidates = candidates.sort((a, b) => {
-                      const aIsSamePos = (a.player.primaryPosition || 'CMF') === targetPos;
-                      const bIsSamePos = (b.player.primaryPosition || 'CMF') === targetPos;
-                      if (aIsSamePos && !bIsSamePos) return -1;
-                      if (!aIsSamePos && bIsSamePos) return 1;
-                      
-                      const aOvr = Math.round(Object.values(a.player.attributes || {}).reduce((sum: number, val: number) => sum + val, 0) / Math.max(1, Object.values(a.player.attributes || {}).length));
-                      const bOvr = Math.round(Object.values(b.player.attributes || {}).reduce((sum: number, val: number) => sum + val, 0) / Math.max(1, Object.values(b.player.attributes || {}).length));
-                      
-                      return Math.abs(aOvr - targetOvr) - Math.abs(bOvr - targetOvr);
-                    });
-
-                    if (sortedCandidates.length > 0) {
-                      const bestCandidate = sortedCandidates[0];
-                      // Perform Swap
-                      const newTeams = localTeams.map(team => {
-                        if (team.id === subTarget.teamId) {
-                          return {
-                            ...team,
-                            players: team.players.map(p => p.uid === subTarget.playerUid ? bestCandidate.player : p)
-                          };
-                        }
-                        if (team.id === bestCandidate.sourceTeamId) {
-                          return {
-                            ...team,
-                            players: team.players.map(p => p.uid === bestCandidate.player.uid ? targetPlayer : p)
-                          };
-                        }
-                        return team;
-                      });
-                      setLocalTeams(newTeams);
-                      setSubTarget(null);
-                    }
-                  }}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black py-3 rounded-xl hover:shadow-lg transition-all mb-6"
-                >
-                  <Bot className="w-5 h-5" />
-                  {isAr ? 'التبديل التلقائي (AI)' : 'Auto-Select Substitute'}
-                </button>
-
-                <div className="space-y-4">
-                  {localTeams.filter(t => t.id !== subTarget.teamId).map(team => (
-                    <div key={team.id}>
-                      <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">{team.name}</h4>
-                      <div className="space-y-2">
-                        {team.players.map(player => {
-                          const ovr = Math.round(Object.values(player.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(player.attributes || {}).length));
-                          return (
-                            <button
-                              key={player.uid}
-                              onClick={() => {
-                                // Manual swap
-                                const targetTeam = localTeams.find(t => t.id === subTarget.teamId)!;
-                                const targetPlayer = targetTeam.players.find(p => p.uid === subTarget.playerUid)!;
-                                const newTeams = localTeams.map(t => {
-                                  if (t.id === subTarget.teamId) {
-                                    return {
+                {subTarget.teamId === 'waiting' ? (
+                  <>
+                    {/* Substituting a Benched Player INTO an active team */}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 font-bold">
+                      {isAr ? 'اختر الفريق واللاعب الذي تريد استبداله بهذا اللاعب.' : 'Select the team and player to swap with this benched player.'}
+                    </p>
+                    <div className="space-y-4">
+                      {localTeams.map(team => (
+                        <div key={team.id}>
+                          <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">{team.name}</h4>
+                          <div className="space-y-2">
+                            {team.players.map(activePlayer => {
+                              const ovr = Math.round(Object.values(activePlayer.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(activePlayer.attributes || {}).length));
+                              return (
+                                <button
+                                  key={activePlayer.uid}
+                                  onClick={() => {
+                                    const benchedPlayer = localWaitingTeams.flatMap(t => t.players).find(p => p.uid === subTarget.playerUid)!;
+                                    
+                                    // Remove from waiting teams
+                                    const newWaitingTeams = localWaitingTeams.map(t => ({
                                       ...t,
-                                      players: t.players.map(p => p.uid === subTarget.playerUid ? player : p)
-                                    };
-                                  }
-                                  if (t.id === team.id) {
-                                    return {
-                                      ...t,
-                                      players: t.players.map(p => p.uid === player.uid ? targetPlayer : p)
-                                    };
-                                  }
-                                  return t;
-                                });
-                                setLocalTeams(newTeams);
-                                setSubTarget(null);
-                              }}
-                              className="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                  {player.cardName || player.fullName}
-                                </div>
-                                <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                                  {player.primaryPosition}
-                                </div>
-                              </div>
-                              <OVR_BADGE ovr={ovr || 60} />
-                            </button>
-                          );
-                        })}
-                      </div>
+                                      players: t.players.filter(p => p.uid !== subTarget.playerUid)
+                                    }));
+                                    
+                                    // Add active player to waiting teams
+                                    if (newWaitingTeams.length > 0) {
+                                      newWaitingTeams[0].players.push(activePlayer);
+                                    } else {
+                                      newWaitingTeams.push({ id: 'waiting_1', name: 'Bench', players: [activePlayer], assignedPlayers: [], gkOrder: [], totalOvr: 0, avgOvr: 0 });
+                                    }
+
+                                    // Replace in localTeams
+                                    const newTeams = localTeams.map(t => {
+                                      if (t.id === team.id) {
+                                        return {
+                                          ...t,
+                                          players: t.players.map(p => p.uid === activePlayer.uid ? benchedPlayer : p)
+                                        };
+                                      }
+                                      return t;
+                                    });
+
+                                    setLocalTeams(newTeams);
+                                    setLocalWaitingTeams(newWaitingTeams);
+                                    setSubTarget(null);
+                                  }}
+                                  className="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                                >
+                                  <div className="flex-1">
+                                    <div className="font-bold text-sm text-slate-900 dark:text-white">
+                                      {activePlayer.cardName || activePlayer.fullName}
+                                    </div>
+                                    <div className="text-xs text-slate-500">{activePlayer.primaryPosition}</div>
+                                  </div>
+                                  <OVR_BADGE ovr={ovr || 60} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                ) : (
+                  <>
+                    {/* Substituting an ACTIVE Player OUT */}
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 font-bold">
+                      {isAr ? 'اختر لاعب من الاحتياط أو فريق آخر للتبديل معه.' : 'Select a player from the bench or another team to swap with.'}
+                    </p>
+
+                    {/* Benched Candidates First */}
+                    {localWaitingTeams.flatMap(t => t.players).length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-xs font-black text-indigo-500 uppercase tracking-wider mb-2">{isAr ? 'البدلاء (دكة)' : 'Bench'}</h4>
+                        <div className="space-y-2">
+                          {localWaitingTeams.flatMap(t => t.players).map(benchPlayer => {
+                            const ovr = Math.round(Object.values(benchPlayer.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(benchPlayer.attributes || {}).length));
+                            return (
+                              <button
+                                key={benchPlayer.uid}
+                                onClick={() => {
+                                  const targetTeam = localTeams.find(t => t.id === subTarget.teamId)!;
+                                  const targetPlayer = targetTeam.players.find(p => p.uid === subTarget.playerUid)!;
+                                  
+                                  const newWaitingTeams = localWaitingTeams.map(t => ({
+                                    ...t,
+                                    players: t.players.map(p => p.uid === benchPlayer.uid ? targetPlayer : p)
+                                  }));
+
+                                  const newTeams = localTeams.map(t => {
+                                    if (t.id === subTarget.teamId) {
+                                      return {
+                                        ...t,
+                                        players: t.players.map(p => p.uid === subTarget.playerUid ? benchPlayer : p)
+                                      };
+                                    }
+                                    return t;
+                                  });
+
+                                  setLocalTeams(newTeams);
+                                  setLocalWaitingTeams(newWaitingTeams);
+                                  setSubTarget(null);
+                                }}
+                                className="w-full flex items-center gap-3 p-3 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors text-left"
+                              >
+                                <div className="flex-1">
+                                  <div className="font-bold text-sm text-slate-900 dark:text-white">
+                                    {benchPlayer.cardName || benchPlayer.fullName}
+                                  </div>
+                                  <div className="text-xs text-slate-500">{benchPlayer.primaryPosition}</div>
+                                </div>
+                                <OVR_BADGE ovr={ovr || 60} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Active Candidates */}
+                    <div className="space-y-4">
+                      {localTeams.filter(t => t.id !== subTarget.teamId).map(team => (
+                        <div key={team.id}>
+                          <h4 className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2">{team.name}</h4>
+                          <div className="space-y-2">
+                            {team.players.map(player => {
+                              const ovr = Math.round(Object.values(player.attributes || {}).reduce((a: number, b: number) => a + b, 0) / Math.max(1, Object.values(player.attributes || {}).length));
+                              return (
+                                <button
+                                  key={player.uid}
+                                  onClick={() => {
+                                    const targetTeam = localTeams.find(t => t.id === subTarget.teamId)!;
+                                    const targetPlayer = targetTeam.players.find(p => p.uid === subTarget.playerUid)!;
+                                    const newTeams = localTeams.map(t => {
+                                      if (t.id === subTarget.teamId) {
+                                        return {
+                                          ...t,
+                                          players: t.players.map(p => p.uid === subTarget.playerUid ? player : p)
+                                        };
+                                      }
+                                      if (t.id === team.id) {
+                                        return {
+                                          ...t,
+                                          players: t.players.map(p => p.uid === player.uid ? targetPlayer : p)
+                                        };
+                                      }
+                                      return t;
+                                    });
+                                    setLocalTeams(newTeams);
+                                    setSubTarget(null);
+                                  }}
+                                  className="w-full flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left"
+                                >
+                                  <div className="flex-1">
+                                    <div className="font-bold text-sm text-slate-900 dark:text-white">
+                                      {player.cardName || player.fullName}
+                                    </div>
+                                    <div className="text-xs text-slate-500">{player.primaryPosition}</div>
+                                  </div>
+                                  <OVR_BADGE ovr={ovr || 60} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
     </div>
   );
 });

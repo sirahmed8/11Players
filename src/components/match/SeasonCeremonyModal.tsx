@@ -442,29 +442,23 @@ export default function SeasonCeremonyModal({
 
                 <div className="space-y-4">
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendWinnerNotifs ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
-                    <div className="relative mt-1 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all duration-300"
+                    <div className="relative mt-1 flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-300 shadow-inner"
                          style={{
-                           borderColor: sendWinnerNotifs ? '#f59e0b' : '#475569',
-                           backgroundColor: sendWinnerNotifs ? '#f59e0b' : 'transparent'
+                           backgroundColor: sendWinnerNotifs ? '#10b981' : '#334155'
                          }}>
                       <input
                         type="checkbox"
                         checked={sendWinnerNotifs}
                         onChange={e => setSendWinnerNotifs(e.target.checked)}
-                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                       />
-                      <AnimatePresence>
-                        {sendWinnerNotifs && (
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={3} />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <motion.div
+                        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                        animate={{ x: sendWinnerNotifs ? 24 : 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      >
+                        {sendWinnerNotifs && <CheckCircle2 className="w-3 h-3 text-emerald-500" strokeWidth={4} />}
+                      </motion.div>
                     </div>
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-2">
@@ -479,29 +473,23 @@ export default function SeasonCeremonyModal({
                   </label>
 
                   <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendCommunityBroadcast ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
-                    <div className="relative mt-1 flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all duration-300"
+                    <div className="relative mt-1 flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-300 shadow-inner"
                          style={{
-                           borderColor: sendCommunityBroadcast ? '#f59e0b' : '#475569',
-                           backgroundColor: sendCommunityBroadcast ? '#f59e0b' : 'transparent'
+                           backgroundColor: sendCommunityBroadcast ? '#8b5cf6' : '#334155' // violet-500
                          }}>
                       <input
                         type="checkbox"
                         checked={sendCommunityBroadcast}
                         onChange={e => setSendCommunityBroadcast(e.target.checked)}
-                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
                       />
-                      <AnimatePresence>
-                        {sendCommunityBroadcast && (
-                          <motion.div
-                            initial={{ scale: 0, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, type: "spring", stiffness: 300 }}
-                          >
-                            <CheckCircle2 className="w-4 h-4 text-white" strokeWidth={3} />
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                      <motion.div
+                        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
+                        animate={{ x: sendCommunityBroadcast ? 24 : 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      >
+                        {sendCommunityBroadcast && <CheckCircle2 className="w-3 h-3 text-violet-500" strokeWidth={4} />}
+                      </motion.div>
                     </div>
                     <div>
                       <div className="text-sm font-bold text-white flex items-center gap-2">

@@ -379,6 +379,14 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
     }
   }
 
+  // Footedness modifiers (Inverted Wingers / Fullbacks as requested)
+  const foot = player.preferredFoot?.toLowerCase();
+  if (foot === 'left' && ['RB', 'RWF', 'RMF'].includes(position)) {
+    psi *= 1.05; // 5% bonus for preferred inverted roles
+  } else if (foot === 'right' && ['LB', 'LWF', 'LMF'].includes(position)) {
+    psi *= 1.05; // 5% bonus for preferred inverted roles
+  }
+
   return psi;
 }
 
@@ -429,33 +437,84 @@ export function calculateTeamMetrics(team: PlayerProfile[]): TeamMetrics {
 
 /**
  * Determine how well a group of players fits a given formation.
- *
- * Score = sum of each player's best possible PSI for each slot,
- * assigned greedily (highest-PSI candidate first, no duplicates).
+ * Scores higher if more players can play in their 1st choice, then 2nd, then 3rd.
  */
 function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): number {
+  let score = 0;
   const available = new Set(players.map((_, i) => i));
-  let totalPSI = 0;
+  const unfilledSlots = [...formation];
 
-  for (const slot of formation) {
+  // Pass 1: Primary positions
+  for (let i = unfilledSlots.length - 1; i >= 0; i--) {
+    const slot = unfilledSlots[i];
     let bestIdx = -1;
     let bestPSI = -Infinity;
-
     for (const idx of available) {
-      const psi = calculatePSI(players[idx], slot);
-      if (psi > bestPSI) {
-        bestPSI = psi;
-        bestIdx = idx;
+      if (players[idx].primaryPosition === slot) {
+        const psi = calculatePSI(players[idx], slot);
+        if (psi > bestPSI) { bestPSI = psi; bestIdx = idx; }
       }
     }
-
     if (bestIdx >= 0) {
-      totalPSI += bestPSI;
+      score += 1000 + bestPSI; // Heavy weight for 1st choice
       available.delete(bestIdx);
+      unfilledSlots.splice(i, 1);
     }
   }
 
-  return totalPSI;
+  // Pass 2: Secondary positions
+  for (let i = unfilledSlots.length - 1; i >= 0; i--) {
+    const slot = unfilledSlots[i];
+    let bestIdx = -1;
+    let bestPSI = -Infinity;
+    for (const idx of available) {
+      if (players[idx].secondaryPosition === slot) {
+        const psi = calculatePSI(players[idx], slot);
+        if (psi > bestPSI) { bestPSI = psi; bestIdx = idx; }
+      }
+    }
+    if (bestIdx >= 0) {
+      score += 100 + bestPSI; // Medium weight for 2nd choice
+      available.delete(bestIdx);
+      unfilledSlots.splice(i, 1);
+    }
+  }
+
+  // Pass 3: Tertiary positions
+  for (let i = unfilledSlots.length - 1; i >= 0; i--) {
+    const slot = unfilledSlots[i];
+    let bestIdx = -1;
+    let bestPSI = -Infinity;
+    for (const idx of available) {
+      if (players[idx].tertiaryPosition === slot) {
+        const psi = calculatePSI(players[idx], slot);
+        if (psi > bestPSI) { bestPSI = psi; bestIdx = idx; }
+      }
+    }
+    if (bestIdx >= 0) {
+      score += 10 + bestPSI; // Light weight for 3rd choice
+      available.delete(bestIdx);
+      unfilledSlots.splice(i, 1);
+    }
+  }
+
+  // Pass 4: Out of position
+  for (let i = unfilledSlots.length - 1; i >= 0; i--) {
+    const slot = unfilledSlots[i];
+    let bestIdx = -1;
+    let bestPSI = -Infinity;
+    for (const idx of available) {
+      const psi = calculatePSI(players[idx], slot);
+      if (psi > bestPSI) { bestPSI = psi; bestIdx = idx; }
+    }
+    if (bestIdx >= 0) {
+      score += bestPSI;
+      available.delete(bestIdx);
+      unfilledSlots.splice(i, 1);
+    }
+  }
+
+  return score;
 }
 
 /**
@@ -606,44 +665,89 @@ export function assignPlayersToFormation(
   }
 
   const numSlots = Math.min(slots.length, players.length);
+  const result: AssignedPlayer[] = new Array(numSlots).fill(null);
+  const availablePlayers = new Set(players.map((_, i) => i));
+  const unfilledSlots = new Set(slots.slice(0, numSlots).map((_, i) => i));
 
-  const psiMatrix: number[][] = [];
-  for (let s = 0; s < numSlots; s++) {
-    psiMatrix[s] = [];
-    for (let p = 0; p < players.length; p++) {
-      psiMatrix[s][p] = calculatePSI(players[p], slots[s]);
+  // Helper to find the best player for a slot matching a specific position property
+  const fillPass = (posProperty: 'primaryPosition' | 'secondaryPosition' | 'tertiaryPosition') => {
+    // Sort slots by how many available players can play them (fewer options = fill first)
+    const sortedSlots = Array.from(unfilledSlots).sort((a, b) => {
+      let countA = 0, countB = 0;
+      availablePlayers.forEach(pIdx => { if (players[pIdx][posProperty] === slots[a]) countA++; });
+      availablePlayers.forEach(pIdx => { if (players[pIdx][posProperty] === slots[b]) countB++; });
+      return countA - countB;
+    });
+
+    for (const slotIdx of sortedSlots) {
+      if (!unfilledSlots.has(slotIdx)) continue;
+      
+      let bestIdx = -1;
+      let bestPSI = -Infinity;
+      
+      for (const pIdx of availablePlayers) {
+        if (players[pIdx][posProperty] === slots[slotIdx]) {
+          const psi = calculatePSI(players[pIdx], slots[slotIdx]);
+          if (psi > bestPSI) {
+            bestPSI = psi;
+            bestIdx = pIdx;
+          }
+        }
+      }
+
+      if (bestIdx >= 0) {
+        result[slotIdx] = {
+          ...players[bestIdx],
+          assignedPosition: slots[slotIdx],
+          psi: bestPSI
+        };
+        availablePlayers.delete(bestIdx);
+        unfilledSlots.delete(slotIdx);
+      }
+    }
+  };
+
+  // 1. Fill 1st choices
+  fillPass('primaryPosition');
+  // 2. Fill 2nd choices
+  fillPass('secondaryPosition');
+  // 3. Fill 3rd choices
+  fillPass('tertiaryPosition');
+
+  // 4. Fill remaining slots with highest PSI overall
+  for (const slotIdx of Array.from(unfilledSlots)) {
+    let bestIdx = -1;
+    let bestPSI = -Infinity;
+    
+    for (const pIdx of availablePlayers) {
+      const psi = calculatePSI(players[pIdx], slots[slotIdx]);
+      if (psi > bestPSI) {
+        bestPSI = psi;
+        bestIdx = pIdx;
+      }
+    }
+
+    if (bestIdx >= 0) {
+      result[slotIdx] = {
+        ...players[bestIdx],
+        assignedPosition: slots[slotIdx],
+        psi: bestPSI
+      };
+      availablePlayers.delete(bestIdx);
+      unfilledSlots.delete(slotIdx);
     }
   }
 
-  const slotOrder = buildSlotOrder(slots.slice(0, numSlots) as PESPosition[], psiMatrix);
-  const optimalAssignment = findOptimalAssignment(psiMatrix, slotOrder, players.length);
-
-  const assignedPlayers = new Set<number>();
-  const result: AssignedPlayer[] = [];
-
-  for (let orderIndex = 0; orderIndex < numSlots; orderIndex++) {
-    const playerIndex = optimalAssignment[orderIndex];
-    const slotIdx = slotOrder[orderIndex];
-    if (playerIndex < 0 || playerIndex >= players.length) continue;
-    assignedPlayers.add(playerIndex);
+  // Add remaining unassigned players to the result (as bench/subs)
+  for (const pIdx of availablePlayers) {
     result.push({
-      ...players[playerIndex],
-      assignedPosition: slots[slotIdx],
-      psi: psiMatrix[slotIdx][playerIndex],
+      ...players[pIdx],
+      assignedPosition: players[pIdx].primaryPosition,
+      psi: calculatePSI(players[pIdx], players[pIdx].primaryPosition)
     });
   }
 
-  for (let p = 0; p < players.length; p++) {
-    if (!assignedPlayers.has(p)) {
-      result.push({
-        ...players[p],
-        assignedPosition: players[p].primaryPosition,
-        psi: calculatePSI(players[p], players[p].primaryPosition),
-      });
-    }
-  }
-
-  return result;
+  return result.filter(Boolean); // Clean out any nulls just in case
 }
 
 // ─── Team Balancing ──────────────────────────────────────────────────────────
@@ -1097,6 +1201,8 @@ export interface TurfTeam {
   avgOvr: number;
   gkOrder: PlayerProfile[]; // Rotating GK order for this team
   fixedGkUid?: string;      // UID if a fixed GK was picked for this team
+  formation?: string;
+  assignedPlayers?: AssignedPlayer[];
 }
 
 export interface TurfFixture {
@@ -1108,6 +1214,7 @@ export interface TurfFixture {
 
 export interface TurfMatchmakingResult {
   teams: TurfTeam[];
+  waitingTeams?: TurfTeam[];
   gkRotationSchedule: { teamId: string; playerName: string; matchNumber: number }[];
   fixtures: TurfFixture[];
   matchType: 'league' | 'knockout' | 'winner_stays' | 'friendly';
@@ -1217,6 +1324,17 @@ export function generateTurfMatch(
 
   const totalNeeded = numTeams * playersPerTeam;
   const activePlayers = availablePlayers.slice(0, totalNeeded);
+  const leftoverPlayers = availablePlayers.slice(totalNeeded);
+
+  const waitingTeams: TurfTeam[] = leftoverPlayers.length > 0 ? [{
+    id: 'waiting_1',
+    name: 'Bench',
+    players: leftoverPlayers,
+    assignedPlayers: [],
+    gkOrder: [],
+    totalOvr: 0,
+    avgOvr: 0
+  }] : [];
 
   // Run Serpentine draft
   const draftedTeams = serpentineDraftStrategy(activePlayers, numTeams);
@@ -1228,6 +1346,9 @@ export function generateTurfMatch(
     const gkOrder = buildGkRotationOrderStrategy(players);
     const fixedGkUid = idx === 0 ? fixedGkTeamA : idx === 1 ? fixedGkTeamB : undefined;
 
+    const formation = selectBestFormation(players);
+    const assignedPlayers = assignPlayersToFormation(players, formation);
+
     return {
       id: `team_${idx + 1}`,
       name: `Team ${String.fromCharCode(65 + idx)}`, // Team A, B, C...
@@ -1235,7 +1356,9 @@ export function generateTurfMatch(
       totalOvr,
       avgOvr,
       gkOrder,
-      fixedGkUid
+      fixedGkUid,
+      formation,
+      assignedPlayers
     };
   });
 
@@ -1268,6 +1391,7 @@ export function generateTurfMatch(
 
   return {
     teams,
+    waitingTeams,
     gkRotationSchedule,
     fixtures,
     matchType,
