@@ -664,14 +664,6 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     <>
       <div className="mb-4 flex flex-wrap justify-end gap-3">
         <button
-          onClick={handleApplyAIToAllPlayers}
-          className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2 text-sm font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95"
-          title={t(locale, 'Apply AI best position & play style to all players', 'تطبيق أفضل مركز وأسلوب لعب من الذكاء الاصطناعي على جميع اللاعبين')}
-        >
-          <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-          <span>{t(locale, 'Apply AI Best to All Players', 'تطبيق اختيار الذكاء الاصطناعي للجميع')}</span>
-        </button>
-        <button
           onClick={handleExportCSV}
           className="flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
         >

@@ -218,28 +218,28 @@ export function getTacticalSuggestions(
 
     case 'LMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-      if (isLeftFoot || isAmbi) {
+      if (isRightFoot || isAmbi) {
         score += 4;
-        rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the left.';
-        rationaleAr = 'لاعب وسط أيسر لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليسار.';
+        rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the left.';
+        rationaleAr = 'لاعب وسط أيسر عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليسار.';
       } else {
         score -= 2;
-        rationaleEn = 'Pacy wide operator on the left, but playing inverted which limits crossing options.';
-        rationaleAr = 'لاعب سريع على الجهة اليسرى، لكنه يلعب بقدم يمنى مما يحد من خيارات العرضيات.';
+        rationaleEn = 'Pacy wide operator on the left, but playing with a left foot limits cutting inside.';
+        rationaleAr = 'لاعب سريع على الجهة اليسرى، لكنه يلعب بقدم يسرى مما يحد من الدخول للعمق.';
       }
       break;
     }
 
     case 'RMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-      if (isRightFoot || isAmbi) {
+      if (isLeftFoot || isAmbi) {
         score += 4;
-        rationaleEn = 'Tireless wide midfielder offering width, pace, and brilliant crossing from the right.';
-        rationaleAr = 'لاعب وسط أيمن لا يكل، يوفر اتساعاً للملعب، سرعة، وعرضيات رائعة من اليمين.';
+        rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the right.';
+        rationaleAr = 'لاعب وسط أيمن عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليمين.';
       } else {
         score -= 2;
-        rationaleEn = 'Pacy wide operator on the right, but playing inverted which limits crossing options.';
-        rationaleAr = 'لاعب سريع على الجهة اليمنى، لكنه يلعب بقدم يسرى مما يحد من خيارات العرضيات.';
+        rationaleEn = 'Pacy wide operator on the right, but playing with a right foot limits cutting inside.';
+        rationaleAr = 'لاعب سريع على الجهة اليمنى، لكنه يلعب بقدم يمنى مما يحد من الدخول للعمق.';
       }
       break;
     }

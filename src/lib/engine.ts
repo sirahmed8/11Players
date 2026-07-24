@@ -381,10 +381,10 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
 
   // Footedness modifiers (Inverted Wingers / Fullbacks as requested)
   const foot = player.preferredFoot?.toLowerCase();
-  if (foot === 'left' && ['RB', 'RWF', 'RMF'].includes(position)) {
-    psi *= 1.05; // 5% bonus for preferred inverted roles
-  } else if (foot === 'right' && ['LB', 'LWF', 'LMF'].includes(position)) {
-    psi *= 1.05; // 5% bonus for preferred inverted roles
+  if (foot === 'left' && ['LB', 'RWF', 'RMF'].includes(position)) {
+    psi *= 1.05; // 5% bonus for preferred roles
+  } else if (foot === 'right' && ['RB', 'LWF', 'LMF'].includes(position)) {
+    psi *= 1.05; // 5% bonus for preferred roles
   }
 
   return psi;

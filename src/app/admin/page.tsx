@@ -422,65 +422,7 @@ export default function AdminPage() {
                 </div>
 
                 {/* Organized Luxury Control Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
-                  {/* Card 1: Matchmaking Engine (Primary CTA) */}
-                  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-900/90 dark:to-teal-950 text-white p-6 shadow-xl flex flex-col justify-between border border-emerald-400/30">
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center backdrop-blur-md">
-                          <Swords className="w-6 h-6 text-white" />
-                        </div>
-                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-white/20">
-                          {isAr ? "محرك الفرق AI" : "AI ENGINE"}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-black mb-1">{isAr ? "تشكيل وتوزيع الفرق" : "Squad Matchmaking"}</h3>
-                      <p className="text-emerald-100 text-xs leading-relaxed mb-6">
-                        {isAr
-                          ? "توزيع متوازن عادل للفرق بناءً على التقييم الواقعي (OVR) ومراكز اللعب والتناغم."
-                          : "Balanced AI team generation based on realistic OVR ratings, positions, and chemistry."}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-2.5">
-                      {isOwner && (
-                        <button
-                          onClick={() => setIsConfigModalOpen(true)}
-                          disabled={matchmakingLoading}
-                          className="w-full py-3.5 px-5 bg-white text-emerald-950 hover:bg-emerald-50 font-black rounded-2xl shadow-lg transition-all flex items-center justify-center gap-2.5 disabled:opacity-50"
-                        >
-                          <Swords className="w-5 h-5 text-emerald-600" />
-                          <span>{matchmakingLoading ? (isAr ? "جارٍ التشكيل..." : "Generating Squads...") : (isAr ? "بدء تشكيل الفرق الآن" : "Run AI Matchmaking")}</span>
-                        </button>
-                      )}
-
-                      <button
-                        onClick={async () => {
-                          if (!user || !activeCommunityId) return;
-                          const isExcluded = players.find(p => p.uid === user.uid)?.isExcludedFromMatchmaking;
-                          const docRef = doc(db, 'communities', activeCommunityId, 'players', user.uid);
-                          await setDoc(docRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
-                          const globalDocRef = doc(db, 'players', user.uid);
-                          await setDoc(globalDocRef, { isExcludedFromMatchmaking: !isExcluded }, { merge: true });
-                          toast.success(isExcluded ? (isAr ? "تم إضافتك للتشكيل" : "Included in matchmaking") : (isAr ? "تم استبعادك" : "Excluded from matchmaking"));
-                        }}
-                        className="w-full py-2.5 px-4 bg-black/20 hover:bg-black/30 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        {players.find(p => p.uid === user?.uid)?.isExcludedFromMatchmaking ? (
-                          <>
-                            <UserCheck className="w-4 h-4 text-emerald-300" />
-                            <span>{isAr ? "تضمين حسابي في التشكيل القادم" : "Include me in next match"}</span>
-                          </>
-                        ) : (
-                          <>
-                            <UserX className="w-4 h-4 text-amber-300" />
-                            <span>{isAr ? "استبعاد حسابي مؤقتاً من التشكيل" : "Exclude me from next match"}</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
                   {/* Card 2: Official Reports & Bulk PDF */}
                   <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">

@@ -10,13 +10,13 @@ const PITCH_COORDS: Record<string, {x:number;y:number}> = {
 export const renderMiniPitch = (team: any[], color: string, formation?: string) => {
   return (
     <div
-      className="relative w-full rounded-b-none overflow-hidden border-b border-emerald-600/40"
+      className="relative w-full rounded-b-none border-b border-emerald-600/40"
       style={{
         background: 'repeating-linear-gradient(180deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
         paddingTop: '65%',
       }}
     >
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute left-1/2 bottom-0 -translate-x-1/2 w-16 h-16 rounded-full border border-white/20" style={{bottom:'-32px'}}/>
         <div className="absolute left-1/4 right-1/4 bottom-0 h-[15%] border-t border-x border-white/20"/>
         <div className="absolute left-1/3 right-1/3 top-0 h-[10%] border-b border-x border-white/20"/>
