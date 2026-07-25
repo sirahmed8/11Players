@@ -332,6 +332,80 @@ function mean(values: number[]): number {
  * console.log(`PSI at CB: ${psi.toFixed(2)}`);
  * ```
  */
+/**
+ * Evaluates positional familiarity & tactical compatibility for any position slot across the entire pitch.
+ * Returns a precise familiarity multiplier [0.05 to 1.0].
+ */
+export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPosition: PESPosition): number {
+  if (!player) return 0.20;
+  const p1 = player.primaryPosition;
+  const p2 = player.secondaryPosition;
+  const p3 = player.tertiaryPosition;
+
+  // Exact position matches
+  if (targetPosition === p1) return POSITION_FAMILIARITY.primary; // 1.0
+  if (targetPosition === p2) return POSITION_FAMILIARITY.secondary; // 0.90
+  if (targetPosition === p3) return POSITION_FAMILIARITY.tertiary; // 0.75
+
+  // GK Special Case: Non-GK playing GK
+  if (targetPosition === 'GK') {
+    return p1 === 'GK' ? 1.0 : 0.05;
+  }
+
+  // Category matching
+  const targetCat = POSITION_CATEGORIES[targetPosition];
+  const p1Cat = POSITION_CATEGORIES[p1 || 'CMF'];
+  const p2Cat = p2 ? POSITION_CATEGORIES[p2] : null;
+  const p3Cat = p3 ? POSITION_CATEGORIES[p3] : null;
+
+  const playerPositions = [p1, p2, p3].filter(Boolean) as PESPosition[];
+
+  // 1. Same exact Category (e.g. AMF playing CMF or LWF playing CF)
+  if (p1Cat === targetCat || p2Cat === targetCat || p3Cat === targetCat) {
+    const isLeftSide = targetPosition === 'LB' || targetPosition === 'LMF' || targetPosition === 'LWF';
+    const isRightSide = targetPosition === 'RB' || targetPosition === 'RMF' || targetPosition === 'RWF';
+
+    const playerHasLeft = playerPositions.some(p => p === 'LB' || p === 'LMF' || p === 'LWF');
+    const playerHasRight = playerPositions.some(p => p === 'RB' || p === 'RMF' || p === 'RWF');
+
+    if ((isLeftSide && playerHasLeft) || (isRightSide && playerHasRight)) {
+      return 0.70; // High side/category compatibility
+    }
+    return 0.65; // Same category
+  }
+
+  // 2. Adjacent Category Crossover Compatibility
+  const isDefensiveMid = playerPositions.some(p => p === 'DMF' || p === 'CMF');
+  const isWideMid = playerPositions.some(p => p === 'LMF' || p === 'RMF');
+  const isFullback = playerPositions.some(p => p === 'LB' || p === 'RB');
+  const isWinger = playerPositions.some(p => p === 'LWF' || p === 'RWF');
+  const isAttackingMid = playerPositions.some(p => p === 'AMF' || p === 'SS');
+
+  // Fullback <-> Wide Mid / Wing crossover
+  if ((targetPosition === 'LB' || targetPosition === 'RB') && (isWideMid || isWinger)) {
+    return 0.60;
+  }
+  if ((targetPosition === 'LMF' || targetPosition === 'RMF' || targetPosition === 'LWF' || targetPosition === 'RWF') && (isFullback || isWideMid)) {
+    return 0.60;
+  }
+
+  // CB <-> DMF crossover
+  if (targetPosition === 'CB' && isDefensiveMid) {
+    return 0.55;
+  }
+  if (targetPosition === 'DMF' && (p1Cat === 'DEF' || playerPositions.includes('CB'))) {
+    return 0.55;
+  }
+
+  // AMF <-> SS / Striker crossover
+  if ((targetPosition === 'AMF' || targetPosition === 'SS') && (p1Cat === 'ATK' || isAttackingMid)) {
+    return 0.60;
+  }
+
+  // 3. Out-of-position role mismatch (e.g. CB playing CF, Attacker playing CB)
+  return 0.20;
+}
+
 export function calculatePSI(player: PlayerProfile, position: PESPosition): number {
   const activeAttributes = player?.approvedAttributes || player?.attributes;
   if (!activeAttributes) {
@@ -350,27 +424,8 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
     rawPSI += weight * clamp(attrValue, 40, 99);
   }
 
-  // ── Step 2: Familiarity multiplier ──
-  let familiarityMultiplier: number;
-  if (position === player.primaryPosition) {
-    familiarityMultiplier = POSITION_FAMILIARITY.primary;
-  } else if (position === player.secondaryPosition) {
-    familiarityMultiplier = POSITION_FAMILIARITY.secondary;
-  } else if (position === player.tertiaryPosition) {
-    familiarityMultiplier = POSITION_FAMILIARITY.tertiary;
-  } else {
-    const targetCat = POSITION_CATEGORIES[position];
-    const p1Cat = POSITION_CATEGORIES[player.primaryPosition || 'CMF'];
-    const p2Cat = player.secondaryPosition ? POSITION_CATEGORIES[player.secondaryPosition] : null;
-    
-    if (p1Cat === targetCat || p2Cat === targetCat) {
-      familiarityMultiplier = 0.65;
-    } else if (targetCat === 'DEF' && (player.primaryPosition === 'LMF' || player.primaryPosition === 'RMF' || player.primaryPosition === 'DMF')) {
-      familiarityMultiplier = 0.60;
-    } else {
-      familiarityMultiplier = 0.25; // Heavy penalty for out-of-category roles (e.g. Attacker playing LB)
-    }
-  }
+  // ── Step 2: Universal Familiarity multiplier across ALL positions ──
+  const familiarityMultiplier = getPositionFamiliarityMultiplier(player, position);
 
   let psi = rawPSI * familiarityMultiplier;
 
@@ -568,7 +623,7 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
     }
   }
 
-  // Pass 4: Out of position (penalize incompatible role assignments heavy for specialists like GK or CB)
+  // Pass 4: Out of position (penalize incompatible role assignments heavy across ALL positions)
   for (let i = unfilledSlots.length - 1; i >= 0; i--) {
     const slot = unfilledSlots[i];
     let bestIdx = -1;
@@ -579,10 +634,8 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
     }
     if (bestIdx >= 0) {
       const p = players[bestIdx];
-      const primaryCat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
-      const isDefSlot = slot === 'CB' || slot === 'LB' || slot === 'RB';
-      const hasDefCap = primaryCat === 'DEF' || primaryCat === 'GK' || (p.secondaryPosition && POSITION_CATEGORIES[p.secondaryPosition] === 'DEF') || (p.tertiaryPosition && POSITION_CATEGORIES[p.tertiaryPosition] === 'DEF') || (slot !== 'CB' && (p.primaryPosition === 'LMF' || p.primaryPosition === 'RMF' || p.primaryPosition === 'DMF'));
-      const isMismatch = (slot === 'GK' && primaryCat !== 'GK') || (isDefSlot && !hasDefCap);
+      const mult = getPositionFamiliarityMultiplier(p, slot);
+      const isMismatch = mult < 0.30;
       score += bestPSI - (isMismatch ? 350 : 50);
       available.delete(bestIdx);
       unfilledSlots.splice(i, 1);
@@ -789,26 +842,18 @@ export function assignPlayersToFormation(
   // 3. Fill 3rd choices
   fillPass('tertiaryPosition');
 
-  // 3.5. Fill remaining defensive & specialist slots with category-compatible players
+  // 3.5. Universal Category & Crossover Compatibility Pass for ALL 13 Positions across the Pitch
   for (const slotIdx of Array.from(unfilledSlots)) {
     const targetSlot = slots[slotIdx];
-    const slotCategory = POSITION_CATEGORIES[targetSlot];
-    if (slotCategory !== 'DEF' && slotCategory !== 'GK' && targetSlot !== 'DMF') continue;
-
     let bestIdx = -1;
     let bestPSI = -Infinity;
 
     for (const pIdx of availablePlayers) {
       const p = players[pIdx];
-      const p1Cat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'];
-      const p2Cat = p.secondaryPosition ? POSITION_CATEGORIES[p.secondaryPosition] : null;
-      const p3Cat = p.tertiaryPosition ? POSITION_CATEGORIES[p.tertiaryPosition] : null;
+      const mult = getPositionFamiliarityMultiplier(p, targetSlot);
 
-      const isCategoryMatch = p1Cat === slotCategory || p2Cat === slotCategory || p3Cat === slotCategory;
-      const isSideMatch = (targetSlot === 'LB' && (p.primaryPosition === 'LMF' || p.secondaryPosition === 'LMF')) ||
-                          (targetSlot === 'RB' && (p.primaryPosition === 'RMF' || p.secondaryPosition === 'RMF'));
-
-      if (isCategoryMatch || isSideMatch) {
+      // Require at least category or tactical crossover compatibility (multiplier >= 0.50)
+      if (mult >= 0.50) {
         const psi = calculatePSI(p, targetSlot);
         if (psi > bestPSI) {
           bestPSI = psi;
