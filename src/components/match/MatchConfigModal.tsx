@@ -58,7 +58,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
   const [step, setStep] = useState<'config' | 'preview'>('config');
   const [previewData, setPreviewData] = useState<any>(null);
   const [selectedForSwap, setSelectedForSwap] = useState<{
-    teamIndex: number | 'bench';
+    teamIndex: number | 'bench' | 'benchA' | 'benchB';
     playerIndex: number;
     player: any;
   } | null>(null);
@@ -442,7 +442,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     toast.success(isAr ? `تم تغيير مركز اللاعب إلى ${newPos}` : `Player position updated to ${newPos}`);
   };
 
-  const handlePlayerSwapClick = (teamIndex: number | 'bench', playerIndex: number, player: any) => {
+  const handlePlayerSwapClick = (teamIndex: number | 'bench' | 'benchA' | 'benchB', playerIndex: number, player: any) => {
     if (!selectedForSwap) {
       setSelectedForSwap({ teamIndex, playerIndex, player });
       return;
@@ -454,7 +454,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
     if (previewData.matchMode === 'turf') {
       const nextResult = JSON.parse(JSON.stringify(previewData.turfResult));
-      const getPlayerAndSet = (tIdx: number | 'bench', pIdx: number, val?: any) => {
+      const getPlayerAndSet = (tIdx: number | 'bench' | 'benchA' | 'benchB', pIdx: number, val?: any) => {
         if (tIdx === 'bench') {
           if (val !== undefined) nextResult.bench[pIdx] = val;
           return nextResult.bench[pIdx];
@@ -479,9 +479,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       setPreviewData({ ...previewData, turfResult: nextResult });
     } else {
       const nextData = JSON.parse(JSON.stringify(previewData));
-      const getList = (tIdx: number | 'bench') => {
+      const getList = (tIdx: number | 'bench' | 'benchA' | 'benchB') => {
         if (tIdx === 0) return nextData.teamA;
         if (tIdx === 1) return nextData.teamB;
+        if (tIdx === 'benchA') return nextData.benchA || nextData.bench || [];
+        if (tIdx === 'benchB') return nextData.benchB || nextData.bench || [];
         return nextData.bench;
       };
       const l1 = getList(selectedForSwap.teamIndex);
@@ -659,9 +661,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       const formSlots = FORMATIONS[formKey] || FORMATIONS[defaultForm] || FORMATIONS['4-3-3'];
                       const posCounts: Record<string, number> = {};
                       const usedSlotIndices = new Set<number>();
+                      const usedCoordCounts: Record<string, number> = {};
 
                       return (
-                        <div className="flex-1 relative min-h-0 min-w-[200px]">
+                        <div className="flex-1 relative min-h-0 min-w-[200px] select-none touch-none">
                           <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
                             <div className="flex items-center gap-2">
                               <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
@@ -669,10 +672,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             </div>
                             {formationName && <span className="text-[10px] text-slate-500 font-bold">{formationName}</span>}
                           </div>
-                          <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4" style={{ paddingTop: '130%' }}>
+                          <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4 select-none touch-none" style={{ paddingTop: '130%' }}>
                             {/* Pitch Background - Clipped */}
                             <div
-                              className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
+                              className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none"
                               style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
                             >
                               <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
@@ -681,7 +684,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
                             </div>
 
-                            {/* Player dots - Unclipped */}
+                            {/* Player dots - Unclipped & Draggable */}
                             {team.map((p: any, i: number) => {
                               const pos = p.assignedPosition || p.primaryPosition || 'CMF';
                               
@@ -707,35 +710,51 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                 coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
                               }
 
+                              // Anti-Overlap Offset for duplicate positions
+                              const coordKey = `${coords.x.toFixed(0)}-${coords.y.toFixed(0)}`;
+                              const dupIndex = usedCoordCounts[coordKey] || 0;
+                              usedCoordCounts[coordKey] = dupIndex + 1;
+                              let finalX = coords.x;
+                              if (dupIndex > 0) {
+                                const dir = dupIndex % 2 === 1 ? 1 : -1;
+                                const mult = Math.ceil(dupIndex / 2);
+                                finalX = Math.min(88, Math.max(12, coords.x + dir * mult * 14));
+                              }
+
                               const y = flipped ? 100 - coords.y : coords.y;
                               const ovr = p.overallRating || p?.stats?.overallRating || 70;
                               const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
                               const moodStyle = p.playStyle || 'Box-to-Box';
                               return (
-                                <div
+                                <motion.div
                                   key={p.uid || `pitch-${label}-${i}`}
+                                  drag
+                                  dragConstraints={{ left: -90, right: 90, top: -130, bottom: 130 }}
+                                  dragElastic={0.05}
+                                  dragSnapToOrigin={false}
+                                  whileDrag={{ scale: 1.25, zIndex: 50 }}
                                   onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' ? 'A' : label === 'Team B' ? 'B' : 0, playerIndex: i, player: p })}
-                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer transition-all duration-500 hover:scale-125 active:scale-95"
-                                  style={{left:`${coords.x}%`, top:`${y}%`}}
-                                  title={isAr ? 'اضغط لتعديل المركز ونمط اللعب (المود) فوراً ⚡' : 'Click to change tactical position & mood ⚡'}
+                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none transition-transform"
+                                  style={{left:`${finalX}%`, top:`${y}%`}}
+                                  title={isAr ? 'اسحب لتغيير موقع اللاعب على الملعب، أو اضغط لتعديل المركز ونمط اللعب ⚡' : 'Drag to reposition player on pitch, or click to edit position & mood ⚡'}
                                 >
                                   <div
-                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300"
+                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300 pointer-events-none select-none"
                                     style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
                                   >
                                     {ovr}
                                   </div>
-                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors">
+                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors pointer-events-none select-none">
                                     <span>{pos}</span>
                                     <span className="text-[7px] text-amber-300 group-hover:text-white">✏️</span>
                                   </div>
-                                  <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
+                                  <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center pointer-events-none select-none">
                                     {name}
                                   </div>
-                                  <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                  <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 select-none">
                                     {p.cardName || p.fullName} · {pos} · OVR {ovr} · {moodStyle}
                                   </div>
-                                </div>
+                                </motion.div>
                               );
                             })}
                           </div>
@@ -867,48 +886,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           })}
                         </div>
                       )}
-
-                      {/* Bench / Reserves */}
-                      {previewData.turfResult.bench && previewData.turfResult.bench.length > 0 && (
-                        <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
-                              <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                              <span>{isAr ? 'الاحتياط / المنتظرين' : 'Bench / Reserves'}</span>
-                              <span className="bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-100 text-xs px-2 py-0.5 rounded-full font-bold">
-                                {previewData.turfResult.bench.length}
-                              </span>
-                            </h4>
-                          </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                            {previewData.turfResult.bench.map((player: any, pIdx: number) => {
-                              const isSelected = selectedForSwap?.teamIndex === 'bench' && selectedForSwap?.playerIndex === pIdx;
-                              const ovr = player.overallRating || player?.stats?.overallRating || 70;
-                              return (
-                                <button
-                                  key={player.uid || `bench-${pIdx}`}
-                                  type="button"
-                                  onClick={() => handlePlayerSwapClick('bench', pIdx, player)}
-                                  className={`text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 ${
-                                    isSelected
-                                      ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
-                                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400'
-                                  }`}
-                                >
-                                  <span className="font-bold text-sm truncate">
-                                    {player.fullName || player.cardName || 'Player'}
-                                  </span>
-                                  <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
-                                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                                  }`}>
-                                    {ovr}
-                                  </span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -1007,44 +984,63 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                   );
                                 })}
                               </div>
+
+                                {/* Dedicated Bench for Team A / B */}
+                                {(() => {
+                                  const rawBench = previewData.bench || [];
+                                  const halfBench = Math.ceil(rawBench.length / 2);
+                                  const teamBench = team.tIdx === 0
+                                    ? (previewData.benchA && previewData.benchA.length > 0 ? previewData.benchA : rawBench.slice(0, halfBench))
+                                    : (previewData.benchB && previewData.benchB.length > 0 ? previewData.benchB : rawBench.slice(halfBench));
+                                  if (!teamBench || teamBench.length === 0) return null;
+                                  return (
+                                    <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                                      <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Users className="w-3.5 h-3.5" />
+                                        <span>{team.name} {isAr ? 'احتياط' : 'Bench'}</span>
+                                        <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                          {teamBench.length}
+                                        </span>
+                                      </h4>
+                                      <div className="space-y-1.5">
+                                        {teamBench.map((bItem: any, bpIdx: number) => {
+                                          const bPlayer = bItem.player || bItem;
+                                          const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
+                                          const bPos = bPlayer.primaryPosition || 'CMF';
+                                          const isBenchSelected = selectedForSwap?.teamIndex === (team.tIdx === 0 ? 'benchA' : 'benchB') && selectedForSwap?.playerIndex === bpIdx;
+                                          return (
+                                            <button
+                                              key={bPlayer.uid || `std-b-${team.tIdx}-${bpIdx}`}
+                                              type="button"
+                                              onClick={() => handlePlayerSwapClick(team.tIdx === 0 ? 'benchA' : 'benchB', bpIdx, bPlayer)}
+                                              className={`w-full text-left p-2 rounded-xl border transition-all flex items-center justify-between gap-2 ${
+                                                isBenchSelected
+                                                  ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-500/30'
+                                                  : 'bg-amber-50/60 dark:bg-amber-500/10 border-amber-200/80 dark:border-amber-500/30 text-slate-800 dark:text-slate-200 hover:border-amber-400'
+                                              }`}
+                                            >
+                                              <div className="flex items-center gap-2 min-w-0">
+                                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">
+                                                  {bPos}
+                                                </span>
+                                                <span className="font-bold text-xs truncate">
+                                                  {bPlayer.fullName || bPlayer.cardName || 'Unknown Player'}
+                                                </span>
+                                              </div>
+                                              <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+                                                {bOvr}
+                                              </span>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  );
+                                })()}
                             </div>
                           );
                         })}
                       </div>}
-
-                      {/* Bench / Reserves */}
-                      {previewData.bench && previewData.bench.length > 0 && (
-                        <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
-                          <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
-                            <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                            <span>{isAr ? 'الاحتياط' : 'Bench'}</span>
-                            <span className="bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-100 text-xs px-2 py-0.5 rounded-full font-bold">
-                              {previewData.bench.length}
-                            </span>
-                          </h4>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                            {previewData.bench.map((player: any, pIdx: number) => {
-                              const isSelected = selectedForSwap?.teamIndex === 'bench' && selectedForSwap?.playerIndex === pIdx;
-                              const ovr = player.overallRating || player?.stats?.overallRating || 70;
-                              return (
-                                <button
-                                  key={player.uid || `bench-std-${pIdx}`}
-                                  type="button"
-                                  onClick={() => handlePlayerSwapClick('bench', pIdx, player)}
-                                  className={`text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 ${
-                                    isSelected
-                                      ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
-                                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400'
-                                  }`}
-                                >
-                                  <span className="font-bold text-sm truncate">{player.fullName || player.cardName || 'Player'}</span>
-                                  <span className="text-xs font-black px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">{ovr}</span>
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                       </>
