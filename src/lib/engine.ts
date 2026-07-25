@@ -1026,10 +1026,20 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
     categories[cat].push(p);
   });
 
-  // Serpentine draft inside each position category
+  // Serpentine draft inside each position category —
+  // sort by PSI at the player's own primary position so positional specialists
+  // are picked ahead of high-OVR players who happen to share the same category.
   const catKeys: PositionCategory[] = ['GK', 'DEF', 'MID', 'ATK'];
   catKeys.forEach(cat => {
-    const sortedCat = sortPlayersByOvrDesc(categories[cat]);
+    const sortedCat = [...categories[cat]].sort((a, b) => {
+      const psiA = calculatePSI(a, a.primaryPosition);
+      const psiB = calculatePSI(b, b.primaryPosition);
+      // Blend PSI (70%) and OVR (30%) so a super-star in the right role stays
+      // ahead of an average player, but a specialist beats an OVR-padded misfit.
+      const scoreA = psiA * 0.70 + getPlayerOverall(a) * 0.30;
+      const scoreB = psiB * 0.70 + getPlayerOverall(b) * 0.30;
+      return scoreB - scoreA;
+    });
 
     for (let i = 0; i < sortedCat.length; i++) {
       if (cat === 'GK') {
