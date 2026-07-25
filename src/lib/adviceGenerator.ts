@@ -19,7 +19,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     const q = query(
       notificationsRef,
       where("type", "==", "advices"),
-      limit(15)
+      limit(4)
     );
     const snap = await getDocs(q);
     
@@ -301,15 +301,16 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       }
     );
 
-    // Filter out recently sent advice titles to guarantee fresh, non-repetitive suggestions every time
+    // Filter out recently sent advice titles to guarantee non-repetitive suggestions
     const freshAdvices = advices.filter(ad => !recentTitles.has(ad.titleEn) && !recentTitles.has(ad.titleAr));
     
-    // Strictly enforce deduplication: if no fresh advice is available, return nothing
-    if (freshAdvices.length === 0) {
+    // If all applicable advices have been shown recently, recycle the full advice pool so notifications never stop permanently
+    const poolToUse = freshAdvices.length > 0 ? freshAdvices : advices;
+    if (poolToUse.length === 0) {
       return [];
     }
 
-    // Select 1 random advice from the fresh pool using Fisher-Yates shuffle
+    // Select 1 random advice from the pool using Fisher-Yates shuffle
     const shuffleArray = <T>(array: T[]): T[] => {
       const arr = [...array];
       for (let i = arr.length - 1; i > 0; i--) {
@@ -319,7 +320,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       return arr;
     };
 
-    const shuffled = shuffleArray(freshAdvices);
+    const shuffled = shuffleArray(poolToUse);
     const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {
