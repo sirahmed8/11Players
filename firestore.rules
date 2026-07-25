@@ -22,14 +22,17 @@ service cloud.firestore {
       return request.auth != null && exists(/databases/$(database)/documents/communities/$(communityId)/players/$(request.auth.uid));
     }
 
+    function isProtectedPlayerField() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills']);
+    }
+
     // ── Players Collection ──
 
     match /players/{userId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null && (request.auth.uid == userId || isAdmin());
       allow update: if isAdmin() || (
-        request.auth != null && request.auth.uid == userId &&
-        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills']))
+        request.auth != null && request.auth.uid == userId && (!isProtectedPlayerField())
       ) || (
         isPlayerCommAdmin(userId) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stats', 'overallRating', 'attributes', 'approvedAttributes', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills'])
@@ -119,8 +122,7 @@ service cloud.firestore {
         allow read: if request.auth != null;
         allow create: if isAdmin() || isCommAdmin(communityId) || (request.auth != null && request.auth.uid == userId);
         allow update: if isAdmin() || isCommAdmin(communityId) ||
-          (request.auth != null && request.auth.uid == userId &&
-            (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills']))) ||
+          (request.auth != null && request.auth.uid == userId && (!isProtectedPlayerField())) ||
           (request.auth != null && isCommunityMember(communityId) &&
             request.resource.data.diff(resource.data).affectedKeys().hasOnly(['captainVotes']) &&
             request.resource.data.captainVotes is list);

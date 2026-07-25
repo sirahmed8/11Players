@@ -4,6 +4,8 @@ import React, { useRef, useState } from "react";
 import { Upload, Loader2, CheckCircle } from "lucide-react";
 import Image from "next/image";
 
+import toast from "react-hot-toast";
+
 interface BlobPhotoUploadProps {
   uid: string;
   currentUrl?: string;
@@ -43,7 +45,7 @@ export default function BlobPhotoUpload({ uid, currentUrl, isRTL, onUploaded }: 
       setSuccess(true);
     } catch (err: any) {
       console.error("[Blob] Upload error:", err);
-      alert(isRTL ? `فشل رفع الصورة: ${err.message}` : `Photo upload failed: ${err.message}`);
+      toast.error(isRTL ? `فشل رفع الصورة: ${err.message}` : `Photo upload failed: ${err.message}`);
       setPreview(null);
     } finally {
       setUploading(false);

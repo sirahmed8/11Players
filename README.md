@@ -15,7 +15,7 @@
 
 ## 🚀 Technologies Used
 
-- **Frontend**: Next.js 14, React, Tailwind CSS, Framer Motion
+- **Frontend**: Next.js 16, React 19, Tailwind CSS, Framer Motion
 - **Backend**: Firebase (Firestore, Authentication, Storage)
 - **Deployment**: Firebase Hosting
 

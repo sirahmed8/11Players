@@ -358,8 +358,12 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
     const unsubGlobal = onSnapshot(qGlobal, (snap) => {
       globalCounts = {};
       snap.docs.forEach(d => {
-        const pid = d.data().playerId;
-        if (pid) globalCounts[pid] = (globalCounts[pid] || 0) + 1;
+        const data = d.data();
+        const pid = data.playerId;
+        const reqCommId = data.communityId || data.targetCommunityId;
+        if (pid && (!reqCommId || reqCommId === activeCommunityId)) {
+          globalCounts[pid] = (globalCounts[pid] || 0) + 1;
+        }
       });
       updateCombined();
     });

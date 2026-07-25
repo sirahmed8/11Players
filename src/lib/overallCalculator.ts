@@ -10,16 +10,7 @@ function applyAttributeCurve(val: number): number {
   return 85 + (clamped - 85) * 0.55;
 }
 
-function getSpecialSkillsBonus(specialSkills: string[] | undefined, position: PESPosition): number {
-  if (!specialSkills || specialSkills.length === 0) return 0;
-  const relevant = specialSkills.filter((skill) => {
-    const positions = SKILL_POSITION_RELEVANCE[skill];
-    return positions && positions.includes(position);
-  });
-  if (relevant.length >= 5) return 2;
-  if (relevant.length >= 3) return 1;
-  return 0;
-}
+
 
 // ─── MAIN FUNCTION ────────────────────────────────────────────────────────────
 export function calculateRealisticOverall(

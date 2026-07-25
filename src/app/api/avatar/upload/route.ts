@@ -13,6 +13,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: "Missing filename or uid" }, { status: 400 });
     }
 
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized: Missing authentication token" }, { status: 401 });
+    }
+
     if (!request.body) {
       return NextResponse.json({ error: "No file body" }, { status: 400 });
     }
