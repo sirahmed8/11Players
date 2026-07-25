@@ -282,7 +282,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     if (previewData.matchMode === 'standard') {
       const optA = (previewData.teamA || []).map(optimizePlayer);
       const optB = (previewData.teamB || []).map(optimizePlayer);
-      const optBench = (previewData.bench || []).map(optimizePlayer);
+      const rawBench = previewData.bench || [
+        ...(previewData.benchA || []),
+        ...(previewData.benchB || []),
+      ];
+      const optBench = rawBench.map((item: any) => optimizePlayer(item.player || item));
 
       // Dynamically pick formation that best fits each team's players
       const formationA = selectBestFormation(optA);

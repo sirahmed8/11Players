@@ -43,6 +43,7 @@ export interface MatchmakingResult {
   teamB: AssignedPlayer[];
   benchA?: { player: PlayerProfile; reason: string }[];
   benchB?: { player: PlayerProfile; reason: string }[];
+  bench?: { player: PlayerProfile; reason: string }[];
   formation: {
     teamA: string;
     teamB: string;
@@ -536,7 +537,7 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
     }
   }
 
-  // Pass 4: Out of position
+  // Pass 4: Out of position (penalize incompatible role assignments heavy for specialists like GK or CB)
   for (let i = unfilledSlots.length - 1; i >= 0; i--) {
     const slot = unfilledSlots[i];
     let bestIdx = -1;
@@ -546,7 +547,11 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
       if (psi > bestPSI) { bestPSI = psi; bestIdx = idx; }
     }
     if (bestIdx >= 0) {
-      score += bestPSI;
+      const p = players[bestIdx];
+      const primaryCat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
+      const slotCat = POSITION_CATEGORIES[slot] || 'MID';
+      const isMismatch = (slot === 'GK' && primaryCat !== 'GK') || (slot === 'CB' && primaryCat !== 'DEF');
+      score += bestPSI - (isMismatch ? 300 : 50);
       available.delete(bestIdx);
       unfilledSlots.splice(i, 1);
     }
@@ -1115,23 +1120,46 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     );
   }
 
-  // ── 0. Determine Bench ──
-  const sortedPlayers = [...players].sort(
-    (a, b) =>
-      calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition)
-  );
+  // ── 0. Group pool by position categories to ensure balanced 22-starter draft ──
+  const getCat = (p: PlayerProfile): PositionCategory => POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
+  const gks = players.filter(p => getCat(p) === 'GK').sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
+  const defs = players.filter(p => getCat(p) === 'DEF').sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
+  const mids = players.filter(p => getCat(p) === 'MID').sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
+  const atks = players.filter(p => getCat(p) === 'ATK').sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
 
-  // ── 1. Partition ──
-  let [rawA, rawB] = partitionPlayers(sortedPlayers);
+  const startersPool: PlayerProfile[] = [];
+  const benchPool: PlayerProfile[] = [];
+
+  // Pick GKs (up to 2 for starters)
+  startersPool.push(...gks.slice(0, 2));
+  benchPool.push(...gks.slice(2));
+
+  // Pick Defenders (up to 8 for starters)
+  startersPool.push(...defs.slice(0, 8));
+  benchPool.push(...defs.slice(8));
+
+  // Pick Midfielders (up to 6 for starters)
+  startersPool.push(...mids.slice(0, 6));
+  benchPool.push(...mids.slice(6));
+
+  // Pick Attackers (up to 6 for starters)
+  startersPool.push(...atks.slice(0, 6));
+  benchPool.push(...atks.slice(6));
+
+  // Fill startersPool up to 22 if still under using highest OVR bench players
+  if (startersPool.length < 22 && benchPool.length > 0) {
+    benchPool.sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
+    const needed = Math.min(22 - startersPool.length, benchPool.length);
+    startersPool.push(...benchPool.splice(0, needed));
+  }
+
+  // ── 1. Partition 22 starters into Team A and Team B ──
+  let [rawA, rawB] = partitionPlayers(startersPool);
 
   // ── 2. Swap-balance ──
   [rawA, rawB] = iterativeSwapBalance(rawA, rawB);
 
-  // ── 3. Sort players & force EXACTLY 11 starters per team for standard 11v11 ──
-  const sortPool = (pool: PlayerProfile[]) => [...pool].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
-  const sortedRawA = sortPool(rawA);
-  const sortedRawB = sortPool(rawB);
-
+  // ── 3. Force EXACTLY 11 starters per team for standard 11v11 ──
   const fillTo11 = (pool: PlayerProfile[]): PlayerProfile[] => {
     const starters = pool.slice(0, 11);
     const needed = 11 - starters.length;
@@ -1144,11 +1172,12 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     return starters;
   };
 
-  const startersA = fillTo11(sortedRawA);
-  const startersB = fillTo11(sortedRawB);
+  const startersA = fillTo11(rawA);
+  const startersB = fillTo11(rawB);
 
-  const benchPoolA = sortedRawA.length > 11 ? sortedRawA.slice(11) : [];
-  const benchPoolB = sortedRawB.length > 11 ? sortedRawB.slice(11) : [];
+  const extraA = rawA.length > 11 ? rawA.slice(11) : [];
+  const extraB = rawB.length > 11 ? rawB.slice(11) : [];
+  const allBenchPool = [...benchPool, ...extraA, ...extraB];
 
   // ── 4. Select formations for starters and assign positions ──
   const formationA = selectBestFormation(startersA);
@@ -1157,8 +1186,10 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   const teamA = assignPlayersToFormation(startersA, formationA);
   const teamB = assignPlayersToFormation(startersB, formationB);
 
-  const benchA = benchPoolA.map(p => ({ player: p, reason: "Substitute (Bench)" }));
-  const benchB = benchPoolB.map(p => ({ player: p, reason: "Substitute (Bench)" }));
+  const benchList = allBenchPool.map(p => ({ player: p, reason: "Substitute (Bench)" }));
+  const halfBench = Math.ceil(benchList.length / 2);
+  const benchA = benchList.slice(0, halfBench);
+  const benchB = benchList.slice(halfBench);
 
   // ── 5. Generate AI Manager Advices ──
   const metricsA = calculateTeamMetrics(teamA);
@@ -1269,6 +1300,7 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     teamB,
     benchA: benchA.length > 0 ? benchA : undefined,
     benchB: benchB.length > 0 ? benchB : undefined,
+    bench: benchList,
     formation: {
       teamA: formationA,
       teamB: formationB,
