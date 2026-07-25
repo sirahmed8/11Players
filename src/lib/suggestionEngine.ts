@@ -138,15 +138,15 @@ export function getTacticalSuggestions(
       case 'LB': {
         score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isLeftFoot) {
-          score += 8;
+          score += 0.1;
           rationaleEn = 'Natural left foot with great pace, stamina, and crossing ability to dominate the left flank.';
           rationaleAr = 'قدم يسرى طبيعية مع سرعة عالية وتحمل وعرضيات متقنة للسيطرة على الرواق الأيسر.';
         } else if (isAmbi) {
-          score += 4;
+          score += 0.05;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the left.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليسرى.';
         } else {
-          score -= 8;
+          score -= 0.1;
           rationaleEn = 'Good pace and stamina, but playing inverted on the left with a right foot.';
           rationaleAr = 'سرعة وتحمل جيدين، لكنه يلعب كظهير عكسي في الجهة اليسرى بقدمه اليمنى.';
         }
@@ -156,15 +156,15 @@ export function getTacticalSuggestions(
       case 'RB': {
         score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isRightFoot) {
-          score += 8;
+          score += 0.1;
           rationaleEn = 'Natural right foot combined with pace, stamina, and precise crossing for the right flank.';
           rationaleAr = 'قدم يمنى طبيعية مدمجة مع سرعة وتحمل وعرضيات دقيقة للسيطرة على الرواق الأيمن.';
         } else if (isAmbi) {
-          score += 4;
+          score += 0.05;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the right.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليمنى.';
         } else {
-          score -= 8;
+          score -= 0.1;
           rationaleEn = 'Solid full-back attributes, but playing inverted on the right with a left foot.';
           rationaleAr = 'طاقات ظهير ممتازة، لكنه يلعب كظهير عكسي في الجهة اليمنى بقدمه اليسرى.';
         }
@@ -219,13 +219,13 @@ export function getTacticalSuggestions(
     case 'LMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isRightFoot || isAmbi) {
-        score += 8;
-        rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the left.';
-        rationaleAr = 'لاعب وسط أيسر عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليسار.';
+        score += 0.1;
+        rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the left and shoot on their stronger right foot.';
+        rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليسرى والتسديد بقدمه اليمنى الأقوى.';
       } else {
-        score -= 8;
-        rationaleEn = 'Pacy wide operator on the left, but playing with a left foot limits cutting inside.';
-        rationaleAr = 'لاعب سريع على الجهة اليسرى، لكنه يلعب بقدم يسرى مما يحد من الدخول للعمق.';
+        score -= 0.1;
+        rationaleEn = 'Classic winger on the left, but playing with a left foot makes cutting inside for shots difficult.';
+        rationaleAr = 'جناح تقليدي على اليسار، لكن اللعب بالقدم اليسرى يصعب عليه الدخول للعمق للتسديد.';
       }
       break;
     }
@@ -233,13 +233,13 @@ export function getTacticalSuggestions(
     case 'RMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isLeftFoot || isAmbi) {
-        score += 8;
-        rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the right.';
-        rationaleAr = 'لاعب وسط أيمن عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليمين.';
+        score += 0.1;
+        rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the right and shoot on their stronger left foot.';
+        rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليمنى والتسديد بقدمه اليسرى الأقوى.';
       } else {
-        score -= 8;
-        rationaleEn = 'Pacy wide operator on the right, but playing with a right foot limits cutting inside.';
-        rationaleAr = 'لاعب سريع على الجهة اليمنى، لكنه يلعب بقدم يمنى مما يحد من الدخول للعمق.';
+        score -= 0.1;
+        rationaleEn = 'Classic winger on the right, but playing with a right foot makes cutting inside for shots difficult.';
+        rationaleAr = 'جناح تقليدي على اليمين، لكن اللعب بالقدم اليمنى يصعب عليه الدخول للعمق للتسديد.';
       }
       break;
     }

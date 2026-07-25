@@ -108,7 +108,7 @@ const AdminTableRow = React.memo(function AdminTableRow({
             : player.preferredFoot === "Left"
             ? "يسرى"
             : "كلتاهما"
-          : player.preferredFoot}
+          : (player.preferredFoot === "Ambidextrous" ? "Both" : player.preferredFoot)}
       </td>
 
       {/* Overall Rating */}
