@@ -662,6 +662,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       const posCounts: Record<string, number> = {};
                       const usedSlotIndices = new Set<number>();
                       const usedCoordCounts: Record<string, number> = {};
+                      const containerRef = useRef<HTMLDivElement>(null);
 
                       return (
                         <div className="flex-1 relative min-h-0 min-w-[200px] select-none touch-none">
@@ -672,7 +673,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             </div>
                             {formationName && <span className="text-[10px] text-slate-500 font-bold">{formationName}</span>}
                           </div>
-                          <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4 select-none touch-none" style={{ paddingTop: '130%' }}>
+                          <div ref={containerRef} className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4 select-none touch-none" style={{ paddingTop: '130%' }}>
                             {/* Pitch Background - Clipped */}
                             <div
                               className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none"
@@ -729,12 +730,12 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                 <motion.div
                                   key={p.uid || `pitch-${label}-${i}`}
                                   drag
-                                  dragConstraints={{ left: -90, right: 90, top: -130, bottom: 130 }}
-                                  dragElastic={0.05}
-                                  dragSnapToOrigin={false}
-                                  whileDrag={{ scale: 1.25, zIndex: 50 }}
+                                  dragConstraints={containerRef}
+                                  dragElastic={0}
+                                  dragMomentum={false}
+                                  whileDrag={{ scale: 1.2, zIndex: 50 }}
                                   onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' ? 'A' : label === 'Team B' ? 'B' : 0, playerIndex: i, player: p })}
-                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none transition-transform"
+                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none"
                                   style={{left:`${finalX}%`, top:`${y}%`}}
                                   title={isAr ? 'اسحب لتغيير موقع اللاعب على الملعب، أو اضغط لتعديل المركز ونمط اللعب ⚡' : 'Drag to reposition player on pitch, or click to edit position & mood ⚡'}
                                 >

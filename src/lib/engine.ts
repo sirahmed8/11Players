@@ -352,16 +352,42 @@ export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPo
     return p1 === 'GK' ? 1.0 : 0.05;
   }
 
+  const playerPositions = [p1, p2, p3].filter(Boolean) as PESPosition[];
+  const hasDefensivePosition = playerPositions.some(p => ['CB', 'LB', 'RB', 'DMF'].includes(p));
+  const isPureAttacker = playerPositions.every(p => ['CF', 'SS', 'LWF', 'RWF', 'AMF'].includes(p));
+
+  // Strict Protection 1: Pure attackers (CF/SS/LWF/RWF/AMF) MUST NOT play in defense (CB/LB/RB/DMF)
+  if (['CB', 'LB', 'RB', 'DMF'].includes(targetPosition) && isPureAttacker) {
+    return 0.15; // Extremely low score so engine picks natural defenders
+  }
+
+  // Strict Protection 2: Pure defenders MUST NOT play in attack (CF/SS/LWF/RWF)
+  const isPureDefender = playerPositions.every(p => ['CB', 'LB', 'RB', 'GK'].includes(p));
+  if (['CF', 'SS', 'LWF', 'RWF'].includes(targetPosition) && isPureDefender) {
+    return 0.15;
+  }
+
+  // Opposite Fullback Crossover (RB playing LB or LB playing RB is very natural, 0.75)
+  if ((targetPosition === 'LB' && playerPositions.includes('RB')) || (targetPosition === 'RB' && playerPositions.includes('LB'))) {
+    return 0.75;
+  }
+
   // Category matching
   const targetCat = POSITION_CATEGORIES[targetPosition];
   const p1Cat = POSITION_CATEGORIES[p1 || 'CMF'];
   const p2Cat = p2 ? POSITION_CATEGORIES[p2] : null;
   const p3Cat = p3 ? POSITION_CATEGORIES[p3] : null;
 
-  const playerPositions = [p1, p2, p3].filter(Boolean) as PESPosition[];
-
   // 1. Same exact Category (e.g. AMF playing CMF or LWF playing CF)
   if (p1Cat === targetCat || p2Cat === targetCat || p3Cat === targetCat) {
+    // Exception: AMF <-> DMF within MID is NOT a smooth swap (AMF is playmaker, DMF is defensive anchor)
+    if (targetPosition === 'DMF' && (p1 === 'AMF' || p2 === 'AMF' || p3 === 'AMF') && !hasDefensivePosition) {
+      return 0.25;
+    }
+    if (targetPosition === 'AMF' && (p1 === 'DMF' || p2 === 'DMF' || p3 === 'DMF')) {
+      return 0.35;
+    }
+
     const isLeftSide = targetPosition === 'LB' || targetPosition === 'LMF' || targetPosition === 'LWF';
     const isRightSide = targetPosition === 'RB' || targetPosition === 'RMF' || targetPosition === 'RWF';
 
@@ -381,11 +407,11 @@ export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPo
   const isWinger = playerPositions.some(p => p === 'LWF' || p === 'RWF');
   const isAttackingMid = playerPositions.some(p => p === 'AMF' || p === 'SS');
 
-  // Fullback <-> Wide Mid / Wing crossover
-  if ((targetPosition === 'LB' || targetPosition === 'RB') && (isWideMid || isWinger)) {
+  // Fullback <-> Wide Mid crossover (LMF/RMF <-> LB/RB)
+  if ((targetPosition === 'LB' || targetPosition === 'RB') && isWideMid) {
     return 0.60;
   }
-  if ((targetPosition === 'LMF' || targetPosition === 'RMF' || targetPosition === 'LWF' || targetPosition === 'RWF') && (isFullback || isWideMid)) {
+  if ((targetPosition === 'LMF' || targetPosition === 'RMF') && isFullback) {
     return 0.60;
   }
 
@@ -394,11 +420,11 @@ export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPo
     return 0.55;
   }
   if (targetPosition === 'DMF' && (p1Cat === 'DEF' || playerPositions.includes('CB'))) {
-    return 0.55;
+    return 0.60;
   }
 
-  // AMF <-> SS / Striker crossover
-  if ((targetPosition === 'AMF' || targetPosition === 'SS') && (p1Cat === 'ATK' || isAttackingMid)) {
+  // AMF <-> SS / Striker / Wing crossover
+  if ((targetPosition === 'AMF' || targetPosition === 'SS') && (p1Cat === 'ATK' || isAttackingMid || isWinger)) {
     return 0.60;
   }
 
@@ -635,8 +661,8 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
     if (bestIdx >= 0) {
       const p = players[bestIdx];
       const mult = getPositionFamiliarityMultiplier(p, slot);
-      const isMismatch = mult < 0.30;
-      score += bestPSI - (isMismatch ? 350 : 50);
+      const isMismatch = mult < 0.50;
+      score += bestPSI - (isMismatch ? 1500 : 50);
       available.delete(bestIdx);
       unfilledSlots.splice(i, 1);
     }
