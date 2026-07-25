@@ -186,11 +186,26 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                 const thirdPos   = thirdChoice?.position || '';
                 const bestStyle  = topChoice.bestPlayStyle || p.playStyle || 'Box-to-Box';
 
+                const newOverall = calculateRealisticOverall(
+                  p.attributes || ({} as any),
+                  bestPos,
+                  bestStyle,
+                  p.height || 175,
+                  p.weight || 70,
+                  p.calculatedAge,
+                  p.peerRatingAvg,
+                  p.peerRatingCount,
+                  p.preferredFoot || 'Right',
+                  p.specialSkills || [],
+                  p.stats
+                );
+
                 const updates: any = {
                   primaryPosition:   bestPos,
                   secondaryPosition: secondPos,
                   tertiaryPosition:  thirdPos,
                   playStyle:         bestStyle,
+                  overallRating:     newOverall
                 };
 
                 batch.update(doc(db, 'players', p.uid), updates);

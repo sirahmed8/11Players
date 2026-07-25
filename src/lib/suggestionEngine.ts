@@ -26,6 +26,89 @@ const ALL_POSITIONS: PESPosition[] = [
 ];
 
 /**
+ * Calculates attribute fit score for a specific play style.
+ */
+function calculatePlayStyleFitScore(
+  styleId: string,
+  getAttr: (key: string) => number,
+  height: number,
+  weight: number,
+  preferredFoot: string
+): number {
+  const offAware = getAttr('offensiveAwareness');
+  const finishing = getAttr('finishing');
+  const kickPower = getAttr('kickingPower');
+  const heading = getAttr('heading');
+  const ballControl = getAttr('ballControl');
+  const dribbling = getAttr('dribbling');
+  const lowPass = getAttr('lowPass');
+  const loftedPass = getAttr('loftedPass');
+  const speed = getAttr('speed');
+  const accel = getAttr('acceleration');
+  const jump = getAttr('jump');
+  const phys = getAttr('physicalContact');
+  const stamina = getAttr('stamina');
+  const defAware = getAttr('defensiveAwareness');
+  const ballWin = getAttr('ballWinning');
+  const aggression = getAttr('aggression');
+  const gkAware = getAttr('gkAwareness');
+  const gkCatch = getAttr('gkCatching');
+  const gkClear = getAttr('gkClearing');
+  const gkReflex = getAttr('gkReflexes');
+
+  const isTall = height >= 184;
+
+  switch (styleId) {
+    case 'goal_poacher':
+      return offAware * 0.35 + speed * 0.25 + accel * 0.20 + finishing * 0.20;
+    case 'fox_in_the_box':
+      return finishing * 0.40 + phys * 0.20 + kickPower * 0.20 + offAware * 0.20;
+    case 'target_man':
+      return phys * 0.35 + heading * 0.25 + ballControl * 0.20 + jump * 0.20 + (isTall ? 10 : -15);
+    case 'deep_lying_forward':
+      return lowPass * 0.30 + ballControl * 0.30 + offAware * 0.20 + dribbling * 0.20;
+    case 'dummy_runner':
+      return speed * 0.30 + accel * 0.30 + offAware * 0.25 + stamina * 0.15;
+    case 'creative_playmaker':
+      return lowPass * 0.30 + ballControl * 0.30 + dribbling * 0.25 + loftedPass * 0.15;
+    case 'hole_player':
+      return offAware * 0.30 + speed * 0.25 + finishing * 0.25 + dribbling * 0.20;
+    case 'classic_no_10':
+      return lowPass * 0.35 + ballControl * 0.30 + loftedPass * 0.20 + kickPower * 0.15;
+    case 'prolific_winger':
+      return speed * 0.30 + accel * 0.25 + dribbling * 0.25 + finishing * 0.20;
+    case 'roaming_flank':
+      return dribbling * 0.30 + lowPass * 0.25 + ballControl * 0.25 + offAware * 0.20;
+    case 'cross_specialist':
+      return loftedPass * 0.40 + speed * 0.20 + stamina * 0.20 + dribbling * 0.20;
+    case 'orchestrator':
+      return lowPass * 0.40 + loftedPass * 0.30 + ballControl * 0.20 + defAware * 0.10;
+    case 'box_to_box':
+      return stamina * 0.40 + speed * 0.20 + lowPass * 0.15 + defAware * 0.15 + ballWin * 0.10;
+    case 'the_destroyer':
+      return aggression * 0.35 + ballWin * 0.35 + phys * 0.20 + stamina * 0.10;
+    case 'anchor_man':
+      return defAware * 0.40 + ballWin * 0.30 + phys * 0.20 + heading * 0.10;
+    case 'build_up':
+      return lowPass * 0.35 + loftedPass * 0.30 + defAware * 0.20 + ballControl * 0.15;
+    case 'extra_frontman':
+      return heading * 0.30 + phys * 0.25 + offAware * 0.25 + kickPower * 0.20;
+    case 'offensive_fullback':
+      return speed * 0.30 + stamina * 0.30 + loftedPass * 0.25 + dribbling * 0.15;
+    case 'defensive_fullback':
+      return defAware * 0.40 + ballWin * 0.30 + speed * 0.20 + phys * 0.10;
+    case 'fullback_finisher':
+      return dribbling * 0.30 + lowPass * 0.25 + offAware * 0.25 + finishing * 0.20;
+    case 'offensive_gk':
+      return speed * 0.30 + gkReflex * 0.30 + gkAware * 0.25 + accel * 0.15;
+    case 'defensive_gk':
+      return gkCatch * 0.35 + gkAware * 0.35 + gkClear * 0.30;
+    default:
+      return 50;
+  }
+}
+
+/**
  * Calculates highly accurate position and play style suggestions based on
  * player attributes, height, weight, and preferred foot.
  */
@@ -50,7 +133,6 @@ export function getTacticalSuggestions(
   // Extract key attributes
   const offAware = getAttr('offensiveAwareness');
   const finishing = getAttr('finishing');
-  const kickPower = getAttr('kickingPower');
   const heading = getAttr('heading');
   const ballControl = getAttr('ballControl');
   const dribbling = getAttr('dribbling');
@@ -58,9 +140,7 @@ export function getTacticalSuggestions(
   const loftedPass = getAttr('loftedPass');
   const speed = getAttr('speed');
   const accel = getAttr('acceleration');
-  const jump = getAttr('jump');
   const phys = getAttr('physicalContact');
-  const balance = getAttr('balance');
   const stamina = getAttr('stamina');
   const defAware = getAttr('defensiveAwareness');
   const ballWin = getAttr('ballWinning');
@@ -76,37 +156,48 @@ export function getTacticalSuggestions(
   const isRightFoot = foot.includes('right');
   const isAmbi = foot.includes('ambidextrous') || foot.includes('both');
 
-  // Physical profile scoring helpers
-  const isTall = height >= 184;
-  const isVeryTall = height >= 190;
-  const isShort = height <= 173;
-  const isStrong = phys >= 78 || weight >= 78;
-  const isAgile = speed >= 78 && accel >= 78 && balance >= 78;
+  // Pre-calculate play style fit scores for all styles
+  const styleFitScores: Record<string, number> = {};
+  PLAYER_STYLES.forEach(style => {
+    styleFitScores[style.id] = calculatePlayStyleFitScore(style.id, getAttr, height, weight, preferredFoot);
+  });
 
   const posScores: PositionSuggestion[] = ALL_POSITIONS.map((pos) => {
-    let score = 0;
+    // Base mathematical overall rating from attributes
+    const baseOvr = calculateRealisticOverall(
+      attrs as unknown as PlayerAttributes,
+      pos,
+      '',
+      height,
+      weight,
+      age,
+      peerAvg,
+      peerCount,
+      preferredFoot
+    );
+
+    let score = baseOvr;
     let rationaleEn = '';
     let rationaleAr = '';
 
     switch (pos) {
       case 'GK': {
         const gkStatsAvg = (gkAware * 0.22 + gkCatch * 0.22 + gkClear * 0.16 + gkReflex * 0.22 + gkReach * 0.18);
-        score = gkStatsAvg * 0.88 + jump * 0.12;
         
         // Height adjustments for GK
-        if (height >= 190) score += 4;
-        else if (height >= 185) score += 2;
-        else if (height < 180) score -= 5;
-        else if (height < 175) score -= 10;
+        if (height >= 188) score += 4;
+        else if (height >= 183) score += 2;
+        else if (height < 178) score -= 5;
+        else if (height < 172) score -= 10;
 
-        // If GK stats are very low, massive penalty to prevent field players getting GK
+        // If GK stats are low, apply severe penalty to prevent field players getting GK
         if (gkStatsAvg < 55) score -= 60;
         else if (gkStatsAvg < 65) score -= 30;
 
         if (gkStatsAvg >= 75 && height >= 185) {
           rationaleEn = 'Elite reflexes, reach, and commanding height ideal for a top-tier goalkeeper.';
           rationaleAr = 'ردود فعل وحراسة مرمى استثنائية مع طول قامة مثالي للسيطرة التامة على منطقة المرمى.';
-        } else if (gkStatsAvg >= 68) {
+        } else if (gkStatsAvg >= 65) {
           rationaleEn = 'Solid handling, reflexes, and awareness suited for goalkeeping duties.';
           rationaleAr = 'وعي وردود فعل ممتازة ومسك كرة مناسب للقيام بمهام حراسة المرمى بثبات.';
         } else {
@@ -117,12 +208,11 @@ export function getTacticalSuggestions(
       }
 
       case 'CB': {
-        score = (defAware * 0.25 + ballWin * 0.20 + phys * 0.18 + heading * 0.15 + jump * 0.10 + aggression * 0.08 + speed * 0.04);
-        if (isVeryTall) score += 4;
-        else if (isTall) score += 2;
-        if (isShort) score -= 6;
-        
-        if (defAware >= 75 && phys >= 75 && isTall) {
+        if (height >= 185 && phys >= 75) score += 3.5;
+        else if (height >= 182) score += 1.5;
+        if (height < 175) score -= 5;
+
+        if (defAware >= 75 && phys >= 75 && height >= 183) {
           rationaleEn = 'Dominant aerial presence, immense physical strength, and elite defensive awareness.';
           rationaleAr = 'حضور قوي في الكرات الهوائية، قوة بدنية هائلة، ووعي دفاعي من الطراز الرفيع.';
         } else if (speed >= 75 && defAware >= 70) {
@@ -136,17 +226,16 @@ export function getTacticalSuggestions(
       }
 
       case 'LB': {
-        score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isLeftFoot) {
-          score += 0.1;
+          score += 4.0;
           rationaleEn = 'Natural left foot with great pace, stamina, and crossing ability to dominate the left flank.';
           rationaleAr = 'قدم يسرى طبيعية مع سرعة عالية وتحمل وعرضيات متقنة للسيطرة على الرواق الأيسر.';
         } else if (isAmbi) {
-          score += 0.05;
+          score += 2.5;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the left.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليسرى.';
         } else {
-          score -= 5.0;
+          score -= 4.0;
           rationaleEn = 'Good pace and stamina, but playing inverted on the left with a right foot.';
           rationaleAr = 'سرعة وتحمل جيدين، لكنه يلعب كظهير عكسي في الجهة اليسرى بقدمه اليمنى.';
         }
@@ -154,9 +243,8 @@ export function getTacticalSuggestions(
       }
 
       case 'RB': {
-        score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isRightFoot) {
-          score += 5.0;
+          score += 4.0;
           rationaleEn = 'Natural right foot combined with pace, stamina, and precise crossing for the right flank.';
           rationaleAr = 'قدم يمنى طبيعية مدمجة مع سرعة وتحمل وعرضيات دقيقة للسيطرة على الرواق الأيمن.';
         } else if (isAmbi) {
@@ -164,7 +252,7 @@ export function getTacticalSuggestions(
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the right.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليمنى.';
         } else {
-          score -= 5.0;
+          score -= 4.0;
           rationaleEn = 'Solid full-back attributes, but playing inverted on the right with a left foot.';
           rationaleAr = 'طاقات ظهير ممتازة، لكنه يلعب كظهير عكسي في الجهة اليمنى بقدمه اليسرى.';
         }
@@ -172,7 +260,6 @@ export function getTacticalSuggestions(
       }
 
       case 'DMF': {
-        score = (defAware * 0.16 + ballWin * 0.16 + lowPass * 0.16 + stamina * 0.12 + loftedPass * 0.12 + phys * 0.10 + aggression * 0.10 + ballControl * 0.08);
         if (defAware >= 75 && phys >= 75) {
           rationaleEn = 'A physically imposing shield for the defense with excellent interception awareness.';
           rationaleAr = 'درع بدني قوي لحماية الدفاع مع وعي استثنائي في اعتراض الكرات وافتكاكها.';
@@ -187,7 +274,6 @@ export function getTacticalSuggestions(
       }
 
       case 'CMF': {
-        score = (lowPass * 0.18 + loftedPass * 0.15 + ballControl * 0.15 + stamina * 0.15 + dribbling * 0.10 + defAware * 0.08 + ballWin * 0.08 + offAware * 0.07 + kickPower * 0.04);
         if (stamina >= 80 && (defAware >= 70 || offAware >= 70)) {
           rationaleEn = 'Tireless box-to-box engine capable of linking defense and attack seamlessly.';
           rationaleAr = 'محرك لا يهدأ من صندوق لصندوق، يربط بين الدفاع والهجوم بسلاسة ولياقة عالية.';
@@ -202,7 +288,6 @@ export function getTacticalSuggestions(
       }
 
       case 'AMF': {
-        score = (ballControl * 0.18 + dribbling * 0.18 + lowPass * 0.18 + offAware * 0.15 + loftedPass * 0.12 + finishing * 0.08 + speed * 0.06 + accel * 0.05);
         if (dribbling >= 80 && ballControl >= 80) {
           rationaleEn = 'Creative maestro with magical close control and dribbling to unlock tight defenses.';
           rationaleAr = 'مايسترو مبدع بتحكم سحري ومراوغات قادرة على فك شفرات أعتى الدفاعات.';
@@ -216,72 +301,75 @@ export function getTacticalSuggestions(
         break;
       }
 
-    case 'LMF': {
-      score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-      if (isRightFoot || isAmbi) {
-        score += 5.0;
-        rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the left and shoot on their stronger right foot.';
-        rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليسرى والتسديد بقدمه اليمنى الأقوى.';
-      } else {
-        score -= 5.0;
-        rationaleEn = 'Classic winger on the left, but playing with a left foot makes cutting inside for shots difficult.';
-        rationaleAr = 'جناح تقليدي على اليسار، لكن اللعب بالقدم اليسرى يصعب عليه الدخول للعمق للتسديد.';
+      case 'LMF': {
+        if (isRightFoot || isAmbi) {
+          score += 3.5;
+          rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the left and shoot on their stronger right foot.';
+          rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليسرى والتسديد بقدمه اليمنى الأقوى.';
+        } else if (isLeftFoot && loftedPass >= 75) {
+          score += 1.5;
+          rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
+          rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+        } else {
+          score -= 2.5;
+          rationaleEn = 'Classic winger on the left, but playing with a left foot makes cutting inside for shots difficult.';
+          rationaleAr = 'جناح تقليدي على اليسار، لكن اللعب بالقدم اليسرى يصعب عليه الدخول للعمق للتسديد.';
+        }
+        break;
       }
-      break;
-    }
 
-    case 'RMF': {
-      score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
-      if (isLeftFoot || isAmbi) {
-        score += 5.0;
-        rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the right and shoot on their stronger left foot.';
-        rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليمنى والتسديد بقدمه اليسرى الأقوى.';
-      } else {
-        score -= 5.0;
-        rationaleEn = 'Classic winger on the right, but playing with a right foot makes cutting inside for shots difficult.';
-        rationaleAr = 'جناح تقليدي على اليمين، لكن اللعب بالقدم اليمنى يصعب عليه الدخول للعمق للتسديد.';
+      case 'RMF': {
+        if (isLeftFoot || isAmbi) {
+          score += 3.5;
+          rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the right and shoot on their stronger left foot.';
+          rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليمنى والتسديد بقدمه اليسرى الأقوى.';
+        } else if (isRightFoot && loftedPass >= 75) {
+          score += 1.5;
+          rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
+          rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+        } else {
+          score -= 2.5;
+          rationaleEn = 'Classic winger on the right, but playing with a right foot makes cutting inside for shots difficult.';
+          rationaleAr = 'جناح تقليدي على اليمين، لكن اللعب بالقدم اليمنى يصعب عليه الدخول للعمق للتسديد.';
+        }
+        break;
       }
-      break;
-    }
 
-    case 'LWF': {
-      score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
-      if (isRightFoot || isAmbi) {
-        score += 5.0;
-        rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
-        rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
-      } else if (isLeftFoot && loftedPass >= 75) {
-        score += 0.5;
-        rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
-        rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
-      } else {
-        score -= 5.0;
-        rationaleEn = 'Explosive pace and dribbling, but playing on the left with a left foot limits cutting inside.';
-        rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يسرى على اليسار يحد من الدخول للعمق.';
+      case 'LWF': {
+        if (isRightFoot || isAmbi) {
+          score += 4.0;
+          rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
+          rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
+        } else if (isLeftFoot && loftedPass >= 75) {
+          score += 1.5;
+          rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
+          rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+        } else {
+          score -= 3.0;
+          rationaleEn = 'Explosive pace and dribbling, but playing on the left with a left foot limits cutting inside.';
+          rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يسرى على اليسار يحد من الدخول للعمق.';
+        }
+        break;
       }
-      break;
-    }
 
-    case 'RWF': {
-      score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
-      if (isLeftFoot || isAmbi) {
-        score += 5.0;
-        rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
-        rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
-      } else if (isRightFoot && loftedPass >= 75) {
-        score += 0.5;
-        rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
-        rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
-      } else {
-        score -= 5.0;
-        rationaleEn = 'Explosive pace and dribbling, but playing on the right with a right foot limits cutting inside.';
-        rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يمنى على اليمين يحد من الدخول للعمق.';
+      case 'RWF': {
+        if (isLeftFoot || isAmbi) {
+          score += 4.0;
+          rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
+          rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
+        } else if (isRightFoot && loftedPass >= 75) {
+          score += 1.5;
+          rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
+          rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
+        } else {
+          score -= 3.0;
+          rationaleEn = 'Explosive pace and dribbling, but playing on the right with a right foot limits cutting inside.';
+          rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يمنى على اليمين يحد من الدخول للعمق.';
+        }
+        break;
       }
-      break;
-    }
 
       case 'SS': {
-        score = (offAware * 0.18 + ballControl * 0.18 + dribbling * 0.16 + finishing * 0.15 + speed * 0.10 + accel * 0.10 + lowPass * 0.08 + kickPower * 0.05);
         if (offAware >= 78 && dribbling >= 78 && finishing >= 75) {
           rationaleEn = 'Elite false nine displaying sharp attacking movement, agility, and lethal finishing.';
           rationaleAr = 'مهاجم وهمي من النخبة يُظهر تحركات هجومية حادة، خفة حركة، وإنهاء قاتل للهجمات.';
@@ -293,13 +381,12 @@ export function getTacticalSuggestions(
       }
 
       case 'CF': {
-        score = (finishing * 0.22 + offAware * 0.22 + kickPower * 0.12 + heading * 0.10 + phys * 0.10 + speed * 0.08 + accel * 0.08 + jump * 0.08);
-        if (isTall && phys >= 78) {
-          score += 4;
+        if (height >= 183 && phys >= 75) {
+          score += 2.5;
           rationaleEn = 'Dominant focal point relying on immense physical strength, aerial ability, and clinical finishing.';
           rationaleAr = 'رأس حربة مهيمن يعتمد على القوة البدنية الهائلة، البراعة الهوائية، والإنهاء الحاسم للفرص.';
         } else if (speed >= 80 && accel >= 80) {
-          score += 3;
+          score += 2.5;
           rationaleEn = 'Explosive goal poacher relying on lightning pace to break high defensive lines and finish.';
           rationaleAr = 'قناص أهداف متفجر يعتمد على سرعة البرق لكسر خطوط الدفاع المتقدمة وإنهاء الهجمات.';
         } else {
@@ -310,45 +397,33 @@ export function getTacticalSuggestions(
       }
     }
 
-    // Find the best play style for this position
-    let bestOvr = 0;
-    let bestStyle = '';
-    
-    // Test without playstyle
-    const baseOvr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, '', height, weight, age, peerAvg, peerCount, preferredFoot);
-    bestOvr = baseOvr;
-    
+    // Find the absolute best play style for THIS specific position based on attribute fit scores
     const compatibleStyles = PLAYER_STYLES.filter(s => s.positions.includes(pos));
-    if (compatibleStyles.length > 0) {
-      bestStyle = compatibleStyles[0].id;
-    }
-    
+    let bestStyle = '';
+    let bestStyleScore = -1;
+
     for (const style of compatibleStyles) {
-       const ovr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, style.id, height, weight, age, peerAvg, peerCount, preferredFoot);
-       if (ovr > bestOvr) {
-         bestOvr = ovr;
-         bestStyle = style.id;
-       }
+      const fitScore = styleFitScores[style.id] || 0;
+      if (fitScore > bestStyleScore) {
+        bestStyleScore = fitScore;
+        bestStyle = style.id;
+      }
     }
-    
-    // Use exact max OVR for perfect sorting
-    const matchPercentage = Math.min(99, Math.max(40, Math.round((bestOvr / 99) * 100)));
 
     return {
       position: pos,
-      score: score, // use internal score to respect foot bonuses
-      matchPercentage,
+      score,
+      matchPercentage: 0, // calculated below
       rationaleEn,
       rationaleAr,
-      bestPlayStyle: bestStyle
+      bestPlayStyle: bestStyle || (compatibleStyles[0]?.id || '')
     };
   });
 
-  // Sort positions descending by score
+  // Sort positions descending by total tactical score
   posScores.sort((a, b) => b.score - a.score);
 
-  // Recalculate matchPercentage with relative spread: best pos = 99%, worst = ~45%
-  // This prevents all positions bunching at the same % when player OVR is e.g. 65-68
+  // Recalculate matchPercentage with relative spread: best pos = 95-99%, worst = ~45%
   const maxScore = posScores[0]?.score || 99;
   const minScore = posScores[posScores.length - 1]?.score || 40;
   const scoreRange = maxScore - minScore || 1;
@@ -359,137 +434,119 @@ export function getTacticalSuggestions(
 
   const topPosition = posScores[0]?.position || 'CF';
 
-  // Deep Play Style synergy scoring
+  // Play Style Suggestions across all compatible styles for top position
   const styleSuggestions: PlayStyleSuggestion[] = PLAYER_STYLES.map((style) => {
-    let score = 50;
-    let rationaleEn = style.descEn;
-    let rationaleAr = style.descAr;
+    let score = styleFitScores[style.id] || 50;
 
     const isPrimaryCompatible = style.positions.includes(topPosition);
     if (isPrimaryCompatible) score += 15;
 
+    let rationaleEn = style.descEn;
+    let rationaleAr = style.descAr;
+
     switch (style.id) {
       case 'goal_poacher':
-        score += (offAware * 0.35 + speed * 0.25 + accel * 0.20 + finishing * 0.20) * 0.5;
-        if (offAware >= 78 && speed >= 78) {
+        if (offAware >= 75 && speed >= 75) {
           rationaleEn = 'Perfect for exploiting high lines with blistering pace and masterclass off-the-ball runs.';
           rationaleAr = 'مثالي لاستغلال المساحات بسرعته الفائقة وانطلاقاته الذكية خلف خطوط الدفاع.';
         }
         break;
       case 'fox_in_the_box':
-        score += (finishing * 0.40 + phys * 0.20 + kickPower * 0.20 + offAware * 0.20) * 0.5;
-        if (finishing >= 78 && offAware >= 75) {
+        if (finishing >= 75 && offAware >= 70) {
           rationaleEn = 'Thrives strictly inside the penalty box with lethal one-touch finishing and anticipation.';
           rationaleAr = 'يتألق حصرياً داخل منطقة الجزاء بإنهاء قاتل من لمسة واحدة وتوقع ممتاز للكرة.';
         }
         break;
       case 'target_man':
-        score += (phys * 0.35 + heading * 0.25 + ballControl * 0.20 + jump * 0.20) * 0.5 + (isTall ? 12 : -15);
-        if (isTall && phys >= 78) {
+        if (height >= 183 && phys >= 75) {
           rationaleEn = 'Unmatched physical build to pin defenders back, win aerial duels, and link up play.';
-          rationaleAr = 'بنية جسدية لا تضاهى لتثبيت المدافعين، الفوز بالصراعات الهوائية، وربط اللعب زملائه.';
+          rationaleAr = 'بنية جسدية لا تضاهى لتثبيت المدافعين، الفوز بالصراعات الهوائية، وربط اللعب مع زملائه.';
         }
         break;
       case 'creative_playmaker':
-        score += (lowPass * 0.30 + ballControl * 0.30 + dribbling * 0.25 + loftedPass * 0.15) * 0.5;
-        if (ballControl >= 80 && lowPass >= 78) {
+        if (ballControl >= 78 && lowPass >= 75) {
           rationaleEn = 'Operates as the creative hub, utilizing supreme vision and touch to orchestrate attacks.';
           rationaleAr = 'يعمل كمحور الإبداع، مستغلاً رؤيته الثاقبة ولمسته الدقيقة لهندسة الهجمات الخطيرة.';
         }
         break;
       case 'hole_player':
-        score += (offAware * 0.30 + speed * 0.25 + finishing * 0.25 + dribbling * 0.20) * 0.5;
-        if (offAware >= 78 && speed >= 75) {
+        if (offAware >= 75 && speed >= 72) {
           rationaleEn = 'Specializes in making undetected late runs into the box to score crucial goals.';
           rationaleAr = 'متخصص في الانطلاقات المتأخرة وغير المكتشفة داخل الصندوق لتسجيل أهداف حاسمة.';
         }
         break;
       case 'orchestrator':
-        score += (lowPass * 0.40 + loftedPass * 0.30 + ballControl * 0.20 + defAware * 0.10) * 0.5;
-        if (lowPass >= 80) {
+        if (lowPass >= 78) {
           rationaleEn = 'Sits deep to dictate the flow of the match with elite passing accuracy and calmness.';
           rationaleAr = 'يتمركز في الخلف ليتحكم برتم المباراة بدقة تمرير نادرة وهدوء تام تحت الضغط.';
         }
         break;
       case 'box_to_box':
-        score += (stamina * 0.40 + speed * 0.20 + lowPass * 0.15 + defAware * 0.15 + ballWin * 0.10) * 0.5;
-        if (stamina >= 82) {
+        if (stamina >= 80) {
           rationaleEn = 'Boasts an inexhaustible engine to cover every blade of grass, assisting both boxes.';
           rationaleAr = 'يتمتع بمحرك لا ينضب لتغطية كل شبر في الملعب، مسانداً في الدفاع والهجوم طوال المباراة.';
         }
         break;
       case 'the_destroyer':
-        score += (aggression * 0.35 + ballWin * 0.35 + phys * 0.20 + stamina * 0.10) * 0.5;
-        if (aggression >= 78 && ballWin >= 78) {
+        if (aggression >= 75 && ballWin >= 75) {
           rationaleEn = 'A ruthless enforcer who hunts down opponents and breaks up attacks with fierce tackles.';
           rationaleAr = 'منفذ قاسي يطارد الخصوم ويفسد هجماتهم بتدخلات وافتكاكات كروية شرسة.';
         }
         break;
       case 'anchor_man':
-        score += (defAware * 0.40 + ballWin * 0.30 + phys * 0.20 + heading * 0.10) * 0.5;
-        if (defAware >= 78) {
+        if (defAware >= 75) {
           rationaleEn = 'Shows extreme positional discipline, holding his ground deep to protect the center backs.';
           rationaleAr = 'يُظهر انضباطاً تكتيكياً بالغاً، حيث يحافظ على تمركزه العميق لحماية قلبي الدفاع دائماً.';
         }
         break;
       case 'build_up':
-        score += (lowPass * 0.35 + loftedPass * 0.30 + defAware * 0.20 + ballControl * 0.15) * 0.5;
-        if (lowPass >= 75 && defAware >= 75) {
+        if (lowPass >= 72 && defAware >= 72) {
           rationaleEn = 'Highly composed under pressure, capable of launching attacks from the deepest defensive line.';
           rationaleAr = 'هادئ جداً تحت الضغط، وقادر على بدء الهجمات بدقة تمرير من أعمق خطوط الدفاع.';
         }
         break;
       case 'prolific_winger':
-        score += (speed * 0.30 + accel * 0.25 + dribbling * 0.25 + finishing * 0.20) * 0.5;
-        if (speed >= 80 && dribbling >= 78) {
+        if (speed >= 78 && dribbling >= 75) {
           rationaleEn = 'Direct and explosive, excelling at bypassing fullbacks and cutting inside to score.';
           rationaleAr = 'مباشر ومتفجر، يتألق في تجاوز الأظهرة والدخول للعمق لتسجيل الأهداف بنفسه.';
         }
         break;
       case 'roaming_flank':
-        score += (dribbling * 0.30 + lowPass * 0.25 + ballControl * 0.25 + offAware * 0.20) * 0.5;
-        if (dribbling >= 78 && offAware >= 75) {
+        if (dribbling >= 75 && offAware >= 72) {
           rationaleEn = 'Intelligently drifts centrally from the wing to overload the middle and combine plays.';
           rationaleAr = 'يتحرك بذكاء من الجناح للعمق لخلق تفوق عددي وتبادل التمريرات مع خط الوسط.';
         }
         break;
       case 'cross_specialist':
-        score += (loftedPass * 0.40 + speed * 0.20 + stamina * 0.20 + dribbling * 0.20) * 0.5;
-        if (loftedPass >= 78) {
+        if (loftedPass >= 75) {
           rationaleEn = 'A master of wide delivery, serving impeccable lofted crosses precisely onto strikers heads.';
           rationaleAr = 'سيد العرضيات، يرسل كرات مقوسة وعالية بدقة متناهية على رؤوس المهاجمين.';
         }
         break;
       case 'offensive_fullback':
-        score += (speed * 0.30 + stamina * 0.30 + loftedPass * 0.25 + dribbling * 0.15) * 0.5;
-        if (speed >= 78 && stamina >= 78) {
+        if (speed >= 75 && stamina >= 75) {
           rationaleEn = 'Provides relentless overlapping runs, acting as an extra winger while maintaining stamina.';
           rationaleAr = 'يقدم انطلاقات هجومية متواصلة، ليعمل كجناح إضافي مع الحفاظ على لياقته لـ90 دقيقة.';
         }
         break;
       case 'defensive_fullback':
-        score += (defAware * 0.40 + ballWin * 0.30 + speed * 0.20 + phys * 0.10) * 0.5;
-        if (defAware >= 78) {
+        if (defAware >= 75) {
           rationaleEn = 'Prioritizes extreme defensive solidity, refusing to push up to keep the backline airtight.';
           rationaleAr = 'يعطي الأولوية للصلابة الدفاعية القصوى، رافضاً التقدم للأمام لإبقاء الخط الخلفي محكماً.';
         }
         break;
       case 'offensive_gk':
-        score += (speed * 0.30 + gkReflex * 0.30 + gkAware * 0.25 + accel * 0.15) * 0.5;
-        if (speed >= 65 && gkReflex >= 75) {
+        if (speed >= 65 && gkReflex >= 72) {
           rationaleEn = 'Proactive sweeper-keeper, instantly rushing out to clear through balls behind high lines.';
           rationaleAr = 'حارس مرمى هجومي يندفع بسرعة خارج منطقته لقطع الكرات البينية خلف الدفاع المتقدم.';
         }
         break;
       case 'defensive_gk':
-        score += (gkCatch * 0.35 + gkAware * 0.35 + gkClear * 0.30) * 0.5;
-        if (gkCatch >= 75) {
+        if (gkCatch >= 72) {
           rationaleEn = 'A traditional shot-stopper rooted to his line, prioritizing safe catches over taking risks.';
           rationaleAr = 'حارس تقليدي ثابت على خطه، يعطي الأولوية للإمساك الآمن للكرات دون اتخاذ مخاطرات.';
         }
         break;
-      default:
-        score += 30;
     }
 
     const matchPercentage = Math.min(99, Math.max(45, Math.round((score / 95) * 100)));
