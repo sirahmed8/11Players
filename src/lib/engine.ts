@@ -387,6 +387,44 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
     psi *= 1.05; // 5% bonus for preferred roles
   }
 
+  // ── Step 4: Position-specific Pace & Attribute Gating ──
+  const pSpeed = activeAttributes.speed ?? 60;
+  const pAccel = activeAttributes.acceleration ?? 60;
+  const minPace = Math.min(pSpeed, pAccel);
+
+  // Fullbacks (LB, RB) and Wingers (LWF, RWF, LMF, RMF) REQUIRE pace
+  if (['LB', 'RB'].includes(position)) {
+    if (minPace < 72) {
+      // Steep penalty for slow fullbacks
+      const penaltyFactor = Math.pow(minPace / 72, 2.0);
+      psi *= penaltyFactor;
+    } else if (minPace >= 78) {
+      psi *= 1.05; // Pace bonus for fast fullbacks
+    }
+  } else if (['LWF', 'RWF', 'LMF', 'RMF'].includes(position)) {
+    if (minPace < 70) {
+      const penaltyFactor = Math.pow(minPace / 70, 2.0);
+      psi *= penaltyFactor;
+    } else if (minPace >= 78) {
+      psi *= 1.05;
+    }
+  }
+
+  // Defensive players with high defense/passing & low pace belong at CB, DMF, or CMF
+  const pDefAware = activeAttributes.defensiveAwareness ?? 60;
+  const pBallWin = activeAttributes.ballWinning ?? 60;
+  const pLowPass = activeAttributes.lowPass ?? 60;
+
+  if (['CB', 'DMF'].includes(position) && (pDefAware >= 72 || pBallWin >= 72)) {
+    if (minPace < 72) {
+      psi *= 1.10; // 10% boost for slow, high-def defensive pillars at CB/DMF
+    }
+  } else if (position === 'CMF' && (pLowPass >= 75 || pDefAware >= 70)) {
+    if (minPace < 72) {
+      psi *= 1.08; // 8% boost for central playmakers/midfielders with low pace
+    }
+  }
+
   return psi;
 }
 

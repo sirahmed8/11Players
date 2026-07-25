@@ -282,9 +282,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     if (previewData.matchMode === 'standard') {
       const optA = (previewData.teamA || []).map(optimizePlayer);
       const optB = (previewData.teamB || []).map(optimizePlayer);
+      const optBench = (previewData.bench || []).map(optimizePlayer);
 
       // Pick formation that best fits 11 players per team
-      const pick433 = FORMATIONS['4-3-3'];
       const formationKey = '4-3-3';
 
       const assignedA = assignPlayersToFormation(optA, formationKey);
@@ -294,6 +294,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
+        bench: optBench,
         aiFormation: formationKey,
       }));
       setAiPitchView(true);
@@ -748,8 +749,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         })}
                       </div>}
 
-                      {/* Bench — list mode only */}
-                      {!aiPitchView && previewData.bench && previewData.bench.length > 0 && (
+                      {/* Bench / Reserves */}
+                      {previewData.bench && previewData.bench.length > 0 && (
                         <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 space-y-3">
                           <h4 className="font-black text-amber-900 dark:text-amber-200 text-sm flex items-center gap-2">
                             <Users className="w-4 h-4 text-amber-600 dark:text-amber-400" />

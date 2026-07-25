@@ -212,6 +212,11 @@ export function getTacticalSuggestions(
         else if (height >= 182) score += 1.5;
         if (height < 175) score -= 5;
 
+        // Slow player with high defensive traits belongs at CB or DMF, not fullback
+        if ((defAware >= 72 || ballWin >= 72) && Math.min(speed, accel) < 72) {
+          score += 6.0;
+        }
+
         if (defAware >= 75 && phys >= 75 && height >= 183) {
           rationaleEn = 'Dominant aerial presence, immense physical strength, and elite defensive awareness.';
           rationaleAr = 'حضور قوي في الكرات الهوائية، قوة بدنية هائلة، ووعي دفاعي من الطراز الرفيع.';
@@ -226,6 +231,12 @@ export function getTacticalSuggestions(
       }
 
       case 'LB': {
+        const minPace = Math.min(speed, accel);
+        if (minPace < 72) {
+          // Fullback MUST be fast. Penalty for slow fullbacks so they shift to CB/DMF/CMF
+          score -= 18.0;
+        }
+
         if (isLeftFoot) {
           score += 4.0;
           rationaleEn = 'Natural left foot with great pace, stamina, and crossing ability to dominate the left flank.';
@@ -243,6 +254,12 @@ export function getTacticalSuggestions(
       }
 
       case 'RB': {
+        const minPace = Math.min(speed, accel);
+        if (minPace < 72) {
+          // Fullback MUST be fast. Penalty for slow fullbacks so they shift to CB/DMF/CMF
+          score -= 18.0;
+        }
+
         if (isRightFoot) {
           score += 4.0;
           rationaleEn = 'Natural right foot combined with pace, stamina, and precise crossing for the right flank.';
@@ -260,6 +277,10 @@ export function getTacticalSuggestions(
       }
 
       case 'DMF': {
+        // Slow players with high defense/passing belong at DMF
+        if ((defAware >= 72 || ballWin >= 72) && Math.min(speed, accel) < 72) {
+          score += 6.0;
+        }
         if (defAware >= 75 && phys >= 75) {
           rationaleEn = 'A physically imposing shield for the defense with excellent interception awareness.';
           rationaleAr = 'درع بدني قوي لحماية الدفاع مع وعي استثنائي في اعتراض الكرات وافتكاكها.';
