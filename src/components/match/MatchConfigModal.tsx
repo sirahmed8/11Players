@@ -212,7 +212,8 @@ function HalfPitch({
 
         {/* Player dots - Unclipped & Draggable */}
         {team.map((p: any, i: number) => {
-          const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+          const playerObj = p.player || p;
+          const pos = playerObj.assignedPosition || playerObj.primaryPosition || 'CMF';
           
           let matchedSlotIdx = -1;
           for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
@@ -246,9 +247,9 @@ function HalfPitch({
           }
 
           const y = flipped ? 100 - coords.y : coords.y;
-          const ovr = p.overallRating || p?.stats?.overallRating || 70;
-          const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
-          const moodStyle = getDisplayPlayStyle(p, isAr);
+          const ovr = playerObj.overallRating || playerObj?.stats?.overallRating || 70;
+          const name = (playerObj.cardName || playerObj.fullName || 'Player').split(' ')[0];
+          const moodStyle = getDisplayPlayStyle(playerObj, isAr);
           const isSelected = selectedForSwap && selectedForSwap.teamIndex === actualTeamIdx && selectedForSwap.playerIndex === i;
 
           return (
@@ -1024,26 +1025,83 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const getList = (tIdx: number | 'bench' | 'benchA' | 'benchB') => {
         if (tIdx === 0) return nextData.teamA;
         if (tIdx === 1) return nextData.teamB;
-        if (tIdx === 'benchA') return nextData.benchA || nextData.bench || [];
-        if (tIdx === 'benchB') return nextData.benchB || nextData.bench || [];
+        if (tIdx === 'benchA') {
+          if (!nextData.benchA && nextData.bench) nextData.benchA = (nextData.bench || []).filter((_: any, idx: number) => idx % 2 === 0);
+          return nextData.benchA || [];
+        }
+        if (tIdx === 'benchB') {
+          if (!nextData.benchB && nextData.bench) nextData.benchB = (nextData.bench || []).filter((_: any, idx: number) => idx % 2 === 1);
+          return nextData.benchB || [];
+        }
         return nextData.bench;
       };
+
       const l1 = getList(selectedForSwap.teamIndex);
       const l2 = getList(teamIndex);
-      const temp = l1[selectedForSwap.playerIndex];
-      l1[selectedForSwap.playerIndex] = l2[playerIndex];
-      l2[playerIndex] = temp;
+
+      const raw1 = l1[selectedForSwap.playerIndex];
+      const raw2 = l2[playerIndex];
+
+      if (raw1 && raw2) {
+        // Extract pure unwrapped player objects
+        let p1 = raw1.player ? { ...raw1.player, ...raw1 } : { ...raw1 };
+        delete (p1 as any).player;
+
+        let p2 = raw2.player ? { ...raw2.player, ...raw2 } : { ...raw2 };
+        delete (p2 as any).player;
+
+        const pos1 = p1.assignedPosition || p1.primaryPosition || 'CMF';
+        const pos2 = p2.assignedPosition || p2.primaryPosition || 'CMF';
+
+        // Positional assignment during swap:
+        if (typeof teamIndex === 'number' && typeof selectedForSwap.teamIndex !== 'number') {
+          // p1 (bench player) replaces p2 (pitch starter) -> p1 inherits p2's exact pitch position!
+          p1.assignedPosition = pos2;
+          p1.psi = calculatePSI(p1, pos2);
+          p1.playStyle = getBestPlayStyleNameForPosition(p1, pos2);
+          p1.overallRating = Math.round(p1.psi);
+
+          p2.assignedPosition = p2.primaryPosition || 'CMF';
+        } else if (typeof selectedForSwap.teamIndex === 'number' && typeof teamIndex !== 'number') {
+          // p2 (bench player) replaces p1 (pitch starter) -> p2 inherits p1's exact pitch position!
+          p2.assignedPosition = pos1;
+          p2.psi = calculatePSI(p2, pos1);
+          p2.playStyle = getBestPlayStyleNameForPosition(p2, pos1);
+          p2.overallRating = Math.round(p2.psi);
+
+          p1.assignedPosition = p1.primaryPosition || 'CMF';
+        } else if (typeof selectedForSwap.teamIndex === 'number' && typeof teamIndex === 'number') {
+          // Swapping two pitch starters across positions
+          p1.assignedPosition = pos2;
+          p1.psi = calculatePSI(p1, pos2);
+          p1.playStyle = getBestPlayStyleNameForPosition(p1, pos2);
+          p1.overallRating = Math.round(p1.psi);
+
+          p2.assignedPosition = pos1;
+          p2.psi = calculatePSI(p2, pos1);
+          p2.playStyle = getBestPlayStyleNameForPosition(p2, pos1);
+          p2.overallRating = Math.round(p2.psi);
+        }
+
+        l1[selectedForSwap.playerIndex] = p2;
+        l2[playerIndex] = p1;
+      }
 
       const calcAvg = (list: any[]) => {
         if (!list || list.length === 0) return 70;
-        const total = list.reduce((sum, p) => sum + (p.overallRating || p?.stats?.overallRating || 70), 0);
+        const total = list.reduce((sum, item) => {
+          const p = item.player || item;
+          return sum + (p.overallRating || p?.stats?.overallRating || 70);
+        }, 0);
         return Math.round(total / list.length);
       };
+
       nextData.metrics = {
         teamAAvg: calcAvg(nextData.teamA),
         teamBAvg: calcAvg(nextData.teamB),
       };
       setPreviewData(nextData);
+      setPitchResetCounter(c => c + 1);
     }
     setSelectedForSwap(null);
   };
