@@ -272,16 +272,23 @@ export const FORMATIONS: Record<string, PESPosition[]> = {
   '5-3-1': ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF'],
 
   // 11v11 (أحد عشري)
-  '4-3-3':     ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
-  '4-2-3-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'LMF', 'AMF', 'RMF', 'CF'],
-  '4-4-2':     ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF', 'CF'],
-  '4-1-4-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'LMF', 'CMF', 'AMF', 'RMF', 'CF'],
-  '3-5-2':     ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
-  '3-4-3':     ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'CMF', 'RMF', 'LWF', 'CF', 'RWF'],
-  '4-3-2-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'AMF', 'AMF', 'CF'],
-  '4-1-2-1-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'CMF', 'CMF', 'AMF', 'CF', 'CF'],
-  '5-3-2':     ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF', 'CF'],
-  '5-4-1':     ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
+  '4-3-3':          ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
+  '4-3-3 (Attack)': ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
+  '4-3-3 (Defend)': ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'CMF', 'LWF', 'CF', 'RWF'],
+  '4-2-3-1':        ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'LMF', 'AMF', 'RMF', 'CF'],
+  '4-4-2':          ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '4-2-2-2':        ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'AMF', 'AMF', 'CF', 'CF'],
+  '4-1-4-1':        ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'LMF', 'CMF', 'AMF', 'RMF', 'CF'],
+  '3-5-2':          ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '3-4-3':          ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'CMF', 'RMF', 'LWF', 'CF', 'RWF'],
+  '3-4-1-2':        ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'CMF', 'RMF', 'AMF', 'CF', 'CF'],
+  '4-1-3-2':        ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'LMF', 'AMF', 'RMF', 'CF', 'CF'],
+  '4-3-2-1':        ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'AMF', 'AMF', 'CF'],
+  '4-1-2-1-2':      ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'CMF', 'CMF', 'AMF', 'CF', 'CF'],
+  '5-3-2':          ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF', 'CF'],
+  '5-2-3':          ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'LWF', 'CF', 'RWF'],
+  '4-2-4':          ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'LWF', 'CF', 'CF', 'RWF'],
+  '5-4-1':          ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
 };
 
 // ─── Helper Utilities ────────────────────────────────────────────────────────

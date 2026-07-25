@@ -85,16 +85,23 @@ const FORMATION_COORDS: Record<string, {x:number;y:number}[]> = {
   '5-3-1': [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:50,y:18}],
 
   // 11v11 (أحد عشري)
-  '4-3-3':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:32,y:48},{x:50,y:55},{x:68,y:48},{x:18,y:22},{x:50,y:15},{x:82,y:22}],
-  '4-2-3-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:38,y:58},{x:62,y:58},{x:18,y:35},{x:50,y:32},{x:82,y:35},{x:50,y:15}],
-  '4-4-2':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:18,y:45},{x:38,y:52},{x:62,y:52},{x:82,y:45},{x:35,y:18},{x:65,y:18}],
-  '4-1-4-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:18,y:42},{x:38,y:42},{x:62,y:42},{x:82,y:42},{x:50,y:18}],
-  '3-5-2':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:15,y:48},{x:35,y:54},{x:50,y:42},{x:65,y:54},{x:85,y:48},{x:35,y:18},{x:65,y:18}],
-  '3-4-3':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
-  '4-3-2-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:25,y:52},{x:50,y:55},{x:75,y:52},{x:35,y:32},{x:65,y:32},{x:50,y:15}],
-  '4-1-2-1-2': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:32,y:48},{x:68,y:48},{x:50,y:32},{x:35,y:18},{x:65,y:18}],
-  '5-3-2':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:30,y:48},{x:50,y:52},{x:70,y:48},{x:35,y:18},{x:65,y:18}],
-  '5-4-1':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:18,y:45},{x:38,y:48},{x:62,y:48},{x:82,y:45},{x:50,y:18}],
+  '4-3-3':          [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:32,y:48},{x:50,y:55},{x:68,y:48},{x:18,y:22},{x:50,y:15},{x:82,y:22}],
+  '4-3-3 (Attack)': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:32,y:45},{x:68,y:35},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
+  '4-3-3 (Defend)': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:35,y:60},{x:65,y:60},{x:50,y:45},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
+  '4-2-3-1':        [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:38,y:58},{x:62,y:58},{x:18,y:35},{x:50,y:32},{x:82,y:35},{x:50,y:15}],
+  '4-4-2':          [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:18,y:45},{x:38,y:52},{x:62,y:52},{x:82,y:45},{x:35,y:18},{x:65,y:18}],
+  '4-2-2-2':        [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:35,y:60},{x:65,y:60},{x:32,y:35},{x:68,y:35},{x:35,y:18},{x:65,y:18}],
+  '4-1-4-1':        [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:18,y:42},{x:38,y:42},{x:62,y:42},{x:82,y:42},{x:50,y:18}],
+  '3-5-2':          [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:15,y:48},{x:35,y:54},{x:50,y:42},{x:65,y:54},{x:85,y:48},{x:35,y:18},{x:65,y:18}],
+  '3-4-3':          [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
+  '3-4-1-2':        [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:18,y:50},{x:38,y:54},{x:62,y:54},{x:82,y:50},{x:50,y:34},{x:35,y:18},{x:65,y:18}],
+  '4-1-3-2':        [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:20,y:40},{x:50,y:35},{x:80,y:40},{x:35,y:18},{x:65,y:18}],
+  '4-3-2-1':        [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:25,y:52},{x:50,y:55},{x:75,y:52},{x:35,y:32},{x:65,y:32},{x:50,y:15}],
+  '4-1-2-1-2':      [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:32,y:48},{x:68,y:48},{x:50,y:32},{x:35,y:18},{x:65,y:18}],
+  '5-3-2':          [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:30,y:48},{x:50,y:52},{x:70,y:48},{x:35,y:18},{x:65,y:18}],
+  '5-2-3':          [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:35,y:50},{x:65,y:50},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
+  '4-2-4':          [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:35,y:52},{x:65,y:52},{x:15,y:20},{x:38,y:16},{x:62,y:16},{x:85,y:20}],
+  '5-4-1':          [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:18,y:45},{x:38,y:48},{x:62,y:48},{x:82,y:45},{x:50,y:18}],
 };
 
 const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
@@ -104,6 +111,46 @@ const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
   LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
 };
 
+const PLAY_STYLE_LABELS: Record<string, { en: string; ar: string }> = {
+  goal_poacher: { en: 'Goal Poacher', ar: 'قناص الأهداف 🎯' },
+  dummy_runner: { en: 'Dummy Runner', ar: 'مراوغ وهمي 🏃' },
+  fox_in_the_box: { en: 'Fox in the Box', ar: 'ثعلب الصندوق 🦊' },
+  target_man: { en: 'Target Man', ar: 'مهاجم محطة 🛡️' },
+  creative_playmaker: { en: 'Creative Playmaker', ar: 'صانع ألعاب مبتكر 🎨' },
+  prolific_winger: { en: 'Prolific Winger', ar: 'جناح هداف ⚡' },
+  roaming_flank: { en: 'Roaming Flank', ar: 'جناح حر 💫' },
+  cross_specialist: { en: 'Cross Specialist', ar: 'متخصص العرضيات 🎯' },
+  classic_no_10: { en: 'Classic No.10', ar: 'رقم 10 كلاسيكي 🎩' },
+  hole_player: { en: 'Hole Player', ar: 'لاعب القادمون من الخلف ⚡' },
+  box_to_box: { en: 'Box-to-Box', ar: 'بوكس تو بوكس (مكوك) 🔄' },
+  anchor_man: { en: 'Anchor Man', ar: 'ارتكاز دفاعي (مرساة) ⚓' },
+  destroyer: { en: 'The Destroyer', ar: 'المقاتل المدمر 💥' },
+  orchestrator: { en: 'Orchestrator', ar: 'مهندس الإيقاع 🎼' },
+  offensive_fullback: { en: 'Offensive Fullback', ar: 'ظهير هجومي 🚀' },
+  defensive_fullback: { en: 'Defensive Fullback', ar: 'ظهير دفاعي 🛡️' },
+  fullback_finisher: { en: 'Fullback Finisher', ar: 'ظهير مقتحم 🎯' },
+  build_up: { en: 'Build Up', ar: 'بناء اللعب من الخلف 🧱' },
+  extra_attacker: { en: 'Extra Attacker', ar: 'مدافع مقتحم 🚀' },
+  offensive_goalkeeper: { en: 'Offensive GK (Sweeper)', ar: 'حارس مانويل نوير 🧤' },
+  defensive_goalkeeper: { en: 'Defensive GK (Wall)', ar: 'حارس جداري 🧱' },
+};
+
+function getDisplayPlayStyle(p: any, isAr: boolean): string {
+  const rawStyle = (p.preferredPlayStyle || p.playStyle || p.mood || '').toString();
+  const styleKey = rawStyle.toLowerCase().replace(/[\s-]/g, '_');
+  if (styleKey && PLAY_STYLE_LABELS[styleKey]) {
+    return isAr ? PLAY_STYLE_LABELS[styleKey].ar : PLAY_STYLE_LABELS[styleKey].en;
+  }
+  if (rawStyle && rawStyle.trim().length > 0) return rawStyle;
+  
+  const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+  if (pos === 'GK') return isAr ? 'حارس مرمى 🧤' : 'Goalkeeper 🧤';
+  if (['CB', 'LB', 'RB'].includes(pos)) return isAr ? 'بناء اللعب 🧱' : 'Build Up 🧱';
+  if (['DMF', 'CMF'].includes(pos)) return isAr ? 'بوكس تو بوكس (مكوك) 🔄' : 'Box-to-Box 🔄';
+  if (['AMF', 'LMF', 'RMF'].includes(pos)) return isAr ? 'صانع ألعاب 🎨' : 'Playmaker 🎨';
+  return isAr ? 'قناص الأهداف 🎯' : 'Goal Poacher 🎯';
+}
+
 interface HalfPitchProps {
   team: any[];
   label: string;
@@ -111,10 +158,11 @@ interface HalfPitchProps {
   flipped: boolean;
   formationName?: string;
   isAr: boolean;
+  pitchResetCounter?: number;
   setActiveTacticalPlayer: (val: any) => void;
 }
 
-function HalfPitch({ team, label, color, flipped, formationName, isAr, setActiveTacticalPlayer }: HalfPitchProps) {
+function HalfPitch({ team, label, color, flipped, formationName, isAr, pitchResetCounter, setActiveTacticalPlayer }: HalfPitchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
   const formKey = formationName || defaultForm;
@@ -125,7 +173,7 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, setActive
   const usedCoordCounts: Record<string, number> = {};
 
   return (
-    <div className="flex-1 relative min-h-0 min-w-[200px] select-none touch-none">
+    <div className="flex-1 relative min-h-0 w-full overflow-hidden select-none touch-none">
       <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
@@ -149,7 +197,6 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, setActive
         {team.map((p: any, i: number) => {
           const pos = p.assignedPosition || p.primaryPosition || 'CMF';
           
-          // Find slot index in formation matching pos so player moves physically on the pitch
           let matchedSlotIdx = -1;
           for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
             if (formSlots[sIdx] === pos && !usedSlotIndices.has(sIdx)) {
@@ -171,7 +218,6 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, setActive
             coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
           }
 
-          // Anti-Overlap Offset for duplicate positions
           const coordKey = `${coords.x.toFixed(0)}-${coords.y.toFixed(0)}`;
           const dupIndex = usedCoordCounts[coordKey] || 0;
           usedCoordCounts[coordKey] = dupIndex + 1;
@@ -185,10 +231,10 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, setActive
           const y = flipped ? 100 - coords.y : coords.y;
           const ovr = p.overallRating || p?.stats?.overallRating || 70;
           const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
-          const moodStyle = p.playStyle || 'Box-to-Box';
+          const moodStyle = getDisplayPlayStyle(p, isAr);
           return (
             <motion.div
-              key={p.uid || `pitch-${label}-${i}`}
+              key={`${p.uid || `pitch-${label}-${i}`}-${pos}-${formKey}-${pitchResetCounter || 0}`}
               drag
               dragConstraints={containerRef}
               dragElastic={0}
@@ -223,6 +269,193 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, setActive
   );
 }
 
+function calculateTeamAvg(team: any[]): number {
+  if (!team || team.length === 0) return 70;
+  const sum = team.reduce((acc, p) => {
+    const item = p.player || p;
+    return acc + (item.overallRating || item?.stats?.overallRating || 70);
+  }, 0);
+  return Math.round(sum / team.length);
+}
+
+interface TeamBenchProps {
+  bench: any[];
+  teamName: string;
+  isAr: boolean;
+  onSwapClick?: (bpIdx: number, bPlayer: any) => void;
+  selectedForSwap?: any;
+  swapTeamKey?: string;
+}
+
+function TeamBench({ bench, teamName, isAr, onSwapClick, selectedForSwap, swapTeamKey }: TeamBenchProps) {
+  if (!bench || bench.length === 0) return null;
+  return (
+    <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
+      <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+        <Users className="w-3.5 h-3.5" />
+        <span>{teamName} {isAr ? 'احتياط' : 'Bench'}</span>
+        <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+          {bench.length}
+        </span>
+      </h4>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        {bench.map((bItem: any, bpIdx: number) => {
+          const bPlayer = bItem.player || bItem;
+          const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
+          const bPos = bPlayer.primaryPosition || 'CMF';
+          const moodStyle = getDisplayPlayStyle(bPlayer, isAr);
+          const isSelected = selectedForSwap && swapTeamKey && selectedForSwap.teamIndex === swapTeamKey && selectedForSwap.playerIndex === bpIdx;
+          
+          if (onSwapClick) {
+            return (
+              <button
+                key={bPlayer.uid || `tb-${bpIdx}`}
+                type="button"
+                onClick={() => onSwapClick(bpIdx, bPlayer)}
+                className={`p-2 rounded-xl border transition-all flex items-center justify-between gap-2 text-left ${
+                  isSelected
+                    ? 'bg-purple-600 text-white border-purple-500 shadow-md scale-[1.02]'
+                    : 'bg-amber-50/60 dark:bg-amber-500/10 border-amber-200/80 dark:border-amber-500/30 hover:border-purple-400'
+                }`}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className={`text-[10px] font-black uppercase shrink-0 ${isSelected ? 'text-white' : 'text-amber-700 dark:text-amber-300'}`}>{bPos}</span>
+                  <span className={`text-xs font-bold truncate ${isSelected ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
+                    {bPlayer.fullName || bPlayer.cardName || 'Bench Player'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span className={`text-[9px] font-bold truncate max-w-[65px] ${isSelected ? 'text-amber-200' : 'text-slate-500 dark:text-slate-400'}`}>{moodStyle}</span>
+                  <span className={`text-xs font-black ${isSelected ? 'text-white' : 'text-amber-600 dark:text-amber-400'}`}>
+                    {bOvr}
+                  </span>
+                </div>
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={bPlayer.uid || `tb-${bpIdx}`}
+              className="p-2 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between gap-2"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 shrink-0">{bPos}</span>
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                  {bPlayer.fullName || bPlayer.cardName || 'Bench Player'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <span className="text-[9px] font-bold text-slate-500 dark:text-slate-400 truncate max-w-[65px]">{moodStyle}</span>
+                <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+                  {bOvr}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+interface ManagerAdvice {
+  icon: string;
+  title: string;
+  body: string;
+  type: 'strength' | 'weakness' | 'tactical_tip' | 'key_battle';
+}
+
+function generateBilingualManagerAdvices(
+  teamA: any[],
+  teamB: any[],
+  formationA: string,
+  formationB: string,
+  metrics: any,
+  isAr: boolean
+): ManagerAdvice[] {
+  const advices: ManagerAdvice[] = [];
+  const avgA = metrics?.teamAAvg || calculateTeamAvg(teamA);
+  const avgB = metrics?.teamBAvg || calculateTeamAvg(teamB);
+  const ovrDiff = avgA - avgB;
+
+  if (Math.abs(ovrDiff) <= 2) {
+    advices.push({
+      icon: '⚖️',
+      title: isAr ? 'تكافؤ مثالي وتوازن تكتيكي' : 'Perfect Tactical Balance',
+      body: isAr
+        ? `المباراة متكافئة للغاية بين الفريقين (معدل الفريق أ ${avgA} مقابل الفريق ب ${avgB}). الفوز سيتحدد من خلال الالتزام بالتعليمات والتحركات الجماعية.`
+        : `Evenly matched game (Team A AVG ${avgA} vs Team B AVG ${avgB}). Micro-tactical execution and collective movement will decide the winner.`,
+      type: 'tactical_tip',
+    });
+  } else if (ovrDiff > 2) {
+    advices.push({
+      icon: '🚀',
+      title: isAr ? 'تفوق الفريق أ في القوة الفردية' : 'Team A Quality Advantage',
+      body: isAr
+        ? `يمتلك الفريق أ تفوقاً فردياً بمعدل (${avgA} vs ${avgB}). يُنصح الفريق ب بتقفيل المساحات والاعتماد على الهجمات المرتدة السريعة.`
+        : `Team A holds a rating advantage (${avgA} vs ${avgB}). Team B should compact the midfield and exploit quick counter-attacks.`,
+      type: 'key_battle',
+    });
+  } else {
+    advices.push({
+      icon: '🛡️',
+      title: isAr ? 'تفوق الفريق ب في القوة الفردية' : 'Team B Quality Advantage',
+      body: isAr
+        ? `يمتلك الفريق ب تفوقاً فردياً بمعدل (${avgB} vs ${avgA}). يُستحسن للفريق أ الضغط العالي المنظم وتقليل المساحات في العمق.`
+        : `Team B holds a rating advantage (${avgB} vs ${avgA}). Team A needs structured high pressing and disciplined spatial control.`,
+      type: 'key_battle',
+    });
+  }
+
+  if (formationA.includes('4-3-3') && formationB.includes('4-2-3-1')) {
+    advices.push({
+      icon: '⚔️',
+      title: isAr ? 'صراع العمق: 4-3-3 ضد 4-2-3-1' : 'Midfield Battle: 4-3-3 vs 4-2-3-1',
+      body: isAr
+        ? `ثلاثي وسط الفريق أ سيتواجه مع محوري الفريق ب وصانع الألعاب. استخدام الأجنحة لخلق الزيادة العددية هو مفتاح الاختراق.`
+        : `Team A's midfield trio clashes with Team B's double pivot & AMF. Wing isolation will be critical for numerical overloads.`,
+      type: 'tactical_tip',
+    });
+  } else if (formationA.includes('3-') || formationB.includes('3-')) {
+    advices.push({
+      icon: '⚡',
+      title: isAr ? 'استغلال مساحات خلف الأطراف' : 'Exploiting Wide Spaces',
+      body: isAr
+        ? `اعتماد التشكيل على ثلاثي دفاع يخلق مساحات خلف الأظهيرة (Wing-backs). التحول السريع للأطراف سيشكل خطورة مباشرة.`
+        : `3-back system creates vulnerable space behind wing-backs. Rapid diagonal switches to open flanks will generate high xG chances.`,
+      type: 'strength',
+    });
+  }
+
+  const attackersA = teamA.filter(p => ['CF', 'SS', 'LWF', 'RWF'].includes(p.assignedPosition || p.primaryPosition));
+  const attackersB = teamB.filter(p => ['CF', 'SS', 'LWF', 'RWF'].includes(p.assignedPosition || p.primaryPosition));
+
+  if (attackersA.length >= 3) {
+    advices.push({
+      icon: '💥',
+      title: isAr ? 'قوة هجومية ضاربة للفريق أ' : 'Team A High Firepower',
+      body: isAr
+        ? `يتواجد ${attackersA.length} مهاجمين صريحين ومجنحين بالفريق أ. يوصى بالتمرير السريع المباشر في منطقة الجزاء.`
+        : `Team A features ${attackersA.length} direct forwards & wingers. Direct first-time passes into the box will maximize scoring.`,
+      type: 'strength',
+    });
+  }
+
+  if (attackersB.length >= 3) {
+    advices.push({
+      icon: '🔥',
+      title: isAr ? 'ضغط هجومي مكثف للفريق ب' : 'Team B High Firepower',
+      body: isAr
+        ? `يمتلك الفريق ب قوة هجومية ثلاثية (${attackersB.map(p => p.assignedPosition || p.primaryPosition).join(', ')}). يجب الحذر من الاختراقات المباشرة.`
+        : `Team B features strong forward threat (${attackersB.map(p => p.assignedPosition || p.primaryPosition).join(', ')}). High defensive concentration required.`,
+      type: 'strength',
+    });
+  }
+
+  return advices;
+}
+
 interface MatchConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -243,6 +476,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     player: any;
   } | null>(null);
   const [aiPitchView, setAiPitchView] = useState(false);
+  const [pitchResetCounter, setPitchResetCounter] = useState(0);
 
   const [config, setConfig] = useState<MatchConfig>({
     date: '',
@@ -416,11 +650,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       };
       const turfResult = generateTurfMatch(availablePlayers as any[], turfConfig);
       setPreviewData({ matchMode: 'turf', turfResult, availablePlayers, turfConfig });
+      setAiPitchView(false);
     } else {
       const result = balanceTeams(availablePlayers as any[]);
       setPreviewData({ matchMode: 'standard', ...result, availablePlayers });
     }
     setSelectedForSwap(null);
+    setPitchResetCounter(c => c + 1);
     setStep('preview');
   };
 
@@ -434,6 +670,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       setPreviewData({ ...previewData, ...result });
     }
     setSelectedForSwap(null);
+    setPitchResetCounter(c => c + 1);
     setAiPitchView(false);
   };
 
@@ -468,12 +705,14 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       ];
       const optBench = rawBench.map((item: any) => optimizePlayer(item.player || item));
 
-      // Dynamically pick formation that best fits each team's players
       const formationA = selectBestFormation(optA);
       const formationB = selectBestFormation(optB);
 
       const assignedA = assignPlayersToFormation(optA, formationA);
       const assignedB = assignPlayersToFormation(optB, formationB);
+
+      const teamAAvg = calculateTeamAvg(assignedA);
+      const teamBAvg = calculateTeamAvg(assignedB);
 
       setPreviewData((prev: any) => ({
         ...prev,
@@ -481,7 +720,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         teamB: assignedB,
         bench: optBench,
         formation: { teamA: formationA, teamB: formationB },
+        metrics: {
+          ...(prev?.metrics || {}),
+          teamAAvg,
+          teamBAvg,
+        }
       }));
+      setPitchResetCounter(c => c + 1);
       setAiPitchView(true);
     } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
       const updated = JSON.parse(JSON.stringify(previewData.turfResult));
@@ -493,6 +738,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       }
       if (updated.bench) updated.bench = updated.bench.map(optimizePlayer);
       setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
+      setPitchResetCounter(c => c + 1);
       setAiPitchView(true);
     }
 
@@ -527,12 +773,21 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const assignedA = assignPlayersToFormation(teamA, nextFormA);
       const assignedB = assignPlayersToFormation(teamB, nextFormB);
 
+      const teamAAvg = calculateTeamAvg(assignedA);
+      const teamBAvg = calculateTeamAvg(assignedB);
+
       setPreviewData((prev: any) => ({
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
-        formation: { teamA: nextFormA, teamB: nextFormB }
+        formation: { teamA: nextFormA, teamB: nextFormB },
+        metrics: {
+          ...(prev?.metrics || {}),
+          teamAAvg,
+          teamBAvg,
+        }
       }));
+      setPitchResetCounter(c => c + 1);
       setAiPitchView(true);
       toast.success(isAr ? `التشكيلة الجديدة: ${nextFormA} ضد ${nextFormB}` : `Tactical formations updated to ${nextFormA} vs ${nextFormB}`);
     } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
@@ -552,6 +807,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         });
       }
       setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
+      setPitchResetCounter(c => c + 1);
       setAiPitchView(true);
       toast.success(isAr ? 'تم تغيير تشكيلات فرق الحجز التكتيكية' : 'Turf team formations updated');
     }
@@ -768,108 +1024,111 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   </div>
 
                   {/* Turf Mode Preview */}
-                  {previewData.matchMode === 'turf' && previewData.turfResult && !aiPitchView && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
-                        const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
-                        return (
-                          <div
-                            key={`turf-team-${tIdx}`}
-                            className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
-                              isTeamSelected
-                                ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
-                                : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
-                              <div className="flex items-center gap-2.5">
-                                <span
-                                  className="w-3.5 h-3.5 rounded-full shadow-sm"
-                                  style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
-                                />
-                                <h3 className="font-black text-slate-900 dark:text-white text-base">
-                                  {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
-                                </h3>
-                              </div>
-                              <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
-                                <Trophy className="w-3.5 h-3.5" />
-                                <span>OVR: {team.totalOvr || 70}</span>
-                              </div>
-                            </div>
+                  {previewData.matchMode === 'turf' && previewData.turfResult && (
+                    <div className="space-y-6">
+                      {/* AI Pitch View for Turf */}
+                      {aiPitchView && (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{minHeight:420}}>
+                            {previewData.turfResult.teams?.map((team: any, tIdx: number) => (
+                              <HalfPitch
+                                key={`turf-pitch-${tIdx}`}
+                                team={team.assignedPlayers || team.players || []}
+                                label={team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
+                                color={team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981')}
+                                flipped={tIdx % 2 === 1}
+                                formationName={team.formation || (team.players?.length === 5 ? '1-2-1' : team.players?.length === 6 ? '2-2-1' : '3-3-1')}
+                                isAr={isAr}
+                                pitchResetCounter={pitchResetCounter}
+                                setActiveTacticalPlayer={setActiveTacticalPlayer}
+                              />
+                            ))}
+                          </div>
+                          {/* Dedicated Bench for Turf */}
+                          {previewData.turfResult.waitingTeams && previewData.turfResult.waitingTeams.length > 0 && (
+                            <TeamBench
+                              bench={previewData.turfResult.waitingTeams[0]?.players || []}
+                              teamName={isAr ? 'دكة البدلاء العام' : 'Turf Bench'}
+                              isAr={isAr}
+                            />
+                          )}
+                        </div>
+                      )}
 
-                            <div className="space-y-2 flex-1">
-                              {(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players)?.map((player: any, pIdx: number) => {
-                                const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
-                                const ovr = player.overallRating || player?.stats?.overallRating || 70;
-                                const pos = player.assignedPosition || player.primaryPosition || 'CMF';
-                                return (
-                                  <button
-                                    key={player.uid || `t-${tIdx}-p-${pIdx}`}
-                                    type="button"
-                                    onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
-                                    className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
-                                      isSelected
-                                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
-                                        : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
-                                    }`}
-                                  >
-                                    <div className="flex items-center gap-2.5 min-w-0">
-                                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
-                                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                      }`}>
-                                        {pos.slice(0, 3)}
-                                      </div>
-                                      <span className="font-bold text-sm truncate">
-                                        {player.fullName || player.cardName || 'Unknown Player'}
-                                      </span>
-                                    </div>
-                                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
-                                      isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                    }`}>
-                                      {ovr}
-                                    </span>
-                                  </button>
-                                );
-                              })}
-                            </div>
+                      {/* Default List View for Turf */}
+                      {!aiPitchView && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
+                            const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
+                            return (
+                              <div
+                                key={`turf-team-${tIdx}`}
+                                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
+                                  isTeamSelected
+                                    ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
+                                    : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                                  <div className="flex items-center gap-2.5">
+                                    <span
+                                      className="w-3.5 h-3.5 rounded-full shadow-sm"
+                                      style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
+                                    />
+                                    <h3 className="font-black text-slate-900 dark:text-white text-base">
+                                      {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
+                                    </h3>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
+                                    <Trophy className="w-3.5 h-3.5" />
+                                    <span>OVR: {team.totalOvr || calculateTeamAvg(team.players || [])}</span>
+                                  </div>
+                                </div>
 
-                            {/* Dedicated Bench for this team */}
-                            {team.bench && team.bench.length > 0 && (
-                              <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
-                                <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <Users className="w-3.5 h-3.5" />
-                                  <span>{team.name || `Team ${String.fromCharCode(65 + tIdx)}`} {isAr ? 'احتياط' : 'Bench'}</span>
-                                  <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-                                    {team.bench.length}
-                                  </span>
-                                </h4>
-                                <div className="space-y-1.5">
-                                  {team.bench.map((bPlayer: any, bpIdx: number) => {
-                                    const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
-                                    const bPos = bPlayer.primaryPosition || 'CMF';
+                                <div className="space-y-2 flex-1">
+                                  {(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players)?.map((player: any, pIdx: number) => {
+                                    const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
+                                    const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                                    const pos = player.assignedPosition || player.primaryPosition || 'CMF';
                                     return (
-                                      <div
-                                        key={bPlayer.uid || `tb-${tIdx}-bp-${bpIdx}`}
-                                        className="p-2 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between gap-2"
+                                      <button
+                                        key={player.uid || `t-${tIdx}-p-${pIdx}`}
+                                        type="button"
+                                        onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
+                                        className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
+                                          isSelected
+                                            ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                            : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
+                                        }`}
                                       >
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300">{bPos}</span>
-                                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">
-                                            {bPlayer.fullName || bPlayer.cardName || 'Bench Player'}
+                                        <div className="flex items-center gap-2.5 min-w-0">
+                                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
+                                            isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                          }`}>
+                                            {pos.slice(0, 3)}
+                                          </div>
+                                          <span className="font-bold text-sm truncate">
+                                            {player.fullName || player.cardName || 'Unknown Player'}
                                           </span>
                                         </div>
-                                        <span className="text-xs font-black text-amber-600 dark:text-amber-400">
-                                          {bOvr}
+                                        <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                          isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                        }`}>
+                                          {ovr}
                                         </span>
-                                      </div>
+                                      </button>
                                     );
                                   })}
                                 </div>
+
+                                {team.bench && team.bench.length > 0 && (
+                                  <TeamBench bench={team.bench} teamName={team.name || `Team ${String.fromCharCode(65 + tIdx)}`} isAr={isAr} />
+                                )}
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -884,7 +1143,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             <div className="flex items-center gap-2">
                               <span className="w-3 h-3 rounded-full bg-blue-500"/>
                               <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
-                              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamAAvg || '—'}</span>
+                              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
+                                AVG {previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}
+                              </span>
                             </div>
                             <div className="text-slate-400 text-xs font-bold flex items-center gap-1">
                               <span>{previewData.formation?.teamA || '4-3-3'}</span>
@@ -892,13 +1153,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               <span>{previewData.formation?.teamB || '4-3-3'}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamBAvg || '—'}</span>
+                              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
+                                AVG {previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}
+                              </span>
                               <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>
                               <span className="w-3 h-3 rounded-full bg-red-500"/>
                             </div>
                           </div>
                           {/* Side-by-side pitches */}
-                          <div className="flex gap-3" style={{minHeight:420}}>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{minHeight:420}}>
                             <HalfPitch
                               team={previewData.teamA || []}
                               label={isAr ? 'الفريق أ' : 'Team A'}
@@ -906,6 +1169,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               flipped={false}
                               formationName={previewData.formation?.teamA}
                               isAr={isAr}
+                              pitchResetCounter={pitchResetCounter}
                               setActiveTacticalPlayer={setActiveTacticalPlayer}
                             />
                             <HalfPitch
@@ -915,7 +1179,28 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               flipped={true}
                               formationName={previewData.formation?.teamB}
                               isAr={isAr}
+                              pitchResetCounter={pitchResetCounter}
                               setActiveTacticalPlayer={setActiveTacticalPlayer}
+                            />
+                          </div>
+
+                          {/* Dedicated Bench for both teams in AI Pitch View */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <TeamBench
+                              bench={previewData.benchA || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 0)}
+                              teamName={isAr ? 'الفريق أ' : 'Team A'}
+                              isAr={isAr}
+                              onSwapClick={(bpIdx, bPlayer) => handlePlayerSwapClick('benchA', bpIdx, bPlayer)}
+                              selectedForSwap={selectedForSwap}
+                              swapTeamKey="benchA"
+                            />
+                            <TeamBench
+                              bench={previewData.benchB || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 1)}
+                              teamName={isAr ? 'الفريق ب' : 'Team B'}
+                              isAr={isAr}
+                              onSwapClick={(bpIdx, bPlayer) => handlePlayerSwapClick('benchB', bpIdx, bPlayer)}
+                              selectedForSwap={selectedForSwap}
+                              swapTeamKey="benchB"
                             />
                           </div>
                         </div>
@@ -924,8 +1209,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       {/* ── DEFAULT LIST VIEW ── */}
                       {!aiPitchView && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {[
-                          { name: isAr ? 'الفريق الأول' : 'Team A', list: previewData.teamA, avg: previewData.metrics?.teamAAvg || 70, tIdx: 0, color: '#3B82F6' },
-                          { name: isAr ? 'الفريق الثاني' : 'Team B', list: previewData.teamB, avg: previewData.metrics?.teamBAvg || 70, tIdx: 1, color: '#EF4444' },
+                          { name: isAr ? 'الفريق الأول' : 'Team A', list: previewData.teamA, avg: previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || []), tIdx: 0, color: '#3B82F6' },
+                          { name: isAr ? 'الفريق الثاني' : 'Team B', list: previewData.teamB, avg: previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || []), tIdx: 1, color: '#EF4444' },
                         ].map((team) => {
                           const isTeamSelected = selectedForSwap?.teamIndex === team.tIdx;
                           return (
@@ -1042,24 +1327,53 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </div>
                   )}
 
-                  {/* Tips & Tactics Box */}
-                  {((previewData.turfResult && previewData.turfResult.tipsAndTactics && previewData.turfResult.tipsAndTactics.length > 0) ||
-                    (previewData.tipsAndTactics && previewData.tipsAndTactics.length > 0)) && (
-                    <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border border-blue-500/20 dark:border-blue-500/30 space-y-2">
-                      <h4 className="font-black text-blue-900 dark:text-blue-300 text-xs flex items-center gap-1.5 uppercase tracking-wider">
-                        <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-                        <span>{isAr ? 'نصائح وتكتيكات الذكاء الاصطناعي' : 'AI Tactical Insights'}</span>
-                      </h4>
-                      <ul className="space-y-1 text-xs font-medium text-slate-700 dark:text-slate-300">
-                        {(previewData.turfResult?.tipsAndTactics || previewData.tipsAndTactics).map((tip: string, idx: number) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="text-blue-500 font-bold">•</span>
-                            <span>{tip}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {/* Bilingual AI Manager Advice Cards */}
+                  {(() => {
+                    const managerAdvices = generateBilingualManagerAdvices(
+                      previewData.teamA || [],
+                      previewData.teamB || [],
+                      previewData.formation?.teamA || '4-3-3',
+                      previewData.formation?.teamB || '4-3-3',
+                      previewData.metrics,
+                      isAr
+                    );
+                    const engineTips = previewData.turfResult?.tipsAndTactics || previewData.tipsAndTactics || [];
+                    if (managerAdvices.length === 0 && engineTips.length === 0) return null;
+
+                    return (
+                      <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 border border-blue-500/20 dark:border-blue-500/30 space-y-3">
+                        <h4 className="font-black text-blue-900 dark:text-blue-300 text-xs flex items-center gap-1.5 uppercase tracking-wider">
+                          <Sparkles className="w-4 h-4 text-blue-500 animate-pulse" />
+                          <span>{isAr ? 'تحليل ونظرة المدير الفني (AI Manager Insights)' : 'Bilingual AI Manager Insights & Tactical Advice'}</span>
+                        </h4>
+                        
+                        {managerAdvices.length > 0 && (
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                            {managerAdvices.map((adv, idx) => (
+                              <div key={idx} className="p-3 rounded-xl bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 flex items-start gap-2.5 shadow-sm">
+                                <span className="text-lg shrink-0">{adv.icon}</span>
+                                <div className="space-y-1 min-w-0">
+                                  <p className="text-xs font-black text-slate-900 dark:text-white truncate">{adv.title}</p>
+                                  <p className="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-snug">{adv.body}</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {engineTips.length > 0 && (
+                          <ul className="space-y-1 text-xs font-medium text-slate-700 dark:text-slate-300 pt-1 border-t border-blue-200/40 dark:border-blue-800/40">
+                            {engineTips.map((tip: string, idx: number) => (
+                              <li key={idx} className="flex items-start gap-2">
+                                <span className="text-blue-500 font-bold">•</span>
+                                <span>{tip}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 {/* Preview Footer */}
