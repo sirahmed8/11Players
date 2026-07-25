@@ -130,14 +130,24 @@ export default function PlayerComparisonModal({
   const filteredForA = useMemo(() => {
     const q = searchA.toLowerCase().trim();
     return allPlayers
-      .filter((p) => p.uid !== playerBId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
+      .filter((p) => {
+        if (p.uid === playerBId) return false;
+        if (!q) return true;
+        const cName = p.cardName || p.fullName || "";
+        return cName.toLowerCase().includes(q);
+      })
       .sort((a, b) => (ovrMap.get(b.uid) ?? 0) - (ovrMap.get(a.uid) ?? 0));
   }, [allPlayers, searchA, playerBId, ovrMap]);
 
   const filteredForB = useMemo(() => {
     const q = searchB.toLowerCase().trim();
     return allPlayers
-      .filter((p) => p.uid !== playerAId && (!q || p.cardName?.toLowerCase().includes(q) || p.fullName?.toLowerCase().includes(q)))
+      .filter((p) => {
+        if (p.uid === playerAId) return false;
+        if (!q) return true;
+        const cName = p.cardName || p.fullName || "";
+        return cName.toLowerCase().includes(q);
+      })
       .sort((a, b) => (ovrMap.get(b.uid) ?? 0) - (ovrMap.get(a.uid) ?? 0));
   }, [allPlayers, searchB, playerAId, ovrMap]);
 
@@ -183,7 +193,7 @@ export default function PlayerComparisonModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
             {/* Player A */}
             <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-emerald-500" />
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500" />
               {isSelectingA || !playerA ? (
                 <div className="space-y-3">
                   <span className="text-xs font-black uppercase text-slate-500">{isAr ? "اختر اللاعب الأول" : "Select Player A"}</span>
@@ -197,7 +207,7 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
+                  <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
                     {filteredForA.map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
                     ))}
@@ -254,7 +264,7 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
+                  <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
                     {filteredForB.map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
                     ))}

@@ -13,7 +13,7 @@ import type { PlayerProfile, PESPosition, PlayerAttributes } from "@/types";
 import AttributeSliders from "@/components/player/AttributeSliders";
 import SkillsChecklist from "@/components/player/SkillsChecklist";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
-import { getPlayerOverall } from "@/lib/playerUtils";
+import { getPlayerOverall, getEffectiveHomeCommunityId } from "@/lib/playerUtils";
 
 interface SuggestPeerRatingModalProps {
   player: PlayerProfile;
@@ -64,6 +64,12 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
   const handleSubmit = async () => {
     if (!user) {
       toast.error(isAr ? "يجب تسجيل الدخول لإرسال اقتراح" : "Must be logged in to suggest ratings");
+      return;
+    }
+    
+    const effectiveHomeId = getEffectiveHomeCommunityId(player);
+    if (effectiveHomeId && activeCommunityId !== effectiveHomeId) {
+      toast.error(isAr ? 'لا يمكنك التقييم لأن اللاعب مقفل لمجتمع آخر' : 'You cannot suggest ratings because the player is locked to another community');
       return;
     }
 

@@ -352,9 +352,9 @@ const MatchPitchDisplay = React.memo(function MatchPitchDisplay({
       )}
 
       {/* The Pitch */}
-      <div className="relative w-full max-w-md mx-auto aspect-[2/3] bg-emerald-800 rounded-2xl overflow-hidden border-2 border-slate-700/50 shadow-inner">
+      <div className="relative w-full max-w-md mx-auto aspect-[2/3] bg-emerald-800 rounded-2xl border-2 border-slate-700/50 shadow-inner">
         {/* Pitch Lines */}
-        <div className="absolute inset-0 opacity-40 pointer-events-none">
+        <div className="absolute inset-0 opacity-40 pointer-events-none rounded-2xl overflow-hidden">
           <div className="absolute top-0 w-full h-1/2 border-b-2 border-white/50" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border-2 border-white/50" />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/50" />

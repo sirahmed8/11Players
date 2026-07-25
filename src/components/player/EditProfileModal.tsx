@@ -16,7 +16,7 @@ import AttributeSliders from '@/components/player/AttributeSliders';
 import CommunityStatsEditor from '@/components/community/CommunityStatsEditor';
 import SkillsChecklist from '@/components/player/SkillsChecklist';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
-import { getAllPlayerCommunities, calculateAge } from '@/lib/playerUtils';
+import { getAllPlayerCommunities, calculateAge, getEffectiveHomeCommunityId } from '@/lib/playerUtils';
 import { ChevronDown, Upload, Loader2, Zap } from 'lucide-react';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
@@ -243,6 +243,14 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
       } catch (e: any) {
         toast.error('Validation failed. Please check all fields.');
         console.error('Validation error:', e);
+        setIsSaving(false);
+        return;
+      }
+
+      // Check community lock
+      const effectiveHomeId = getEffectiveHomeCommunityId(player);
+      if (!isOwner && effectiveHomeId && activeCommunityId !== effectiveHomeId) {
+        toast.error(isRTL ? 'لا يمكنك التعديل لأن اللاعب مقفل لمجتمع آخر' : 'You cannot edit because the player is locked to another community');
         setIsSaving(false);
         return;
       }

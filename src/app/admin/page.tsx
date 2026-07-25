@@ -51,11 +51,6 @@ export default function AdminPage() {
     return () => { cancelled = true; };
   }, [activeCommunityId, user, isAr]);
 
-  // Matchmaking State
-  const [matchmakingLoading, setMatchmakingLoading] = useState(false);
-  const [matchmakingError, setMatchmakingError] = useState("");
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-  
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -87,129 +82,6 @@ export default function AdminPage() {
         }
       }
     });
-  };
-
-  const handleMatchmaking = async (config: MatchConfig, previewData?: any) => {
-    try {
-      if (!activeCommunityId) throw new Error("No active community selected");
-      setMatchmakingLoading(true);
-      setMatchmakingError("");
-      
-      // Filter by excluded + by explicit selection from MatchConfigModal
-      let availablePlayers = players.filter((p) => !p.isExcludedFromMatchmaking);
-      if (config.selectedPlayerUids && config.selectedPlayerUids.length > 0) {
-        const selectedSet = new Set(config.selectedPlayerUids);
-        availablePlayers = availablePlayers.filter(p => selectedSet.has(p.uid));
-      }
-      const playerIds = availablePlayers.map((p) => p.uid);
-
-      if (!config.isOpenRegistration && playerIds.length < 22) {
-        setMatchmakingError(isAr ? `توزيع الفرق يتطلب 22 لاعب على الأقل. يوجد حالياً ${playerIds.length}.` : `Matchmaking requires at least 22 players. Currently have ${playerIds.length}.`);
-        setMatchmakingLoading(false);
-        return;
-      }
-
-      // Small delay to show loading state
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const matchId = `match_${Date.now()}`;
-      let matchData: object;
-
-      if (config.isOpenRegistration) {
-        // ── Open Registration / Booking Mode ──
-        matchData = {
-          id: matchId,
-          success: true,
-          status: 'registering',
-          matchMode: config.matchMode || 'turf',
-          maxPlayers: (config.playersPerTeam || 6) * (config.numTeams || 2),
-          signedUpPlayerUids: [],
-          config,
-          generatedAt: new Date().toISOString(),
-        };
-      } else if (config.matchMode === 'turf') {
-        // ── Turf / Casual Mode ──
-        let turfResult: any;
-        if (previewData && previewData.matchMode === 'turf' && previewData.turfResult) {
-          turfResult = previewData.turfResult;
-        } else {
-          const turfConfig = {
-            numTeams: config.numTeams || 2,
-            playersPerTeam: config.playersPerTeam || 6,
-            gkMode: (config.gkMode || 'rotating') as 'fixed' | 'rotating',
-            fixedGkTeamA: config.fixedGkTeamA,
-            fixedGkTeamB: config.fixedGkTeamB,
-            gkRotationInterval: (config.gkRotationInterval || 'per_match') as 'per_goal' | 'per_time',
-            gkRotationMinutes: config.gkRotationMinutes,
-            matchType: (config.matchType === 'winner_stays' ? 'winner_stays' : config.matchType || 'league') as 'league' | 'knockout' | 'winner_stays',
-            matchDurationMins: config.matchDurationMins || 20,
-            endCondition: config.endCondition || 'time',
-            targetGoals: config.targetGoals || 3,
-          };
-          turfResult = generateTurfMatch(availablePlayers, turfConfig);
-        }
-        matchData = {
-          id: matchId,
-          success: true,
-          status: 'active',
-          matchMode: 'turf',
-          turfResult,
-          config,
-          generatedAt: new Date().toISOString(),
-        };
-      } else {
-        // ── Standard 11v11 Mode ──
-        let teamA, teamB, bench, metrics, formation, tipsAndTactics;
-        if (previewData && previewData.matchMode === 'standard') {
-          teamA = previewData.teamA || [];
-          teamB = previewData.teamB || [];
-          bench = previewData.bench || [];
-          metrics = previewData.metrics || { teamAAvg: 70, teamBAvg: 70 };
-          formation = previewData.formation || "4-3-3";
-          tipsAndTactics = previewData.tipsAndTactics || [];
-        } else {
-          const result = balanceTeams(availablePlayers);
-          teamA = result.teamA;
-          teamB = result.teamB;
-          bench = [...(result.benchA || []), ...(result.benchB || [])];
-          metrics = result.metrics;
-          formation = result.formation;
-          tipsAndTactics = result.tipsAndTactics;
-        }
-        matchData = {
-          id: matchId,
-          success: true,
-          status: 'active',
-          matchMode: 'standard',
-          teamA,
-          teamB,
-          bench,
-          metrics,
-          formation,
-          tipsAndTactics,
-          config,
-          generatedAt: new Date().toISOString(),
-        };
-      }
-
-      // Save to Firestore
-      try {
-        await setDoc(doc(db, "communities", activeCommunityId, "matches", "latest"), matchData);
-        // Also save a historical record
-        await setDoc(doc(db, "communities", activeCommunityId, "matches", matchId), matchData);
-        
-        toast.success(isAr ? "تم إنشاء المباراة ونقلها لصفحة التشكيلة بنجاح!" : "Match generated successfully! Redirecting to match page...");
-        setIsConfigModalOpen(false);
-        router.push("/match");
-      } catch (err) {
-        console.error("Failed to save match to database:", err);
-        toast.error(isAr ? "فشل حفظ المباراة" : "Failed to save match");
-      }
-    } catch (error: any) {
-      setMatchmakingError(error.message || "Matchmaking failed.");
-    } finally {
-      setMatchmakingLoading(false);
-    }
   };
 
   const handleApplyAIToAll = async () => {
@@ -531,13 +403,6 @@ export default function AdminPage() {
                   </div>
                 </div>
               </div>
-
-              {matchmakingError && (
-                <div className="mb-8 p-4 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 border border-red-300 dark:border-red-800 rounded-xl font-medium">
-                  {matchmakingError}
-                </div>
-              )}
-
               <PendingRequests />
 
               {loading ? (
@@ -548,13 +413,6 @@ export default function AdminPage() {
             </>
           )}
         </main>
-
-        <MatchConfigModal
-          isOpen={isConfigModalOpen}
-          onClose={() => setIsConfigModalOpen(false)}
-          onGenerate={handleMatchmaking}
-          communityPlayers={players}
-        />
         <ConfirmModal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}

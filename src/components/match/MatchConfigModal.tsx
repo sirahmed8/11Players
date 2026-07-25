@@ -1095,17 +1095,17 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
                   {/* Num Teams */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
+                    <div className="grid grid-cols-1 gap-2">
+                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center justify-between">
                         <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{isAr ? 'عدد الفرق' : 'Number of Teams'}</span>
                       </label>
-                      <div className="flex gap-1.5">
-                        {[2, 3, 4, 5, 6].map(n => (
+                      <div className="flex flex-wrap gap-1.5">
+                        {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                           <button
                             key={n}
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, numTeams: n }))}
-                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                            className={`flex-1 min-w-[32px] py-2 rounded-xl text-xs font-black transition-all border ${
                               config.numTeams === n
                                 ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
                                 : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-amber-400'

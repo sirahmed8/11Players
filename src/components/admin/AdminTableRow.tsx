@@ -151,9 +151,14 @@ const AdminTableRow = React.memo(function AdminTableRow({
 
           {/* Edit Profile */}
           <button
-            onClick={() => onOpenEditModal(player)}
-            className="rounded-lg bg-indigo-50 dark:bg-indigo-600/20 p-2 text-indigo-600 dark:text-indigo-400 transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-600/40 hover:text-indigo-700 dark:hover:text-indigo-300"
-            title={t(locale, "Edit Profile", "تعديل الملف الشخصي")}
+            onClick={() => !isLockedForAdmin && onOpenEditModal(player)}
+            disabled={isLockedForAdmin}
+            className={`rounded-lg p-2 transition-colors ${
+              isLockedForAdmin 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50' 
+                : 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-600/40 hover:text-indigo-700 dark:hover:text-indigo-300'
+            }`}
+            title={isLockedForAdmin ? t(locale, "Locked to Home Community", "مغلق لكونه ينتمي لمجتمع آخر") : t(locale, "Edit Profile", "تعديل الملف الشخصي")}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -197,9 +202,14 @@ const AdminTableRow = React.memo(function AdminTableRow({
 
           {/* Edit Stats */}
           <button
-            onClick={() => onOpenStatsModal(player)}
-            className="rounded-lg bg-emerald-50 dark:bg-emerald-600/20 p-2 text-emerald-600 dark:text-emerald-400 transition-colors hover:bg-emerald-100 dark:hover:bg-emerald-600/40 hover:text-emerald-700 dark:hover:text-emerald-300"
-            title={t(locale, "Edit Stats", "تعديل الإحصائيات")}
+            onClick={() => !isLockedForAdmin && onOpenStatsModal(player)}
+            disabled={isLockedForAdmin}
+            className={`rounded-lg p-2 transition-colors ${
+              isLockedForAdmin 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50' 
+                : 'bg-emerald-50 dark:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-600/40 hover:text-emerald-700 dark:hover:text-emerald-300'
+            }`}
+            title={isLockedForAdmin ? t(locale, "Locked to Home Community", "مغلق لكونه ينتمي لمجتمع آخر") : t(locale, "Edit Stats", "تعديل الإحصائيات")}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
@@ -219,10 +229,14 @@ const AdminTableRow = React.memo(function AdminTableRow({
 
           {/* Reset Stats */}
           <button
-            onClick={() => onOpenResetModal(player)}
-            disabled={loadingUid === player.uid}
-            className="rounded-lg bg-orange-50 dark:bg-orange-600/20 p-2 text-orange-600 dark:text-orange-400 transition-colors hover:bg-orange-100 dark:hover:bg-orange-600/40 hover:text-orange-700 dark:hover:text-orange-300 disabled:opacity-50"
-            title={t(locale, "Reset Stats", "تصفير الإحصائيات")}
+            onClick={() => !isLockedForAdmin && onOpenResetModal(player)}
+            disabled={isLockedForAdmin || loadingUid === player.uid}
+            className={`rounded-lg p-2 transition-colors ${
+              (isLockedForAdmin || loadingUid === player.uid)
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50' 
+                : 'bg-orange-50 dark:bg-orange-600/20 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-600/40 hover:text-orange-700 dark:hover:text-orange-300'
+            }`}
+            title={isLockedForAdmin ? t(locale, "Locked to Home Community", "مغلق لكونه ينتمي لمجتمع آخر") : t(locale, "Reset Stats", "تصفير الإحصائيات")}
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />

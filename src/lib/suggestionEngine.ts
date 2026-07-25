@@ -146,7 +146,7 @@ export function getTacticalSuggestions(
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the left.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليسرى.';
         } else {
-          score -= 0.1;
+          score -= 5.0;
           rationaleEn = 'Good pace and stamina, but playing inverted on the left with a right foot.';
           rationaleAr = 'سرعة وتحمل جيدين، لكنه يلعب كظهير عكسي في الجهة اليسرى بقدمه اليمنى.';
         }
@@ -156,15 +156,15 @@ export function getTacticalSuggestions(
       case 'RB': {
         score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isRightFoot) {
-          score += 0.1;
+          score += 5.0;
           rationaleEn = 'Natural right foot combined with pace, stamina, and precise crossing for the right flank.';
           rationaleAr = 'قدم يمنى طبيعية مدمجة مع سرعة وتحمل وعرضيات دقيقة للسيطرة على الرواق الأيمن.';
         } else if (isAmbi) {
-          score += 0.05;
+          score += 2.5;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the right.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليمنى.';
         } else {
-          score -= 0.1;
+          score -= 5.0;
           rationaleEn = 'Solid full-back attributes, but playing inverted on the right with a left foot.';
           rationaleAr = 'طاقات ظهير ممتازة، لكنه يلعب كظهير عكسي في الجهة اليمنى بقدمه اليسرى.';
         }
@@ -219,11 +219,11 @@ export function getTacticalSuggestions(
     case 'LMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isRightFoot || isAmbi) {
-        score += 0.1;
+        score += 5.0;
         rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the left and shoot on their stronger right foot.';
         rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليسرى والتسديد بقدمه اليمنى الأقوى.';
       } else {
-        score -= 0.1;
+        score -= 5.0;
         rationaleEn = 'Classic winger on the left, but playing with a left foot makes cutting inside for shots difficult.';
         rationaleAr = 'جناح تقليدي على اليسار، لكن اللعب بالقدم اليسرى يصعب عليه الدخول للعمق للتسديد.';
       }
@@ -233,11 +233,11 @@ export function getTacticalSuggestions(
     case 'RMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isLeftFoot || isAmbi) {
-        score += 0.1;
+        score += 5.0;
         rationaleEn = 'Dangerous inverted winger, perfectly suited to cut inside from the right and shoot on their stronger left foot.';
         rationaleAr = 'جناح عكسي خطير، مثالي للدخول من الجهة اليمنى والتسديد بقدمه اليسرى الأقوى.';
       } else {
-        score -= 0.1;
+        score -= 5.0;
         rationaleEn = 'Classic winger on the right, but playing with a right foot makes cutting inside for shots difficult.';
         rationaleAr = 'جناح تقليدي على اليمين، لكن اللعب بالقدم اليمنى يصعب عليه الدخول للعمق للتسديد.';
       }
@@ -247,7 +247,7 @@ export function getTacticalSuggestions(
     case 'LWF': {
       score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
       if (isRightFoot || isAmbi) {
-        score += 1.5;
+        score += 5.0;
         rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
         rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
       } else if (isLeftFoot && loftedPass >= 75) {
@@ -255,7 +255,7 @@ export function getTacticalSuggestions(
         rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
         rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
       } else {
-        score -= 1.5;
+        score -= 5.0;
         rationaleEn = 'Explosive pace and dribbling, but playing on the left with a left foot limits cutting inside.';
         rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يسرى على اليسار يحد من الدخول للعمق.';
       }
@@ -265,7 +265,7 @@ export function getTacticalSuggestions(
     case 'RWF': {
       score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
       if (isLeftFoot || isAmbi) {
-        score += 1.5;
+        score += 5.0;
         rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
         rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
       } else if (isRightFoot && loftedPass >= 75) {
@@ -273,7 +273,7 @@ export function getTacticalSuggestions(
         rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
         rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
       } else {
-        score -= 1.5;
+        score -= 5.0;
         rationaleEn = 'Explosive pace and dribbling, but playing on the right with a right foot limits cutting inside.';
         rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يمنى على اليمين يحد من الدخول للعمق.';
       }

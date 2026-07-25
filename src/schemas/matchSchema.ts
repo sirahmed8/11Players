@@ -1,9 +1,9 @@
 import { z } from "zod";
 
 export const matchConfigSchema = z.object({
-  date: z.string().min(1, "Date is required"),
-  time: z.string().min(1, "Time is required"),
-  location: z.string().min(1, "Location is required").max(100, "Location is too long"),
+  date: z.string().optional(),
+  time: z.string().optional(),
+  location: z.string().max(100, "Location is too long").optional(),
   cost: z.string().optional(),
   notes: z.string().max(500, "Notes are too long").optional(),
   matchMode: z.enum(["standard", "turf"]).optional(),
