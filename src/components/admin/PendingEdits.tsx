@@ -314,7 +314,12 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
     if (isOwner) {
       const q2 = query(collection(db, 'editRequests'), where("status", "==", "pending"));
       unsubs.push(onSnapshot(q2, (snapshot) => {
-        globalEdits = snapshot.docs.map(d => ({ id: d.id, _collection: 'editRequests', ...d.data() }));
+        globalEdits = snapshot.docs
+          .map(d => ({ id: d.id, _collection: 'editRequests', ...d.data() }))
+          .filter((d: any) => {
+            const reqCommId = d.communityId || d.targetCommunityId;
+            return !reqCommId || !activeCommunityId || reqCommId === activeCommunityId;
+          });
         merge();
       }));
     }

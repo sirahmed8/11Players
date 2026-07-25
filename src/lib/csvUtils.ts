@@ -41,6 +41,45 @@ export function exportPlayersToCSV(players: PlayerProfile[], communityId: string
   document.body.removeChild(link);
 }
 
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+  return result;
+}
+
+const ALLOWED_IMPORT_FIELDS = new Set([
+  'fullName',
+  'phoneNumber',
+  'primaryPosition',
+  'secondaryPosition',
+  'tertiaryPosition',
+  'height',
+  'weight',
+  'dateOfBirth',
+  'preferredFoot',
+  'playStyle'
+]);
+
+const NUMERIC_FIELDS = new Set(['height', 'weight']);
+
 export async function importPlayersFromCSV(file: File, communityId: string): Promise<number> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -52,22 +91,29 @@ export async function importPlayersFromCSV(file: File, communityId: string): Pro
         const lines = text.split('\n').filter(l => l.trim() !== '');
         if (lines.length <= 1) throw new Error('No data rows found');
         
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+        const headers = parseCSVLine(lines[0]).map(h => h.replace(/^"|"$/g, ''));
         const batch = writeBatch(db);
         let count = 0;
 
         for (let i = 1; i < lines.length; i++) {
-          const row = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+          const row = parseCSVLine(lines[i]).map(c => c.replace(/^"|"$/g, ''));
           if (row.length < headers.length) continue; // Skip malformed rows
           
           const playerData: any = {};
           headers.forEach((header, idx) => {
-            if (row[idx]) {
-              playerData[header] = row[idx];
+            if (ALLOWED_IMPORT_FIELDS.has(header) && row[idx] !== undefined && row[idx] !== '') {
+              const val = row[idx];
+              if (NUMERIC_FIELDS.has(header)) {
+                const num = Number(val);
+                if (!isNaN(num)) playerData[header] = num;
+              } else {
+                playerData[header] = val;
+              }
             }
           });
 
-          if (!playerData.fullName || !playerData.phoneNumber) continue;
+          // Require fullName for player import
+          if (!playerData.fullName) continue;
 
           // Generate a new doc ref for the community player
           const docRef = doc(collection(db, 'communities', communityId, 'players'));

@@ -130,10 +130,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       setSelectedUids(new Set(communityPlayers.map(p => p.uid)));
     }
   }, [isOpen, communityPlayers]);
-
-  const datePickerRef2 = datePickerRef;
-  const timePickerRef2 = timePickerRef;
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {

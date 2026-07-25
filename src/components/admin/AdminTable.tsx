@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion, serverTimestamp, collection, query, where, onSnapshot } from 'firebase/firestore';
+import { doc, updateDoc, increment, deleteDoc, setDoc, writeBatch, arrayUnion, serverTimestamp, collection, query, where, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { generateProfilePDF } from '@/lib/pdf';
 import { generateDummyPlayersForCommunity } from '@/lib/dummyData';
@@ -577,7 +577,23 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       await setDoc(commRef, { stats: resetStats }, { merge: true });
 
       const globalRef = doc(db, 'players', playerToReset.uid);
-      await setDoc(globalRef, { stats: resetStats, [`communityStats.${activeCommunityId}`]: resetStats }, { merge: true });
+      const globalSnap = await getDoc(globalRef);
+      if (globalSnap.exists()) {
+        const globalData = globalSnap.data();
+        const existingCommStats = { ...(globalData.communityStats || {}), [activeCommunityId]: resetStats };
+        const newGlobalStats = { goals: 0, assists: 0, mvp: 0, matchesPlayed: 0 };
+        Object.values(existingCommStats).forEach((cs: any) => {
+          if (cs) {
+            newGlobalStats.goals += cs.goals || 0;
+            newGlobalStats.assists += cs.assists || 0;
+            newGlobalStats.mvp += cs.mvp || 0;
+            newGlobalStats.matchesPlayed += cs.matchesPlayed || 0;
+          }
+        });
+        await setDoc(globalRef, { stats: newGlobalStats, communityStats: existingCommStats }, { merge: true });
+      } else {
+        await setDoc(globalRef, { stats: resetStats, [`communityStats.${activeCommunityId}`]: resetStats }, { merge: true });
+      }
 
       onRefresh();
       toast.success(t(locale, 'Stats reset successfully', 'تم تصفير الإحصائيات بنجاح'));

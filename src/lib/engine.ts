@@ -910,7 +910,7 @@ export function assignPlayersToFormation(
       
       // If it's a GK slot and player is an outfield player, severely penalize high-OVR stars
       if (isGkSlot && players[pIdx].primaryPosition !== 'GK') {
-        const ovr = players[pIdx].overallRating || 70;
+        const ovr = getPlayerOverall(players[pIdx]);
         psi *= (1 / (ovr * 10)); // Protect high-OVR outfield players from playing in goal
       }
 
@@ -1625,7 +1625,7 @@ function iterativeSwapBalanceMulti(teams: PlayerProfile[][]): PlayerProfile[][] 
   const currentTeams = teams.map(t => [...t]);
   const getTeamAvg = (team: PlayerProfile[]) => {
     if (team.length === 0) return 0;
-    const total = team.reduce((sum, p) => sum + (p.overallRating || 70), 0);
+    const total = team.reduce((sum, p) => sum + getPlayerOverall(p), 0);
     return total / team.length;
   };
   const getVariance = (teamsArray: PlayerProfile[][]) => {
@@ -1684,7 +1684,7 @@ export function generateTurfMatch(
   const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins, endCondition, targetGoals, fixedGkTeamA, fixedGkTeamB, enableCardsSystem } = config;
 
   const totalNeeded = numTeams * playersPerTeam;
-  const sortedAvailablePlayers = [...availablePlayers].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70));
+  const sortedAvailablePlayers = [...availablePlayers].sort((a, b) => getPlayerOverall(b) - getPlayerOverall(a));
   const activePlayers = sortedAvailablePlayers.slice(0, totalNeeded);
   const leftoverPlayers = sortedAvailablePlayers.slice(totalNeeded);
 

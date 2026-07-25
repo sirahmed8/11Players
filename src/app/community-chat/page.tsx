@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, limitToLast } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
 import { Send, Loader2, ArrowLeft, Image as ImageIcon, X, Reply, SmilePlus, Trash2 } from "lucide-react";
@@ -69,7 +69,8 @@ export default function CommunityChatPage() {
 
     const q = query(
       collection(db, "communities", activeCommunityId, "chats"),
-      orderBy("timestamp", "asc")
+      orderBy("timestamp", "asc"),
+      limitToLast(100)
     );
 
     const unsub = onSnapshot(q, (snap) => {

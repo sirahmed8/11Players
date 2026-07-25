@@ -13,70 +13,75 @@ export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 
   try {
     const { jsPDF } = await import("jspdf");
 
-    // Create a hidden container
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '-9999px';
-    document.body.appendChild(container);
+    let root: any = null;
+    let container: HTMLDivElement | null = null;
 
-    // Render the React component
-    const { default: PDFPlayerCard } = await import('@/components/player/PDFPlayerCard');
-    const root = createRoot(container);
-    root.render(React.createElement(PDFPlayerCard, { player: profile, locale }));
+    try {
+      container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
 
-    // Wait for a brief moment to let React render and images load
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Render the React component
+      const { default: PDFPlayerCard } = await import('@/components/player/PDFPlayerCard');
+      root = createRoot(container);
+      root.render(React.createElement(PDFPlayerCard, { player: profile, locale }));
 
-    // Select the actual card element
-    const cardElement = container.querySelector('#pdf-player-card') as HTMLElement;
-    if (!cardElement) throw new Error("Card element not found");
+      // Wait for a brief moment to let React render and images load
+      await new Promise((resolve) => setTimeout(resolve, 600));
 
-    const html2canvas = (await import('html2canvas')).default;
+      // Select the actual card element
+      const cardElement = container.querySelector('#pdf-player-card') as HTMLElement;
+      if (!cardElement) throw new Error("Card element not found");
 
-    // Capture with html2canvas
-    const canvas = await html2canvas(cardElement, {
-      scale: 3, // Ultra high resolution for print quality
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: null,
-    });
+      const html2canvas = (await import('html2canvas')).default;
 
-    const imgData = canvas.toDataURL('image/png');
+      // Capture with html2canvas
+      const canvas = await html2canvas(cardElement, {
+        scale: 3, // Ultra high resolution for print quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+      });
 
-    // Create PDF (A4 size is ~210x297mm)
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4"
-    });
+      const imgData = canvas.toDataURL('image/png');
 
-    // A4 dimensions
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = pdf.internal.pageSize.getHeight();
+      // Create PDF (A4 size is ~210x297mm)
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+      });
 
-    // Calculate aspect ratio for the card (500x750)
-    const cardRatio = 500 / 750;
-    
-    // We want the card to fill most of the page but keep aspect ratio
-    const margin = 10;
-    let targetWidth = pdfWidth - (margin * 2);
-    let targetHeight = targetWidth / cardRatio;
+      // A4 dimensions
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
 
-    if (targetHeight > pdfHeight - (margin * 2)) {
-      targetHeight = pdfHeight - (margin * 2);
-      targetWidth = targetHeight * cardRatio;
+      // Calculate aspect ratio for the card (500x750)
+      const cardRatio = 500 / 750;
+      
+      // We want the card to fill most of the page but keep aspect ratio
+      const margin = 10;
+      let targetWidth = pdfWidth - (margin * 2);
+      let targetHeight = targetWidth / cardRatio;
+
+      if (targetHeight > pdfHeight - (margin * 2)) {
+        targetHeight = pdfHeight - (margin * 2);
+        targetWidth = targetHeight * cardRatio;
+      }
+
+      const xPos = (pdfWidth - targetWidth) / 2;
+      const yPos = (pdfHeight - targetHeight) / 2;
+
+      pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
+      pdf.save(`${profile.cardName.toLowerCase().replace(/\s+/g, "_")}_profile.pdf`);
+    } finally {
+      if (root) root.unmount();
+      if (container && container.parentNode) {
+        document.body.removeChild(container);
+      }
     }
-
-    const xPos = (pdfWidth - targetWidth) / 2;
-    const yPos = (pdfHeight - targetHeight) / 2;
-
-    pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
-    pdf.save(`${profile.cardName.toLowerCase().replace(/\s+/g, "_")}_profile.pdf`);
-
-    // Cleanup
-    root.unmount();
-    document.body.removeChild(container);
   } catch (error) {
     console.error("Error generating profile PDF:", error);
     throw error;
@@ -107,60 +112,66 @@ export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: '
     const ITEMS_PER_PAGE = 12; // 12 per page ensures generous spacing, gorgeous badges, and ultra clean print
     const totalPages = Math.ceil(sortedProfiles.length / ITEMS_PER_PAGE) || 1;
 
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '-9999px';
-    document.body.appendChild(container);
+    let root: any = null;
+    let container: HTMLDivElement | null = null;
 
-    const root = createRoot(container);
+    try {
+      container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '-9999px';
+      document.body.appendChild(container);
 
-    for (let i = 0; i < totalPages; i++) {
-      const pageProfiles = sortedProfiles.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE);
-      
-      root.render(React.createElement(PDFBulkTable, {
-        profiles: pageProfiles,
-        pageIndex: i,
-        totalPages: totalPages,
-        locale
-      }));
+      root = createRoot(container);
 
-      // Wait for render and images
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      for (let i = 0; i < totalPages; i++) {
+        const pageProfiles = sortedProfiles.slice(i * ITEMS_PER_PAGE, (i + 1) * ITEMS_PER_PAGE);
+        
+        root.render(React.createElement(PDFBulkTable, {
+          profiles: pageProfiles,
+          pageIndex: i,
+          totalPages: totalPages,
+          locale
+        }));
 
-      const tableElement = container.querySelector('#pdf-bulk-table') as HTMLElement;
-      if (!tableElement) throw new Error("Bulk table element not found");
+        // Wait for render and images
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-      const html2canvas = (await import('html2canvas')).default;
+        const tableElement = container.querySelector('#pdf-bulk-table') as HTMLElement;
+        if (!tableElement) throw new Error("Bulk table element not found");
 
-      const canvas = await html2canvas(tableElement, {
-        scale: 3,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-      });
+        const html2canvas = (await import('html2canvas')).default;
 
-      const imgData = canvas.toDataURL('image/png');
+        const canvas = await html2canvas(tableElement, {
+          scale: 3,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: null,
+        });
 
-      // Scale the rendered canvas to fit within A4 page while preserving aspect
-      const scale = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
-      const targetWidth = canvas.width * scale;
-      const targetHeight = canvas.height * scale;
-      const xPos = (pdfWidth - targetWidth) / 2;
-      const yPos = (pdfHeight - targetHeight) / 2;
+        const imgData = canvas.toDataURL('image/png');
 
-      if (i > 0) {
-        pdf.addPage();
+        // Scale the rendered canvas to fit within A4 page while preserving aspect
+        const scale = Math.min(pdfWidth / canvas.width, pdfHeight / canvas.height);
+        const targetWidth = canvas.width * scale;
+        const targetHeight = canvas.height * scale;
+        const xPos = (pdfWidth - targetWidth) / 2;
+        const yPos = (pdfHeight - targetHeight) / 2;
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
       }
 
-      pdf.addImage(imgData, 'PNG', xPos, yPos, targetWidth, targetHeight);
+      pdf.save("master_player_directory.pdf");
+    } finally {
+      if (root) root.unmount();
+      if (container && container.parentNode) {
+        document.body.removeChild(container);
+      }
     }
-
-    pdf.save("master_player_directory.pdf");
-
-    // Cleanup
-    root.unmount();
-    document.body.removeChild(container);
   } catch (error) {
     console.error("Error generating master bulk PDF:", error);
     throw error;
