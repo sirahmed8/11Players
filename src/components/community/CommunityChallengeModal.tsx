@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, doc, onSnapshot, setDoc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
+import { collection, doc, onSnapshot, setDoc, updateDoc, arrayUnion, getDoc, query, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
@@ -109,22 +109,25 @@ export default function CommunityChallengeModal({
   // Load players for squad selection when deal is reached
   useEffect(() => {
     if (!isOpen || !activeCommunityId || challenge?.status !== 'deal_reached') return;
-    const fetchPlayers = async () => {
-      setLoadingPlayers(true);
-      try {
-        const snap = await onSnapshot(collection(db, "communities", activeCommunityId, "players"), (snapshot) => {
-          const list: PlayerProfile[] = [];
-          snapshot.forEach(d => list.push({ uid: d.id, ...d.data() } as PlayerProfile));
-          setMyCommunityPlayers(list);
-          setLoadingPlayers(false);
-        });
-        return () => snap();
-      } catch (err) {
+    setLoadingPlayers(true);
+    const qPlayers = query(
+      collection(db, "communities", activeCommunityId, "players"),
+      limit(100)
+    );
+    const unsub = onSnapshot(
+      qPlayers,
+      (snapshot) => {
+        const list: PlayerProfile[] = [];
+        snapshot.forEach(d => list.push({ uid: d.id, ...d.data() } as PlayerProfile));
+        setMyCommunityPlayers(list);
+        setLoadingPlayers(false);
+      },
+      (err) => {
         console.error("Failed loading players:", err);
         setLoadingPlayers(false);
       }
-    };
-    fetchPlayers();
+    );
+    return () => unsub();
   }, [isOpen, activeCommunityId, challenge?.status]);
 
   const handleSendChallenge = async () => {

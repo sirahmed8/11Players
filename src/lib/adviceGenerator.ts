@@ -309,8 +309,17 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
       return [];
     }
 
-    // Select 1 random advice from the fresh pool so the user receives exactly one fresh notification
-    const shuffled = freshAdvices.sort(() => 0.5 - Math.random());
+    // Select 1 random advice from the fresh pool using Fisher-Yates shuffle
+    const shuffleArray = <T>(array: T[]): T[] => {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    };
+
+    const shuffled = shuffleArray(freshAdvices);
     const selectedAdvices = shuffled.slice(0, 1);
 
     for (const ad of selectedAdvices) {

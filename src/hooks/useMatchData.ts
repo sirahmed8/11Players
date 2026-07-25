@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { doc, collection, onSnapshot } from "firebase/firestore";
+import { doc, collection, onSnapshot, query, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export function useMatchData(activeCommunityId: string | null) {
@@ -38,7 +38,7 @@ export function useMatchData(activeCommunityId: string | null) {
 
     setHistoryLoading(true);
     const unsubHistory = onSnapshot(
-      collection(db, "communities", activeCommunityId, "matches"),
+      query(collection(db, "communities", activeCommunityId, "matches"), limit(50)),
       (snapshot) => {
         const list: any[] = [];
         snapshot.forEach((docSnap) => {

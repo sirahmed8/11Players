@@ -18,7 +18,8 @@ All notable changes to the **11Players** repository will be documented in this f
 - **Dynamic AI Formations**: Added strict out-of-position penalties (`mult < 0.50`) preventing attackers from playing defense, and enabled full tactical formation re-rolls.
 - **Clean Toast Notifications (`Phase 2`)**: Replaced native browser `alert()` call in `BlobPhotoUpload.tsx` with `react-hot-toast` notifications.
 
-### Code Hygiene & Dead Code Removal
 - **Dead Code Cleanup (`Phase 5`)**: Removed unused `getSpecialSkillsBonus()` function from `overallCalculator.ts`.
+- **Fisher-Yates Shuffle (`Phase 5`)**: Replaced biased `0.5 - Math.random()` sort comparator in `adviceGenerator.ts` with a true Fisher-Yates uniform shuffle.
+- **Bounded Real-Time Listeners (`Phase 6`)**: Applied query `limit(50)` to match history listener in `useMatchData.ts` and `limit(100)` with clean subscription teardown in `CommunityChallengeModal.tsx`.
 - **Repo Hygiene (`Phase 7`)**: Removed legacy `.eslintrc.json` (superseded by flat `eslint.config.mjs`) and untracked `.agents/` / `.zcode/` directories in `.gitignore`.
 - **Documentation Alignment (`Phase 8`)**: Updated `README.md` frontend framework stack specifications.
