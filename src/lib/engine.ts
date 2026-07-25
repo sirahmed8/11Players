@@ -830,6 +830,24 @@ export function assignPlayersToFormation(
   const availablePlayers = new Set(players.map((_, i) => i));
   const unfilledSlots = new Set(slots.slice(0, numSlots).map((_, i) => i));
 
+  // 0. Manual Position Override Pass: respect user's manual position choices if valid slot exists in formation
+  for (const pIdx of Array.from(availablePlayers)) {
+    const p = players[pIdx] as any;
+    if (p.isManualPosition && p.assignedPosition) {
+      const slotIdx = slots.findIndex((slot, sIdx) => unfilledSlots.has(sIdx) && slot === p.assignedPosition);
+      if (slotIdx >= 0) {
+        const psi = calculatePSI(p, slots[slotIdx]);
+        result[slotIdx] = {
+          ...p,
+          assignedPosition: slots[slotIdx],
+          psi: psi
+        };
+        availablePlayers.delete(pIdx);
+        unfilledSlots.delete(slotIdx);
+      }
+    }
+  }
+
   // Helper to find the best player for a slot matching a specific position property
   const fillPass = (posProperty: 'primaryPosition' | 'secondaryPosition' | 'tertiaryPosition') => {
     // Sort slots by how many available players can play them (fewer options = fill first)

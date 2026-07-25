@@ -111,6 +111,82 @@ const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
   LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
 };
 
+interface FormationDropdownProps {
+  label: 'A' | 'B';
+  value: string;
+  options: string[];
+  onChange: (val: string) => void;
+  isAr: boolean;
+}
+
+function FormationDropdown({ label, value, options, onChange, isAr }: FormationDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const labelColor = label === 'A' ? 'text-blue-400 bg-blue-500/10 border-blue-500/30' : 'text-red-400 bg-red-500/10 border-red-500/30';
+  const ringColor = label === 'A' ? 'hover:border-blue-500/60' : 'hover:border-red-500/60';
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className={`flex items-center gap-2 bg-slate-900 text-slate-100 border border-slate-700/80 rounded-2xl px-3 py-1.5 text-xs font-bold shadow-sm transition-all active:scale-95 ${ringColor}`}
+      >
+        <span className={`w-4 h-4 rounded-md font-black text-[10px] flex items-center justify-center border ${labelColor}`}>
+          {label === 'A' ? (isAr ? 'أ' : 'A') : (isAr ? 'ب' : 'B')}
+        </span>
+        <span className="font-mono text-xs">{value || (isAr ? 'تلقائي' : 'AI Pick')}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180 text-purple-400' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 4 }}
+            exit={{ opacity: 0, scale: 0.95, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 mt-1 w-44 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl z-50 p-1.5 space-y-0.5 max-h-60 overflow-y-auto custom-scrollbar backdrop-blur-xl"
+          >
+            {options.map((fmt) => {
+              const isSelected = value === fmt;
+              return (
+                <button
+                  key={fmt}
+                  type="button"
+                  onClick={() => {
+                    onChange(fmt);
+                    setIsOpen(false);
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold font-mono flex items-center justify-between transition-all ${
+                    isSelected
+                      ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-600/30'
+                      : 'text-slate-200 hover:bg-purple-600/20 hover:text-purple-300'
+                  }`}
+                >
+                  <span>{fmt}</span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 const PLAY_STYLE_LABELS: Record<string, { en: string; ar: string }> = {
   goal_poacher: { en: 'Goal Poacher', ar: 'قناص الأهداف 🎯' },
   dummy_runner: { en: 'Dummy Runner', ar: 'مراوغ وهمي 🏃' },
@@ -787,7 +863,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setAiPitchView(false);
   };
 
-  // ── AI Best to All: pick the best 11 from full team pool for the chosen formation ──
+  // ── AI Best to All: optimize current starters into chosen formation while respecting manual choices ──
   const handleApplyAIOptimalAll = () => {
     if (!previewData) return;
 
@@ -795,36 +871,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const rawA = previewData.teamA || [];
       const rawB = previewData.teamB || [];
 
-      // Unwrap bench items ({ player, reason } → PlayerProfile)
-      const benchAPlayers = (previewData.benchA || []).map((b: any) => b.player || b);
-      const benchBPlayers = (previewData.benchB || []).map((b: any) => b.player || b);
-      // Also handle flat combined bench (if benchA/benchB don't exist separately)
-      if (benchAPlayers.length === 0 && benchBPlayers.length === 0) {
-        const combinedBench = (previewData.bench || []).map((b: any) => b.player || b);
-        const half = Math.ceil(combinedBench.length / 2);
-        benchAPlayers.push(...combinedBench.slice(0, half));
-        benchBPlayers.push(...combinedBench.slice(half));
-      }
+      // Use user-selected formations, or fall back to current match formation or AI best-fit
+      const formationA = selectedFormationA || previewData.formation?.teamA || selectBestFormation(rawA);
+      const formationB = selectedFormationB || previewData.formation?.teamB || selectBestFormation(rawB);
 
-      // Full player pools: current starters + bench for each team
-      const allPoolA = [...rawA, ...benchAPlayers];
-      const allPoolB = [...rawB, ...benchBPlayers];
-
-      // Use user-selected formations, or fall back to AI best-fit
-      const formationA = selectedFormationA || selectBestFormation(rawA);
-      const formationB = selectedFormationB || selectBestFormation(rawB);
-      const slotsA = FORMATIONS[formationA]?.length ?? rawA.length;
-      const slotsB = FORMATIONS[formationB]?.length ?? rawB.length;
-
-      // Re-run PSI engine across full pool → picks best positional fits first
-      const fullAssignedA = assignPlayersToFormation(allPoolA, formationA);
-      const fullAssignedB = assignPlayersToFormation(allPoolB, formationB);
-
-      // First N = starters, rest = bench
-      const assignedA = fullAssignedA.slice(0, slotsA);
-      const newBenchA = fullAssignedA.slice(slotsA).map((p: any) => ({ player: p, reason: 'sub' }));
-      const assignedB = fullAssignedB.slice(0, slotsB);
-      const newBenchB = fullAssignedB.slice(slotsB).map((p: any) => ({ player: p, reason: 'sub' }));
+      // Re-assign starters to the chosen formation (preserving user's starter roster & manual position locks)
+      const assignedA = assignPlayersToFormation(rawA, formationA);
+      const assignedB = assignPlayersToFormation(rawB, formationB);
 
       const teamAAvg = calculateTeamAvg(assignedA);
       const teamBAvg = calculateTeamAvg(assignedB);
@@ -836,9 +889,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
-        benchA: newBenchA,
-        benchB: newBenchB,
-        bench: [...newBenchA, ...newBenchB],
         formation: { teamA: formationA, teamB: formationB },
         metrics: {
           ...(prev?.metrics || {}),
@@ -868,8 +918,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
     toast.success(
       isAr
-        ? 'تم اختيار أفضل 11 لاعب لكل مركز في التشكيلة المختارة! ⚡'
-        : 'AI selected the best 11 players for each position in the chosen formation! ⚡'
+        ? 'تم تطبيق الذكاء الاصطناعي على المراكز بالتشكيلة المختارة! ⚡'
+        : 'AI applied optimal positions for the chosen formation! ⚡'
     );
   };
 
@@ -892,6 +942,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         updatedTeam[playerIndex] = {
           ...player,
           assignedPosition: newPos,
+          isManualPosition: true,
           playStyle: newStyle,
           psi: newPsi,
           overallRating: effectiveOvr
@@ -1008,6 +1059,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
         p1.assignedPosition = pos2;
         p2.assignedPosition = pos1;
+        p1.isManualPosition = true;
+        p2.isManualPosition = true;
 
         l1[selectedForSwap.playerIndex] = p2;
         l2[playerIndex] = p1;
@@ -1095,32 +1148,20 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         const options = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
                         return (
                           <>
-                            {/* Team A formation */}
-                            <label className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded-2xl px-2.5 py-1.5 cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
-                              <span className="text-[10px] font-black text-blue-500 shrink-0 select-none">{isAr ? 'أ' : 'A'}</span>
-                              <select
-                                value={selectedFormationA || previewData.formation?.teamA || ''}
-                                onChange={e => setSelectedFormationA(e.target.value)}
-                                className="text-xs font-bold bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer appearance-none pr-3"
-                              >
-                                <option value="">{isAr ? '— AI —' : '— AI —'}</option>
-                                {options.map(f => <option key={f} value={f}>{f}</option>)}
-                              </select>
-                              <ChevronDown className="w-3 h-3 text-slate-400 pointer-events-none -ml-2 shrink-0" />
-                            </label>
-                            {/* Team B formation */}
-                            <label className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded-2xl px-2.5 py-1.5 cursor-pointer focus-within:ring-2 focus-within:ring-red-500 transition-shadow">
-                              <span className="text-[10px] font-black text-red-500 shrink-0 select-none">{isAr ? 'ب' : 'B'}</span>
-                              <select
-                                value={selectedFormationB || previewData.formation?.teamB || ''}
-                                onChange={e => setSelectedFormationB(e.target.value)}
-                                className="text-xs font-bold bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer appearance-none pr-3"
-                              >
-                                <option value="">{isAr ? '— AI —' : '— AI —'}</option>
-                                {options.map(f => <option key={f} value={f}>{f}</option>)}
-                              </select>
-                              <ChevronDown className="w-3 h-3 text-slate-400 pointer-events-none -ml-2 shrink-0" />
-                            </label>
+                            <FormationDropdown
+                              label="A"
+                              value={selectedFormationA || previewData.formation?.teamA || ''}
+                              options={options}
+                              onChange={fmt => setSelectedFormationA(fmt)}
+                              isAr={isAr}
+                            />
+                            <FormationDropdown
+                              label="B"
+                              value={selectedFormationB || previewData.formation?.teamB || ''}
+                              options={options}
+                              onChange={fmt => setSelectedFormationB(fmt)}
+                              isAr={isAr}
+                            />
                           </>
                         );
                       })()}

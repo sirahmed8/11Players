@@ -431,24 +431,26 @@ export default function MatchPage() {
 
             {/* Tab Switcher */}
             <div className="flex justify-center mb-8">
-              <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-md p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex gap-2">
+              <div className="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 flex gap-2">
                 <button
+                  type="button"
                   onClick={() => { setActiveTab('current'); setSelectedHistoryMatch(null); }}
-                  className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+                  className={`px-6 py-3 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 ${
                     activeTab === 'current'
-                      ? 'bg-amber-500 text-white'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                      : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 font-bold'
                   }`}
                 >
                   <span>⚡</span>
                   <span>{isAr ? "المباراة القادمة" : "Upcoming Match"}</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => { setActiveTab('history'); setSelectedHistoryMatch(null); }}
-                  className={`px-6 py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 ${
+                  className={`px-6 py-3 rounded-xl font-black text-sm transition-all duration-200 flex items-center gap-2 ${
                     activeTab === 'history'
-                      ? 'bg-amber-500 text-white'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+                      ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
+                      : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700/60 font-bold'
                   }`}
                 >
                   <span>📜</span>
