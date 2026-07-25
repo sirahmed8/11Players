@@ -369,86 +369,152 @@ interface ManagerAdvice {
 function generateBilingualManagerAdvices(
   teamA: any[],
   teamB: any[],
+  benchA: any[],
+  benchB: any[],
   formationA: string,
   formationB: string,
   metrics: any,
   isAr: boolean
 ): ManagerAdvice[] {
   const advices: ManagerAdvice[] = [];
-  const avgA = metrics?.teamAAvg || calculateTeamAvg(teamA);
-  const avgB = metrics?.teamBAvg || calculateTeamAvg(teamB);
-  const ovrDiff = avgA - avgB;
+  
+  const startAvgA = metrics?.teamAAvg || calculateTeamAvg(teamA);
+  const startAvgB = metrics?.teamBAvg || calculateTeamAvg(teamB);
+  
+  const fullSquadA = [...(teamA || []), ...(benchA || [])];
+  const fullSquadB = [...(teamB || []), ...(benchB || [])];
 
-  if (Math.abs(ovrDiff) <= 2) {
+  const squadAvgA = calculateTeamAvg(fullSquadA);
+  const squadAvgB = calculateTeamAvg(fullSquadB);
+
+  const benchAvgA = benchA && benchA.length > 0 ? calculateTeamAvg(benchA) : startAvgA;
+  const benchAvgB = benchB && benchB.length > 0 ? calculateTeamAvg(benchB) : startAvgB;
+
+  // 1. Total Squad Balance & Bench Power Analysis
+  const squadDiff = squadAvgA - squadAvgB;
+  if (Math.abs(squadDiff) <= 1) {
     advices.push({
       icon: '⚖️',
-      title: isAr ? 'تكافؤ مثالي وتوازن تكتيكي' : 'Perfect Tactical Balance',
+      title: isAr ? 'توازن كامل بين القائمتين (أساسي + دكة)' : 'Complete Squad Balance (Starters + Bench)',
       body: isAr
-        ? `المباراة متكافئة للغاية بين الفريقين (معدل الفريق أ ${avgA} مقابل الفريق ب ${avgB}). الفوز سيتحدد من خلال الالتزام بالتعليمات والتحركات الجماعية.`
-        : `Evenly matched game (Team A AVG ${avgA} vs Team B AVG ${avgB}). Micro-tactical execution and collective movement will decide the winner.`,
+        ? `الفريقان متعادلان تماماً في المعدل الشامل للقائمة (الفريق أ ${squadAvgA} - الفريق ب ${squadAvgB}). القوة البدنية وتبديلات الشوط الثاني هي الحاسمة.`
+        : `Both squads are evenly matched in total squad rating (${squadAvgA} vs ${squadAvgB}). Bench depth and 2nd-half stamina will determine the outcome.`,
       type: 'tactical_tip',
     });
-  } else if (ovrDiff > 2) {
+  } else if (squadDiff > 1) {
     advices.push({
-      icon: '🚀',
-      title: isAr ? 'تفوق الفريق أ في القوة الفردية' : 'Team A Quality Advantage',
+      icon: '💎',
+      title: isAr ? 'عمق فني أعلى لصالح الفريق أ' : 'Team A Squad Depth Advantage',
       body: isAr
-        ? `يمتلك الفريق أ تفوقاً فردياً بمعدل (${avgA} vs ${avgB}). يُنصح الفريق ب بتقفيل المساحات والاعتماد على الهجمات المرتدة السريعة.`
-        : `Team A holds a rating advantage (${avgA} vs ${avgB}). Team B should compact the midfield and exploit quick counter-attacks.`,
+        ? `يمتلك الفريق أ معدلاً شاملاً أكبر (${squadAvgA} مقابل ${squadAvgB}). يتطلب من الفريق ب تنظيم خطوطه وتقليل المساحات بين الدفاع والوسط.`
+        : `Team A holds a overall squad rating advantage (${squadAvgA} vs ${squadAvgB}). Team B must compress central lanes to stay competitive.`,
       type: 'key_battle',
     });
   } else {
     advices.push({
       icon: '🛡️',
-      title: isAr ? 'تفوق الفريق ب في القوة الفردية' : 'Team B Quality Advantage',
+      title: isAr ? 'عمق فني أعلى لصالح الفريق ب' : 'Team B Squad Depth Advantage',
       body: isAr
-        ? `يمتلك الفريق ب تفوقاً فردياً بمعدل (${avgB} vs ${avgA}). يُستحسن للفريق أ الضغط العالي المنظم وتقليل المساحات في العمق.`
-        : `Team B holds a rating advantage (${avgB} vs ${avgA}). Team A needs structured high pressing and disciplined spatial control.`,
+        ? `يمتلك الفريق ب معدلاً شاملاً أكبر (${squadAvgB} مقابل ${squadAvgA}). يجب على الفريق أ الضغط العالي لاستخلاص الكرات بسرعة.`
+        : `Team B holds a total squad rating advantage (${squadAvgB} vs ${squadAvgA}). Team A needs aggressive high pressing to break rhythm.`,
       type: 'key_battle',
     });
   }
 
-  if (formationA.includes('4-3-3') && formationB.includes('4-2-3-1')) {
-    advices.push({
-      icon: '⚔️',
-      title: isAr ? 'صراع العمق: 4-3-3 ضد 4-2-3-1' : 'Midfield Battle: 4-3-3 vs 4-2-3-1',
-      body: isAr
-        ? `ثلاثي وسط الفريق أ سيتواجه مع محوري الفريق ب وصانع الألعاب. استخدام الأجنحة لخلق الزيادة العددية هو مفتاح الاختراق.`
-        : `Team A's midfield trio clashes with Team B's double pivot & AMF. Wing isolation will be critical for numerical overloads.`,
-      type: 'tactical_tip',
-    });
-  } else if (formationA.includes('3-') || formationB.includes('3-')) {
+  // 2. Bench Impact & Super-Sub Gameplan
+  if (benchAvgA > startAvgA - 2 && benchA && benchA.length > 0) {
+    const topSubA = [...benchA].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70))[0];
     advices.push({
       icon: '⚡',
-      title: isAr ? 'استغلال مساحات خلف الأطراف' : 'Exploiting Wide Spaces',
+      title: isAr ? 'ورقة جوكر على دكة الفريق أ' : 'Team A Super-Sub Weapon',
       body: isAr
-        ? `اعتماد التشكيل على ثلاثي دفاع يخلق مساحات خلف الأظهيرة (Wing-backs). التحول السريع للأطراف سيشكل خطورة مباشرة.`
-        : `3-back system creates vulnerable space behind wing-backs. Rapid diagonal switches to open flanks will generate high xG chances.`,
+        ? `دكة الفريق أ تمتلك لاعباً مميزاً (${topSubA?.fullName || topSubA?.cardName || 'لاعب بديل'} بتقييم ${topSubA?.overallRating || 70}). نزوله في الشوط الثاني سيعطي طاقة هجومية هائلة.`
+        : `Team A has top quality reserve (${topSubA?.fullName || topSubA?.cardName || 'Reserve'} OVR ${topSubA?.overallRating || 70}). A 2nd-half substitution will inject high energy.`,
       type: 'strength',
     });
   }
 
-  const attackersA = teamA.filter(p => ['CF', 'SS', 'LWF', 'RWF'].includes(p.assignedPosition || p.primaryPosition));
-  const attackersB = teamB.filter(p => ['CF', 'SS', 'LWF', 'RWF'].includes(p.assignedPosition || p.primaryPosition));
-
-  if (attackersA.length >= 3) {
-    advices.push({
-      icon: '💥',
-      title: isAr ? 'قوة هجومية ضاربة للفريق أ' : 'Team A High Firepower',
-      body: isAr
-        ? `يتواجد ${attackersA.length} مهاجمين صريحين ومجنحين بالفريق أ. يوصى بالتمرير السريع المباشر في منطقة الجزاء.`
-        : `Team A features ${attackersA.length} direct forwards & wingers. Direct first-time passes into the box will maximize scoring.`,
-      type: 'strength',
-    });
-  }
-
-  if (attackersB.length >= 3) {
+  if (benchAvgB > startAvgB - 2 && benchB && benchB.length > 0) {
+    const topSubB = [...benchB].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70))[0];
     advices.push({
       icon: '🔥',
-      title: isAr ? 'ضغط هجومي مكثف للفريق ب' : 'Team B High Firepower',
+      title: isAr ? 'ورقة جوكر على دكة الفريق ب' : 'Team B Super-Sub Weapon',
       body: isAr
-        ? `يمتلك الفريق ب قوة هجومية ثلاثية (${attackersB.map(p => p.assignedPosition || p.primaryPosition).join(', ')}). يجب الحذر من الاختراقات المباشرة.`
-        : `Team B features strong forward threat (${attackersB.map(p => p.assignedPosition || p.primaryPosition).join(', ')}). High defensive concentration required.`,
+        ? `دكة الفريق ب تملك بديلاً استراتيجياً (${topSubB?.fullName || topSubB?.cardName || 'لاعب بديل'} بتقييم ${topSubB?.overallRating || 70}). استخدامه مبكراً سيزيد الخيارات التكتيكية.`
+        : `Team B holds strong bench impact with (${topSubB?.fullName || topSubB?.cardName || 'Reserve'} OVR ${topSubB?.overallRating || 70}). Tactical introduction will stretch the opponent.`,
+      type: 'strength',
+    });
+  }
+
+  // 3. Star Duel / Marquee Head-to-Head
+  const getTopStar = (list: any[]) => [...(list || [])].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70))[0];
+  const starA = getTopStar(teamA);
+  const starB = getTopStar(teamB);
+  if (starA && starB) {
+    advices.push({
+      icon: '⭐',
+      title: isAr ? 'صراع النجوم والمحركات الرئيسية' : 'Marquee Key Player Battle',
+      body: isAr
+        ? `مواجهة مباشرة بين نجم الفريق أ (${starA.cardName || starA.fullName} - ${starA.assignedPosition || starA.primaryPosition} OVR ${starA.overallRating || 70}) ونجم الفريق ب (${starB.cardName || starB.fullName} - ${starB.assignedPosition || starB.primaryPosition} OVR ${starB.overallRating || 70}).`
+        : `Head-to-head spotlight: Team A leader (${starA.cardName || starA.fullName} OVR ${starA.overallRating || 70}) vs Team B leader (${starB.cardName || starB.fullName} OVR ${starB.overallRating || 70}).`,
+      type: 'key_battle',
+    });
+  }
+
+  // 4. Formation Matchup Insights
+  if ((formationA.includes('4-3-3') && formationB.includes('4-2-3-1')) || (formationB.includes('4-3-3') && formationA.includes('4-2-3-1'))) {
+    advices.push({
+      icon: '⚔️',
+      title: isAr ? 'صراع التكتيك: 4-3-3 ضد 4-2-3-1' : 'Tactical Clash: 4-3-3 vs 4-2-3-1',
+      body: isAr
+        ? `معركة خط الوسط حامية: صانع ألعاب الـ 4-2-3-1 سيحاول التحرك خلف خط وسط الـ 4-3-3. مفتاح الحسم هو سرعة افتراض الكرات الثنائية.`
+        : `Midfield battle: 4-2-3-1 playmaker will operate between lines against 4-3-3 pivot. Winning 2nd balls will decide possession control.`,
+      type: 'tactical_tip',
+    });
+  } else if (formationA.includes('3-') || formationB.includes('3-') || formationA.includes('5-') || formationB.includes('5-')) {
+    advices.push({
+      icon: '🚀',
+      title: isAr ? 'استغلال أجنحة وأظهيرة الملعب' : 'Flank Overloads & Wing Play',
+      body: isAr
+        ? `وجود 3 مدافعين يخلق مساحات خلف الأطراف. التمريرات الطولية السريعة للأجنحة ستضع المهاجمين في وضعيات 1 ضد 1.`
+        : `3/5-back setups yield spaces behind wing-backs. Quick diagonal balls to isolation wingers will create high-probability chances.`,
+      type: 'tactical_tip',
+    });
+  } else if (formationA.includes('4-2-2-2') || formationB.includes('4-2-2-2') || formationA.includes('4-2-4') || formationB.includes('4-2-4')) {
+    advices.push({
+      icon: '💥',
+      title: isAr ? 'هجوم مزدوج وضغط على خط الدفاع' : 'Dual Striker Central Overload',
+      body: isAr
+        ? `اعتماد مهاجمين صريحين يرهق قلبي الدفاع. يتوجب على خط الوسط العودة للتغطية وتضييق المسافة أمام منطقة الجزاء.`
+        : `Dual striker systems put immense pressure on center-backs. Midfield pivots must drop deep to protect central zones.`,
+      type: 'strength',
+    });
+  }
+
+  // 5. Pace & Explosiveness Threat
+  const getAvgAttr = (list: any[], attr: string) => {
+    if (!list || list.length === 0) return 70;
+    return Math.round(list.reduce((sum, p) => sum + (p.attributes?.[attr] || p.overallRating || 70), 0) / list.length);
+  };
+  
+  const speedA = getAvgAttr(teamA, 'speed');
+  const speedB = getAvgAttr(teamB, 'speed');
+  if (speedA >= speedB + 3) {
+    advices.push({
+      icon: '💨',
+      title: isAr ? 'تفوق السرعة للفريق أ' : 'Team A Pace & Transition Speed',
+      body: isAr
+        ? `الفريق أ يمتلك معدل سرعة أعلى (${speedA} vs ${speedB}). الهجمات السريعة المباشرة ستسبب ارتباكاً كبيراً لدفاع الفريق ب.`
+        : `Team A has higher overall pace (${speedA} vs ${speedB}). Direct transitions will stretch Team B's defensive shape.`,
+      type: 'strength',
+    });
+  } else if (speedB >= speedA + 3) {
+    advices.push({
+      icon: '💨',
+      title: isAr ? 'تفوق السرعة للفريق ب' : 'Team B Pace & Transition Speed',
+      body: isAr
+        ? `الفريق ب يمتلك سرعة أعلى (${speedB} vs ${speedA}). يُوصى الفريق أ بعدم التقدم المبالغ فيه لتفادي المرتدات السريعة.`
+        : `Team B has superior pace (${speedB} vs ${speedA}). Team A should avoid a high defensive line to prevent counter-attack leaks.`,
       type: 'strength',
     });
   }
@@ -1139,27 +1205,48 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       {aiPitchView && (
                         <div className="space-y-4">
                           {/* Stats bar */}
-                          <div className="flex items-center justify-between text-xs font-black gap-3">
-                            <div className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full bg-blue-500"/>
-                              <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
-                              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">
-                                AVG {previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}
-                              </span>
-                            </div>
-                            <div className="text-slate-400 text-xs font-bold flex items-center gap-1">
-                              <span>{previewData.formation?.teamA || '4-3-3'}</span>
-                              <span className="text-slate-500 font-normal">vs</span>
-                              <span>{previewData.formation?.teamB || '4-3-3'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">
-                                AVG {previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}
-                              </span>
-                              <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>
-                              <span className="w-3 h-3 rounded-full bg-red-500"/>
-                            </div>
-                          </div>
+                          {(() => {
+                            const bA = previewData.benchA || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 0);
+                            const bB = previewData.benchB || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 1);
+                            const startAvgA = previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || []);
+                            const startAvgB = previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || []);
+                            const squadAvgA = calculateTeamAvg([...(previewData.teamA || []), ...bA]);
+                            const squadAvgB = calculateTeamAvg([...(previewData.teamB || []), ...bB]);
+
+                            return (
+                              <div className="flex items-center justify-between text-xs font-black gap-3 bg-slate-100/80 dark:bg-slate-800/80 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-sm"/>
+                                  <span className="text-slate-900 dark:text-white font-black">{isAr ? 'الفريق أ' : 'Team A'}</span>
+                                  <div className="flex items-center gap-1">
+                                    <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-lg border border-blue-500/20 text-[11px]">
+                                      {isAr ? `أساسي ${startAvgA}` : `Starters ${startAvgA}`}
+                                    </span>
+                                    <span className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-500/20 text-[11px]" title={isAr ? 'معدل القائمة كاملاً متضمناً دكة البدلاء' : 'Total squad rating including bench'}>
+                                      {isAr ? `الشامل ${squadAvgA}` : `Squad ${squadAvgA}`}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="text-slate-400 text-xs font-bold flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                                  <span>{previewData.formation?.teamA || '4-3-3'}</span>
+                                  <span className="text-slate-500 font-normal">vs</span>
+                                  <span>{previewData.formation?.teamB || '4-3-3'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-1">
+                                    <span className="bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-lg border border-red-500/20 text-[11px]">
+                                      {isAr ? `أساسي ${startAvgB}` : `Starters ${startAvgB}`}
+                                    </span>
+                                    <span className="bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 px-2 py-0.5 rounded-lg border border-purple-500/20 text-[11px]" title={isAr ? 'معدل القائمة كاملاً متضمناً دكة البدلاء' : 'Total squad rating including bench'}>
+                                      {isAr ? `الشامل ${squadAvgB}` : `Squad ${squadAvgB}`}
+                                    </span>
+                                  </div>
+                                  <span className="text-slate-900 dark:text-white font-black">{isAr ? 'الفريق ب' : 'Team B'}</span>
+                                  <span className="w-3.5 h-3.5 rounded-full bg-red-500 shadow-sm"/>
+                                </div>
+                              </div>
+                            );
+                          })()}
                           {/* Side-by-side pitches */}
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{minHeight:420}}>
                             <HalfPitch
@@ -1270,11 +1357,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
                                 {/* Dedicated Bench for Team A / B */}
                                 {(() => {
-                                  const rawBench = previewData.bench || [];
-                                  const halfBench = Math.ceil(rawBench.length / 2);
                                   const teamBench = team.tIdx === 0
-                                    ? (previewData.benchA && previewData.benchA.length > 0 ? previewData.benchA : rawBench.slice(0, halfBench))
-                                    : (previewData.benchB && previewData.benchB.length > 0 ? previewData.benchB : rawBench.slice(halfBench));
+                                    ? (previewData.benchA || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 0))
+                                    : (previewData.benchB || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 1));
                                   if (!teamBench || teamBench.length === 0) return null;
                                   return (
                                     <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
@@ -1303,7 +1388,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                               }`}
                                             >
                                               <div className="flex items-center gap-2 min-w-0">
-                                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">
+                                                <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase shrink-0">
                                                   {bPos}
                                                 </span>
                                                 <span className="font-bold text-xs truncate">
@@ -1329,9 +1414,13 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
                   {/* Bilingual AI Manager Advice Cards */}
                   {(() => {
+                    const bA = previewData.benchA || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 0);
+                    const bB = previewData.benchB || (previewData.bench || []).filter((_: any, idx: number) => idx % 2 === 1);
                     const managerAdvices = generateBilingualManagerAdvices(
                       previewData.teamA || [],
                       previewData.teamB || [],
+                      bA,
+                      bB,
                       previewData.formation?.teamA || '4-3-3',
                       previewData.formation?.teamB || '4-3-3',
                       previewData.metrics,
