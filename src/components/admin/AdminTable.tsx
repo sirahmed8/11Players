@@ -23,7 +23,7 @@ import ManageUserCommunitiesModal from '@/components/community/ManageUserCommuni
 import CustomSelect from '@/components/ui/CustomSelect';
 import PendingEdits from '@/components/admin/PendingEdits';
 import SkillsChecklist from '@/components/player/SkillsChecklist';
-import { Crown, Sparkles } from 'lucide-react';
+import { Crown, Sparkles, Lock } from 'lucide-react';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
@@ -236,6 +236,52 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           toast.error(locale === 'ar' ? 'فشل تطبيق خيارات الذكاء الاصطناعي' : 'Failed to apply AI choices');
         }
       },
+    });
+  };
+
+  const handleLockAllPlayersToCommunity = () => {
+    if (!activeCommunityId) return;
+
+    setConfirmModal({
+      isOpen: true,
+      title: locale === 'ar' ? 'تثبيت جميع اللاعبين كجامعة رئيسية' : 'Lock All Players to Home Community',
+      message: locale === 'ar'
+        ? `هل أنت متأكد من تثبيت هذا المجتمع كمجتمع رئيسي (قفل التعديل) لجميع اللاعبين المتاحين (${players.length})؟`
+        : `Are you sure you want to set your active community as the Home Community (Edit Lock) for all ${players.length} players?`,
+      onConfirm: async () => {
+        try {
+          let count = 0;
+          const batchSize = 350;
+          for (let i = 0; i < players.length; i += batchSize) {
+            const batch = writeBatch(db);
+            const chunk = players.slice(i, i + batchSize);
+
+            chunk.forEach((p) => {
+              const updates = {
+                homeCommunityId: activeCommunityId,
+                primaryCommunityId: activeCommunityId
+              };
+              batch.update(doc(db, 'players', p.uid), updates);
+              if (activeCommunityId) {
+                batch.update(doc(db, 'communities', activeCommunityId, 'players', p.uid), updates);
+              }
+              count++;
+            });
+
+            await batch.commit();
+          }
+
+          toast.success(
+            locale === 'ar'
+              ? `تم تثبيت جميع اللاعبين (${count}) كجامعة رئيسية بنجاح! 🔒`
+              : `Successfully locked all ${count} players to this Home Community! 🔒`
+          );
+          onRefresh();
+        } catch (err) {
+          console.error(err);
+          toast.error(locale === 'ar' ? 'حدث خطأ أثناء تثبيت اللاعبين.' : 'Failed to lock players to home community.');
+        }
+      }
     });
   };
 
@@ -727,6 +773,13 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   return (
     <>
       <div className="mb-4 flex flex-wrap justify-end gap-3">
+        <button
+          onClick={handleLockAllPlayersToCommunity}
+          className="flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 px-4 py-2 text-sm font-black text-white shadow-md transition-all border border-slate-700"
+        >
+          <Lock className="w-4 h-4 text-amber-400" />
+          <span>{locale === 'ar' ? 'تثبيت مجتمعي لجميع اللاعبين 🔒' : 'Lock All to Home Community 🔒'}</span>
+        </button>
         <button
           onClick={handleExportCSV}
           className="flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"

@@ -17,7 +17,7 @@ import PendingRequests from "@/components/admin/PendingRequests";
 import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
 import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, query, where, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, ShieldCheck, Sparkles } from "lucide-react";
+import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, ShieldCheck, Sparkles, Lock } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -138,11 +138,53 @@ export default function AdminPage() {
             });
             await batch.commit();
           }
-          toast.success(isAr ? 'تم التطبيق بنجاح!' : 'AI Applied successfully!', { id: loadingToast });
+          toast.dismiss(loadingToast);
+          toast.success(isAr ? "تم تطبيق أفضل مراكز لجميع اللاعبين بنجاح! ⚡" : "Successfully applied AI to all players! ⚡");
           if (refreshPlayers) refreshPlayers();
-        } catch (error) {
-          console.error(error);
-          toast.error(isAr ? 'فشل التطبيق' : 'Failed to apply AI', { id: loadingToast });
+        } catch (err) {
+          toast.dismiss(loadingToast);
+          console.error(err);
+          toast.error(isAr ? "حدث خطأ أثناء تطبيق الذكاء الاصطناعي." : "Error applying AI to players.");
+        }
+      }
+    });
+  };
+
+  const handleLockAllToHomeCommunity = async () => {
+    if (!activeCommunityId) return;
+    setConfirmModal({
+      isOpen: true,
+      title: isAr ? 'تثبيت جميع اللاعبين لمجتمعي الرئيسي' : 'Lock All Players to Home Community',
+      message: isAr
+        ? `هل أنت متأكد من تعيين هذا المجتمع كمجتمع رئيسي (قفل التعديل) لجميع اللاعبين (${players.length})؟`
+        : `Are you sure you want to set your active community as the Home Community (Edit Lock) for all ${players.length} players?`,
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        const loadingToast = toast.loading(isAr ? 'جاري تثبيت جميع اللاعبين...' : 'Locking all players to home community...');
+        try {
+          const CHUNK_SIZE = 200;
+          let count = 0;
+          for (let i = 0; i < players.length; i += CHUNK_SIZE) {
+            const batch = writeBatch(db);
+            const chunk = players.slice(i, i + CHUNK_SIZE);
+            chunk.forEach(player => {
+              const updates = {
+                homeCommunityId: activeCommunityId,
+                primaryCommunityId: activeCommunityId
+              };
+              batch.set(doc(db, "players", player.uid), updates, { merge: true });
+              batch.set(doc(db, "communities", activeCommunityId, "players", player.uid), updates, { merge: true });
+              count++;
+            });
+            await batch.commit();
+          }
+          toast.dismiss(loadingToast);
+          toast.success(isAr ? `تم تثبيت جميع اللاعبين (${count}) كجامعة رئيسية بنجاح! 🔒` : `Successfully locked all ${count} players to this Home Community! 🔒`);
+          if (refreshPlayers) refreshPlayers();
+        } catch (err) {
+          toast.dismiss(loadingToast);
+          console.error(err);
+          toast.error(isAr ? "حدث خطأ أثناء تثبيت اللاعبين." : "Error locking players to home community.");
         }
       }
     });
@@ -393,15 +435,24 @@ export default function AdminPage() {
                       </p>
                     </div>
 
-                    <button
-                      onClick={handleApplyAIToAll}
-                      className="w-full py-3.5 px-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2.5"
-                    >
-                      <Sparkles className="w-5 h-5 fill-white text-white" />
-                      <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
-                    </button>
+                      <div className="flex flex-col sm:flex-row gap-2.5">
+                        <button
+                          onClick={handleApplyAIToAll}
+                          className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2 text-xs"
+                        >
+                          <Sparkles className="w-4 h-4 fill-white text-white" />
+                          <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
+                        </button>
+                        <button
+                          onClick={handleLockAllToHomeCommunity}
+                          className="flex-1 py-3 px-4 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-black rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs border border-slate-700"
+                        >
+                          <Lock className="w-4 h-4 text-amber-400" />
+                          <span>{isAr ? "تثبيت مجتمعي للجميع 🔒" : "Lock All to Community 🔒"}</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
               </div>
               <PendingRequests />
 

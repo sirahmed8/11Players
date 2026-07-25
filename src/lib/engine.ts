@@ -1065,6 +1065,49 @@ function arePositionCompatible(a: PlayerProfile, b: PlayerProfile): boolean {
  * console.log(result.metrics.variance.overall); // ~0.5
  * ```
  */
+/**
+ * Generates a virtual squad filler for standard 11v11 matches when roster is below 22 players.
+ */
+function createVirtualFiller(position: PESPosition, index: number, avgOvr: number = 68): PlayerProfile {
+  return {
+    uid: `filler-${position}-${index}-${Date.now()}`,
+    fullName: `AI Reserve (${position})`,
+    cardName: `AI Reserve (${position})`,
+    primaryPosition: position,
+    secondaryPosition: undefined,
+    tertiaryPosition: undefined,
+    overallRating: avgOvr,
+    attributes: {
+      speed: avgOvr,
+      acceleration: avgOvr,
+      finishing: avgOvr - 2,
+      offensiveAwareness: avgOvr - 2,
+      defensiveAwareness: avgOvr + 2,
+      ballWinning: avgOvr + 2,
+      physicalContact: avgOvr + 2,
+      stamina: avgOvr + 2,
+      lowPass: avgOvr,
+      loftedPass: avgOvr - 1,
+      ballControl: avgOvr,
+      dribbling: avgOvr - 1,
+      kickingPower: avgOvr,
+      heading: avgOvr,
+      jump: avgOvr,
+      balance: avgOvr,
+      gkAwareness: position === 'GK' ? avgOvr + 8 : 35,
+      gkCatching: position === 'GK' ? avgOvr + 8 : 35,
+      gkClearing: position === 'GK' ? avgOvr + 8 : 35,
+      gkReflexes: position === 'GK' ? avgOvr + 8 : 35,
+      gkReach: position === 'GK' ? avgOvr + 8 : 35,
+    },
+    approvedAttributes: undefined,
+    homeCommunityId: 'unlocked',
+  } as unknown as PlayerProfile;
+}
+
+/**
+ * Main standard 11v11 team balancing entry point.
+ */
 export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   if (!Array.isArray(players) || players.length < 2) {
     throw new Error(
@@ -1073,7 +1116,6 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   }
 
   // ── 0. Determine Bench ──
-  // Sort players by their Primary Position PSI descending
   const sortedPlayers = [...players].sort(
     (a, b) =>
       calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition)
@@ -1085,15 +1127,28 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
   // ── 2. Swap-balance ──
   [rawA, rawB] = iterativeSwapBalance(rawA, rawB);
 
-  // ── 3. Sort players by overall/PSI to separate starters (top 11) from bench ──
+  // ── 3. Sort players & force EXACTLY 11 starters per team for standard 11v11 ──
   const sortPool = (pool: PlayerProfile[]) => [...pool].sort((a, b) => calculatePSI(b, b.primaryPosition) - calculatePSI(a, a.primaryPosition));
   const sortedRawA = sortPool(rawA);
   const sortedRawB = sortPool(rawB);
 
-  const startersA = sortedRawA.slice(0, 11);
-  const benchPoolA = sortedRawA.slice(11);
-  const startersB = sortedRawB.slice(0, 11);
-  const benchPoolB = sortedRawB.slice(11);
+  const fillTo11 = (pool: PlayerProfile[]): PlayerProfile[] => {
+    const starters = pool.slice(0, 11);
+    const needed = 11 - starters.length;
+    if (needed <= 0) return starters;
+
+    const fillPositions: PESPosition[] = ['CB', 'LB', 'RB', 'CMF', 'DMF', 'AMF', 'LWF', 'RWF', 'CF', 'SS'];
+    for (let i = 0; i < needed; i++) {
+      starters.push(createVirtualFiller(fillPositions[i % fillPositions.length], i + 1, 68));
+    }
+    return starters;
+  };
+
+  const startersA = fillTo11(sortedRawA);
+  const startersB = fillTo11(sortedRawB);
+
+  const benchPoolA = sortedRawA.length > 11 ? sortedRawA.slice(11) : [];
+  const benchPoolB = sortedRawB.length > 11 ? sortedRawB.slice(11) : [];
 
   // ── 4. Select formations for starters and assign positions ──
   const formationA = selectBestFormation(startersA);
