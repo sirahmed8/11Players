@@ -160,9 +160,24 @@ interface HalfPitchProps {
   isAr: boolean;
   pitchResetCounter?: number;
   setActiveTacticalPlayer: (val: any) => void;
+  onSwapClick?: (teamIndex: number | 'bench' | 'benchA' | 'benchB', playerIndex: number, player: any) => void;
+  selectedForSwap?: any;
+  teamIndex?: number;
 }
 
-function HalfPitch({ team, label, color, flipped, formationName, isAr, pitchResetCounter, setActiveTacticalPlayer }: HalfPitchProps) {
+function HalfPitch({
+  team,
+  label,
+  color,
+  flipped,
+  formationName,
+  isAr,
+  pitchResetCounter,
+  setActiveTacticalPlayer,
+  onSwapClick,
+  selectedForSwap,
+  teamIndex
+}: HalfPitchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
   const formKey = formationName || defaultForm;
@@ -171,6 +186,8 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, pitchRese
   const posCounts: Record<string, number> = {};
   const usedSlotIndices = new Set<number>();
   const usedCoordCounts: Record<string, number> = {};
+
+  const actualTeamIdx = teamIndex !== undefined ? teamIndex : (label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 0 : 1);
 
   return (
     <div className="flex-1 relative min-h-0 w-full overflow-hidden select-none touch-none">
@@ -232,6 +249,8 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, pitchRese
           const ovr = p.overallRating || p?.stats?.overallRating || 70;
           const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
           const moodStyle = getDisplayPlayStyle(p, isAr);
+          const isSelected = selectedForSwap && selectedForSwap.teamIndex === actualTeamIdx && selectedForSwap.playerIndex === i;
+
           return (
             <motion.div
               key={`${p.uid || `pitch-${label}-${i}`}-${pos}-${formKey}-${pitchResetCounter || 0}`}
@@ -240,20 +259,45 @@ function HalfPitch({ team, label, color, flipped, formationName, isAr, pitchRese
               dragElastic={0}
               dragMomentum={false}
               whileDrag={{ scale: 1.2, zIndex: 50 }}
-              onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B', playerIndex: i, player: p })}
-              className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onSwapClick) {
+                  onSwapClick(actualTeamIdx, i, p);
+                } else {
+                  const teamId = label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B';
+                  setActiveTacticalPlayer({ teamId, playerIndex: i, player: p });
+                }
+              }}
+              className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer select-none touch-none ${
+                isSelected ? 'scale-110 z-30' : ''
+              }`}
               style={{left:`${finalX}%`, top:`${y}%`}}
-              title={isAr ? 'اسحب لتغيير موقع اللاعب على الملعب، أو اضغط لتعديل المركز ونمط اللعب ⚡' : 'Drag to reposition player on pitch, or click to edit position & mood ⚡'}
+              title={isAr ? 'اضغط للتبديل مع أي لاعب آخر، أو اسحب لتعديل المكان، أو اضغط القلم لتعديل المركز' : 'Click to swap with another player, drag to reposition, or click pencil to edit position'}
             >
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300 pointer-events-none select-none"
-                style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 transition-all ${
+                  isSelected
+                    ? 'border-purple-400 ring-4 ring-purple-500/80 scale-110 shadow-purple-500/50 animate-pulse'
+                    : 'border-white/80 group-hover:border-amber-300'
+                }`}
+                style={{backgroundColor: color, boxShadow: isSelected ? '0 0 16px #a855f7' : `0 2px 8px ${color}55` }}
               >
                 {ovr}
               </div>
-              <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors pointer-events-none select-none">
+              <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors pointer-events-auto select-none">
                 <span>{pos}</span>
-                <span className="text-[7px] text-amber-300 group-hover:text-white">✏️</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const teamId = label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B';
+                    setActiveTacticalPlayer({ teamId, playerIndex: i, player: p });
+                  }}
+                  className="text-[8px] text-amber-300 hover:text-white hover:scale-125 transition-transform"
+                  title={isAr ? 'تعديل المركز ونمط اللعب' : 'Edit position & play style'}
+                >
+                  ✏️
+                </button>
               </div>
               <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center pointer-events-none select-none">
                 {name}
@@ -1107,6 +1151,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                 isAr={isAr}
                                 pitchResetCounter={pitchResetCounter}
                                 setActiveTacticalPlayer={setActiveTacticalPlayer}
+                                onSwapClick={handlePlayerSwapClick}
+                                selectedForSwap={selectedForSwap}
+                                teamIndex={tIdx}
                               />
                             ))}
                           </div>
@@ -1258,6 +1305,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               isAr={isAr}
                               pitchResetCounter={pitchResetCounter}
                               setActiveTacticalPlayer={setActiveTacticalPlayer}
+                              onSwapClick={handlePlayerSwapClick}
+                              selectedForSwap={selectedForSwap}
+                              teamIndex={0}
                             />
                             <HalfPitch
                               team={previewData.teamB || []}
@@ -1268,6 +1318,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               isAr={isAr}
                               pitchResetCounter={pitchResetCounter}
                               setActiveTacticalPlayer={setActiveTacticalPlayer}
+                              onSwapClick={handlePlayerSwapClick}
+                              selectedForSwap={selectedForSwap}
+                              teamIndex={1}
                             />
                           </div>
 
