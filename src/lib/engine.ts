@@ -1400,8 +1400,9 @@ export function generateTurfMatch(
   const { numTeams, playersPerTeam, gkMode, gkRotationInterval, matchType, matchDurationMins, endCondition, targetGoals, fixedGkTeamA, fixedGkTeamB, enableCardsSystem } = config;
 
   const totalNeeded = numTeams * playersPerTeam;
-  const activePlayers = availablePlayers.slice(0, totalNeeded);
-  const leftoverPlayers = availablePlayers.slice(totalNeeded);
+  const sortedAvailablePlayers = [...availablePlayers].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70));
+  const activePlayers = sortedAvailablePlayers.slice(0, totalNeeded);
+  const leftoverPlayers = sortedAvailablePlayers.slice(totalNeeded);
 
   const waitingTeams: TurfTeam[] = leftoverPlayers.length > 0 ? [{
     id: 'waiting_1',
