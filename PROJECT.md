@@ -1,10 +1,10 @@
 # Project: Hagoozat Elite
 
 ## Architecture
-Hagoozat Elite is structured as a full-stack Next.js 14+ application integrated with Firebase v10+ (Authentication, Firestore, Storage) and Cloudinary.
-- **Frontend Layer**: Next.js App Router, Tailwind CSS, Framer Motion. Handles layout, multilinguality (EN/AR), theme synchronization (Dark/Light via localStorage), client-side background removal via WebAssembly, and PDF generation.
-- **Backend & Database Layer**: Firebase Authentication coordinates login via Google Provider. Firestore holds live sync collections for players, admins, and chat. Firebase Cloud Storage or Cloudinary handles processed images.
-- **Matchmaking Engine**: Next.js API Route (`/api/matchmaking`) that implements a deterministic team balance solver based on player attributes, positional suitability indexes, and age/physical multipliers.
+Hagoozat Elite is structured as a full-stack Next.js 16+ application integrated with Firebase (Authentication, Firestore, Storage) and Vercel Blob / Cloudinary.
+- **Frontend Layer**: Next.js App Router, Tailwind CSS, Framer Motion. Handles layout, multilinguality (EN/AR), theme synchronization (Dark/Light via localStorage), dynamic player card generation, and PDF generation.
+- **Backend & Database Layer**: Firebase Authentication coordinates login via Google Provider. Firestore holds live sync collections for players, admins, and chat. Vercel Blob handles player avatar uploads.
+- **Matchmaking Engine**: Deterministic client-side balance engine (`src/lib/engine.ts`) implementing Position-Specific Index (PSI) algorithms, physical modifiers, and dynamic formation selection.
 
 ## Code Layout
 ```
