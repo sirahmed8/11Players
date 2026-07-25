@@ -231,36 +231,57 @@ const PSI_WEIGHTS: Record<PESPosition, Partial<Record<keyof PlayerAttributes, nu
  * Index 0 is always GK.
  */
 export const FORMATIONS: Record<string, PESPosition[]> = {
-  // 5v5
+  // 5v5 (خماسي)
   '1-2-1': ['GK', 'CB', 'CMF', 'AMF', 'CF'],
   '2-1-1': ['GK', 'CB', 'CB', 'CMF', 'CF'],
   '1-1-2': ['GK', 'CB', 'CMF', 'LWF', 'RWF'],
-  // 6v6
+  '2-2':   ['GK', 'CB', 'CB', 'CF', 'CF'],
+
+  // 6v6 (سداسي)
   '2-2-1': ['GK', 'CB', 'CB', 'CMF', 'AMF', 'CF'],
-  '2-1-2': ['GK', 'CB', 'CB', 'CMF', 'CF', 'CF'],
+  '2-1-2': ['GK', 'CB', 'CB', 'CMF', 'LWF', 'RWF'],
   '1-3-1': ['GK', 'CB', 'LMF', 'CMF', 'RMF', 'CF'],
-  // 7v7
+  '3-1-1': ['GK', 'LB', 'CB', 'RB', 'CMF', 'CF'],
+
+  // 7v7 (سباعي)
   '2-3-1': ['GK', 'CB', 'CB', 'LMF', 'CMF', 'RMF', 'CF'],
   '3-2-1': ['GK', 'LB', 'CB', 'RB', 'CMF', 'AMF', 'CF'],
-  '2-2-2': ['GK', 'CB', 'CB', 'CMF', 'AMF', 'CF', 'CF'],
-  // 8v8
+  '2-2-2': ['GK', 'CB', 'CB', 'CMF', 'AMF', 'LWF', 'RWF'],
+  '3-1-2': ['GK', 'LB', 'CB', 'RB', 'CMF', 'LWF', 'RWF'],
+  '1-4-1': ['GK', 'CB', 'LMF', 'DMF', 'CMF', 'RMF', 'CF'],
+
+  // 8v8 (ثماني)
   '3-3-1': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'RMF', 'CF'],
-  '2-3-2': ['GK', 'CB', 'CB', 'LMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '2-4-1': ['GK', 'CB', 'CB', 'LMF', 'DMF', 'CMF', 'RMF', 'CF'],
   '3-2-2': ['GK', 'LB', 'CB', 'RB', 'CMF', 'AMF', 'CF', 'CF'],
-  // 9v9
+  '2-3-2': ['GK', 'CB', 'CB', 'LMF', 'CMF', 'RMF', 'LWF', 'RWF'],
+  '4-2-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'AMF', 'CF'],
+
+  // 9v9 (تساعي)
   '3-4-1': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
   '3-3-2': ['GK', 'LB', 'CB', 'RB', 'LMF', 'CMF', 'RMF', 'CF', 'CF'],
   '4-3-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'CF'],
-  // 10v10
+  '3-2-3': ['GK', 'LB', 'CB', 'RB', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
+  '2-4-2': ['GK', 'CB', 'CB', 'LMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
+
+  // 10v10 (عشاري)
   '4-4-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
-  '4-3-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'CF', 'CF'],
+  '4-3-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'RWF'],
   '3-4-2': ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'RMF', 'CF', 'CF'],
-  // 11v11
-  '4-3-3':   ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
-  '4-4-2':   ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF', 'CF'],
-  '3-5-2':   ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
-  '4-2-3-1': ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'LMF', 'AMF', 'RMF', 'CF'],
-  '5-3-2':   ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF', 'CF'],
+  '3-5-1': ['GK', 'LB', 'CB', 'RB', 'LMF', 'DMF', 'CMF', 'AMF', 'RMF', 'CF'],
+  '5-3-1': ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF'],
+
+  // 11v11 (أحد عشري)
+  '4-3-3':     ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'CMF', 'AMF', 'LWF', 'CF', 'RWF'],
+  '4-2-3-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'DMF', 'LMF', 'AMF', 'RMF', 'CF'],
+  '4-4-2':     ['GK', 'LB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '4-1-4-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'LMF', 'CMF', 'AMF', 'RMF', 'CF'],
+  '3-5-2':     ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'DMF', 'CMF', 'RMF', 'CF', 'CF'],
+  '3-4-3':     ['GK', 'CB', 'CB', 'CB', 'LMF', 'CMF', 'CMF', 'RMF', 'LWF', 'CF', 'RWF'],
+  '4-3-2-1':   ['GK', 'LB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'AMF', 'AMF', 'CF'],
+  '4-1-2-1-2': ['GK', 'LB', 'CB', 'CB', 'RB', 'DMF', 'CMF', 'CMF', 'AMF', 'CF', 'CF'],
+  '5-3-2':     ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'CMF', 'DMF', 'CMF', 'CF', 'CF'],
+  '5-4-1':     ['GK', 'LB', 'CB', 'CB', 'CB', 'RB', 'LMF', 'CMF', 'CMF', 'RMF', 'CF'],
 };
 
 // ─── Helper Utilities ────────────────────────────────────────────────────────
