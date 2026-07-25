@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { calculateRealisticOverall } from '@/lib/overallCalculator';
-import { getAllPlayerCommunities } from '@/lib/playerUtils';
+import { getAllPlayerCommunities, getEffectiveHomeCommunityId } from '@/lib/playerUtils';
 import ManageUserCommunitiesModal from '@/components/community/ManageUserCommunitiesModal';
 import CustomSelect from '@/components/ui/CustomSelect';
 import PendingEdits from '@/components/admin/PendingEdits';
@@ -137,21 +137,34 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
 
   const handleApplyAIToAllPlayers = () => {
+    if (!activeCommunityId) return;
+    
+    // Only apply AI to players that are unlocked or have this community as their home
+    const eligiblePlayers = players.filter(p => {
+      const homeId = getEffectiveHomeCommunityId(p);
+      return !homeId || homeId === 'unlocked' || homeId === activeCommunityId;
+    });
+
+    if (eligiblePlayers.length === 0) {
+      toast.error(locale === 'ar' ? 'لا يوجد لاعبون متاحون لتطبيق الذكاء الاصطناعي (مغلقون لمجتمعات أخرى).' : 'No eligible players to apply AI (locked to other communities).');
+      return;
+    }
+
     setConfirmModal({
       isOpen: true,
       title: locale === 'ar' ? 'تطبيق اختيار الذكاء الاصطناعي الأفضل للجميع' : 'Apply AI Best Choice to All Players',
       message: locale === 'ar'
-        ? `هل أنت متأكد من تحليل طاقات جميع اللاعبين (${players.length}) وتحديد وحفظ المركز الأساسي وأسلوب اللعب الأنسب لكل لاعب تلقائياً في قاعدة البيانات؟`
-        : `Are you sure you want to analyze all (${players.length}) players and save their AI-recommended primary position & play style directly to the database?`,
+        ? `هل أنت متأكد من تحليل طاقات جميع اللاعبين المتاحين (${eligiblePlayers.length}) وتحديد وحفظ المركز الأساسي وأسلوب اللعب الأنسب لكل لاعب تلقائياً في قاعدة البيانات؟`
+        : `Are you sure you want to analyze all eligible (${eligiblePlayers.length}) players and save their AI-recommended primary position & play style directly to the database?`,
       onConfirm: async () => {
         try {
           const { getTacticalSuggestions } = await import('@/lib/suggestionEngine');
           let count = 0;
 
           const batchSize = 350;
-          for (let i = 0; i < players.length; i += batchSize) {
+          for (let i = 0; i < eligiblePlayers.length; i += batchSize) {
             const batch = writeBatch(db);
-            const chunk = players.slice(i, i + batchSize);
+            const chunk = eligiblePlayers.slice(i, i + batchSize);
 
             chunk.forEach((p) => {
               const suggestions = getTacticalSuggestions(
@@ -213,6 +226,37 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
   const [playerToReset, setPlayerToReset] = useState<PlayerProfile | null>(null);
   const [pendingEditsByPlayer, setPendingEditsByPlayer] = useState<Record<string, number>>({});
   const [suggestionsModalPlayer, setSuggestionsModalPlayer] = useState<PlayerProfile | null>(null);
+
+  const handleUnlockPlayer = async (player: PlayerProfile) => {
+    if (!activeCommunityId) return;
+    const effectiveHomeId = getEffectiveHomeCommunityId(player);
+    if (effectiveHomeId !== activeCommunityId) {
+      toast.error(locale === 'ar' ? 'فقط مجتمع اللاعب الأساسي يمكنه فك ارتباطه' : 'Only the home community can unlock this player');
+      return;
+    }
+    const confirmed = window.confirm(
+      locale === 'ar'
+        ? `هل أنت متأكد من فك ارتباط اللاعب ${player.fullName}؟ سيسمح هذا للمجتمعات الأخرى بتعديل طاقاته.`
+        : `Are you sure you want to unlock ${player.fullName}? This will allow other communities to edit their attributes.`
+    );
+    if (!confirmed) return;
+    
+    try {
+      setLoadingUid(player.uid);
+      const playerRef = doc(db, 'players', player.uid);
+      await updateDoc(playerRef, {
+        homeCommunityId: 'unlocked',
+        homeCommunityUpdatedAt: serverTimestamp()
+      });
+      toast.success(locale === 'ar' ? 'تم فك ارتباط اللاعب بنجاح' : 'Player unlocked successfully');
+      onRefresh();
+    } catch (error) {
+      console.error("Error unlocking player:", error);
+      toast.error(locale === 'ar' ? 'حدث خطأ أثناء فك الارتباط' : 'Error unlocking player');
+    } finally {
+      setLoadingUid(null);
+    }
+  };
 
   // Subscribe to pending edits to show per-player badge (both community and global suggestions)
   useEffect(() => {
@@ -713,23 +757,30 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
             </tr>
           </thead>
           <tbody>
-              {paginatedPlayers.map((player) => (
-                <AdminTableRow
-                  key={player.uid}
-                  player={player}
-                  locale={locale}
-                  loadingUid={loadingUid}
-                  onOpenEditModal={(p) => setEditModal({ open: true, player: p })}
-                  onOpenAttrModal={openAttrModal}
-                  onOpenStatsModal={openStatsModal}
-                  onGeneratePDF={(p) => generateProfilePDF(p, locale === 'ar' ? 'ar' : 'en')}
-                  onOpenResetModal={(p) => setPlayerToReset(p)}
-                  onOpenDeleteModal={(p) => setPlayerToDelete(p)}
-                  isOwner={isOwner}
-                  pendingEditCount={pendingEditsByPlayer[player.uid] || 0}
-                  onOpenSuggestionsModal={(p) => setSuggestionsModalPlayer(p)}
-                />
-              ))}
+              {paginatedPlayers.map((player) => {
+                const effectiveHomeId = getEffectiveHomeCommunityId(player);
+                const isLockedForAdmin = effectiveHomeId !== null && effectiveHomeId !== 'unlocked' && effectiveHomeId !== activeCommunityId;
+                
+                return (
+                  <AdminTableRow
+                    key={player.uid}
+                    player={player}
+                    locale={locale}
+                    loadingUid={loadingUid}
+                    onOpenEditModal={(p) => setEditModal({ open: true, player: p })}
+                    onOpenAttrModal={openAttrModal}
+                    onOpenStatsModal={openStatsModal}
+                    onGeneratePDF={(p) => generateProfilePDF(p, locale === 'ar' ? 'ar' : 'en')}
+                    onOpenResetModal={(p) => setPlayerToReset(p)}
+                    onOpenDeleteModal={(p) => setPlayerToDelete(p)}
+                    isOwner={isOwner}
+                    pendingEditCount={pendingEditsByPlayer[player.uid] || 0}
+                    onOpenSuggestionsModal={(p) => setSuggestionsModalPlayer(p)}
+                    isLockedForAdmin={isLockedForAdmin}
+                    onUnlockPlayer={handleUnlockPlayer}
+                  />
+                );
+              })}
           </tbody>
         </table>
       </div>
@@ -738,39 +789,35 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
       <div className="md:hidden space-y-3.5">
         {paginatedPlayers.map((player) => {
           const photo = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || "";
-          const pendingCount = pendingEditsByPlayer[player.uid] || 0;
+          const effectiveHomeId = getEffectiveHomeCommunityId(player);
+          const isLockedForAdmin = effectiveHomeId !== null && effectiveHomeId !== 'unlocked' && effectiveHomeId !== activeCommunityId;
+          const pc = pendingEditsByPlayer[player.uid] || 0;
+
           return (
-            <div key={player.uid} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 shadow-sm flex flex-col gap-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
+            <div key={player.uid} className="bg-white dark:bg-slate-800 rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-700">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
                   {photo ? (
                     <Image
                       src={photo}
                       alt={player.fullName}
-                      width={44}
-                      height={44}
-                      referrerPolicy="no-referrer"
-                      className="h-11 w-11 rounded-full object-cover ring-2 ring-emerald-500/30 shrink-0"
+                      width={40}
+                      height={40}
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-slate-200 dark:ring-slate-700"
                     />
                   ) : (
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-sm font-black text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-sm font-bold text-emerald-600 dark:text-emerald-400">
                       {player.fullName?.charAt(0) || "?"}
                     </div>
                   )}
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-bold text-slate-900 dark:text-white truncate text-sm">
-                      {player.fullName}
-                    </span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium">
-                      {player.cardName} • {player.primaryPosition || 'CMF'}
-                    </span>
+                  <div>
+                    <div className="font-semibold text-slate-900 dark:text-slate-100">
+                      {player.googleName || player.fullName}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      {player.cardName}
+                    </div>
                   </div>
-                </div>
-                <div className="flex flex-col items-end shrink-0">
-                  <span className="text-xs text-slate-400 uppercase font-bold">{locale === 'ar' ? 'التقييم' : 'OVR'}</span>
-                  <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                    {player.overallRating ?? '—'}
-                  </span>
                 </div>
               </div>
 
@@ -801,12 +848,25 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 002.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 00-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 00.75-.75 2.25 2.25 0 00-.1-.664m-5.8 0A2.251 2.251 0 0113.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25zM6.75 12h.008v.008H6.75V12zm0 3h.008v.008H6.75V15zm0 3h.008v.008H6.75V18z" />
                   </svg>
-                  {pendingCount > 0 && (
+                  {pc > 0 && (
                     <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-[9px] font-black flex items-center justify-center shadow-sm">
-                      {pendingCount > 9 ? '9+' : pendingCount}
+                      {pc > 9 ? '9+' : pc}
                     </span>
                   )}
                 </button>
+
+                {/* Unlock Player */}
+                {!isLockedForAdmin && player.homeCommunityId && (
+                  <button
+                    onClick={() => handleUnlockPlayer(player)}
+                    className="rounded-xl bg-orange-50 dark:bg-orange-600/20 p-2.5 text-orange-600 dark:text-orange-400 transition-colors hover:bg-orange-100"
+                    title={locale === 'ar' ? 'فك ارتباط اللاعب' : 'Unlock Player'}
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  </button>
+                )}
 
                 <button
                   onClick={() => setEditModal({ open: true, player })}
@@ -819,13 +879,24 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                 </button>
 
                 <button
-                  onClick={() => openAttrModal(player)}
-                  className="rounded-xl bg-purple-50 dark:bg-purple-600/20 p-2.5 text-purple-600 dark:text-purple-400 transition-colors hover:bg-purple-100"
-                  title={t(locale, "Edit Attributes", "تعديل الطاقات")}
+                  onClick={() => !isLockedForAdmin && openAttrModal(player)}
+                  disabled={isLockedForAdmin}
+                  className={`rounded-xl p-2.5 transition-colors ${
+                    isLockedForAdmin 
+                      ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50' 
+                      : 'bg-purple-50 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100'
+                  }`}
+                  title={isLockedForAdmin ? t(locale, "Locked to Home Community", "مغلق") : t(locale, "Edit Attributes", "تعديل الطاقات")}
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-                  </svg>
+                  {isLockedForAdmin ? (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                    </svg>
+                  ) : (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+                    </svg>
+                  )}
                 </button>
 
                 <button

@@ -59,3 +59,24 @@ export function getPlayerOverall(player: Partial<PlayerProfile>): number {
   return player.overallRating || calculatedOverall || 40;
 }
 
+/**
+ * Returns the effective home community ID for a player.
+ * If homeCommunityId is 'unlocked', returns null.
+ * Otherwise returns homeCommunityId or the first joined community.
+ */
+export function getEffectiveHomeCommunityId(player: Partial<PlayerProfile>): string | null {
+  if (!player) return null;
+  if (player.homeCommunityId === 'unlocked') return null;
+  
+  if (player.homeCommunityId) return player.homeCommunityId;
+  
+  // Fallback to first joined community
+  if (player.memberCommunities && player.memberCommunities.length > 0) {
+    return player.memberCommunities[0];
+  }
+  if (player.joinedCommunities && player.joinedCommunities.length > 0) {
+    return player.joinedCommunities[0];
+  }
+  return null;
+}
+

@@ -138,15 +138,15 @@ export function getTacticalSuggestions(
       case 'LB': {
         score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isLeftFoot) {
-          score += 5;
+          score += 8;
           rationaleEn = 'Natural left foot with great pace, stamina, and crossing ability to dominate the left flank.';
           rationaleAr = 'قدم يسرى طبيعية مع سرعة عالية وتحمل وعرضيات متقنة للسيطرة على الرواق الأيسر.';
         } else if (isAmbi) {
-          score += 3;
+          score += 4;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the left.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليسرى.';
         } else {
-          score -= 5;
+          score -= 8;
           rationaleEn = 'Good pace and stamina, but playing inverted on the left with a right foot.';
           rationaleAr = 'سرعة وتحمل جيدين، لكنه يلعب كظهير عكسي في الجهة اليسرى بقدمه اليمنى.';
         }
@@ -156,15 +156,15 @@ export function getTacticalSuggestions(
       case 'RB': {
         score = (speed * 0.15 + accel * 0.12 + stamina * 0.15 + defAware * 0.12 + ballWin * 0.12 + loftedPass * 0.12 + dribbling * 0.08 + lowPass * 0.07 + aggression * 0.07);
         if (isRightFoot) {
-          score += 5;
+          score += 8;
           rationaleEn = 'Natural right foot combined with pace, stamina, and precise crossing for the right flank.';
           rationaleAr = 'قدم يمنى طبيعية مدمجة مع سرعة وتحمل وعرضيات دقيقة للسيطرة على الرواق الأيمن.';
         } else if (isAmbi) {
-          score += 3;
+          score += 4;
           rationaleEn = 'Ambidextrous fullback offering tactical flexibility and stamina on the right.';
           rationaleAr = 'ظهير يجيد اللعب بالقدمين يقدم مرونة تكتيكية ولياقة عالية في الجهة اليمنى.';
         } else {
-          score -= 5;
+          score -= 8;
           rationaleEn = 'Solid full-back attributes, but playing inverted on the right with a left foot.';
           rationaleAr = 'طاقات ظهير ممتازة، لكنه يلعب كظهير عكسي في الجهة اليمنى بقدمه اليسرى.';
         }
@@ -219,11 +219,11 @@ export function getTacticalSuggestions(
     case 'LMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isRightFoot || isAmbi) {
-        score += 4;
+        score += 8;
         rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the left.';
         rationaleAr = 'لاعب وسط أيسر عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليسار.';
       } else {
-        score -= 2;
+        score -= 8;
         rationaleEn = 'Pacy wide operator on the left, but playing with a left foot limits cutting inside.';
         rationaleAr = 'لاعب سريع على الجهة اليسرى، لكنه يلعب بقدم يسرى مما يحد من الدخول للعمق.';
       }
@@ -233,11 +233,11 @@ export function getTacticalSuggestions(
     case 'RMF': {
       score = (speed * 0.15 + accel * 0.15 + dribbling * 0.15 + loftedPass * 0.15 + stamina * 0.13 + ballControl * 0.12 + lowPass * 0.10 + offAware * 0.05);
       if (isLeftFoot || isAmbi) {
-        score += 4;
+        score += 8;
         rationaleEn = 'Tireless inverted wide midfielder offering pace and dangerous cutting inside from the right.';
         rationaleAr = 'لاعب وسط أيمن عكسي لا يكل، يوفر سرعة وخطورة عند الدخول للعمق من اليمين.';
       } else {
-        score -= 2;
+        score -= 8;
         rationaleEn = 'Pacy wide operator on the right, but playing with a right foot limits cutting inside.';
         rationaleAr = 'لاعب سريع على الجهة اليمنى، لكنه يلعب بقدم يمنى مما يحد من الدخول للعمق.';
       }
@@ -247,15 +247,15 @@ export function getTacticalSuggestions(
     case 'LWF': {
       score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
       if (isRightFoot || isAmbi) {
-        score += 5;
+        score += 1.5;
         rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger right foot to unleash dangerous shots.';
         rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليمنى القوية لإطلاق تسديدات خطيرة على المرمى.';
       } else if (isLeftFoot && loftedPass >= 75) {
-        score += 1;
+        score += 0.5;
         rationaleEn = 'Traditional pacy winger attacking the left byline to deliver pinpoint crosses.';
         rationaleAr = 'جناح أيسر كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
       } else {
-        score -= 2;
+        score -= 1.5;
         rationaleEn = 'Explosive pace and dribbling, but playing on the left with a left foot limits cutting inside.';
         rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يسرى على اليسار يحد من الدخول للعمق.';
       }
@@ -265,15 +265,15 @@ export function getTacticalSuggestions(
     case 'RWF': {
       score = (speed * 0.18 + accel * 0.18 + dribbling * 0.18 + ballControl * 0.14 + offAware * 0.12 + finishing * 0.10 + loftedPass * 0.10);
       if (isLeftFoot || isAmbi) {
-        score += 5;
+        score += 1.5;
         rationaleEn = 'Lethal inverted winger: cuts inside onto his stronger left foot to curl shots into the far corner.';
         rationaleAr = 'جناح عكسي قاتل: يخترق للداخل بقدمه اليسرى القوية لتسديد كرات مقوسة في الزاوية البعيدة.';
       } else if (isRightFoot && loftedPass >= 75) {
-        score += 1;
+        score += 0.5;
         rationaleEn = 'Traditional pacy winger attacking the right byline to deliver pinpoint crosses.';
         rationaleAr = 'جناح أيمن كلاسيكي سريع يهاجم خط التماس لإرسال عرضيات دقيقة للغاية.';
       } else {
-        score -= 2;
+        score -= 1.5;
         rationaleEn = 'Explosive pace and dribbling, but playing on the right with a right foot limits cutting inside.';
         rationaleAr = 'سرعة ومراوغة متفجرة، لكن اللعب بقدم يمنى على اليمين يحد من الدخول للعمق.';
       }
@@ -319,6 +319,10 @@ export function getTacticalSuggestions(
     bestOvr = baseOvr;
     
     const compatibleStyles = PLAYER_STYLES.filter(s => s.positions.includes(pos));
+    if (compatibleStyles.length > 0) {
+      bestStyle = compatibleStyles[0].id;
+    }
+    
     for (const style of compatibleStyles) {
        const ovr = calculateRealisticOverall(attrs as unknown as PlayerAttributes, pos, style.id, height, weight, age, peerAvg, peerCount, preferredFoot);
        if (ovr > bestOvr) {

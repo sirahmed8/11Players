@@ -200,12 +200,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
             : undefined),
     };
 
-    try {
-      matchConfigSchema.parse(finalConfig);
-    } catch (e: any) {
-      const errorMsg = e.issues ? e.issues.map((err: any) => err.message).join(', ') : 'Please fill in all required fields (Date, Time, Location).';
-      toast.error(errorMsg);
-      console.error('Match config validation error:', e);
+    const result = matchConfigSchema.safeParse(finalConfig);
+    if (!result.success) {
+      const errorMsg = result.error.issues.map(err => err.message).join(' | ');
+      toast.error(errorMsg || 'Please fill in all required fields (Date, Time, Location).');
+      console.error('Match config validation error:', result.error);
       return;
     }
 
@@ -391,14 +390,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
         >
           <motion.div
+            layout
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full ${step === 'preview' ? 'max-w-4xl' : 'max-w-lg'} overflow-visible border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col transition-all duration-300`}
+            transition={{ duration: 0.3, type: 'spring', bounce: 0.1 }}
+            className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full ${step === 'preview' ? 'max-w-4xl' : 'max-w-lg'} overflow-visible border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col relative`}
             dir={isAr ? 'rtl' : 'ltr'}
           >
-            <div className="p-6 overflow-y-auto overflow-x-visible flex-1">
+            <div className="p-6 overflow-y-auto overflow-x-visible flex-1 custom-scrollbar">
               <AnimatePresence mode="wait">
                 {step === 'preview' && previewData ? (
                   <motion.div
@@ -473,22 +473,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           </div>
                           {formation && <span className="text-[10px] text-slate-500">{formation}</span>}
                         </div>
-                        <div
-                          className="relative w-full rounded-xl overflow-hidden border border-emerald-600/40"
-                          style={{
-                            background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)',
-                            paddingTop: '130%',
-                          }}
-                        >
-                          {/* Pitch markings */}
-                          <div className="absolute inset-0 pointer-events-none">
+                        <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4" style={{ paddingTop: '130%' }}>
+                          {/* Pitch Background - Clipped */}
+                          <div
+                            className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
+                            style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
+                          >
                             <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
                             <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
                             <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
                             <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
                           </div>
 
-                          {/* Player dots */}
+                          {/* Player dots - Unclipped */}
                           {team.map((p: any, i: number) => {
                             const pos = p.assignedPosition || p.primaryPosition || 'CMF';
                             const coords = PITCH_COORDS[pos] || {x:50,y:50};

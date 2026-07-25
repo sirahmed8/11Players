@@ -139,7 +139,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     tertiaryPosition: player.tertiaryPosition || '',
     playStyle: normalizePlayStyleId(player.playStyle),
     preferredFoot: player.preferredFoot || 'Right',
-    photoUrl: player.photoUrl || ''
+    photoUrl: player.photoUrl || '',
+    homeCommunityId: player.homeCommunityId || ''
   });
   
   // Merge player attributes with defaults so every key has a value (min 40)
@@ -152,6 +153,24 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   );
   
   const [isSaving, setIsSaving] = useState(false);
+  const [playerCommunities, setPlayerCommunities] = useState<{id: string, name: string}[]>([]);
+
+  useEffect(() => {
+    const fetchComms = async () => {
+      const commIds = getAllPlayerCommunities(player);
+      if (commIds.length === 0) return;
+      try {
+        const q = query(collection(db, 'communities'), where('__name__', 'in', commIds.slice(0, 10)));
+        const snap = await getDocs(q);
+        setPlayerCommunities(snap.docs.map(d => ({ id: d.id, name: d.data().name || d.id })));
+      } catch (err) {
+        console.error("Error fetching player communities:", err);
+      }
+    };
+    if (isOpen && player) {
+      fetchComms();
+    }
+  }, [isOpen, player]);
 
   useEffect(() => {
     if (isOpen && player) {
@@ -166,7 +185,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         tertiaryPosition: player.tertiaryPosition || '',
         playStyle: normalizePlayStyleId(player.playStyle),
         preferredFoot: player.preferredFoot || 'Right',
-        photoUrl: player.photoUrl || ''
+        photoUrl: player.photoUrl || '',
+        homeCommunityId: player.homeCommunityId || ''
       });
       setAttributes({ ...DEFAULT_ATTRIBUTES, ...(player.attributes || {}) });
       setSpecialSkills(player.specialSkills || []);
@@ -258,6 +278,9 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         
         dataToSave.lastCardNameChange = new Date().toISOString();
         dataToSave.cardName = newCardName;
+      }
+      if (formData.homeCommunityId !== player.homeCommunityId) {
+        dataToSave.homeCommunityUpdatedAt = new Date().toISOString();
       }
 
       const commIds = getAllPlayerCommunities(player, activeCommunityId);
@@ -418,6 +441,17 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   };
 
   if (!isOpen) return null;
+
+  // Calculate home community lock
+  let isHomeLocked = false;
+  let homeLockDaysLeft = 0;
+  if (player.homeCommunityId !== 'unlocked' && player.homeCommunityUpdatedAt) {
+    const daysSince = (Date.now() - new Date(player.homeCommunityUpdatedAt).getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSince < 30) {
+      isHomeLocked = true;
+      homeLockDaysLeft = Math.ceil(30 - daysSince);
+    }
+  }
 
   return (
     <AnimatePresence>
@@ -586,6 +620,34 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                     dropUp={true}
                   />
                 </div>
+                {playerCommunities.length > 0 && (
+                  <div className="md:col-span-2">
+                    <label className="mb-1 flex items-center justify-between text-sm font-bold text-slate-700 dark:text-slate-300">
+                      <span>{isRTL ? "المجتمع الأساسي (صلاحية التعديل)" : "Home Community (Edit Lock)"}</span>
+                      {isHomeLocked && (
+                        <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
+                          {isRTL ? `مغلق لـ ${homeLockDaysLeft} يوم` : `Locked for ${homeLockDaysLeft}d`}
+                        </span>
+                      )}
+                    </label>
+                    {isHomeLocked ? (
+                      <div className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-2.5 text-sm text-slate-500 cursor-not-allowed">
+                        {playerCommunities.find(c => c.id === formData.homeCommunityId)?.name || formData.homeCommunityId || (isRTL ? 'غير محدد' : 'Not set')}
+                      </div>
+                    ) : (
+                      <CustomSelect
+                        value={formData.homeCommunityId === 'unlocked' ? '' : formData.homeCommunityId}
+                        placeholder={isRTL ? "اختر المجتمع الأساسي" : "Select Home Community"}
+                        options={playerCommunities.map(c => ({ value: c.id, label: c.name }))}
+                        onChange={(v) => handleChange('homeCommunityId', v)}
+                        dropUp={true}
+                      />
+                    )}
+                    <p className="mt-1 text-xs text-slate-500">
+                      {isRTL ? "أدمن هذا المجتمع فقط من يمكنه تعديل طاقاتك. تغييره سيغلقه لمدة 30 يوماً." : "Only the admin of this community can edit your attributes. Changing this locks it for 30 days."}
+                    </p>
+                  </div>
+                )}
                 <div className="md:col-span-2">
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الصورة الشخصية" : "Photo"}</label>
                   {/* Vercel Blob direct upload (only available on Vercel SSR deployment) */}

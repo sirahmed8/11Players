@@ -21,6 +21,8 @@ interface AdminTableRowProps {
   onOpenManageCommunitiesModal?: (player: PlayerProfile) => void;
   pendingEditCount?: number;
   onOpenSuggestionsModal?: (player: PlayerProfile) => void;
+  isLockedForAdmin?: boolean;
+  onUnlockPlayer?: (player: PlayerProfile) => void;
 }
 
 const t = (locale: string, en: string, ar: string) => (locale === "ar" ? ar : en);
@@ -41,6 +43,8 @@ const AdminTableRow = React.memo(function AdminTableRow({
   onOpenManageCommunitiesModal,
   pendingEditCount = 0,
   onOpenSuggestionsModal,
+  isLockedForAdmin = false,
+  onUnlockPlayer,
 }: AdminTableRowProps) {
   const photo = player.photoUrl || player.googlePic || (player as any).photoURL || (player as any).userPic || "";
 
@@ -158,14 +162,38 @@ const AdminTableRow = React.memo(function AdminTableRow({
 
           {/* Edit Attributes */}
           <button
-            onClick={() => onOpenAttrModal(player)}
-            className="rounded-lg bg-purple-50 dark:bg-purple-600/20 p-2 text-purple-600 dark:text-purple-400 transition-colors hover:bg-purple-100 dark:hover:bg-purple-600/40 hover:text-purple-700 dark:hover:text-purple-300"
-            title={t(locale, "Edit Attributes", "تعديل الطاقات")}
+            onClick={() => !isLockedForAdmin && onOpenAttrModal(player)}
+            disabled={isLockedForAdmin}
+            className={`rounded-lg p-2 transition-colors ${
+              isLockedForAdmin 
+                ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed opacity-50' 
+                : 'bg-purple-50 dark:bg-purple-600/20 text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-600/40 hover:text-purple-700 dark:hover:text-purple-300'
+            }`}
+            title={isLockedForAdmin ? t(locale, "Locked to Home Community", "مغلق لكونه ينتمي لمجتمع آخر") : t(locale, "Edit Attributes", "تعديل الطاقات")}
           >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
-            </svg>
+            {isLockedForAdmin ? (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+              </svg>
+            )}
           </button>
+          
+          {/* Unlock Player */}
+          {onUnlockPlayer && !isLockedForAdmin && player.homeCommunityId && (
+            <button
+              onClick={() => onUnlockPlayer(player)}
+              className="rounded-lg bg-orange-50 dark:bg-orange-600/20 p-2 text-orange-600 dark:text-orange-400 transition-colors hover:bg-orange-100 dark:hover:bg-orange-600/40"
+              title={t(locale, "Unlock Player (Remove Home Community)", "فك ارتباط اللاعب (إزالة المجتمع الأساسي)")}
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+              </svg>
+            </button>
+          )}
 
           {/* Edit Stats */}
           <button

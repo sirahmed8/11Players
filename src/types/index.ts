@@ -113,6 +113,8 @@ export interface PlayerProfile {
   pendingCommunities?: string[];
   lastCommunityId?: string;
   activeCommunityId?: string;
+  homeCommunityId?: string | null;
+  homeCommunityUpdatedAt?: string;
   attributes: PlayerAttributes;
   selfAttributes?: PlayerAttributes;
   approvedAttributes?: PlayerAttributes;

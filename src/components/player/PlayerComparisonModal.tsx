@@ -100,6 +100,14 @@ export default function PlayerComparisonModal({
   const [isSelectingA, setIsSelectingA] = useState(!initialPlayerA);
   const [isSelectingB, setIsSelectingB] = useState(!initialPlayerB);
 
+  const [visibleCountA, setVisibleCountA] = useState(20);
+  const [visibleCountB, setVisibleCountB] = useState(20);
+
+  // Reset visible counts when search changes
+  React.useEffect(() => { setVisibleCountA(20); }, [searchA]);
+  React.useEffect(() => { setVisibleCountB(20); }, [searchB]);
+
+
   React.useEffect(() => {
     if (initialPlayerA) { setPlayerAId(initialPlayerA.uid); setIsSelectingA(false); }
     if (initialPlayerB) { setPlayerBId(initialPlayerB.uid); setIsSelectingB(false); }
@@ -189,8 +197,7 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  {/* Optimized list — no animations on rows, limited to 20 items to fix scroll lag */}
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu">
+                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
                     {filteredForA.map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
                     ))}
@@ -247,7 +254,7 @@ export default function PlayerComparisonModal({
                       className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
                     />
                   </div>
-                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu">
+                  <div className="max-h-52 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
                     {filteredForB.map((p) => (
                       <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
                     ))}

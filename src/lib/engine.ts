@@ -1214,6 +1214,7 @@ export interface TurfFixture {
 
 export interface TurfMatchmakingResult {
   teams: TurfTeam[];
+  bench?: PlayerProfile[];
   waitingTeams?: TurfTeam[];
   gkRotationSchedule: { teamId: string; playerName: string; matchNumber: number }[];
   fixtures: TurfFixture[];
@@ -1468,7 +1469,7 @@ export function generateTurfMatch(
 
   return {
     teams,
-    waitingTeams,
+    bench: leftoverPlayers,
     gkRotationSchedule,
     fixtures,
     matchType,
