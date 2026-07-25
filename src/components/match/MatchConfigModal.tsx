@@ -459,68 +459,89 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
                   {/* Helper for AI Pitch View */}
                   {(() => {
-                    const PITCH_COORDS: Record<string, {x:number;y:number}> = {
+                    const FORMATION_COORDS: Record<string, {x:number;y:number}[]> = {
+                      '4-3-3':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:32,y:48},{x:50,y:55},{x:68,y:48},{x:18,y:22},{x:50,y:15},{x:82,y:22}],
+                      '4-4-2':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:18,y:45},{x:38,y:52},{x:62,y:52},{x:82,y:45},{x:35,y:18},{x:65,y:18}],
+                      '3-5-2':   [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:15,y:48},{x:35,y:54},{x:50,y:42},{x:65,y:54},{x:85,y:48},{x:35,y:18},{x:65,y:18}],
+                      '4-2-3-1': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:38,y:58},{x:62,y:58},{x:18,y:35},{x:50,y:32},{x:82,y:35},{x:50,y:15}],
+                      '5-3-2':   [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:30,y:48},{x:50,y:52},{x:70,y:48},{x:35,y:18},{x:65,y:18}],
+                    };
+
+                    const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
                       GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
                       RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
                       CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
                       LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
                     };
 
-                    const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean, formation?: string) => (
-                      <div className="flex-1 relative min-h-0 min-w-[200px]">
-                        <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
-                          <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
-                            <span className="text-slate-700 dark:text-slate-200">{label}</span>
-                          </div>
-                          {formation && <span className="text-[10px] text-slate-500">{formation}</span>}
-                        </div>
-                        <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4" style={{ paddingTop: '130%' }}>
-                          {/* Pitch Background - Clipped */}
-                          <div
-                            className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
-                            style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
-                          >
-                            <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
-                            <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
-                            <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
-                            <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
-                          </div>
+                    const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean, formationName?: string) => {
+                      const formKey = formationName || '4-3-3';
+                      const coordsList = FORMATION_COORDS[formKey] || FORMATION_COORDS['4-3-3'];
+                      const posCounts: Record<string, number> = {};
 
-                          {/* Player dots - Unclipped */}
-                          {team.map((p: any, i: number) => {
-                            const pos = p.assignedPosition || p.primaryPosition || 'CMF';
-                            const coords = PITCH_COORDS[pos] || {x:50,y:50};
-                            const y = flipped ? 100 - coords.y : coords.y;
-                            const ovr = p.overallRating || p?.stats?.overallRating || 70;
-                            const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
-                            return (
-                              <div
-                                key={p.uid || i}
-                                className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group"
-                                style={{left:`${coords.x}%`, top:`${y}%`}}
-                              >
+                      return (
+                        <div className="flex-1 relative min-h-0 min-w-[200px]">
+                          <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
+                              <span className="text-slate-700 dark:text-slate-200">{label}</span>
+                            </div>
+                            {formationName && <span className="text-[10px] text-slate-500 font-bold">{formationName}</span>}
+                          </div>
+                          <div className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4" style={{ paddingTop: '130%' }}>
+                            {/* Pitch Background - Clipped */}
+                            <div
+                              className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none"
+                              style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
+                            >
+                              <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
+                              <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
+                              <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
+                              <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
+                            </div>
+
+                            {/* Player dots - Unclipped */}
+                            {team.map((p: any, i: number) => {
+                              const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+                              let coords = coordsList[i];
+                              if (!coords) {
+                                const base = FALLBACK_PITCH_COORDS[pos] || {x:50, y:50};
+                                const count = posCounts[pos] || 0;
+                                posCounts[pos] = count + 1;
+                                coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
+                              }
+
+                              const y = flipped ? 100 - coords.y : coords.y;
+                              const ovr = p.overallRating || p?.stats?.overallRating || 70;
+                              const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
+                              return (
                                 <div
-                                  className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
-                                  style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                                  key={p.uid || `pitch-${label}-${i}`}
+                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10"
+                                  style={{left:`${coords.x}%`, top:`${y}%`}}
                                 >
-                                  {ovr}
+                                  <div
+                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
+                                    style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                                  >
+                                    {ovr}
+                                  </div>
+                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
+                                    {pos}
+                                  </div>
+                                  <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
+                                    {name}
+                                  </div>
+                                  <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
+                                    {p.cardName || p.fullName} · {pos} · OVR {ovr}
+                                  </div>
                                 </div>
-                                <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
-                                  {pos}
-                                </div>
-                                <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
-                                  {name}
-                                </div>
-                                <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                  {p.cardName || p.fullName} · {pos} · OVR {ovr}
-                                </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
+                      );
+                    };
 
                     return (
                       <>
@@ -681,8 +702,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             </div>
                             {/* Side-by-side pitches */}
                             <div className="flex gap-3" style={{minHeight:420}}>
-                              {renderHalfPitch(previewData.teamA || [], isAr ? 'الفريق أ' : 'Team A', '#3B82F6', false)}
-                              {renderHalfPitch(previewData.teamB || [], isAr ? 'الفريق ب' : 'Team B', '#EF4444', true)}
+                              {renderHalfPitch(previewData.teamA || [], isAr ? 'الفريق أ' : 'Team A', '#3B82F6', false, previewData.formation?.teamA)}
+                              {renderHalfPitch(previewData.teamB || [], isAr ? 'الفريق ب' : 'Team B', '#EF4444', true, previewData.formation?.teamB)}
                             </div>
                           </div>
                         );

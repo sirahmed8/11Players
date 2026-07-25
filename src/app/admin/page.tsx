@@ -435,24 +435,15 @@ export default function AdminPage() {
                       </p>
                     </div>
 
-                      <div className="flex flex-col sm:flex-row gap-2.5">
-                        <button
-                          onClick={handleApplyAIToAll}
-                          className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2 text-xs"
-                        >
-                          <Sparkles className="w-4 h-4 fill-white text-white" />
-                          <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
-                        </button>
-                        <button
-                          onClick={handleLockAllToHomeCommunity}
-                          className="flex-1 py-3 px-4 bg-slate-900 dark:bg-slate-700 hover:bg-slate-800 text-white font-black rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 text-xs border border-slate-700"
-                        >
-                          <Lock className="w-4 h-4 text-amber-400" />
-                          <span>{isAr ? "تثبيت مجتمعي للجميع 🔒" : "Lock All to Community 🔒"}</span>
-                        </button>
-                      </div>
-                    </div>
+                    <button
+                      onClick={handleApplyAIToAll}
+                      className="w-full py-3.5 px-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2.5"
+                    >
+                      <Sparkles className="w-5 h-5 fill-white text-white" />
+                      <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
+                    </button>
                   </div>
+                </div>
               </div>
               <PendingRequests />
 
