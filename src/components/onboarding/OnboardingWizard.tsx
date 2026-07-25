@@ -267,9 +267,10 @@ export default function OnboardingWizard() {
 
     try {
       playerProfileSchema.parse(state);
-    } catch (e) {
+    } catch (e: any) {
       setIsSubmitting(false);
-      setSubmitMessage({ type: 'error', text: 'Validation failed. Please check all fields.' });
+      const fieldError = e?.issues?.[0]?.message || e?.errors?.[0]?.message || 'Validation failed. Please check all fields.';
+      setSubmitMessage({ type: 'error', text: fieldError });
       console.error(e);
       return;
     }

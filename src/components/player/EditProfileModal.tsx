@@ -235,13 +235,14 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           weight: formData.weight,
           preferredFoot: formData.preferredFoot,
           primaryPosition: formData.primaryPosition,
-          secondaryPosition: formData.secondaryPosition,
-          tertiaryPosition: formData.tertiaryPosition,
+          secondaryPosition: formData.secondaryPosition || null,
+          tertiaryPosition: formData.tertiaryPosition || null,
           playStyle: formData.playStyle,
-          photoUrl: formData.photoUrl,
+          photoUrl: formData.photoUrl || null,
         });
       } catch (e: any) {
-        toast.error('Validation failed. Please check all fields.');
+        const fieldError = e?.issues?.[0]?.message || e?.errors?.[0]?.message || 'Validation failed. Please check all fields.';
+        toast.error(fieldError);
         console.error('Validation error:', e);
         setIsSaving(false);
         return;

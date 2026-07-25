@@ -33,24 +33,21 @@ export const playerAttributesSchema = z.object({
 });
 
 export const playerProfileSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  cardName: z.string().min(1, "Card name is required").max(15, "Card name too long"),
-  dateOfBirth: z.string().refine((date) => {
-    const age = new Date().getFullYear() - new Date(date).getFullYear();
-    return age >= 10 && age <= 60;
-  }, "Age must be between 10 and 60"),
-  height: z.number().min(100, "Height must be at least 100cm").max(250, "Height must be under 250cm"),
-  weight: z.number().min(30, "Weight must be at least 30kg").max(150, "Weight must be under 150kg"),
-  preferredFoot: z.enum(["Right", "Left", "Both", "Ambidextrous"]),
-  primaryPosition: positionSchema,
-  secondaryPosition: positionSchema.nullable().optional(),
-  tertiaryPosition: positionSchema.nullable().optional(),
-  playStyle: z.string().optional(),
-  specialSkills: z.array(z.string()).optional(),
-  attributes: playerAttributesSchema.optional(),
-  photoUrl: z.string().url("Invalid photo URL").optional().nullable(),
-  email: z.string().email("Invalid email").optional(),
+  firstName: z.string().optional().nullable(),
+  lastName: z.string().optional().nullable(),
+  cardName: z.string().min(1, "Card name is required").max(35, "Card name is too long"),
+  dateOfBirth: z.string().optional().nullable(),
+  height: z.number().min(80, "Height must be at least 80cm").max(250, "Height must be under 250cm").optional().nullable(),
+  weight: z.number().min(20, "Weight must be at least 20kg").max(200, "Weight must be under 200kg").optional().nullable(),
+  preferredFoot: z.string().optional().nullable(),
+  primaryPosition: positionSchema.optional().nullable(),
+  secondaryPosition: positionSchema.or(z.literal("")).optional().nullable(),
+  tertiaryPosition: positionSchema.or(z.literal("")).optional().nullable(),
+  playStyle: z.string().optional().nullable(),
+  specialSkills: z.array(z.string()).optional().nullable(),
+  attributes: playerAttributesSchema.optional().nullable(),
+  photoUrl: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
 });
 
 export type PlayerProfileFormData = z.infer<typeof playerProfileSchema>;
