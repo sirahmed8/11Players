@@ -374,9 +374,12 @@ export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPo
     return 0.15;
   }
 
-  // Opposite Fullback Crossover (RB playing LB or LB playing RB is very natural, 0.75)
+  // Opposite Fullback Crossover (RB playing LB or LB playing RB is very natural, 0.75 if primary/secondary fullback)
   if ((targetPosition === 'LB' && playerPositions.includes('RB')) || (targetPosition === 'RB' && playerPositions.includes('LB'))) {
-    return 0.75;
+    const isFullbackMain = p1 === 'LB' || p1 === 'RB' || p2 === 'LB' || p2 === 'RB';
+    if (isFullbackMain) return 0.75;
+    if (['AMF', 'CF', 'SS', 'LWF', 'RWF'].includes(p1 || '')) return 0.20; // Strict protection for AMF/CF
+    return 0.45;
   }
 
   // Category matching
@@ -809,13 +812,49 @@ function findOptimalAssignment(
  *
  * This algorithm uses a full slot-player PSI matrix and selects the assignment with the
  * highest total score, ensuring fallback when a slot cannot be filled by a natural player.
- * It prioritises specialist slots like GK while allowing secondary and tertiary players to
- * occupy roles they can perform confidently.
- *
- * @param players   - Array of player profiles.
- * @param formation - The formation name to use.
- * @returns Array of `AssignedPlayer` objects.
+/**
+ * Dynamically detects tactical formation string from assigned player positions.
  */
+export function detectFormationFromTeam(team: (PlayerProfile | AssignedPlayer)[]): string {
+  if (!Array.isArray(team) || team.length === 0) return '4-3-3';
+  const outfield = team.filter(p => {
+    const pos = (p as any).assignedPosition || p.primaryPosition || 'CMF';
+    return pos !== 'GK';
+  });
+  if (outfield.length === 0) return '4-3-3';
+
+  let defCount = 0;
+  let midCount = 0;
+  let atkCount = 0;
+  let dmfCount = 0;
+
+  outfield.forEach(p => {
+    const pos = (p as any).assignedPosition || p.primaryPosition || 'CMF';
+    if (['CB', 'LB', 'RB'].includes(pos)) {
+      defCount++;
+    } else if (['DMF', 'CMF', 'LMF', 'RMF', 'AMF'].includes(pos)) {
+      midCount++;
+      if (pos === 'DMF') dmfCount++;
+    } else if (['LWF', 'RWF', 'CF', 'SS'].includes(pos)) {
+      atkCount++;
+    }
+  });
+
+  if (defCount === 4 && midCount === 3 && atkCount === 3) return '4-3-3';
+  if (defCount === 4 && midCount === 2 && atkCount === 4) return '4-2-4';
+  if (defCount === 4 && midCount === 4 && atkCount === 2) return '4-4-2';
+  if (defCount === 4 && midCount === 5 && atkCount === 1) return dmfCount >= 2 ? '4-2-3-1' : '4-1-4-1';
+  if (defCount === 3 && midCount === 5 && atkCount === 2) return '3-5-2';
+  if (defCount === 3 && midCount === 4 && atkCount === 3) return '3-4-3';
+  if (defCount === 3 && midCount === 5 && atkCount === 2) return '3-4-1-2';
+  if (defCount === 5 && midCount === 3 && atkCount === 2) return '5-3-2';
+  if (defCount === 5 && midCount === 4 && atkCount === 1) return '5-4-1';
+  if (defCount === 5 && midCount === 2 && atkCount === 3) return '5-2-3';
+  if (defCount === 4 && midCount === 2 && atkCount === 4) return '4-2-4';
+
+  return `${defCount}-${midCount}-${atkCount}`;
+}
+
 export function assignPlayersToFormation(
   players: PlayerProfile[],
   formation: string,

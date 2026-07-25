@@ -54,7 +54,12 @@ export default function CommunityPage() {
     let result = [...players];
 
     if (selectedPosFilter !== "ALL") {
-      result = result.filter(p => p.primaryPosition === selectedPosFilter);
+      result = result.filter(p =>
+        p.primaryPosition === selectedPosFilter ||
+        p.secondaryPosition === selectedPosFilter ||
+        p.tertiaryPosition === selectedPosFilter ||
+        p.preferredPosition === selectedPosFilter
+      );
     }
 
     if (query) {
@@ -283,7 +288,14 @@ export default function CommunityPage() {
                       className="absolute z-30 top-full mt-2 w-full sm:w-64 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl scrollbar-thin"
                     >
                       {(["ALL", "CF", "SS", "LWF", "RWF", "AMF", "CMF", "DMF", "CB", "RB", "LB", "GK"] as const).map((pos) => {
-                        const count = pos === "ALL" ? players.length : players.filter(p => p.primaryPosition === pos).length;
+                        const count = pos === "ALL"
+                          ? players.length
+                          : players.filter(p =>
+                              p.primaryPosition === pos ||
+                              p.secondaryPosition === pos ||
+                              p.tertiaryPosition === pos ||
+                              p.preferredPosition === pos
+                            ).length;
                         const isActive = selectedPosFilter === pos;
                         return (
                           <button

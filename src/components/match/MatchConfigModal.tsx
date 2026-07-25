@@ -5,7 +5,7 @@ import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X, Brain, 
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { matchConfigSchema } from '@/schemas/matchSchema';
 import toast from 'react-hot-toast';
-import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation, calculatePSI } from '@/lib/engine';
+import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation, calculatePSI, detectFormationFromTeam } from '@/lib/engine';
 import { balanceTeams } from '@/lib/engine';
 import { getTacticalSuggestions, getBestPlayStyleNameForPosition } from '@/lib/suggestionEngine';
 import { PESPosition } from '@/types';
@@ -245,6 +245,7 @@ interface HalfPitchProps {
   onSwapClick?: (teamIndex: number | 'bench' | 'benchA' | 'benchB', playerIndex: number, player: any) => void;
   selectedForSwap?: any;
   teamIndex?: number;
+  onPositionDragChange?: (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => void;
 }
 
 function HalfPitch({
@@ -258,7 +259,8 @@ function HalfPitch({
   setActiveTacticalPlayer,
   onSwapClick,
   selectedForSwap,
-  teamIndex
+  teamIndex,
+  onPositionDragChange,
 }: HalfPitchProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
@@ -270,6 +272,45 @@ function HalfPitch({
   const usedCoordCounts: Record<string, number> = {};
 
   const actualTeamIdx = teamIndex !== undefined ? teamIndex : (label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 0 : 1);
+
+  const handleDragEnd = (_: any, info: any, playerIndex: number) => {
+    if (!containerRef.current || !onPositionDragChange) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const dropX = Math.max(5, Math.min(95, ((info.point.x - rect.left) / rect.width) * 100));
+    const dropY = Math.max(5, Math.min(95, ((info.point.y - rect.top) / rect.height) * 100));
+
+    const actualY = flipped ? 100 - dropY : dropY;
+
+    let detectedPos: PESPosition = 'CMF';
+
+    if (actualY > 80) {
+      detectedPos = 'GK';
+    } else if (actualY >= 62) {
+      if (dropX < 28) detectedPos = 'LB';
+      else if (dropX > 72) detectedPos = 'RB';
+      else detectedPos = 'CB';
+    } else if (actualY >= 48) {
+      if (dropX < 26) detectedPos = 'LMF';
+      else if (dropX > 74) detectedPos = 'RMF';
+      else detectedPos = 'DMF';
+    } else if (actualY >= 34) {
+      if (dropX < 26) detectedPos = 'LMF';
+      else if (dropX > 74) detectedPos = 'RMF';
+      else detectedPos = 'CMF';
+    } else if (actualY >= 20) {
+      if (dropX < 26) detectedPos = 'LWF';
+      else if (dropX > 74) detectedPos = 'RWF';
+      else detectedPos = 'AMF';
+    } else {
+      if (dropX < 26) detectedPos = 'LWF';
+      else if (dropX > 74) detectedPos = 'RWF';
+      else detectedPos = 'CF';
+    }
+
+    onPositionDragChange(actualTeamIdx, playerIndex, detectedPos);
+  };
 
   return (
     <div className="flex-1 relative min-h-0 w-full overflow-hidden select-none touch-none">
@@ -341,6 +382,7 @@ function HalfPitch({
               dragConstraints={containerRef}
               dragElastic={0}
               dragMomentum={false}
+              onDragEnd={(e, info) => handleDragEnd(e, info, i)}
               whileDrag={{ scale: 1.2, zIndex: 50 }}
               onClick={(e) => {
                 e.stopPropagation();
@@ -962,7 +1004,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setPreviewData((prev: any) => {
       if (!prev) return prev;
       if (prev.matchMode === 'standard') {
-        const teamKey = teamId === 'A' ? 'teamA' : 'teamB';
+        const teamKey = teamId === 'A' || teamId === 0 ? 'teamA' : 'teamB';
         const updatedTeam = [...(prev[teamKey] || [])];
         const player = updatedTeam[playerIndex];
         if (!player) return prev;
@@ -982,12 +1024,20 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
         const newAvg = Math.round(updatedTeam.reduce((acc, p) => acc + (p.overallRating || 70), 0) / updatedTeam.length);
 
+        const newFormationName = detectFormationFromTeam(updatedTeam);
+        if (teamKey === 'teamA') setSelectedFormationA(newFormationName);
+        if (teamKey === 'teamB') setSelectedFormationB(newFormationName);
+
         return {
           ...prev,
           [teamKey]: updatedTeam,
+          formation: {
+            ...(prev.formation || {}),
+            [teamKey]: newFormationName
+          },
           metrics: {
             ...prev.metrics,
-            [teamId === 'A' ? 'teamAOverall' : 'teamBOverall']: newAvg
+            [teamKey === 'teamA' || teamId === 0 ? 'teamAOverall' : 'teamBOverall']: newAvg
           }
         };
       } else if (prev.matchMode === 'turf' && prev.turfResult) {
@@ -1396,6 +1446,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               onSwapClick={handlePlayerSwapClick}
                               selectedForSwap={selectedForSwap}
                               teamIndex={0}
+                              onPositionDragChange={handleSetPlayerPosition}
                             />
                             <HalfPitch
                               team={previewData.teamB || []}
@@ -1409,6 +1460,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               onSwapClick={handlePlayerSwapClick}
                               selectedForSwap={selectedForSwap}
                               teamIndex={1}
+                              onPositionDragChange={handleSetPlayerPosition}
                             />
                           </div>
 
