@@ -43,6 +43,186 @@ interface CommunityPlayer {
   stats?: any;
 }
 
+const FORMATION_COORDS: Record<string, {x:number;y:number}[]> = {
+  // 5v5 (خماسي)
+  '1-2-1': [{x:50,y:88},{x:50,y:68},{x:30,y:45},{x:70,y:45},{x:50,y:18}],
+  '2-1-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:50,y:45},{x:50,y:18}],
+  '1-1-2': [{x:50,y:88},{x:50,y:68},{x:50,y:45},{x:30,y:18},{x:70,y:18}],
+  '2-2':   [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:32,y:22},{x:68,y:22}],
+
+  // 6v6 (سداسي)
+  '2-2-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:32,y:45},{x:68,y:45},{x:50,y:18}],
+  '2-1-2': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:50,y:45},{x:30,y:18},{x:70,y:18}],
+  '1-3-1': [{x:50,y:88},{x:50,y:72},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
+  '3-1-1': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:50,y:45},{x:50,y:18}],
+
+  // 7v7 (سباعي)
+  '2-3-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
+  '3-2-1': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:35,y:45},{x:65,y:45},{x:50,y:18}],
+  '2-2-2': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:35,y:48},{x:65,y:48},{x:32,y:20},{x:68,y:20}],
+  '3-1-2': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:50,y:45},{x:32,y:20},{x:68,y:20}],
+  '1-4-1': [{x:50,y:88},{x:50,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
+
+  // 8v8 (ثماني)
+  '3-3-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
+  '2-4-1': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
+  '3-2-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:35,y:48},{x:65,y:48},{x:32,y:20},{x:68,y:20}],
+  '2-3-2': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:20,y:48},{x:50,y:50},{x:80,y:48},{x:32,y:20},{x:68,y:20}],
+  '4-2-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:35,y:48},{x:65,y:48},{x:50,y:18}],
+
+  // 9v9 (تساعي)
+  '3-4-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
+  '3-3-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:20,y:48},{x:50,y:50},{x:80,y:48},{x:32,y:20},{x:68,y:20}],
+  '4-3-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:50,y:18}],
+  '3-2-3': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:35,y:48},{x:65,y:48},{x:20,y:20},{x:50,y:18},{x:80,y:20}],
+  '2-4-2': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:32,y:20},{x:68,y:20}],
+
+  // 10v10 (عشاري)
+  '4-4-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
+  '4-3-2': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:32,y:20},{x:68,y:20}],
+  '3-4-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:32,y:20},{x:68,y:20}],
+  '3-5-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:15,y:48},{x:32,y:50},{x:50,y:45},{x:68,y:50},{x:85,y:48},{x:50,y:18}],
+  '5-3-1': [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:50,y:18}],
+
+  // 11v11 (أحد عشري)
+  '4-3-3':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:32,y:48},{x:50,y:55},{x:68,y:48},{x:18,y:22},{x:50,y:15},{x:82,y:22}],
+  '4-2-3-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:38,y:58},{x:62,y:58},{x:18,y:35},{x:50,y:32},{x:82,y:35},{x:50,y:15}],
+  '4-4-2':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:18,y:45},{x:38,y:52},{x:62,y:52},{x:82,y:45},{x:35,y:18},{x:65,y:18}],
+  '4-1-4-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:18,y:42},{x:38,y:42},{x:62,y:42},{x:82,y:42},{x:50,y:18}],
+  '3-5-2':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:15,y:48},{x:35,y:54},{x:50,y:42},{x:65,y:54},{x:85,y:48},{x:35,y:18},{x:65,y:18}],
+  '3-4-3':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
+  '4-3-2-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:25,y:52},{x:50,y:55},{x:75,y:52},{x:35,y:32},{x:65,y:32},{x:50,y:15}],
+  '4-1-2-1-2': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:32,y:48},{x:68,y:48},{x:50,y:32},{x:35,y:18},{x:65,y:18}],
+  '5-3-2':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:30,y:48},{x:50,y:52},{x:70,y:48},{x:35,y:18},{x:65,y:18}],
+  '5-4-1':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:18,y:45},{x:38,y:48},{x:62,y:48},{x:82,y:45},{x:50,y:18}],
+};
+
+const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
+  GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
+  RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
+  CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
+  LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
+};
+
+interface HalfPitchProps {
+  team: any[];
+  label: string;
+  color: string;
+  flipped: boolean;
+  formationName?: string;
+  isAr: boolean;
+  setActiveTacticalPlayer: (val: any) => void;
+}
+
+function HalfPitch({ team, label, color, flipped, formationName, isAr, setActiveTacticalPlayer }: HalfPitchProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
+  const formKey = formationName || defaultForm;
+  const coordsList = FORMATION_COORDS[formKey] || FORMATION_COORDS[defaultForm] || FORMATION_COORDS['4-3-3'];
+  const formSlots = FORMATIONS[formKey] || FORMATIONS[defaultForm] || FORMATIONS['4-3-3'];
+  const posCounts: Record<string, number> = {};
+  const usedSlotIndices = new Set<number>();
+  const usedCoordCounts: Record<string, number> = {};
+
+  return (
+    <div className="flex-1 relative min-h-0 min-w-[200px] select-none touch-none">
+      <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
+        <div className="flex items-center gap-2">
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
+          <span className="text-slate-700 dark:text-slate-200">{label}</span>
+        </div>
+        {formationName && <span className="text-[10px] text-slate-500 font-bold">{formationName}</span>}
+      </div>
+      <div ref={containerRef} className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4 select-none touch-none" style={{ paddingTop: '130%' }}>
+        {/* Pitch Background - Clipped */}
+        <div
+          className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none"
+          style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
+        >
+          <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
+          <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
+          <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
+          <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
+        </div>
+
+        {/* Player dots - Unclipped & Draggable */}
+        {team.map((p: any, i: number) => {
+          const pos = p.assignedPosition || p.primaryPosition || 'CMF';
+          
+          // Find slot index in formation matching pos so player moves physically on the pitch
+          let matchedSlotIdx = -1;
+          for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
+            if (formSlots[sIdx] === pos && !usedSlotIndices.has(sIdx)) {
+              matchedSlotIdx = sIdx;
+              break;
+            }
+          }
+
+          let coords: { x: number; y: number };
+          if (matchedSlotIdx >= 0) {
+            usedSlotIndices.add(matchedSlotIdx);
+            coords = coordsList[matchedSlotIdx];
+          } else if (coordsList[i]) {
+            coords = coordsList[i];
+          } else {
+            const base = FALLBACK_PITCH_COORDS[pos] || {x:50, y:50};
+            const count = posCounts[pos] || 0;
+            posCounts[pos] = count + 1;
+            coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
+          }
+
+          // Anti-Overlap Offset for duplicate positions
+          const coordKey = `${coords.x.toFixed(0)}-${coords.y.toFixed(0)}`;
+          const dupIndex = usedCoordCounts[coordKey] || 0;
+          usedCoordCounts[coordKey] = dupIndex + 1;
+          let finalX = coords.x;
+          if (dupIndex > 0) {
+            const dir = dupIndex % 2 === 1 ? 1 : -1;
+            const mult = Math.ceil(dupIndex / 2);
+            finalX = Math.min(88, Math.max(12, coords.x + dir * mult * 14));
+          }
+
+          const y = flipped ? 100 - coords.y : coords.y;
+          const ovr = p.overallRating || p?.stats?.overallRating || 70;
+          const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
+          const moodStyle = p.playStyle || 'Box-to-Box';
+          return (
+            <motion.div
+              key={p.uid || `pitch-${label}-${i}`}
+              drag
+              dragConstraints={containerRef}
+              dragElastic={0}
+              dragMomentum={false}
+              whileDrag={{ scale: 1.2, zIndex: 50 }}
+              onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B', playerIndex: i, player: p })}
+              className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none"
+              style={{left:`${finalX}%`, top:`${y}%`}}
+              title={isAr ? 'اسحب لتغيير موقع اللاعب على الملعب، أو اضغط لتعديل المركز ونمط اللعب ⚡' : 'Drag to reposition player on pitch, or click to edit position & mood ⚡'}
+            >
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300 pointer-events-none select-none"
+                style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+              >
+                {ovr}
+              </div>
+              <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors pointer-events-none select-none">
+                <span>{pos}</span>
+                <span className="text-[7px] text-amber-300 group-hover:text-white">✏️</span>
+              </div>
+              <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center pointer-events-none select-none">
+                {name}
+              </div>
+              <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 select-none">
+                {p.cardName || p.fullName} · {pos} · OVR {ovr} · {moodStyle}
+              </div>
+            </motion.div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 interface MatchConfigModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -587,302 +767,109 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     </div>
                   </div>
 
-                  {/* Helper for AI Pitch View */}
-                  {(() => {
-                    const FORMATION_COORDS: Record<string, {x:number;y:number}[]> = {
-                      // 5v5 (خماسي)
-                      '1-2-1': [{x:50,y:88},{x:50,y:68},{x:30,y:45},{x:70,y:45},{x:50,y:18}],
-                      '2-1-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:50,y:45},{x:50,y:18}],
-                      '1-1-2': [{x:50,y:88},{x:50,y:68},{x:50,y:45},{x:30,y:18},{x:70,y:18}],
-                      '2-2':   [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:32,y:22},{x:68,y:22}],
-
-                      // 6v6 (سداسي)
-                      '2-2-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:32,y:45},{x:68,y:45},{x:50,y:18}],
-                      '2-1-2': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:50,y:45},{x:30,y:18},{x:70,y:18}],
-                      '1-3-1': [{x:50,y:88},{x:50,y:72},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
-                      '3-1-1': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:50,y:45},{x:50,y:18}],
-
-                      // 7v7 (سباعي)
-                      '2-3-1': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
-                      '3-2-1': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:35,y:45},{x:65,y:45},{x:50,y:18}],
-                      '2-2-2': [{x:50,y:88},{x:32,y:68},{x:68,y:68},{x:35,y:48},{x:65,y:48},{x:32,y:20},{x:68,y:20}],
-                      '3-1-2': [{x:50,y:88},{x:20,y:68},{x:50,y:72},{x:80,y:68},{x:50,y:45},{x:32,y:20},{x:68,y:20}],
-                      '1-4-1': [{x:50,y:88},{x:50,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
-
-                      // 8v8 (ثماني)
-                      '3-3-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:20,y:45},{x:50,y:48},{x:80,y:45},{x:50,y:18}],
-                      '2-4-1': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
-                      '3-2-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:35,y:48},{x:65,y:48},{x:32,y:20},{x:68,y:20}],
-                      '2-3-2': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:20,y:48},{x:50,y:50},{x:80,y:48},{x:32,y:20},{x:68,y:20}],
-                      '4-2-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:35,y:48},{x:65,y:48},{x:50,y:18}],
-
-                      // 9v9 (تساعي)
-                      '3-4-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
-                      '3-3-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:20,y:48},{x:50,y:50},{x:80,y:48},{x:32,y:20},{x:68,y:20}],
-                      '4-3-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:50,y:18}],
-                      '3-2-3': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:35,y:48},{x:65,y:48},{x:20,y:20},{x:50,y:18},{x:80,y:20}],
-                      '2-4-2': [{x:50,y:88},{x:32,y:70},{x:68,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:32,y:20},{x:68,y:20}],
-
-                      // 10v10 (عشاري)
-                      '4-4-1': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:50,y:18}],
-                      '4-3-2': [{x:50,y:88},{x:15,y:70},{x:38,y:72},{x:62,y:72},{x:85,y:70},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:32,y:20},{x:68,y:20}],
-                      '3-4-2': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:32,y:20},{x:68,y:20}],
-                      '3-5-1': [{x:50,y:88},{x:20,y:70},{x:50,y:72},{x:80,y:70},{x:15,y:48},{x:32,y:50},{x:50,y:45},{x:68,y:50},{x:85,y:48},{x:50,y:18}],
-                      '5-3-1': [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:25,y:48},{x:50,y:50},{x:75,y:48},{x:50,y:18}],
-
-                      // 11v11 (أحد عشري)
-                      '4-3-3':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:32,y:48},{x:50,y:55},{x:68,y:48},{x:18,y:22},{x:50,y:15},{x:82,y:22}],
-                      '4-2-3-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:38,y:58},{x:62,y:58},{x:18,y:35},{x:50,y:32},{x:82,y:35},{x:50,y:15}],
-                      '4-4-2':     [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:18,y:45},{x:38,y:52},{x:62,y:52},{x:82,y:45},{x:35,y:18},{x:65,y:18}],
-                      '4-1-4-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:18,y:42},{x:38,y:42},{x:62,y:42},{x:82,y:42},{x:50,y:18}],
-                      '3-5-2':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:15,y:48},{x:35,y:54},{x:50,y:42},{x:65,y:54},{x:85,y:48},{x:35,y:18},{x:65,y:18}],
-                      '3-4-3':     [{x:50,y:88},{x:25,y:72},{x:50,y:74},{x:75,y:72},{x:18,y:48},{x:38,y:50},{x:62,y:50},{x:82,y:48},{x:18,y:20},{x:50,y:15},{x:82,y:20}],
-                      '4-3-2-1':   [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:25,y:52},{x:50,y:55},{x:75,y:52},{x:35,y:32},{x:65,y:32},{x:50,y:15}],
-                      '4-1-2-1-2': [{x:50,y:88},{x:15,y:70},{x:36,y:72},{x:64,y:72},{x:85,y:70},{x:50,y:60},{x:32,y:48},{x:68,y:48},{x:50,y:32},{x:35,y:18},{x:65,y:18}],
-                      '5-3-2':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:30,y:48},{x:50,y:52},{x:70,y:48},{x:35,y:18},{x:65,y:18}],
-                      '5-4-1':     [{x:50,y:88},{x:12,y:65},{x:32,y:72},{x:50,y:74},{x:68,y:72},{x:88,y:65},{x:18,y:45},{x:38,y:48},{x:62,y:48},{x:82,y:45},{x:50,y:18}],
-                    };
-
-                    const FALLBACK_PITCH_COORDS: Record<string, {x:number;y:number}> = {
-                      GK:  {x:50,y:88}, LB:{x:15,y:70}, CB:{x:35,y:70},
-                      RB:  {x:85,y:70}, DMF:{x:50,y:55}, LMF:{x:20,y:45},
-                      CMF: {x:50,y:45}, RMF:{x:80,y:45}, AMF:{x:50,y:30},
-                      LWF: {x:18,y:18}, RWF:{x:82,y:18}, CF:{x:50,y:10}, SS:{x:50,y:18},
-                    };
-
-                    const renderHalfPitch = (team: any[], label: string, color: string, flipped: boolean, formationName?: string) => {
-                      const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
-                      const formKey = formationName || defaultForm;
-                      const coordsList = FORMATION_COORDS[formKey] || FORMATION_COORDS[defaultForm] || FORMATION_COORDS['4-3-3'];
-                      const formSlots = FORMATIONS[formKey] || FORMATIONS[defaultForm] || FORMATIONS['4-3-3'];
-                      const posCounts: Record<string, number> = {};
-                      const usedSlotIndices = new Set<number>();
-                      const usedCoordCounts: Record<string, number> = {};
-                      const containerRef = useRef<HTMLDivElement>(null);
-
-                      return (
-                        <div className="flex-1 relative min-h-0 min-w-[200px] select-none touch-none">
-                          <div className="text-xs font-black text-center mb-1.5 tracking-wider uppercase flex flex-col items-center justify-center gap-1">
-                            <div className="flex items-center gap-2">
-                              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{backgroundColor: color}} />
-                              <span className="text-slate-700 dark:text-slate-200">{label}</span>
-                            </div>
-                            {formationName && <span className="text-[10px] text-slate-500 font-bold">{formationName}</span>}
-                          </div>
-                          <div ref={containerRef} className="relative w-full rounded-xl border border-emerald-600/40 mt-6 mb-4 select-none touch-none" style={{ paddingTop: '130%' }}>
-                            {/* Pitch Background - Clipped */}
-                            <div
-                              className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none select-none"
-                              style={{ background: 'repeating-linear-gradient(90deg,rgba(34,197,94,0.18) 0 16.66%,rgba(22,163,74,0.22) 16.66% 33.33%)' }}
-                            >
-                              <div className="absolute left-0 right-0 border-t border-white/20" style={{top:'50%'}}/>
-                              <div className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full border border-white/20" style={{top:'50%'}}/>
-                              <div className="absolute left-1/4 right-1/4 top-0 h-[8%] border-b border-x border-white/20"/>
-                              <div className="absolute left-1/4 right-1/4 bottom-0 h-[8%] border-t border-x border-white/20"/>
+                  {/* Turf Mode Preview */}
+                  {previewData.matchMode === 'turf' && previewData.turfResult && !aiPitchView && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
+                        const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
+                        return (
+                          <div
+                            key={`turf-team-${tIdx}`}
+                            className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
+                              isTeamSelected
+                                ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
+                                : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                              <div className="flex items-center gap-2.5">
+                                <span
+                                  className="w-3.5 h-3.5 rounded-full shadow-sm"
+                                  style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
+                                />
+                                <h3 className="font-black text-slate-900 dark:text-white text-base">
+                                  {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
+                                </h3>
+                              </div>
+                              <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
+                                <Trophy className="w-3.5 h-3.5" />
+                                <span>OVR: {team.totalOvr || 70}</span>
+                              </div>
                             </div>
 
-                            {/* Player dots - Unclipped & Draggable */}
-                            {team.map((p: any, i: number) => {
-                              const pos = p.assignedPosition || p.primaryPosition || 'CMF';
-                              
-                              // Find slot index in formation matching pos so player moves physically on the pitch
-                              let matchedSlotIdx = -1;
-                              for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
-                                if (formSlots[sIdx] === pos && !usedSlotIndices.has(sIdx)) {
-                                  matchedSlotIdx = sIdx;
-                                  break;
-                                }
-                              }
-
-                              let coords: { x: number; y: number };
-                              if (matchedSlotIdx >= 0) {
-                                usedSlotIndices.add(matchedSlotIdx);
-                                coords = coordsList[matchedSlotIdx];
-                              } else if (coordsList[i]) {
-                                coords = coordsList[i];
-                              } else {
-                                const base = FALLBACK_PITCH_COORDS[pos] || {x:50, y:50};
-                                const count = posCounts[pos] || 0;
-                                posCounts[pos] = count + 1;
-                                coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
-                              }
-
-                              // Anti-Overlap Offset for duplicate positions
-                              const coordKey = `${coords.x.toFixed(0)}-${coords.y.toFixed(0)}`;
-                              const dupIndex = usedCoordCounts[coordKey] || 0;
-                              usedCoordCounts[coordKey] = dupIndex + 1;
-                              let finalX = coords.x;
-                              if (dupIndex > 0) {
-                                const dir = dupIndex % 2 === 1 ? 1 : -1;
-                                const mult = Math.ceil(dupIndex / 2);
-                                finalX = Math.min(88, Math.max(12, coords.x + dir * mult * 14));
-                              }
-
-                              const y = flipped ? 100 - coords.y : coords.y;
-                              const ovr = p.overallRating || p?.stats?.overallRating || 70;
-                              const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
-                              const moodStyle = p.playStyle || 'Box-to-Box';
-                              return (
-                                <motion.div
-                                  key={p.uid || `pitch-${label}-${i}`}
-                                  drag
-                                  dragConstraints={containerRef}
-                                  dragElastic={0}
-                                  dragMomentum={false}
-                                  whileDrag={{ scale: 1.2, zIndex: 50 }}
-                                  onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' ? 'A' : label === 'Team B' ? 'B' : 0, playerIndex: i, player: p })}
-                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none"
-                                  style={{left:`${finalX}%`, top:`${y}%`}}
-                                  title={isAr ? 'اسحب لتغيير موقع اللاعب على الملعب، أو اضغط لتعديل المركز ونمط اللعب ⚡' : 'Drag to reposition player on pitch, or click to edit position & mood ⚡'}
-                                >
-                                  <div
-                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300 pointer-events-none select-none"
-                                    style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
+                            <div className="space-y-2 flex-1">
+                              {(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players)?.map((player: any, pIdx: number) => {
+                                const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
+                                const ovr = player.overallRating || player?.stats?.overallRating || 70;
+                                const pos = player.assignedPosition || player.primaryPosition || 'CMF';
+                                return (
+                                  <button
+                                    key={player.uid || `t-${tIdx}-p-${pIdx}`}
+                                    type="button"
+                                    onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
+                                    className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
+                                      isSelected
+                                        ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
+                                        : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
+                                    }`}
                                   >
-                                    {ovr}
-                                  </div>
-                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors pointer-events-none select-none">
-                                    <span>{pos}</span>
-                                    <span className="text-[7px] text-amber-300 group-hover:text-white">✏️</span>
-                                  </div>
-                                  <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center pointer-events-none select-none">
-                                    {name}
-                                  </div>
-                                  <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 select-none">
-                                    {p.cardName || p.fullName} · {pos} · OVR {ovr} · {moodStyle}
-                                  </div>
-                                </motion.div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    };
+                                    <div className="flex items-center gap-2.5 min-w-0">
+                                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
+                                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                      }`}>
+                                        {pos.slice(0, 3)}
+                                      </div>
+                                      <span className="font-bold text-sm truncate">
+                                        {player.fullName || player.cardName || 'Unknown Player'}
+                                      </span>
+                                    </div>
+                                    <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
+                                      isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                    }`}>
+                                      {ovr}
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
 
-                    return (
-                      <>
-                        {/* Turf Mode Preview */}
-                        {previewData.matchMode === 'turf' && previewData.turfResult && (
-                    <div className="space-y-6">
-                      {aiPitchView ? (
-                        <div className="flex flex-wrap gap-3">
-                          {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
-                            const teamColor = team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : tIdx === 2 ? '#10B981' : '#F59E0B');
-                            return renderHalfPitch(
-                              team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players || [],
-                              team.name || `Team ${String.fromCharCode(65 + tIdx)}`,
-                              teamColor,
-                              tIdx % 2 !== 0,
-                              team.formation
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {previewData.turfResult.teams?.map((team: any, tIdx: number) => {
-                            const isTeamSelected = selectedForSwap?.teamIndex === tIdx;
-                            return (
-                              <div
-                                key={`turf-team-${tIdx}`}
-                                className={`p-4 rounded-2xl border transition-all duration-300 flex flex-col ${
-                                  isTeamSelected
-                                    ? 'bg-purple-500/5 border-purple-500/40 shadow-md shadow-purple-500/10'
-                                    : 'bg-slate-50/80 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700/80'
-                                }`}
-                              >
-                                <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-200/80 dark:border-slate-700/80">
-                                  <div className="flex items-center gap-2.5">
-                                    <span
-                                      className="w-3.5 h-3.5 rounded-full shadow-sm"
-                                      style={{ backgroundColor: team.color || (tIdx === 0 ? '#3B82F6' : tIdx === 1 ? '#EF4444' : '#10B981') }}
-                                    />
-                                    <h3 className="font-black text-slate-900 dark:text-white text-base">
-                                      {team.name || `Team ${String.fromCharCode(65 + tIdx)}`}
-                                    </h3>
-                                  </div>
-                                  <div className="flex items-center gap-1.5 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-xl text-xs font-black border border-emerald-500/30">
-                                    <Trophy className="w-3.5 h-3.5" />
-                                    <span>OVR: {team.totalOvr || 70}</span>
-                                  </div>
-                                </div>
-
-                                <div className="space-y-2 flex-1">
-                                  {(team.assignedPlayers && team.assignedPlayers.length > 0 ? team.assignedPlayers : team.players)?.map((player: any, pIdx: number) => {
-                                    const isSelected = selectedForSwap?.teamIndex === tIdx && selectedForSwap?.playerIndex === pIdx;
-                                    const ovr = player.overallRating || player?.stats?.overallRating || 70;
-                                    const pos = player.assignedPosition || player.primaryPosition || 'CMF';
+                            {/* Dedicated Bench for this team */}
+                            {team.bench && team.bench.length > 0 && (
+                              <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                                <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                  <Users className="w-3.5 h-3.5" />
+                                  <span>{team.name || `Team ${String.fromCharCode(65 + tIdx)}`} {isAr ? 'احتياط' : 'Bench'}</span>
+                                  <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                    {team.bench.length}
+                                  </span>
+                                </h4>
+                                <div className="space-y-1.5">
+                                  {team.bench.map((bPlayer: any, bpIdx: number) => {
+                                    const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
+                                    const bPos = bPlayer.primaryPosition || 'CMF';
                                     return (
-                                      <button
-                                        key={player.uid || `t-${tIdx}-p-${pIdx}`}
-                                        type="button"
-                                        onClick={() => handlePlayerSwapClick(tIdx, pIdx, player)}
-                                        className={`w-full text-left p-2.5 rounded-xl border transition-all flex items-center justify-between gap-2 group ${
-                                          isSelected
-                                            ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/30 scale-[1.02]'
-                                            : 'bg-white dark:bg-slate-800/90 border-slate-200/70 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-purple-400 hover:shadow-sm'
-                                        }`}
+                                      <div
+                                        key={bPlayer.uid || `tb-${tIdx}-bp-${bpIdx}`}
+                                        className="p-2 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between gap-2"
                                       >
-                                        <div className="flex items-center gap-2.5 min-w-0">
-                                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs uppercase shrink-0 ${
-                                            isSelected ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-                                          }`}>
-                                            {pos.slice(0, 3)}
-                                          </div>
-                                          <span className="font-bold text-sm truncate">
-                                            {player.fullName || player.cardName || 'Unknown Player'}
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300">{bPos}</span>
+                                          <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-[120px]">
+                                            {bPlayer.fullName || bPlayer.cardName || 'Bench Player'}
                                           </span>
                                         </div>
-                                        <span className={`text-xs font-black px-2 py-0.5 rounded-lg shrink-0 ${
-                                          isSelected ? 'bg-white/20 text-white' : 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
-                                        }`}>
-                                          {ovr}
+                                        <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+                                          {bOvr}
                                         </span>
-                                      </button>
+                                      </div>
                                     );
                                   })}
                                 </div>
-
-                                {/* Dedicated Bench for this team */}
-                                {team.bench && team.bench.length > 0 && (
-                                  <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
-                                    <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
-                                      <Users className="w-3.5 h-3.5" />
-                                      <span>{team.name || `Team ${String.fromCharCode(65 + tIdx)}`} {isAr ? 'احتياط' : 'Bench'}</span>
-                                      <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
-                                        {team.bench.length}
-                                      </span>
-                                    </h4>
-                                    <div className="space-y-1.5">
-                                      {team.bench.map((bPlayer: any, bpIdx: number) => {
-                                        const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
-                                        const bPos = bPlayer.primaryPosition || 'CMF';
-                                        return (
-                                          <div
-                                            key={bPlayer.uid || `tb-${tIdx}-bp-${bpIdx}`}
-                                            className="p-2 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between gap-2"
-                                          >
-                                            <div className="flex items-center gap-2 min-w-0">
-                                              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">
-                                                {bPos}
-                                              </span>
-                                              <span className="font-bold text-xs truncate text-slate-800 dark:text-slate-200">
-                                                {bPlayer.fullName || bPlayer.cardName || 'Unknown Player'}
-                                              </span>
-                                            </div>
-                                            <span className="text-xs font-black text-amber-600 dark:text-amber-400">
-                                              {bOvr}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                )}
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -890,35 +877,49 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   {previewData.matchMode === 'standard' && (
                     <div className="space-y-6">
                       {/* ── AI PITCH VIEW ── */}
-                      {aiPitchView && (() => {
-                        return (
-                          <div className="space-y-4">
-                            {/* Stats bar */}
-                            <div className="flex items-center justify-between text-xs font-black gap-3">
-                              <div className="flex items-center gap-2">
-                                <span className="w-3 h-3 rounded-full bg-blue-500"/>
-                                <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
-                                <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamAAvg || '—'}</span>
-                              </div>
-                              <div className="text-slate-400 text-xs font-bold flex items-center gap-1">
-                                <span>{previewData.formation?.teamA || '4-3-3'}</span>
-                                <span className="text-slate-500 font-normal">vs</span>
-                                <span>{previewData.formation?.teamB || '4-3-3'}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamBAvg || '—'}</span>
-                                <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>
-                                <span className="w-3 h-3 rounded-full bg-red-500"/>
-                              </div>
+                      {aiPitchView && (
+                        <div className="space-y-4">
+                          {/* Stats bar */}
+                          <div className="flex items-center justify-between text-xs font-black gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-blue-500"/>
+                              <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
+                              <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamAAvg || '—'}</span>
                             </div>
-                            {/* Side-by-side pitches */}
-                            <div className="flex gap-3" style={{minHeight:420}}>
-                              {renderHalfPitch(previewData.teamA || [], isAr ? 'الفريق أ' : 'Team A', '#3B82F6', false, previewData.formation?.teamA)}
-                              {renderHalfPitch(previewData.teamB || [], isAr ? 'الفريق ب' : 'Team B', '#EF4444', true, previewData.formation?.teamB)}
+                            <div className="text-slate-400 text-xs font-bold flex items-center gap-1">
+                              <span>{previewData.formation?.teamA || '4-3-3'}</span>
+                              <span className="text-slate-500 font-normal">vs</span>
+                              <span>{previewData.formation?.teamB || '4-3-3'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamBAvg || '—'}</span>
+                              <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>
+                              <span className="w-3 h-3 rounded-full bg-red-500"/>
                             </div>
                           </div>
-                        );
-                      })()}
+                          {/* Side-by-side pitches */}
+                          <div className="flex gap-3" style={{minHeight:420}}>
+                            <HalfPitch
+                              team={previewData.teamA || []}
+                              label={isAr ? 'الفريق أ' : 'Team A'}
+                              color="#3B82F6"
+                              flipped={false}
+                              formationName={previewData.formation?.teamA}
+                              isAr={isAr}
+                              setActiveTacticalPlayer={setActiveTacticalPlayer}
+                            />
+                            <HalfPitch
+                              team={previewData.teamB || []}
+                              label={isAr ? 'الفريق ب' : 'Team B'}
+                              color="#EF4444"
+                              flipped={true}
+                              formationName={previewData.formation?.teamB}
+                              isAr={isAr}
+                              setActiveTacticalPlayer={setActiveTacticalPlayer}
+                            />
+                          </div>
+                        </div>
+                      )}
 
                       {/* ── DEFAULT LIST VIEW ── */}
                       {!aiPitchView && <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1040,9 +1041,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       </div>}
                     </div>
                   )}
-                      </>
-                    );
-                  })()}
 
                   {/* Tips & Tactics Box */}
                   {((previewData.turfResult && previewData.turfResult.tipsAndTactics && previewData.turfResult.tipsAndTactics.length > 0) ||
