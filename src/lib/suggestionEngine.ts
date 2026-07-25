@@ -120,7 +120,7 @@ function calculatePlayStyleFitScore(
 /**
  * Determines the absolute best play style for a specific position.
  */
-function selectBestPlayStyleForPosition(
+export function selectBestPlayStyleForPosition(
   pos: PESPosition,
   getAttr: (key: string) => number,
   height: number,
@@ -142,6 +142,19 @@ function selectBestPlayStyleForPosition(
   }
 
   return bestStyle;
+}
+
+export function getBestPlayStyleNameForPosition(player: any, position: PESPosition): string {
+  if (!player) return 'Box-to-Box';
+  const attrs = player.attributes || player.approvedAttributes || {};
+  const getAttr = (key: string) => Number(attrs[key as keyof PlayerAttributes]) || 60;
+  const height = Number(player.height) || 175;
+  const weight = Number(player.weight) || 70;
+  const preferredFoot = player.preferredFoot || 'Right';
+
+  const styleId = selectBestPlayStyleForPosition(position, getAttr, height, weight, preferredFoot);
+  const found = PLAYER_STYLES.find(s => s.id === styleId);
+  return found?.en || player.playStyle || 'Box-to-Box';
 }
 
 /**

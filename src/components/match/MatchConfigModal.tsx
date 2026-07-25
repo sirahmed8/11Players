@@ -7,7 +7,7 @@ import { matchConfigSchema } from '@/schemas/matchSchema';
 import toast from 'react-hot-toast';
 import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation, calculatePSI } from '@/lib/engine';
 import { balanceTeams } from '@/lib/engine';
-import { getTacticalSuggestions } from '@/lib/suggestionEngine';
+import { getTacticalSuggestions, getBestPlayStyleNameForPosition } from '@/lib/suggestionEngine';
 import { PESPosition } from '@/types';
 
 export interface MatchConfig {
@@ -381,7 +381,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     }
   };
 
-  // ── PES/FIFA Interactive Position Edit & Recalculate ──
+  // ── Interactive Position & Mood Edit & Recalculate ──
   const handleSetPlayerPosition = (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => {
     setPreviewData((prev: any) => {
       if (!prev) return prev;
@@ -393,10 +393,12 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
         const newPsi = calculatePSI(player, newPos);
         const effectiveOvr = Math.round(newPsi);
+        const newStyle = getBestPlayStyleNameForPosition(player, newPos);
 
         updatedTeam[playerIndex] = {
           ...player,
           assignedPosition: newPos,
+          playStyle: newStyle,
           psi: newPsi,
           overallRating: effectiveOvr
         };
@@ -420,9 +422,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           const player = updatedPlayers[playerIndex];
           if (player) {
             const newPsi = calculatePSI(player, newPos);
+            const newStyle = getBestPlayStyleNameForPosition(player, newPos);
             updatedPlayers[playerIndex] = {
               ...player,
               assignedPosition: newPos,
+              playStyle: newStyle,
               psi: newPsi,
               overallRating: Math.round(newPsi)
             };
@@ -652,7 +656,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       const defaultForm = team.length === 5 ? '1-2-1' : team.length === 6 ? '2-2-1' : team.length === 7 ? '2-3-1' : team.length === 8 ? '3-3-1' : team.length === 9 ? '3-4-1' : team.length === 10 ? '4-4-1' : '4-3-3';
                       const formKey = formationName || defaultForm;
                       const coordsList = FORMATION_COORDS[formKey] || FORMATION_COORDS[defaultForm] || FORMATION_COORDS['4-3-3'];
+                      const formSlots = FORMATIONS[formKey] || FORMATIONS[defaultForm] || FORMATIONS['4-3-3'];
                       const posCounts: Record<string, number> = {};
+                      const usedSlotIndices = new Set<number>();
 
                       return (
                         <div className="flex-1 relative min-h-0 min-w-[200px]">
@@ -678,8 +684,23 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             {/* Player dots - Unclipped */}
                             {team.map((p: any, i: number) => {
                               const pos = p.assignedPosition || p.primaryPosition || 'CMF';
-                              let coords = coordsList[i];
-                              if (!coords) {
+                              
+                              // Find slot index in formation matching pos so player moves physically on the pitch
+                              let matchedSlotIdx = -1;
+                              for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
+                                if (formSlots[sIdx] === pos && !usedSlotIndices.has(sIdx)) {
+                                  matchedSlotIdx = sIdx;
+                                  break;
+                                }
+                              }
+
+                              let coords: { x: number; y: number };
+                              if (matchedSlotIdx >= 0) {
+                                usedSlotIndices.add(matchedSlotIdx);
+                                coords = coordsList[matchedSlotIdx];
+                              } else if (coordsList[i]) {
+                                coords = coordsList[i];
+                              } else {
                                 const base = FALLBACK_PITCH_COORDS[pos] || {x:50, y:50};
                                 const count = posCounts[pos] || 0;
                                 posCounts[pos] = count + 1;
@@ -689,13 +710,14 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               const y = flipped ? 100 - coords.y : coords.y;
                               const ovr = p.overallRating || p?.stats?.overallRating || 70;
                               const name = (p.cardName || p.fullName || 'Player').split(' ')[0];
+                              const moodStyle = p.playStyle || 'Box-to-Box';
                               return (
                                 <div
                                   key={p.uid || `pitch-${label}-${i}`}
                                   onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' ? 'A' : label === 'Team B' ? 'B' : 0, playerIndex: i, player: p })}
-                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer transition-transform hover:scale-125 active:scale-95"
+                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer transition-all duration-500 hover:scale-125 active:scale-95"
                                   style={{left:`${coords.x}%`, top:`${y}%`}}
-                                  title={isAr ? 'اضغط لتعديل المركز التكتيكي فوراً ⚡' : 'Click to change tactical position & OVR ⚡'}
+                                  title={isAr ? 'اضغط لتعديل المركز ونمط اللعب (المود) فوراً ⚡' : 'Click to change tactical position & mood ⚡'}
                                 >
                                   <div
                                     className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300"
@@ -711,7 +733,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                     {name}
                                   </div>
                                   <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                                    {p.cardName || p.fullName} · {pos} · OVR {ovr} (Click to Edit)
+                                    {p.cardName || p.fullName} · {pos} · OVR {ovr} · {moodStyle}
                                   </div>
                                 </div>
                               );
@@ -803,6 +825,43 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                     );
                                   })}
                                 </div>
+
+                                {/* Dedicated Bench for this team */}
+                                {team.bench && team.bench.length > 0 && (
+                                  <div className="mt-3 pt-3 border-t border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                                    <h4 className="text-[11px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+                                      <Users className="w-3.5 h-3.5" />
+                                      <span>{team.name || `Team ${String.fromCharCode(65 + tIdx)}`} {isAr ? 'احتياط' : 'Bench'}</span>
+                                      <span className="bg-amber-100 dark:bg-amber-500/20 text-amber-800 dark:text-amber-300 text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                        {team.bench.length}
+                                      </span>
+                                    </h4>
+                                    <div className="space-y-1.5">
+                                      {team.bench.map((bPlayer: any, bpIdx: number) => {
+                                        const bOvr = bPlayer.overallRating || bPlayer?.stats?.overallRating || 70;
+                                        const bPos = bPlayer.primaryPosition || 'CMF';
+                                        return (
+                                          <div
+                                            key={bPlayer.uid || `tb-${tIdx}-bp-${bpIdx}`}
+                                            className="p-2 rounded-xl bg-amber-50/60 dark:bg-amber-500/10 border border-amber-200/80 dark:border-amber-500/30 flex items-center justify-between gap-2"
+                                          >
+                                            <div className="flex items-center gap-2 min-w-0">
+                                              <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase">
+                                                {bPos}
+                                              </span>
+                                              <span className="font-bold text-xs truncate text-slate-800 dark:text-slate-200">
+                                                {bPlayer.fullName || bPlayer.cardName || 'Unknown Player'}
+                                              </span>
+                                            </div>
+                                            <span className="text-xs font-black text-amber-600 dark:text-amber-400">
+                                              {bOvr}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -1806,8 +1865,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     {activeTacticalPlayer.player.cardName || activeTacticalPlayer.player.fullName}
                   </h3>
                   <span className="text-xs text-amber-400 font-bold flex items-center gap-1 mt-0.5">
-                    <span>🎮</span>
-                    <span>{isAr ? 'تعديل المركز والتقييم التكتيكي (PES/FIFA)' : 'PES/FIFA Tactical Position Selector'}</span>
+                    <span>{isAr ? 'تعديل المركز ونمط اللعب (المود) التكتيكي' : 'Tactical Position & Mood Selector'}</span>
                   </span>
                 </div>
               </div>

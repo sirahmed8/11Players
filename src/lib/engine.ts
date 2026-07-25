@@ -1454,6 +1454,7 @@ export interface TurfTeam {
   id: string;
   name: string;
   players: PlayerProfile[];
+  bench?: PlayerProfile[];
   totalOvr: number;
   avgOvr: number;
   gkOrder: PlayerProfile[]; // Rotating GK order for this team
@@ -1724,6 +1725,15 @@ export function generateTurfMatch(
       });
     });
   }
+
+  // Distribute leftover reserve players to each team's own dedicated bench
+  leftoverPlayers.forEach((player, idx) => {
+    const targetTeamIdx = idx % teams.length;
+    if (!teams[targetTeamIdx].bench) {
+      teams[targetTeamIdx].bench = [];
+    }
+    teams[targetTeamIdx].bench!.push(player);
+  });
 
   return {
     teams,
