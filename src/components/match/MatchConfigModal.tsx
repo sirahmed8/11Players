@@ -201,6 +201,7 @@ const PLAY_STYLE_LABELS: Record<string, { en: string; ar: string }> = {
   box_to_box: { en: 'Box-to-Box', ar: 'بوكس تو بوكس (مكوك) 🔄' },
   anchor_man: { en: 'Anchor Man', ar: 'ارتكاز دفاعي (مرساة) ⚓' },
   destroyer: { en: 'The Destroyer', ar: 'المقاتل المدمر 💥' },
+  the_destroyer: { en: 'The Destroyer', ar: 'المقاتل المدمر 💥' },
   orchestrator: { en: 'Orchestrator', ar: 'مهندس الإيقاع 🎼' },
   offensive_fullback: { en: 'Offensive Fullback', ar: 'ظهير هجومي 🚀' },
   defensive_fullback: { en: 'Defensive Fullback', ar: 'ظهير دفاعي 🛡️' },
@@ -213,11 +214,16 @@ const PLAY_STYLE_LABELS: Record<string, { en: string; ar: string }> = {
 
 function getDisplayPlayStyle(p: any, isAr: boolean): string {
   const rawStyle = (p.preferredPlayStyle || p.playStyle || p.mood || '').toString();
-  const styleKey = rawStyle.toLowerCase().replace(/[\s-]/g, '_');
+  const styleKey = rawStyle.toLowerCase().replace(/[\s-]/g, '_').replace(/^the_/, '');
   if (styleKey && PLAY_STYLE_LABELS[styleKey]) {
     return isAr ? PLAY_STYLE_LABELS[styleKey].ar : PLAY_STYLE_LABELS[styleKey].en;
   }
-  if (rawStyle && rawStyle.trim().length > 0) return rawStyle;
+  if (styleKey && PLAY_STYLE_LABELS[`the_${styleKey}`]) {
+    return isAr ? PLAY_STYLE_LABELS[`the_${styleKey}`].ar : PLAY_STYLE_LABELS[`the_${styleKey}`].en;
+  }
+  if (rawStyle && rawStyle.trim().length > 0) {
+    return rawStyle.replace(/_/g, ' ');
+  }
   
   const pos = p.assignedPosition || p.primaryPosition || 'CMF';
   if (pos === 'GK') return isAr ? 'حارس مرمى 🧤' : 'Goalkeeper 🧤';
@@ -863,7 +869,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setAiPitchView(false);
   };
 
-  // ── AI Best to All: optimize current starters into chosen formation while respecting manual choices ──
+  // ── AI Best to All: pick best 11 players for chosen formation from full squad pool ──
   const handleApplyAIOptimalAll = () => {
     if (!previewData) return;
 
@@ -871,13 +877,36 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const rawA = previewData.teamA || [];
       const rawB = previewData.teamB || [];
 
-      // Use user-selected formations, or fall back to current match formation or AI best-fit
-      const formationA = selectedFormationA || previewData.formation?.teamA || selectBestFormation(rawA);
-      const formationB = selectedFormationB || previewData.formation?.teamB || selectBestFormation(rawB);
+      // Extract bench players for each team
+      const benchAPlayers = (previewData.benchA || []).map((b: any) => b.player || b);
+      const benchBPlayers = (previewData.benchB || []).map((b: any) => b.player || b);
+      if (benchAPlayers.length === 0 && benchBPlayers.length === 0 && previewData.bench) {
+        const combined = (previewData.bench || []).map((b: any) => b.player || b);
+        const half = Math.ceil(combined.length / 2);
+        benchAPlayers.push(...combined.slice(0, half));
+        benchBPlayers.push(...combined.slice(half));
+      }
 
-      // Re-assign starters to the chosen formation (preserving user's starter roster & manual position locks)
-      const assignedA = assignPlayersToFormation(rawA, formationA);
-      const assignedB = assignPlayersToFormation(rawB, formationB);
+      // Combine current starters and bench into full squad pools
+      const fullPoolA = [...rawA, ...benchAPlayers];
+      const fullPoolB = [...rawB, ...benchBPlayers];
+
+      // Formations to use
+      const formationA = selectedFormationA || previewData.formation?.teamA || selectBestFormation(fullPoolA);
+      const formationB = selectedFormationB || previewData.formation?.teamB || selectBestFormation(fullPoolB);
+
+      const slotsA = FORMATIONS[formationA]?.length || 11;
+      const slotsB = FORMATIONS[formationB]?.length || 11;
+
+      // Assign the BEST 11 players for the chosen formation from full squad pool
+      const fullAssignedA = assignPlayersToFormation(fullPoolA, formationA);
+      const fullAssignedB = assignPlayersToFormation(fullPoolB, formationB);
+
+      const assignedA = fullAssignedA.slice(0, Math.min(slotsA, fullAssignedA.length));
+      const newBenchA = fullAssignedA.slice(Math.min(slotsA, fullAssignedA.length)).map(p => ({ player: p, reason: 'Substitute (Bench)' }));
+
+      const assignedB = fullAssignedB.slice(0, Math.min(slotsB, fullAssignedB.length));
+      const newBenchB = fullAssignedB.slice(Math.min(slotsB, fullAssignedB.length)).map(p => ({ player: p, reason: 'Substitute (Bench)' }));
 
       const teamAAvg = calculateTeamAvg(assignedA);
       const teamBAvg = calculateTeamAvg(assignedB);
@@ -889,6 +918,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
+        benchA: newBenchA,
+        benchB: newBenchB,
+        bench: [...newBenchA, ...newBenchB],
         formation: { teamA: formationA, teamB: formationB },
         metrics: {
           ...(prev?.metrics || {}),
@@ -918,8 +950,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
     toast.success(
       isAr
-        ? 'تم تطبيق الذكاء الاصطناعي على المراكز بالتشكيلة المختارة! ⚡'
-        : 'AI applied optimal positions for the chosen formation! ⚡'
+        ? 'تم اختيار أفضل 11 لاعب لكل مركز في التشكيلة المختارة! ⚡'
+        : 'AI selected the best 11 players for each position in the chosen formation! ⚡'
     );
   };
 

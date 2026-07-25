@@ -1349,21 +1349,25 @@ export function balanceTeams(players: PlayerProfile[]): MatchmakingResult {
     return starters;
   };
 
-  const startersA = fillTo11(rawA);
-  const startersB = fillTo11(rawB);
+  // ── 4. Select formations and assign positions across full squad pools ──
+  const formationA = selectBestFormation(rawA);
+  const formationB = selectBestFormation(rawB);
 
-  const extraA = rawA.length > 11 ? rawA.slice(11) : [];
-  const extraB = rawB.length > 11 ? rawB.slice(11) : [];
-  const allBenchPool = [...benchPool, ...extraA, ...extraB];
+  const fullAssignedA = assignPlayersToFormation(rawA, formationA);
+  const fullAssignedB = assignPlayersToFormation(rawB, formationB);
 
-  // ── 4. Select formations for starters and assign positions ──
-  const formationA = selectBestFormation(startersA);
-  const formationB = selectBestFormation(startersB);
+  const slotsA = FORMATIONS[formationA]?.length || 11;
+  const slotsB = FORMATIONS[formationB]?.length || 11;
 
-  const teamA = assignPlayersToFormation(startersA, formationA);
-  const teamB = assignPlayersToFormation(startersB, formationB);
+  const teamA = fullAssignedA.slice(0, Math.min(slotsA, fullAssignedA.length));
+  const unassignedA = fullAssignedA.slice(Math.min(slotsA, fullAssignedA.length));
 
-  const benchList = allBenchPool.map(p => ({ player: p, reason: "Substitute (Bench)" }));
+  const teamB = fullAssignedB.slice(0, Math.min(slotsB, fullAssignedB.length));
+  const unassignedB = fullAssignedB.slice(Math.min(slotsB, fullAssignedB.length));
+
+  const allBenchPool = [...benchPool, ...unassignedA, ...unassignedB];
+
+  const benchList = allBenchPool.map(p => ({ player: (p as any).player || p, reason: "Substitute (Bench)" }));
   const halfBench = Math.ceil(benchList.length / 2);
   const benchA = benchList.slice(0, halfBench);
   const benchB = benchList.slice(halfBench);
