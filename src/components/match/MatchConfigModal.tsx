@@ -787,26 +787,44 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setAiPitchView(false);
   };
 
-  // ── AI Best to All: assign players to user-chosen (or AI-selected) formation ──
+  // ── AI Best to All: pick the best 11 from full team pool for the chosen formation ──
   const handleApplyAIOptimalAll = () => {
     if (!previewData) return;
 
     if (previewData.matchMode === 'standard') {
       const rawA = previewData.teamA || [];
       const rawB = previewData.teamB || [];
-      const rawBench = previewData.bench || [
-        ...(previewData.benchA || []),
-        ...(previewData.benchB || []),
-      ];
-      const benchPlayers = rawBench.map((item: any) => item.player || item);
+
+      // Unwrap bench items ({ player, reason } → PlayerProfile)
+      const benchAPlayers = (previewData.benchA || []).map((b: any) => b.player || b);
+      const benchBPlayers = (previewData.benchB || []).map((b: any) => b.player || b);
+      // Also handle flat combined bench (if benchA/benchB don't exist separately)
+      if (benchAPlayers.length === 0 && benchBPlayers.length === 0) {
+        const combinedBench = (previewData.bench || []).map((b: any) => b.player || b);
+        const half = Math.ceil(combinedBench.length / 2);
+        benchAPlayers.push(...combinedBench.slice(0, half));
+        benchBPlayers.push(...combinedBench.slice(half));
+      }
+
+      // Full player pools: current starters + bench for each team
+      const allPoolA = [...rawA, ...benchAPlayers];
+      const allPoolB = [...rawB, ...benchBPlayers];
 
       // Use user-selected formations, or fall back to AI best-fit
       const formationA = selectedFormationA || selectBestFormation(rawA);
       const formationB = selectedFormationB || selectBestFormation(rawB);
+      const slotsA = FORMATIONS[formationA]?.length ?? rawA.length;
+      const slotsB = FORMATIONS[formationB]?.length ?? rawB.length;
 
-      // Re-assign all players to the chosen formation using PSI-based engine
-      const assignedA = assignPlayersToFormation(rawA, formationA);
-      const assignedB = assignPlayersToFormation(rawB, formationB);
+      // Re-run PSI engine across full pool → picks best positional fits first
+      const fullAssignedA = assignPlayersToFormation(allPoolA, formationA);
+      const fullAssignedB = assignPlayersToFormation(allPoolB, formationB);
+
+      // First N = starters, rest = bench
+      const assignedA = fullAssignedA.slice(0, slotsA);
+      const newBenchA = fullAssignedA.slice(slotsA).map((p: any) => ({ player: p, reason: 'sub' }));
+      const assignedB = fullAssignedB.slice(0, slotsB);
+      const newBenchB = fullAssignedB.slice(slotsB).map((p: any) => ({ player: p, reason: 'sub' }));
 
       const teamAAvg = calculateTeamAvg(assignedA);
       const teamBAvg = calculateTeamAvg(assignedB);
@@ -818,7 +836,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
-        bench: benchPlayers,
+        benchA: newBenchA,
+        benchB: newBenchB,
+        bench: [...newBenchA, ...newBenchB],
         formation: { teamA: formationA, teamB: formationB },
         metrics: {
           ...(prev?.metrics || {}),
@@ -848,8 +868,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
     toast.success(
       isAr
-        ? 'تم توزيع اللاعبين على أفضل مراكزهم في التشكيلة المختارة! ⚡'
-        : 'AI placed every player in their best position for the selected formation! ⚡'
+        ? 'تم اختيار أفضل 11 لاعب لكل مركز في التشكيلة المختارة! ⚡'
+        : 'AI selected the best 11 players for each position in the chosen formation! ⚡'
     );
   };
 
@@ -1043,75 +1063,84 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   >
                 <div className="space-y-6">
                   {/* Preview Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
-                    <div>
-                      <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                        <span className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                          <Brain className="w-6 h-6 animate-pulse" />
-                        </span>
-                        <span>{isAr ? 'مراجعة واعتماد التشكيلة (AI)' : 'AI Lineup Review & Approval'}</span>
-                      </h2>
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                        <span>
-                          {aiPitchView
-                            ? (isAr ? '⚡ عرض التشكيلة المثلى بناءً على تحليل الذكاء الاصطناعي لكل لاعب. اضغط "إعادة توزيع" للعودة.' : '⚡ AI-optimised formation view. Hit Regenerate to go back to default.')
-                            : (isAr
-                              ? 'التبديل الذكي: اضغط على أي لاعب في فريق ثم اضغط على لاعب آخر في فريق آخر أو الاحتياط للتبديل وإعادة حساب التقييم فوراً.'
-                              : 'Smart Swap: Click any player on one team, then click another on a different team or bench to swap & recalculate ratings.')
-                          }
-                        </span>
-                      </p>
+                  <div className="flex flex-col gap-3 pb-4 border-b border-slate-200 dark:border-slate-700">
+                    {/* Title row */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                          <span className="p-1.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+                            <Brain className="w-5 h-5 sm:w-6 sm:h-6 animate-pulse" />
+                          </span>
+                          <span className="leading-tight">{isAr ? 'مراجعة واعتماد التشكيلة (AI)' : 'AI Lineup Review & Approval'}</span>
+                        </h2>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-1 flex items-start gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                          <span>
+                            {aiPitchView
+                              ? (isAr ? '⚡ عرض التشكيلة المثلى. اضغط «إعادة توزيع» للعودة.' : '⚡ AI-optimised view. Hit Regenerate to reset.')
+                              : (isAr
+                                ? 'اضغط على لاعب ثم اضغط على لاعب آخر للتبديل.'
+                                : 'Tap a player then tap another to swap.')
+                            }
+                          </span>
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+
+                    {/* Controls row — formation pickers + action buttons, wraps cleanly on mobile */}
+                    <div className="flex flex-wrap items-center gap-2">
                       {/* Formation selectors — only show in standard mode */}
                       {previewData?.matchMode === 'standard' && (() => {
                         const size = (previewData.teamA || []).length || 11;
                         const options = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
                         return (
                           <>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] font-black text-blue-500 shrink-0">{isAr ? 'أ' : 'A'}</span>
+                            {/* Team A formation */}
+                            <label className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded-2xl px-2.5 py-1.5 cursor-pointer focus-within:ring-2 focus-within:ring-blue-500 transition-shadow">
+                              <span className="text-[10px] font-black text-blue-500 shrink-0 select-none">{isAr ? 'أ' : 'A'}</span>
                               <select
                                 value={selectedFormationA || previewData.formation?.teamA || ''}
                                 onChange={e => setSelectedFormationA(e.target.value)}
-                                className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                                className="text-xs font-bold bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer appearance-none pr-3"
                               >
-                                <option value="">{isAr ? '— اختر —' : '— AI Pick —'}</option>
+                                <option value="">{isAr ? '— AI —' : '— AI —'}</option>
                                 {options.map(f => <option key={f} value={f}>{f}</option>)}
                               </select>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className="text-[10px] font-black text-red-500 shrink-0">{isAr ? 'ب' : 'B'}</span>
+                              <ChevronDown className="w-3 h-3 text-slate-400 pointer-events-none -ml-2 shrink-0" />
+                            </label>
+                            {/* Team B formation */}
+                            <label className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded-2xl px-2.5 py-1.5 cursor-pointer focus-within:ring-2 focus-within:ring-red-500 transition-shadow">
+                              <span className="text-[10px] font-black text-red-500 shrink-0 select-none">{isAr ? 'ب' : 'B'}</span>
                               <select
                                 value={selectedFormationB || previewData.formation?.teamB || ''}
                                 onChange={e => setSelectedFormationB(e.target.value)}
-                                className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                                className="text-xs font-bold bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none cursor-pointer appearance-none pr-3"
                               >
-                                <option value="">{isAr ? '— اختر —' : '— AI Pick —'}</option>
+                                <option value="">{isAr ? '— AI —' : '— AI —'}</option>
                                 {options.map(f => <option key={f} value={f}>{f}</option>)}
                               </select>
-                            </div>
+                              <ChevronDown className="w-3 h-3 text-slate-400 pointer-events-none -ml-2 shrink-0" />
+                            </label>
                           </>
                         );
                       })()}
                       <button
                         type="button"
                         onClick={handleApplyAIOptimalAll}
-                        className={`inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl font-black text-xs transition-all shadow-md active:scale-95 shrink-0 ${
+                        className={`inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl font-black text-xs transition-all shadow-md active:scale-95 ${
                           aiPitchView
-                            ? 'bg-purple-700 text-white shadow-purple-700/30 opacity-90'
-                            : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20'
+                            ? 'bg-purple-700 text-white shadow-purple-700/30'
+                            : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/30'
                         }`}
-                        title={isAr ? 'وزّع اللاعبين على أفضل مراكزهم في التشكيلة المختارة' : 'Place every player in their best position for the chosen formation'}
+                        title={isAr ? 'اختر أفضل 11 لاعب لكل مركز في التشكيلة المختارة' : 'Pick best 11 players for each position in chosen formation'}
                       >
-                        <Zap className="w-4 h-4 fill-white text-white" />
+                        <Zap className="w-3.5 h-3.5 fill-white text-white" />
                         <span>{isAr ? 'تطبيق AI ⚡' : 'Apply AI ⚡'}</span>
                       </button>
                       <button
                         type="button"
                         onClick={handleRegeneratePreview}
-                        className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95 shrink-0"
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span>{isAr ? 'إعادة توزيع' : 'Regenerate'}</span>
@@ -1247,35 +1276,35 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             const squadAvgB = calculateTeamAvg([...(previewData.teamB || []), ...bB]);
 
                             return (
-                              <div className="flex items-center justify-between text-xs font-black gap-3 bg-slate-100/80 dark:bg-slate-800/80 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-3.5 h-3.5 rounded-full bg-blue-500 shadow-sm"/>
-                                  <span className="text-slate-900 dark:text-white font-black">{isAr ? 'الفريق أ' : 'Team A'}</span>
-                                  <div className="flex items-center gap-1">
-                                    <span className="bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-lg border border-blue-500/20 text-[11px]">
-                                      {isAr ? `أساسي ${startAvgA}` : `Starters ${startAvgA}`}
+                              <div className="flex flex-col gap-1.5 bg-slate-100/80 dark:bg-slate-800/80 p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
+                                {/* Formation badge centred */}
+                                <div className="text-slate-400 text-[11px] font-bold flex items-center justify-center gap-1 bg-white dark:bg-slate-900 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm self-center">
+                                  <span className="text-blue-500 font-black">{previewData.formation?.teamA || '4-3-3'}</span>
+                                  <span className="text-slate-400 font-normal">vs</span>
+                                  <span className="text-red-500 font-black">{previewData.formation?.teamB || '4-3-3'}</span>
+                                </div>
+                                {/* Stats row wraps on mobile */}
+                                <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-[11px] font-black">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-3 h-3 rounded-full bg-blue-500 shrink-0"/>
+                                    <span className="text-slate-900 dark:text-white">{isAr ? 'أ' : 'A'}</span>
+                                    <span className="bg-blue-500/10 text-blue-700 dark:text-blue-400 px-1.5 py-0.5 rounded-lg border border-blue-500/20">
+                                      {isAr ? `${startAvgA} أساسي` : `${startAvgA} Start`}
                                     </span>
-                                    <span className="bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-500/20 text-[11px]" title={isAr ? 'معدل القائمة كاملاً متضمناً دكة البدلاء' : 'Total squad rating including bench'}>
-                                      {isAr ? `الشامل ${squadAvgA}` : `Squad ${squadAvgA}`}
+                                    <span className="bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 px-1.5 py-0.5 rounded-lg border border-indigo-500/20">
+                                      {isAr ? `${squadAvgA} شامل` : `${squadAvgA} Squad`}
                                     </span>
                                   </div>
-                                </div>
-                                <div className="text-slate-400 text-xs font-bold flex items-center gap-1 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-                                  <span>{previewData.formation?.teamA || '4-3-3'}</span>
-                                  <span className="text-slate-500 font-normal">vs</span>
-                                  <span>{previewData.formation?.teamB || '4-3-3'}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <div className="flex items-center gap-1">
-                                    <span className="bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-lg border border-red-500/20 text-[11px]">
-                                      {isAr ? `أساسي ${startAvgB}` : `Starters ${startAvgB}`}
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="bg-red-500/10 text-red-700 dark:text-red-400 px-1.5 py-0.5 rounded-lg border border-red-500/20">
+                                      {isAr ? `${startAvgB} أساسي` : `${startAvgB} Start`}
                                     </span>
-                                    <span className="bg-purple-500/10 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400 px-2 py-0.5 rounded-lg border border-purple-500/20 text-[11px]" title={isAr ? 'معدل القائمة كاملاً متضمناً دكة البدلاء' : 'Total squad rating including bench'}>
-                                      {isAr ? `الشامل ${squadAvgB}` : `Squad ${squadAvgB}`}
+                                    <span className="bg-purple-500/10 text-purple-700 dark:text-purple-400 px-1.5 py-0.5 rounded-lg border border-purple-500/20">
+                                      {isAr ? `${squadAvgB} شامل` : `${squadAvgB} Squad`}
                                     </span>
+                                    <span className="text-slate-900 dark:text-white">{isAr ? 'ب' : 'B'}</span>
+                                    <span className="w-3 h-3 rounded-full bg-red-500 shrink-0"/>
                                   </div>
-                                  <span className="text-slate-900 dark:text-white font-black">{isAr ? 'الفريق ب' : 'Team B'}</span>
-                                  <span className="w-3.5 h-3.5 rounded-full bg-red-500 shadow-sm"/>
                                 </div>
                               </div>
                             );
