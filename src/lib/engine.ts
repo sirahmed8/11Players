@@ -359,7 +359,17 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
   } else if (position === player.tertiaryPosition) {
     familiarityMultiplier = POSITION_FAMILIARITY.tertiary;
   } else {
-    familiarityMultiplier = POSITION_FAMILIARITY.outOfPosition;
+    const targetCat = POSITION_CATEGORIES[position];
+    const p1Cat = POSITION_CATEGORIES[player.primaryPosition || 'CMF'];
+    const p2Cat = player.secondaryPosition ? POSITION_CATEGORIES[player.secondaryPosition] : null;
+    
+    if (p1Cat === targetCat || p2Cat === targetCat) {
+      familiarityMultiplier = 0.65;
+    } else if (targetCat === 'DEF' && (player.primaryPosition === 'LMF' || player.primaryPosition === 'RMF' || player.primaryPosition === 'DMF')) {
+      familiarityMultiplier = 0.60;
+    } else {
+      familiarityMultiplier = 0.25; // Heavy penalty for out-of-category roles (e.g. Attacker playing LB)
+    }
   }
 
   let psi = rawPSI * familiarityMultiplier;
@@ -570,9 +580,10 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
     if (bestIdx >= 0) {
       const p = players[bestIdx];
       const primaryCat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'] || 'MID';
-      const slotCat = POSITION_CATEGORIES[slot] || 'MID';
-      const isMismatch = (slot === 'GK' && primaryCat !== 'GK') || (slot === 'CB' && primaryCat !== 'DEF');
-      score += bestPSI - (isMismatch ? 300 : 50);
+      const isDefSlot = slot === 'CB' || slot === 'LB' || slot === 'RB';
+      const hasDefCap = primaryCat === 'DEF' || primaryCat === 'GK' || (p.secondaryPosition && POSITION_CATEGORIES[p.secondaryPosition] === 'DEF') || (p.tertiaryPosition && POSITION_CATEGORIES[p.tertiaryPosition] === 'DEF') || (slot !== 'CB' && (p.primaryPosition === 'LMF' || p.primaryPosition === 'RMF' || p.primaryPosition === 'DMF'));
+      const isMismatch = (slot === 'GK' && primaryCat !== 'GK') || (isDefSlot && !hasDefCap);
+      score += bestPSI - (isMismatch ? 350 : 50);
       available.delete(bestIdx);
       unfilledSlots.splice(i, 1);
     }
@@ -777,6 +788,45 @@ export function assignPlayersToFormation(
   fillPass('secondaryPosition');
   // 3. Fill 3rd choices
   fillPass('tertiaryPosition');
+
+  // 3.5. Fill remaining defensive & specialist slots with category-compatible players
+  for (const slotIdx of Array.from(unfilledSlots)) {
+    const targetSlot = slots[slotIdx];
+    const slotCategory = POSITION_CATEGORIES[targetSlot];
+    if (slotCategory !== 'DEF' && slotCategory !== 'GK' && targetSlot !== 'DMF') continue;
+
+    let bestIdx = -1;
+    let bestPSI = -Infinity;
+
+    for (const pIdx of availablePlayers) {
+      const p = players[pIdx];
+      const p1Cat = POSITION_CATEGORIES[p.primaryPosition || 'CMF'];
+      const p2Cat = p.secondaryPosition ? POSITION_CATEGORIES[p.secondaryPosition] : null;
+      const p3Cat = p.tertiaryPosition ? POSITION_CATEGORIES[p.tertiaryPosition] : null;
+
+      const isCategoryMatch = p1Cat === slotCategory || p2Cat === slotCategory || p3Cat === slotCategory;
+      const isSideMatch = (targetSlot === 'LB' && (p.primaryPosition === 'LMF' || p.secondaryPosition === 'LMF')) ||
+                          (targetSlot === 'RB' && (p.primaryPosition === 'RMF' || p.secondaryPosition === 'RMF'));
+
+      if (isCategoryMatch || isSideMatch) {
+        const psi = calculatePSI(p, targetSlot);
+        if (psi > bestPSI) {
+          bestPSI = psi;
+          bestIdx = pIdx;
+        }
+      }
+    }
+
+    if (bestIdx >= 0) {
+      result[slotIdx] = {
+        ...players[bestIdx],
+        assignedPosition: targetSlot,
+        psi: bestPSI
+      };
+      availablePlayers.delete(bestIdx);
+      unfilledSlots.delete(slotIdx);
+    }
+  }
 
   // 4. Fill remaining slots with highest PSI overall
   for (const slotIdx of Array.from(unfilledSlots)) {

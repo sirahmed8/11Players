@@ -29,16 +29,23 @@ export default function Home() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
+        const matchesSnap = await getDocs(collection(db, "matches"));
+        const playersSnap = await getDocs(collection(db, "players"));
+        const communitiesSnap = await getDocs(collection(db, "communities"));
+
         const statsDoc = await getDoc(doc(db, "system", "public_stats"));
-        if (statsDoc.exists()) {
-          const data = statsDoc.data();
-          setPublicStats({
-            players: data.totalPlayers ? `${data.totalPlayers}+` : "40+",
-            communities: data.totalCommunities ? `${data.totalCommunities}+` : "3+",
-            avgRating: data.avgRating ? data.avgRating.toFixed(1) : "7.8",
-            matches: data.totalMatches ? `${data.totalMatches}+` : "100+"
-          });
-        }
+        const data = statsDoc.exists() ? statsDoc.data() : {};
+
+        const realMatchesCount = data.totalMatches !== undefined ? data.totalMatches : matchesSnap.size;
+        const realPlayersCount = data.totalPlayers !== undefined ? data.totalPlayers : playersSnap.size;
+        const realCommunitiesCount = data.totalCommunities !== undefined ? data.totalCommunities : communitiesSnap.size;
+
+        setPublicStats({
+          players: realPlayersCount > 0 ? `${realPlayersCount}` : "0",
+          communities: realCommunitiesCount > 0 ? `${realCommunitiesCount}` : "0",
+          avgRating: data.avgRating ? data.avgRating.toFixed(1) : "7.8",
+          matches: `${realMatchesCount}`
+        });
       } catch (err) {
         console.error("Error fetching public stats:", err);
       }

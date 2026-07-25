@@ -5,9 +5,10 @@ import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X, Brain, 
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { matchConfigSchema } from '@/schemas/matchSchema';
 import toast from 'react-hot-toast';
-import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation } from '@/lib/engine';
+import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation, calculatePSI } from '@/lib/engine';
 import { balanceTeams } from '@/lib/engine';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
+import { PESPosition } from '@/types';
 
 export interface MatchConfig {
   date: string;
@@ -95,6 +96,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
   const [selectedHour, setSelectedHour] = useState('09');
   const [selectedMinute, setSelectedMinute] = useState('00');
   const [selectedPeriod, setSelectedPeriod] = useState('PM');
+
+  // Interactive Pitch Tactical Position Editing (PES/FIFA style)
+  const [activeTacticalPlayer, setActiveTacticalPlayer] = useState<{ teamId: 'A' | 'B' | number; playerIndex: number; player: any } | null>(null);
 
   const datePickerRef = useRef<HTMLDivElement>(null);
   const timePickerRef = useRef<HTMLDivElement>(null);
@@ -323,6 +327,117 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     );
   };
 
+  // ── Cycle AI Formations: try next compatible tactical formation ──
+  const handleCycleAIFormation = () => {
+    if (!previewData) return;
+
+    if (previewData.matchMode === 'standard') {
+      const teamA = previewData.teamA || [];
+      const teamB = previewData.teamB || [];
+      const size = teamA.length || 11;
+
+      const matchingFormations = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
+      if (matchingFormations.length === 0) return;
+
+      const currentFormA = previewData.formation?.teamA || matchingFormations[0];
+      const currentFormB = previewData.formation?.teamB || matchingFormations[0];
+
+      const idxA = matchingFormations.indexOf(currentFormA);
+      const idxB = matchingFormations.indexOf(currentFormB);
+
+      const nextFormA = matchingFormations[(idxA + 1) % matchingFormations.length];
+      const nextFormB = matchingFormations[(idxB + 1) % matchingFormations.length];
+
+      const assignedA = assignPlayersToFormation(teamA, nextFormA);
+      const assignedB = assignPlayersToFormation(teamB, nextFormB);
+
+      setPreviewData((prev: any) => ({
+        ...prev,
+        teamA: assignedA,
+        teamB: assignedB,
+        formation: { teamA: nextFormA, teamB: nextFormB }
+      }));
+      setAiPitchView(true);
+      toast.success(isAr ? `التشكيلة الجديدة: ${nextFormA} ضد ${nextFormB}` : `Tactical formations updated to ${nextFormA} vs ${nextFormB}`);
+    } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
+      const updated = JSON.parse(JSON.stringify(previewData.turfResult));
+      if (updated.teams) {
+        updated.teams.forEach((t: any) => {
+          const pList = t.assignedPlayers || t.players || [];
+          const size = pList.length;
+          const matchingFormations = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
+          if (matchingFormations.length > 0) {
+            const currentForm = t.formation || matchingFormations[0];
+            const currIdx = matchingFormations.indexOf(currentForm);
+            const nextForm = matchingFormations[(currIdx + 1) % matchingFormations.length];
+            t.formation = nextForm;
+            t.assignedPlayers = assignPlayersToFormation(pList, nextForm);
+          }
+        });
+      }
+      setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
+      setAiPitchView(true);
+      toast.success(isAr ? 'تم تغيير تشكيلات فرق الحجز التكتيكية' : 'Turf team formations updated');
+    }
+  };
+
+  // ── PES/FIFA Interactive Position Edit & Recalculate ──
+  const handleSetPlayerPosition = (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => {
+    setPreviewData((prev: any) => {
+      if (!prev) return prev;
+      if (prev.matchMode === 'standard') {
+        const teamKey = teamId === 'A' ? 'teamA' : 'teamB';
+        const updatedTeam = [...(prev[teamKey] || [])];
+        const player = updatedTeam[playerIndex];
+        if (!player) return prev;
+
+        const newPsi = calculatePSI(player, newPos);
+        const effectiveOvr = Math.round(newPsi);
+
+        updatedTeam[playerIndex] = {
+          ...player,
+          assignedPosition: newPos,
+          psi: newPsi,
+          overallRating: effectiveOvr
+        };
+
+        const newAvg = Math.round(updatedTeam.reduce((acc, p) => acc + (p.overallRating || 70), 0) / updatedTeam.length);
+
+        return {
+          ...prev,
+          [teamKey]: updatedTeam,
+          metrics: {
+            ...prev.metrics,
+            [teamId === 'A' ? 'teamAOverall' : 'teamBOverall']: newAvg
+          }
+        };
+      } else if (prev.matchMode === 'turf' && prev.turfResult) {
+        const updatedTurf = JSON.parse(JSON.stringify(prev.turfResult));
+        const teamIdx = typeof teamId === 'number' ? teamId : 0;
+        if (updatedTurf.teams && updatedTurf.teams[teamIdx]) {
+          const teamObj = updatedTurf.teams[teamIdx];
+          const updatedPlayers = [...(teamObj.assignedPlayers || teamObj.players || [])];
+          const player = updatedPlayers[playerIndex];
+          if (player) {
+            const newPsi = calculatePSI(player, newPos);
+            updatedPlayers[playerIndex] = {
+              ...player,
+              assignedPosition: newPos,
+              psi: newPsi,
+              overallRating: Math.round(newPsi)
+            };
+            teamObj.assignedPlayers = updatedPlayers;
+            teamObj.avgOvr = Math.round(updatedPlayers.reduce((acc: number, p: any) => acc + (p.overallRating || 70), 0) / updatedPlayers.length);
+          }
+        }
+        return { ...prev, turfResult: updatedTurf };
+      }
+      return prev;
+    });
+    setActiveTacticalPlayer(null);
+    toast.success(isAr ? `تم تغيير مركز اللاعب إلى ${newPos}` : `Player position updated to ${newPos}`);
+  };
+
   const handlePlayerSwapClick = (teamIndex: number | 'bench', playerIndex: number, player: any) => {
     if (!selectedForSwap) {
       setSelectedForSwap({ teamIndex, playerIndex, player });
@@ -442,13 +557,22 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         onClick={handleApplyAIOptimalAll}
                         className={`inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl font-black text-xs transition-all shadow-md active:scale-95 shrink-0 ${
                           aiPitchView
-                            ? 'bg-purple-700 text-white shadow-purple-700/30 cursor-default opacity-80'
+                            ? 'bg-purple-700 text-white shadow-purple-700/30 opacity-90'
                             : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20'
                         }`}
                         title={isAr ? 'تطبيق المراكز وأساليب اللعب المثلى من الذكاء الاصطناعي لجميع اللاعبين وعرض التشكيلة على الملعب' : 'Apply AI best position & play style to all players and show formation on pitch'}
                       >
                         <Zap className="w-4 h-4 fill-white text-white" />
                         <span>{isAr ? 'تطبيق خيار الذكاء الاصطناعي للجميع' : 'Apply AI Best to All'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCycleAIFormation}
+                        className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
+                        title={isAr ? 'التنقل بين التشكيلات التكتيكية المتاحة للمحرك' : 'Cycle through available AI tactical formations'}
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                        <span>{isAr ? 'تغيير التشكيلة 🔄' : 'Cycle Formation 🔄'}</span>
                       </button>
                       <button
                         type="button"
@@ -568,23 +692,26 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               return (
                                 <div
                                   key={p.uid || `pitch-${label}-${i}`}
-                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10"
+                                  onClick={() => setActiveTacticalPlayer({ teamId: label === 'Team A' ? 'A' : label === 'Team B' ? 'B' : 0, playerIndex: i, player: p })}
+                                  className="absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer transition-transform hover:scale-125 active:scale-95"
                                   style={{left:`${coords.x}%`, top:`${y}%`}}
+                                  title={isAr ? 'اضغط لتعديل المركز التكتيكي فوراً ⚡' : 'Click to change tactical position & OVR ⚡'}
                                 >
                                   <div
-                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:scale-110"
+                                    className="w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] text-white shadow-lg border-2 border-white/80 transition-transform group-hover:border-amber-300"
                                     style={{backgroundColor: color, boxShadow:`0 2px 8px ${color}55`}}
                                   >
                                     {ovr}
                                   </div>
-                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/80 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap">
-                                    {pos}
+                                  <div className="mt-0.5 px-1.5 py-0.5 rounded-md bg-slate-900/90 text-white text-[8px] font-black uppercase tracking-wider whitespace-nowrap shadow flex items-center gap-1 group-hover:bg-amber-500 transition-colors">
+                                    <span>{pos}</span>
+                                    <span className="text-[7px] text-amber-300 group-hover:text-white">✏️</span>
                                   </div>
                                   <div className="mt-0.5 text-[7px] font-bold text-white bg-slate-800/70 px-1 rounded truncate max-w-[52px] text-center">
                                     {name}
                                   </div>
                                   <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20">
-                                    {p.cardName || p.fullName} · {pos} · OVR {ovr}
+                                    {p.cardName || p.fullName} · {pos} · OVR {ovr} (Click to Edit)
                                   </div>
                                 </div>
                               );
@@ -1525,11 +1652,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 <button
                   type="button"
                   onClick={() => setConfig(prev => ({ ...prev, isOpenRegistration: !prev.isOpenRegistration }))}
-                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 shrink-0 ${
-                    config.isOpenRegistration ? 'bg-emerald-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                  className={`relative w-14 h-8 rounded-full p-1 transition-colors duration-300 ease-in-out shrink-0 focus:outline-none ${
+                    config.isOpenRegistration ? 'bg-emerald-500 shadow-inner' : 'bg-slate-300 dark:bg-slate-700'
                   }`}
                 >
-                  <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                  <div
+                    className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      config.isOpenRegistration ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
 
@@ -1546,11 +1677,15 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 <button
                   type="button"
                   onClick={() => setConfig(prev => ({ ...prev, enableCardsSystem: prev.enableCardsSystem === false ? true : false }))}
-                  className={`w-12 h-7 rounded-full transition-colors flex items-center px-1 shrink-0 ${
-                    config.enableCardsSystem !== false ? 'bg-red-600 justify-end' : 'bg-slate-300 dark:bg-slate-700 justify-start'
+                  className={`relative w-14 h-8 rounded-full p-1 transition-colors duration-300 ease-in-out shrink-0 focus:outline-none ${
+                    config.enableCardsSystem !== false ? 'bg-red-600 shadow-inner' : 'bg-slate-300 dark:bg-slate-700'
                   }`}
                 >
-                  <div className="w-5 h-5 rounded-full bg-white shadow-md" />
+                  <div
+                    className={`w-6 h-6 rounded-full bg-white shadow-md transform transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      config.enableCardsSystem !== false ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
                 </button>
               </div>
 
@@ -1656,6 +1791,89 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
             </div>
           </motion.div>
         </motion.div>
+      )}
+      {/* PES/FIFA Interactive Position Selector Modal */}
+      {activeTacticalPlayer && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full bg-emerald-600 flex items-center justify-center font-black text-white text-base shadow-lg ring-2 ring-emerald-400">
+                  {activeTacticalPlayer.player.overallRating || activeTacticalPlayer.player?.stats?.overallRating || 70}
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-base leading-tight">
+                    {activeTacticalPlayer.player.cardName || activeTacticalPlayer.player.fullName}
+                  </h3>
+                  <span className="text-xs text-amber-400 font-bold flex items-center gap-1 mt-0.5">
+                    <span>🎮</span>
+                    <span>{isAr ? 'تعديل المركز والتقييم التكتيكي (PES/FIFA)' : 'PES/FIFA Tactical Position Selector'}</span>
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTacticalPlayer(null)}
+                className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div>
+              <p className="text-xs text-slate-300 mb-3 font-semibold">
+                {isAr ? 'اختر المركز المطلوب على أرضية الملعب وسيقوم المحرك بحساب تقييم اللاعب الفعلي لهذه الخطة فوراً:' : 'Choose assigned position on pitch to recalculate performance & OVR:'}
+              </p>
+
+              <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-1">
+                {[
+                  { category: isAr ? 'حراسة المرمى' : 'Goalkeeper', positions: ['GK'] as PESPosition[] },
+                  { category: isAr ? 'خط الدفاع' : 'Defense', positions: ['CB', 'LB', 'RB'] as PESPosition[] },
+                  { category: isAr ? 'خط الوسط' : 'Midfield', positions: ['DMF', 'CMF', 'AMF', 'LMF', 'RMF'] as PESPosition[] },
+                  { category: isAr ? 'خط الهجوم' : 'Attack', positions: ['LWF', 'RWF', 'SS', 'CF'] as PESPosition[] },
+                ].map(group => (
+                  <div key={group.category} className="bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-wider block mb-2">
+                      {group.category}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {group.positions.map(pos => {
+                        const p = activeTacticalPlayer.player;
+                        const currentPos = p.assignedPosition || p.primaryPosition;
+                        const isCurrent = currentPos === pos;
+                        const isPrimary = p.primaryPosition === pos;
+                        const isSecondary = p.secondaryPosition === pos;
+                        const isTertiary = p.tertiaryPosition === pos;
+
+                        let badgeText = '';
+                        if (isPrimary) badgeText = '⭐ 1st';
+                        else if (isSecondary) badgeText = '🌟 2nd';
+                        else if (isTertiary) badgeText = '⚡ 3rd';
+
+                        return (
+                          <button
+                            key={pos}
+                            type="button"
+                            onClick={() => handleSetPlayerPosition(activeTacticalPlayer.teamId, activeTacticalPlayer.playerIndex, pos)}
+                            className={`px-3.5 py-2 rounded-xl font-black text-xs transition-all flex items-center gap-1.5 active:scale-95 ${
+                              isCurrent
+                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-emerald-300'
+                                : isPrimary
+                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/50'
+                            }`}
+                          >
+                            <span>{pos}</span>
+                            {badgeText && <span className="text-[9px] opacity-90">{badgeText}</span>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </AnimatePresence>
   );
