@@ -561,7 +561,7 @@ function scoreFormation(players: PlayerProfile[], formation: PESPosition[]): num
  * @param players - Exactly 11 players (or fewer; algorithm adapts).
  * @returns The formation name (e.g. `'4-3-3'`).
  */
-function selectBestFormation(players: PlayerProfile[]): string {
+export function selectBestFormation(players: PlayerProfile[]): string {
   const size = players.length;
   let bestFormation = '';
   let bestScore = -Infinity;
@@ -754,11 +754,19 @@ export function assignPlayersToFormation(
 
   // 4. Fill remaining slots with highest PSI overall
   for (const slotIdx of Array.from(unfilledSlots)) {
+    const isGkSlot = slots[slotIdx] === 'GK';
     let bestIdx = -1;
     let bestPSI = -Infinity;
     
     for (const pIdx of availablePlayers) {
-      const psi = calculatePSI(players[pIdx], slots[slotIdx]);
+      let psi = calculatePSI(players[pIdx], slots[slotIdx]);
+      
+      // If it's a GK slot and player is an outfield player, severely penalize high-OVR stars
+      if (isGkSlot && players[pIdx].primaryPosition !== 'GK') {
+        const ovr = players[pIdx].overallRating || 70;
+        psi *= (1 / (ovr * 10)); // Protect high-OVR outfield players from playing in goal
+      }
+
       if (psi > bestPSI) {
         bestPSI = psi;
         bestIdx = pIdx;
@@ -870,12 +878,20 @@ function partitionPlayers(players: PlayerProfile[]): [PlayerProfile[], PlayerPro
     const sortedCat = sortPlayersByOvrDesc(categories[cat]);
 
     for (let i = 0; i < sortedCat.length; i++) {
-      const round = Math.floor(i / 2);
-      // If teamA currently has fewer players overall or equal, use round-robin
-      if (i % 2 === 0) {
-        (round % 2 === 0 ? teamA : teamB).push(sortedCat[i]);
+      if (cat === 'GK') {
+        // Guarantee strictly 1 GK to Team A, 1 GK to Team B
+        if (teamA.filter(p => p.primaryPosition === 'GK').length <= teamB.filter(p => p.primaryPosition === 'GK').length) {
+          teamA.push(sortedCat[i]);
+        } else {
+          teamB.push(sortedCat[i]);
+        }
       } else {
-        (round % 2 === 0 ? teamB : teamA).push(sortedCat[i]);
+        const round = Math.floor(i / 2);
+        if (i % 2 === 0) {
+          (round % 2 === 0 ? teamA : teamB).push(sortedCat[i]);
+        } else {
+          (round % 2 === 0 ? teamB : teamA).push(sortedCat[i]);
+        }
       }
     }
   });

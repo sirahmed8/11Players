@@ -228,6 +228,14 @@ export default function GlobalUsersTable() {
                   overallRating:     newOverall
                 };
 
+                if (!p.homeCommunityId || p.homeCommunityId === 'unlocked') {
+                  const effectiveHome = p.memberCommunities?.[0] || p.joinedCommunities?.[0];
+                  if (effectiveHome) {
+                    updates.homeCommunityId = effectiveHome;
+                    updates.primaryCommunityId = effectiveHome;
+                  }
+                }
+
                 batch.update(doc(db, 'players', p.uid), updates);
                 count++;
               }

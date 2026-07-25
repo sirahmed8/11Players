@@ -5,7 +5,7 @@ import { Users, RotateCw, Trophy, Timer, Shuffle, ChevronDown, Check, X, Brain, 
 import CustomDropdown from '@/components/ui/CustomDropdown';
 import { matchConfigSchema } from '@/schemas/matchSchema';
 import toast from 'react-hot-toast';
-import { generateTurfMatch, FORMATIONS, assignPlayersToFormation } from '@/lib/engine';
+import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestFormation } from '@/lib/engine';
 import { balanceTeams } from '@/lib/engine';
 import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 
@@ -284,18 +284,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const optB = (previewData.teamB || []).map(optimizePlayer);
       const optBench = (previewData.bench || []).map(optimizePlayer);
 
-      // Pick formation that best fits 11 players per team
-      const formationKey = '4-3-3';
+      // Dynamically pick formation that best fits each team's players
+      const formationA = selectBestFormation(optA);
+      const formationB = selectBestFormation(optB);
 
-      const assignedA = assignPlayersToFormation(optA, formationKey);
-      const assignedB = assignPlayersToFormation(optB, formationKey);
+      const assignedA = assignPlayersToFormation(optA, formationA);
+      const assignedB = assignPlayersToFormation(optB, formationB);
 
       setPreviewData((prev: any) => ({
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
         bench: optBench,
-        aiFormation: formationKey,
+        formation: { teamA: formationA, teamB: formationB },
       }));
       setAiPitchView(true);
     } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
@@ -667,7 +668,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                 <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق أ' : 'Team A'}</span>
                                 <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamAAvg || '—'}</span>
                               </div>
-                              <div className="text-slate-400 text-xs">4-3-3</div>
+                              <div className="text-slate-400 text-xs font-bold flex items-center gap-1">
+                                <span>{previewData.formation?.teamA || '4-3-3'}</span>
+                                <span className="text-slate-500 font-normal">vs</span>
+                                <span>{previewData.formation?.teamB || '4-3-3'}</span>
+                              </div>
                               <div className="flex items-center gap-2">
                                 <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 px-2 py-0.5 rounded-full">AVG {previewData.metrics?.teamBAvg || '—'}</span>
                                 <span className="text-slate-700 dark:text-slate-300">{isAr ? 'الفريق ب' : 'Team B'}</span>

@@ -208,6 +208,11 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                   overallRating:     newOverall
                 };
 
+                if (activeCommunityId && (!p.homeCommunityId || p.homeCommunityId === 'unlocked')) {
+                  updates.homeCommunityId = activeCommunityId;
+                  updates.primaryCommunityId = activeCommunityId;
+                }
+
                 batch.update(doc(db, 'players', p.uid), updates);
 
                 if (activeCommunityId) {
