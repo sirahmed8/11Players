@@ -1044,44 +1044,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
       if (raw1 && raw2) {
         // Extract pure unwrapped player objects
-        let p1 = raw1.player ? { ...raw1.player, ...raw1 } : { ...raw1 };
+        const p1 = raw1.player ? { ...raw1.player, ...raw1 } : { ...raw1 };
         delete (p1 as any).player;
 
-        let p2 = raw2.player ? { ...raw2.player, ...raw2 } : { ...raw2 };
+        const p2 = raw2.player ? { ...raw2.player, ...raw2 } : { ...raw2 };
         delete (p2 as any).player;
 
+        // Only swap the pitch slot (assignedPosition).
+        // Each player keeps their own overallRating exactly as set by the AI — no PSI recalc.
         const pos1 = p1.assignedPosition || p1.primaryPosition || 'CMF';
         const pos2 = p2.assignedPosition || p2.primaryPosition || 'CMF';
 
-        // Positional assignment during swap:
-        if (typeof teamIndex === 'number' && typeof selectedForSwap.teamIndex !== 'number') {
-          // p1 (bench player) replaces p2 (pitch starter) -> p1 inherits p2's exact pitch position!
-          p1.assignedPosition = pos2;
-          p1.psi = calculatePSI(p1, pos2);
-          p1.playStyle = getBestPlayStyleNameForPosition(p1, pos2);
-          p1.overallRating = Math.round(p1.psi);
-
-          p2.assignedPosition = p2.primaryPosition || 'CMF';
-        } else if (typeof selectedForSwap.teamIndex === 'number' && typeof teamIndex !== 'number') {
-          // p2 (bench player) replaces p1 (pitch starter) -> p2 inherits p1's exact pitch position!
-          p2.assignedPosition = pos1;
-          p2.psi = calculatePSI(p2, pos1);
-          p2.playStyle = getBestPlayStyleNameForPosition(p2, pos1);
-          p2.overallRating = Math.round(p2.psi);
-
-          p1.assignedPosition = p1.primaryPosition || 'CMF';
-        } else if (typeof selectedForSwap.teamIndex === 'number' && typeof teamIndex === 'number') {
-          // Swapping two pitch starters across positions
-          p1.assignedPosition = pos2;
-          p1.psi = calculatePSI(p1, pos2);
-          p1.playStyle = getBestPlayStyleNameForPosition(p1, pos2);
-          p1.overallRating = Math.round(p1.psi);
-
-          p2.assignedPosition = pos1;
-          p2.psi = calculatePSI(p2, pos1);
-          p2.playStyle = getBestPlayStyleNameForPosition(p2, pos1);
-          p2.overallRating = Math.round(p2.psi);
-        }
+        p1.assignedPosition = pos2;
+        p2.assignedPosition = pos1;
 
         l1[selectedForSwap.playerIndex] = p2;
         l2[playerIndex] = p1;
