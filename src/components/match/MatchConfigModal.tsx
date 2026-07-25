@@ -588,6 +588,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
   } | null>(null);
   const [aiPitchView, setAiPitchView] = useState(false);
   const [pitchResetCounter, setPitchResetCounter] = useState(0);
+  const [selectedFormationA, setSelectedFormationA] = useState<string>('');
+  const [selectedFormationB, setSelectedFormationB] = useState<string>('');
 
   const [config, setConfig] = useState<MatchConfig>({
     date: '',
@@ -785,51 +787,38 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setAiPitchView(false);
   };
 
-  // ── AI Best to All: optimise positions then re-assign to formation ──
+  // ── AI Best to All: assign players to user-chosen (or AI-selected) formation ──
   const handleApplyAIOptimalAll = () => {
     if (!previewData) return;
 
-    const optimizePlayer = (p: any) => {
-      const suggestions = getTacticalSuggestions(
-        p.attributes,
-        p.height || 175,
-        p.weight || 70,
-        p.preferredFoot || 'Right',
-        p.calculatedAge,
-        p.peerRatingAvg,
-        p.peerRatingCount
-      );
-      const best = suggestions.positions[0];
-      return {
-        ...p,
-        primaryPosition: best?.position || p.primaryPosition || 'CMF',
-        playStyle: best?.bestPlayStyle || p.playStyle || 'Box-to-Box',
-      };
-    };
-
     if (previewData.matchMode === 'standard') {
-      const optA = (previewData.teamA || []).map(optimizePlayer);
-      const optB = (previewData.teamB || []).map(optimizePlayer);
+      const rawA = previewData.teamA || [];
+      const rawB = previewData.teamB || [];
       const rawBench = previewData.bench || [
         ...(previewData.benchA || []),
         ...(previewData.benchB || []),
       ];
-      const optBench = rawBench.map((item: any) => optimizePlayer(item.player || item));
+      const benchPlayers = rawBench.map((item: any) => item.player || item);
 
-      const formationA = selectBestFormation(optA);
-      const formationB = selectBestFormation(optB);
+      // Use user-selected formations, or fall back to AI best-fit
+      const formationA = selectedFormationA || selectBestFormation(rawA);
+      const formationB = selectedFormationB || selectBestFormation(rawB);
 
-      const assignedA = assignPlayersToFormation(optA, formationA);
-      const assignedB = assignPlayersToFormation(optB, formationB);
+      // Re-assign all players to the chosen formation using PSI-based engine
+      const assignedA = assignPlayersToFormation(rawA, formationA);
+      const assignedB = assignPlayersToFormation(rawB, formationB);
 
       const teamAAvg = calculateTeamAvg(assignedA);
       const teamBAvg = calculateTeamAvg(assignedB);
+
+      setSelectedFormationA(formationA);
+      setSelectedFormationB(formationB);
 
       setPreviewData((prev: any) => ({
         ...prev,
         teamA: assignedA,
         teamB: assignedB,
-        bench: optBench,
+        bench: benchPlayers,
         formation: { teamA: formationA, teamB: formationB },
         metrics: {
           ...(prev?.metrics || {}),
@@ -842,12 +831,16 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
       const updated = JSON.parse(JSON.stringify(previewData.turfResult));
       if (updated.teams) {
-        updated.teams = updated.teams.map((t: any) => ({
-          ...t,
-          players: (t.players || []).map(optimizePlayer),
-        }));
+        updated.teams = updated.teams.map((t: any) => {
+          const pList = t.players || [];
+          const form = t.formation || selectBestFormation(pList);
+          return {
+            ...t,
+            formation: form,
+            assignedPlayers: assignPlayersToFormation(pList, form),
+          };
+        });
       }
-      if (updated.bench) updated.bench = updated.bench.map(optimizePlayer);
       setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
       setPitchResetCounter(c => c + 1);
       setAiPitchView(true);
@@ -855,74 +848,12 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
     toast.success(
       isAr
-        ? 'تم تحليل جميع اللاعبين وتحديد مراكزهم المثلى! ⚡'
-        : 'AI analysed all players & optimised their positions! ⚡'
+        ? 'تم توزيع اللاعبين على أفضل مراكزهم في التشكيلة المختارة! ⚡'
+        : 'AI placed every player in their best position for the selected formation! ⚡'
     );
   };
 
-  // ── Cycle AI Formations: try next compatible tactical formation ──
-  const handleCycleAIFormation = () => {
-    if (!previewData) return;
 
-    if (previewData.matchMode === 'standard') {
-      const teamA = previewData.teamA || [];
-      const teamB = previewData.teamB || [];
-      const size = teamA.length || 11;
-
-      const matchingFormations = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
-      if (matchingFormations.length === 0) return;
-
-      const currentFormA = previewData.formation?.teamA || matchingFormations[0];
-      const currentFormB = previewData.formation?.teamB || matchingFormations[0];
-
-      const idxA = matchingFormations.indexOf(currentFormA);
-      const idxB = matchingFormations.indexOf(currentFormB);
-
-      const nextFormA = matchingFormations[(idxA + 1) % matchingFormations.length];
-      const nextFormB = matchingFormations[(idxB + 1) % matchingFormations.length];
-
-      const assignedA = assignPlayersToFormation(teamA, nextFormA);
-      const assignedB = assignPlayersToFormation(teamB, nextFormB);
-
-      const teamAAvg = calculateTeamAvg(assignedA);
-      const teamBAvg = calculateTeamAvg(assignedB);
-
-      setPreviewData((prev: any) => ({
-        ...prev,
-        teamA: assignedA,
-        teamB: assignedB,
-        formation: { teamA: nextFormA, teamB: nextFormB },
-        metrics: {
-          ...(prev?.metrics || {}),
-          teamAAvg,
-          teamBAvg,
-        }
-      }));
-      setPitchResetCounter(c => c + 1);
-      setAiPitchView(true);
-      toast.success(isAr ? `التشكيلة الجديدة: ${nextFormA} ضد ${nextFormB}` : `Tactical formations updated to ${nextFormA} vs ${nextFormB}`);
-    } else if (previewData.matchMode === 'turf' && previewData.turfResult) {
-      const updated = JSON.parse(JSON.stringify(previewData.turfResult));
-      if (updated.teams) {
-        updated.teams.forEach((t: any) => {
-          const pList = t.assignedPlayers || t.players || [];
-          const size = pList.length;
-          const matchingFormations = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
-          if (matchingFormations.length > 0) {
-            const currentForm = t.formation || matchingFormations[0];
-            const currIdx = matchingFormations.indexOf(currentForm);
-            const nextForm = matchingFormations[(currIdx + 1) % matchingFormations.length];
-            t.formation = nextForm;
-            t.assignedPlayers = assignPlayersToFormation(pList, nextForm);
-          }
-        });
-      }
-      setPreviewData((prev: any) => ({ ...prev, turfResult: updated }));
-      setPitchResetCounter(c => c + 1);
-      setAiPitchView(true);
-      toast.success(isAr ? 'تم تغيير تشكيلات فرق الحجز التكتيكية' : 'Turf team formations updated');
-    }
-  };
 
   // ── Interactive Position & Mood Edit & Recalculate ──
   const handleSetPlayerPosition = (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => {
@@ -1133,6 +1064,37 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+                      {/* Formation selectors — only show in standard mode */}
+                      {previewData?.matchMode === 'standard' && (() => {
+                        const size = (previewData.teamA || []).length || 11;
+                        const options = Object.keys(FORMATIONS).filter(f => FORMATIONS[f].length === size);
+                        return (
+                          <>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-black text-blue-500 shrink-0">{isAr ? 'أ' : 'A'}</span>
+                              <select
+                                value={selectedFormationA || previewData.formation?.teamA || ''}
+                                onChange={e => setSelectedFormationA(e.target.value)}
+                                className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                              >
+                                <option value="">{isAr ? '— اختر —' : '— AI Pick —'}</option>
+                                {options.map(f => <option key={f} value={f}>{f}</option>)}
+                              </select>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-black text-red-500 shrink-0">{isAr ? 'ب' : 'B'}</span>
+                              <select
+                                value={selectedFormationB || previewData.formation?.teamB || ''}
+                                onChange={e => setSelectedFormationB(e.target.value)}
+                                className="text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-xl px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                              >
+                                <option value="">{isAr ? '— اختر —' : '— AI Pick —'}</option>
+                                {options.map(f => <option key={f} value={f}>{f}</option>)}
+                              </select>
+                            </div>
+                          </>
+                        );
+                      })()}
                       <button
                         type="button"
                         onClick={handleApplyAIOptimalAll}
@@ -1141,19 +1103,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             ? 'bg-purple-700 text-white shadow-purple-700/30 opacity-90'
                             : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20'
                         }`}
-                        title={isAr ? 'تطبيق المراكز وأساليب اللعب المثلى من الذكاء الاصطناعي لجميع اللاعبين وعرض التشكيلة على الملعب' : 'Apply AI best position & play style to all players and show formation on pitch'}
+                        title={isAr ? 'وزّع اللاعبين على أفضل مراكزهم في التشكيلة المختارة' : 'Place every player in their best position for the chosen formation'}
                       >
                         <Zap className="w-4 h-4 fill-white text-white" />
-                        <span>{isAr ? 'تطبيق خيار الذكاء الاصطناعي للجميع' : 'Apply AI Best to All'}</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCycleAIFormation}
-                        className="inline-flex items-center justify-center gap-2 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs transition-all shadow-md shadow-indigo-600/20 active:scale-95 shrink-0"
-                        title={isAr ? 'التنقل بين التشكيلات التكتيكية المتاحة للمحرك' : 'Cycle through available AI tactical formations'}
-                      >
-                        <RotateCw className="w-3.5 h-3.5" />
-                        <span>{isAr ? 'تغيير التشكيلة 🔄' : 'Cycle Formation 🔄'}</span>
+                        <span>{isAr ? 'تطبيق AI ⚡' : 'Apply AI ⚡'}</span>
                       </button>
                       <button
                         type="button"
