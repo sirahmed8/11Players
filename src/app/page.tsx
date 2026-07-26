@@ -20,37 +20,83 @@ export default function Home() {
   const [loginInProgress, setLoginInProgress] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [publicStats, setPublicStats] = useState({
-    players: "40+",
-    communities: "3+",
-    avgRating: "7.8",
-    matches: "100+"
+    players: "...",
+    communities: "...",
+    avgRating: "...",
+    matches: "..."
   });
 
   useEffect(() => {
+    let isMounted = true;
     const fetchStats = async () => {
       try {
-        const matchesSnap = await getDocs(collection(db, "matches"));
         const playersSnap = await getDocs(collection(db, "players"));
         const communitiesSnap = await getDocs(collection(db, "communities"));
+
+        // Count matches across all communities
+        let totalMatchesCount = 0;
+        await Promise.all(
+          communitiesSnap.docs.map(async (commDoc) => {
+            try {
+              const commMatchesSnap = await getDocs(collection(db, "communities", commDoc.id, "matches"));
+              commMatchesSnap.forEach((mDoc) => {
+                if (mDoc.id !== "latest") {
+                  totalMatchesCount++;
+                }
+              });
+            } catch (e) {
+              // Ignore individual error
+            }
+          })
+        );
+
+        try {
+          const rootMatchesSnap = await getDocs(collection(db, "matches"));
+          totalMatchesCount += rootMatchesSnap.size;
+        } catch (e) {}
+
+        // Calculate real average rating across players
+        let totalRatingSum = 0;
+        let ratedPlayerCount = 0;
+        playersSnap.forEach((d) => {
+          const pData = d.data();
+          const r = pData.overallRating || pData.rating || (pData.stats && pData.stats.overallRating);
+          if (r && typeof r === "number" && r > 0) {
+            totalRatingSum += r;
+            ratedPlayerCount++;
+          }
+        });
+
+        const calculatedAvg = ratedPlayerCount > 0 ? totalRatingSum / ratedPlayerCount : 7.8;
+        const displayAvg = calculatedAvg > 10 ? calculatedAvg / 10 : calculatedAvg;
 
         const statsDoc = await getDoc(doc(db, "system", "public_stats"));
         const data = statsDoc.exists() ? statsDoc.data() : {};
 
-        const realMatchesCount = data.totalMatches !== undefined ? data.totalMatches : matchesSnap.size;
+        const realMatchesCount = data.totalMatches !== undefined ? data.totalMatches : totalMatchesCount;
         const realPlayersCount = data.totalPlayers !== undefined ? data.totalPlayers : playersSnap.size;
         const realCommunitiesCount = data.totalCommunities !== undefined ? data.totalCommunities : communitiesSnap.size;
+        const realAvgRating = data.avgRating !== undefined
+          ? (data.avgRating > 10 ? data.avgRating / 10 : data.avgRating)
+          : displayAvg;
 
-        setPublicStats({
-          players: realPlayersCount > 0 ? `${realPlayersCount}` : "0",
-          communities: realCommunitiesCount > 0 ? `${realCommunitiesCount}` : "0",
-          avgRating: data.avgRating ? data.avgRating.toFixed(1) : "7.8",
-          matches: `${realMatchesCount}`
-        });
+        if (isMounted) {
+          setPublicStats({
+            players: `${realPlayersCount}`,
+            communities: `${realCommunitiesCount}`,
+            avgRating: realAvgRating.toFixed(1),
+            matches: `${realMatchesCount}`
+          });
+        }
       } catch (err) {
         console.error("Error fetching public stats:", err);
       }
     };
+
     fetchStats();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const { scrollYProgress } = useScroll();
@@ -191,13 +237,20 @@ export default function Home() {
     }
   ];
 
-  const statsList = [
-    { value: publicStats.players, label: isAr ? "لاعب مسجل" : "Registered Players" },
-    { value: publicStats.communities, label: isAr ? "مجتمعات نشطة" : "Active Communities" },
-    { value: publicStats.avgRating, label: isAr ? "متوسط التقييم" : "Avg Rating" },
-    { value: publicStats.matches, label: isAr ? "مباراة ملعوبة" : "Matches Played" },
-  ];
+  const formatStatDisplay = (val: string, prefix = true) => {
+    if (val === "...") return "...";
+    const num = parseFloat(val);
+    if (isNaN(num)) return val;
+    if (!prefix || num === 0) return `${val}`;
+    return `+${val}`;
+  };
 
+  const statsList = [
+    { value: formatStatDisplay(publicStats.players), label: isAr ? "لاعب مسجل" : "Registered Players" },
+    { value: formatStatDisplay(publicStats.communities), label: isAr ? "مجتمعات نشطة" : "Active Communities" },
+    { value: formatStatDisplay(publicStats.avgRating, false), label: isAr ? "متوسط التقييم" : "Avg Rating" },
+    { value: formatStatDisplay(publicStats.matches), label: isAr ? "مباراة ملعوبة" : "Matches Played" },
+  ];
 
   if (authLoading || isRedirecting) {
     return (
@@ -212,9 +265,22 @@ export default function Home() {
     );
   }
 
-
   return (
     <main className="min-h-screen flex flex-col items-center relative bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300 overflow-x-hidden">
+      {/* Top Bar with Settings */}
+      <header className="w-full max-w-7xl px-6 py-4 flex items-center justify-between z-20">
+        <div className="flex items-center gap-2.5">
+          <div className="relative w-8 h-8 rounded-xl overflow-hidden shadow-sm border border-emerald-500/30">
+            <Image src="/logo.jpg" alt="11Players Logo" fill className="object-cover" />
+          </div>
+          <span className="font-black text-lg bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-400 dark:to-teal-500 bg-clip-text text-transparent">
+            11Players
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <SettingsMenu direction="down" />
+        </div>
+      </header>
       
 
 

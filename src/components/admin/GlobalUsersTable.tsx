@@ -315,33 +315,26 @@ export default function GlobalUsersTable() {
         </div>
         
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleApplyAIToAllGlobalUsers}
-            className="flex items-center justify-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-3.5 py-2.5 text-xs font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95 shrink-0"
-            title={isAr ? "تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لجميع اللاعبين" : "Apply AI best position & play style to all users"}
-          >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
-            <span>{isAr ? "تطبيق خيار الذكاء الاصطناعي للجميع" : "Apply AI Best to All"}</span>
-          </button>
           <div className="relative w-full sm:w-64 min-w-0">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-400 pointer-events-none" />
             <input 
               type="text" 
               placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs font-medium"
+              className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs font-medium"
             />
           </div>
         </div>
       </div>
+
       {/* Table View (Supports Touch & Horizontal Scroll) */}
-      <div className="w-full overflow-x-auto scrollbar-thin rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
-        <table className="w-full min-w-[700px] text-left border-collapse">
+      <div className="w-full overflow-x-auto touch-pan-x scrollbar-thin rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <table className="w-full min-w-[850px] text-left rtl:text-right border-collapse">
           <thead>
             <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
               <th 
-                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[200px]"
+                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[220px]"
                 onClick={() => handleSort('fullName')}
               >
                 <div className="flex items-center gap-2">
@@ -350,7 +343,7 @@ export default function GlobalUsersTable() {
                 </div>
               </th>
               <th 
-                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[220px]"
+                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[240px]"
                 onClick={() => handleSort('email')}
               >
                 <div className="flex items-center gap-2">
@@ -358,8 +351,8 @@ export default function GlobalUsersTable() {
                   <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500" />
                 </div>
               </th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 min-w-[160px]">{isAr ? "المجتمعات" : "Communities"}</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 text-right min-w-[140px]">{isAr ? "إجراءات" : "Actions"}</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 min-w-[200px]">{isAr ? "المجتمعات" : "Communities"}</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 text-right rtl:text-left min-w-[190px]">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
