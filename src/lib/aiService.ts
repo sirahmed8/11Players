@@ -246,7 +246,7 @@ function generateSmartFallbackReply(message: string, systemPrompt: string, isAr:
         suggestedPrompts: ["من هم أفضل اللاعبين في مركزي؟", "استراتيجية الاستعداد للمباراة", "كيف أحصل على جائزة أفضل لاعب؟"],
       };
     }
-    if (msgLower.includes("أفضل") || msgLower.includes("مركز") || msgLower.includes("منافس") || msgLower.includes("قدرات")) {
+    if (msgLower.includes("أفضل") || msgLower.includes("مركز") || msgLower.includes("منافس") || msgLower.includes("قدرات") || msgLower.includes("احسن")) {
       return {
         reply: "أعلى لاعب تقييماً في منصة **11Players** هو الكابتن **يوسف راضوان (RADWAN)** بتقييم **81**، ويليه الكابتن **محمد مبروك (HAMO)** بتقييم **80**، ثم الكابتن **عماد عادل (OMDA)** بتقييم **79**!",
         suggestedPrompts: ["كيف ارفع تقييمي الـ OVR؟", "استراتيجية الاستعداد للمباراة", "طريقة تنظيم التكتيك"],
@@ -258,8 +258,23 @@ function generateSmartFallbackReply(message: string, systemPrompt: string, isAr:
     };
   }
 
+  // English Fallback Responses
+  if (msgLower.includes("best") || msgLower.includes("top") || msgLower.includes("abilities") || msgLower.includes("ability")) {
+    return {
+      reply: "The top-rated player on **11Players** is **Youssef Radwan (RADWAN)** with **81 OVR**, followed by **Mohamed Mabrouk (HAMO)** with **80 OVR**, and **Emad Adel (OMDA)** with **79 OVR**!",
+      suggestedPrompts: ["Analyze my OVR & weakness", "Match preparation strategy", "Progress toward Ballon d'Or"],
+    };
+  }
+
+  if (msgLower.includes("ovr") || msgLower.includes("weakness") || msgLower.includes("improve") || msgLower.includes("stats")) {
+    return {
+      reply: "To boost your **OVR** rating on **11Players**, focus on positional awareness, maintaining high passing accuracy, and regularly logging goals & assists with your team!",
+      suggestedPrompts: ["Who are top players in my position?", "Match preparation strategy", "Progress toward Ballon d'Or"],
+    };
+  }
+
   return {
-    reply: "Welcome Captain! To boost your **OVR** rating on **11Players**, focus on key position attributes, maintain consistent passing accuracy, and keep contributing goals & assists.",
+    reply: "Welcome Captain! I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**. How can I assist your career today?",
     suggestedPrompts: ["Analyze my OVR & weakness", "Who are top players in my position?", "Match preparation strategy"],
   };
 }
