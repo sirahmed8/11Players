@@ -278,18 +278,44 @@ function HalfPitch({
 
   const actualTeamIdx = teamIndex !== undefined ? teamIndex : (label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 0 : 1);
 
-  const handleDragEnd = (_: any, info: any, playerIndex: number) => {
-    if (!containerRef.current || !onPositionDragChange) return;
+  const [activeDragIdx, setActiveDragIdx] = useState<number | null>(null);
+  const [dragCoords, setDragCoords] = useState<Record<number, { x: number; y: number }>>({});
+
+  const handlePointerDown = (e: React.PointerEvent, i: number) => {
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
+    setActiveDragIdx(i);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent, i: number) => {
+    if (activeDragIdx !== i || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    const dropX = Math.max(8, Math.min(92, ((info.point.x - rect.left) / rect.width) * 100));
-    const dropY = Math.max(8, Math.min(92, ((info.point.y - rect.top) / rect.height) * 100));
+    const currentX = Math.max(6, Math.min(94, ((e.clientX - rect.left) / rect.width) * 100));
+    const currentY = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+
+    setDragCoords(prev => ({ ...prev, [i]: { x: currentX, y: currentY } }));
+  };
+
+  const handlePointerUp = (e: React.PointerEvent, i: number, player: any) => {
+    if (activeDragIdx !== i || !containerRef.current) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+    setActiveDragIdx(null);
+
+    const rect = containerRef.current.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const dropX = Math.max(6, Math.min(94, ((e.clientX - rect.left) / rect.width) * 100));
+    const dropY = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
 
     const actualY = flipped ? 100 - dropY : dropY;
 
     let detectedPos: PESPosition = 'CMF';
-
     if (actualY > 82) {
       detectedPos = 'GK';
     } else if (actualY >= 64) {
@@ -314,7 +340,9 @@ function HalfPitch({
       else detectedPos = 'CF';
     }
 
-    onPositionDragChange(actualTeamIdx, playerIndex, detectedPos, { x: dropX, y: actualY });
+    if (onPositionDragChange) {
+      onPositionDragChange(actualTeamIdx, i, detectedPos, { x: dropX, y: actualY });
+    }
   };
 
   return (
@@ -343,31 +371,36 @@ function HalfPitch({
           const playerObj = p.player || p;
           const pos = playerObj.assignedPosition || playerObj.primaryPosition || 'CMF';
           
-          let coords: { x: number; y: number };
-          if (playerObj.customPitchCoords) {
-            coords = playerObj.customPitchCoords;
+          let displayX: number;
+          let displayY: number;
+
+          if (dragCoords[i] && activeDragIdx === i) {
+            displayX = dragCoords[i].x;
+            displayY = dragCoords[i].y;
+          } else if (playerObj.customPitchCoords) {
+            displayX = playerObj.customPitchCoords.x;
+            displayY = flipped ? 100 - playerObj.customPitchCoords.y : playerObj.customPitchCoords.y;
           } else if (coordsList[i]) {
-            coords = coordsList[i];
+            displayX = coordsList[i].x;
+            displayY = flipped ? 100 - coordsList[i].y : coordsList[i].y;
           } else {
-            coords = FALLBACK_PITCH_COORDS[pos] || { x: 50, y: 50 };
+            const fallback = FALLBACK_PITCH_COORDS[pos] || { x: 50, y: 50 };
+            displayX = fallback.x;
+            displayY = flipped ? 100 - fallback.y : fallback.y;
           }
 
-          const finalX = coords.x;
-          const y = flipped ? 100 - coords.y : coords.y;
           const ovr = playerObj.overallRating || playerObj?.stats?.overallRating || 70;
           const name = (playerObj.cardName || playerObj.fullName || 'Player').split(' ')[0];
           const moodStyle = getDisplayPlayStyle(playerObj, isAr);
           const isSelected = selectedForSwap && selectedForSwap.teamIndex === actualTeamIdx && selectedForSwap.playerIndex === i;
+          const isDraggingThis = activeDragIdx === i;
 
           return (
-            <motion.div
+            <div
               key={`${p.uid || `pitch-${label}-${i}`}-${pos}-${formKey}-${pitchResetCounter || 0}`}
-              drag
-              dragConstraints={containerRef}
-              dragElastic={0}
-              dragMomentum={false}
-              onDragEnd={(e, info) => handleDragEnd(e, info, i)}
-              whileDrag={{ scale: 1.2, zIndex: 50 }}
+              onPointerDown={(e) => handlePointerDown(e, i)}
+              onPointerMove={(e) => handlePointerMove(e, i)}
+              onPointerUp={(e) => handlePointerUp(e, i, p)}
               onClick={(e) => {
                 e.stopPropagation();
                 if (onSwapClick) {
@@ -377,10 +410,10 @@ function HalfPitch({
                   setActiveTacticalPlayer({ teamId, playerIndex: i, player: p });
                 }
               }}
-              className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-pointer select-none touch-none ${
-                isSelected ? 'scale-110 z-30' : ''
+              className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none transition-transform ${
+                isDraggingThis ? 'scale-125 z-50' : isSelected ? 'scale-110 z-30' : ''
               }`}
-              style={{left:`${finalX}%`, top:`${y}%`}}
+              style={{ left: `${displayX}%`, top: `${displayY}%` }}
               title={isAr ? 'اضغط للتبديل مع أي لاعب آخر، أو اسحب لتعديل المكان، أو اضغط القلم لتعديل المركز' : 'Click to swap with another player, drag to reposition, or click pencil to edit position'}
             >
               <div
@@ -414,7 +447,7 @@ function HalfPitch({
               <div className="absolute bottom-full mb-1.5 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded-lg shadow-xl whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 select-none">
                 {p.cardName || p.fullName} · {pos} · OVR {ovr} · {moodStyle}
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>
