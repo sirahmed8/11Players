@@ -150,21 +150,39 @@ export async function call11AIChat(payload: {
     // Static host or network error — fallback client side
   }
 
-  // Client-side fallback generation
+  // Client-side fallback generation (for static hosting environments like Firebase)
   const rosterSummary = Array.isArray(payload.communityRoster) && payload.communityRoster.length > 0
     ? payload.communityRoster
-        .slice(0, 15)
-        .map((p: any) => `- ${p.name}: OVR ${p.ovr}, Position ${p.position}, Goals ${p.goals || 0}`)
+        .slice(0, 100)
+        .map((p: any) => {
+          const cardName = p.cardName || p.name || "Player";
+          const fullName = p.name || p.fullName || cardName;
+          const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
+          const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
+          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${p.playStyle || "Standard"} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
+        })
         .join("\n")
     : "No other player data available.";
 
-  const systemPrompt = `You are "11AI", official Tactical Analyst for 11Players.
-Player: ${payload.playerContext?.fullName || "Player"}
-OVR: ${payload.playerContext?.overall || 72}
-Position: ${payload.playerContext?.primaryPosition || "Midfielder"}
-Stats: ${payload.playerContext?.goals || 0} Goals, ${payload.playerContext?.assists || 0} Assists
-Roster:
-${rosterSummary}`;
+  const systemPrompt = `You are "11AI", the official AI Tactical Analyst and Personal Career Coach for the 11Players football platform.
+
+Current Player Context:
+- Name: ${payload.playerContext?.fullName || "Player"}
+- OVR: ${payload.playerContext?.overall || 72}
+- Position: ${payload.playerContext?.primaryPosition || "Midfielder"}
+- Stats: ${payload.playerContext?.goals || 0} Goals, ${payload.playerContext?.assists || 0} Assists
+
+Full Registered Live Roster & Players Database (ALL PLAYERS IN COMMUNITY):
+${rosterSummary}
+
+Strict Behavioral & Data Access Guidelines:
+1. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g. "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
+2. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
+3. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
+4. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
+5. Match response length to user prompt length. If the user sends a short phrase or greeting, respond concisely in 1-2 natural sentences without unsolicited long lectures.
+6. At the very end of your response, ALWAYS add a line formatted exactly as:
+[SUGGESTIONS: Question 1 | Question 2 | Question 3]`;
 
   return generate11AIResponse({
     message: payload.message || "Hello",

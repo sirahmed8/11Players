@@ -515,11 +515,18 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
 
       const communityRoster = (players || []).map((p) => ({
         name: p.fullName || (p as any).displayName || "Player",
+        cardName: (p as any).cardName || p.fullName || "",
         position: p.primaryPosition || "MID",
+        secondaryPosition: p.secondaryPosition || "",
+        tertiaryPosition: p.tertiaryPosition || "",
         ovr: getPlayerOverall(p),
         goals: p.stats?.goals || 0,
         assists: p.stats?.assists || 0,
+        matchesCount: p.stats?.matchesPlayed || 0,
         playStyle: p.playStyle || "Standard",
+        height: p.height || "",
+        weight: p.weight || "",
+        calculatedAge: p.calculatedAge || "",
       }));
 
       const data = await call11AIChat({

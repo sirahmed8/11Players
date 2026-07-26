@@ -12,15 +12,18 @@ export async function POST(req: Request) {
       );
     }
 
-    // Format community roster context if available
+    // Format community roster context with rich player metadata (up to 100 players)
     let rosterSummary = "No other player data available.";
     if (Array.isArray(communityRoster) && communityRoster.length > 0) {
       rosterSummary = communityRoster
-        .slice(0, 15)
-        .map(
-          (p: any) =>
-            `- ${p.name}: OVR ${p.ovr}, Position ${p.position}, Goals ${p.goals || 0}, Assists ${p.assists || 0}, PlayStyle: ${p.playStyle || "Standard"}`
-        )
+        .slice(0, 100)
+        .map((p: any) => {
+          const cardName = p.cardName || p.name || "Player";
+          const fullName = p.name || p.fullName || cardName;
+          const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
+          const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
+          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${p.playStyle || "Standard"} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
+        })
         .join("\n");
     }
 
@@ -36,16 +39,16 @@ Current Player Live Context:
 - PlayStyle: ${playerContext?.playStyle || "Standard"}
 - Community: ${playerContext?.communityName || "11Players Global"}
 
-Live Roster & Rivals in Platform/Community:
+Full Registered Live Roster & Players Database (ALL PLAYERS IN COMMUNITY):
 ${rosterSummary}
 
 Strict Behavioral & Data Access Guidelines:
-1. When an image is attached, inspect it thoroughly (match stats, heatmaps, formation, ratings) and provide accurate tactical feedback!
-2. Reference REAL live community players when asked about rivals or top players.
-3. Write immaculate, standard, error-free Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
-4. When responding in Arabic, use ONLY pure Arabic terminology. DO NOT insert English words in brackets (e.g. write "لاعب وسط دفاعي" instead of "DMF", write "المحطم" instead of "(Destroyer)").
+1. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g., "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
+2. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
+3. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
+4. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
 5. DO NOT use awkward filler words at the beginning of sentences (e.g. NEVER start with "صح،" or "تمام،"). Start directly and professionally.
-6. Match response length to user prompt length. If the user sends a short phrase, respond concisely in 1-2 natural sentences without unsolicited long lectures.
+6. Match response length to user prompt length. If the user sends a short phrase or greeting, respond concisely in 1-2 natural sentences without unsolicited long lectures.
 7. At the very end of your response, ALWAYS add a line formatted exactly as:
 [SUGGESTIONS: Question 1 | Question 2 | Question 3]
 Provide 2-3 short, highly relevant follow-up questions tailored to the conversation (in the same language as user prompt).`;
