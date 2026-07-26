@@ -269,7 +269,7 @@ export default function FloatingChatWidget() {
       return;
     }
 
-    const cacheKey = `11ai_welcome_${user.uid}_${isAr ? "ar" : "en"}`;
+    const cacheKey = `11ai_welcome_v3_${user.uid}_${isAr ? "ar" : "en"}`;
     const cached = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
     if (cached) {
       try {
@@ -279,35 +279,101 @@ export default function FloatingChatWidget() {
       } catch (e) {}
     }
 
+    let isMounted = true;
     setAiWelcomeLoading(true);
-    const timer = setTimeout(() => {
+
+    const fetchLiveAiGreeting = async () => {
       const playerName = profile?.fullName || user?.displayName || (isAr ? "كابتن" : "Captain");
       const playerOvr = profile ? getPlayerOverall(profile) : 72;
       const playerPos = profile?.primaryPosition
         ? (isAr ? (profile.primaryPosition === "DMF" ? "لاعب وسط دفاعي" : profile.primaryPosition) : profile.primaryPosition)
         : (isAr ? "لاعب وسط" : "Midfielder");
+      const goals = profile?.stats?.goals || 0;
+      const assists = profile?.stats?.assists || 0;
 
-      const greeting = isAr
-        ? `⚽ **مرحباً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${profile?.stats?.goals || 0} أهداف | ${profile?.stats?.assists || 0} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
-        : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${profile?.stats?.goals || 0} Goals | ${profile?.stats?.assists || 0} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`;
+      const systemPrompt = isAr
+        ? `أنت 11AI — المحلل التكتيكي والمدرب الشخصي في منصة 11Players.
+قم بتوليد رسالة ترحيبية تكتيكية حية ومخصصة بأسلوب كروي راقٍ ومحفز للاعب:
+- اسم اللاعب: ${playerName}
+- المركز: ${playerPos}
+- التقييم الإجمالي (OVR): ${playerOvr}
+- إحصائياته: ${goals} أهداف | ${assists} صناعة
 
-      const msgs: AIChatMsg[] = [
-        {
-          id: "welcome",
-          sender: "ai",
-          text: greeting,
-          timestamp: Date.now(),
-        },
-      ];
+اكتب الترحيب بتنسيق Markdown جذاب ومقسّم بأسلوب:
+⚽ **مرحباً بك يا كابتن ${playerName}!**
+أنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.
 
-      setAiMessages(msgs);
-      setAiWelcomeLoading(false);
-      if (typeof window !== "undefined") {
-        sessionStorage.setItem(cacheKey, JSON.stringify(msgs));
+📊 **ملخص حالتك الحالية:**
+- **المركز:** ${playerPos}
+- **التقييم:** ${playerOvr}
+- **الأهداف والتمريرات:** ${goals} أهداف | ${assists} صناعة
+
+ثم أضف نصيحة تكتيكية قصيرة ومشجعة تعتمد على مركزه وتقييمه في سطرين، مع دعوته لطرح أسئلته التكتيكية.`
+        : `You are 11AI — Elite Tactical Analyst & Personal Career Coach on 11Players.
+Generate a personalized, high-energy tactical welcome greeting for:
+- Player: ${playerName}
+- Position: ${playerPos}
+- OVR Rating: ${playerOvr}
+- Stats: ${goals} Goals | ${assists} Assists
+
+Format nicely in Markdown:
+⚽ **Welcome back, Captain ${playerName}!**
+I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.
+
+📊 **Your Live Status:**
+- **Position:** ${playerPos}
+- **Rating (OVR):** ${playerOvr}
+- **Stats:** ${goals} Goals | ${assists} Assists
+
+Add a 2-line custom tactical motivation tailored to their position and rating.`;
+
+      try {
+        const aiRes = await call11AIChat({
+          message: systemPrompt,
+          playerContext: {
+            fullName: playerName,
+            overall: playerOvr,
+            primaryPosition: playerPos,
+            goals,
+            assists,
+          },
+          communityRoster: [],
+          history: [],
+        });
+
+        if (!isMounted) return;
+
+        const liveText = aiRes?.reply || (isAr
+          ? `⚽ **مرحباً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${goals} أهداف | ${profile?.stats?.assists || 0} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
+          : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${goals} Goals | ${assists} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`);
+
+        const msgs: AIChatMsg[] = [
+          {
+            id: "welcome",
+            sender: "ai",
+            text: liveText,
+            timestamp: Date.now(),
+          },
+        ];
+
+        setAiMessages(msgs);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem(cacheKey, JSON.stringify(msgs));
+        }
+      } catch (err) {
+        console.warn("Failed to fetch live AI welcome message:", err);
+      } finally {
+        if (isMounted) {
+          setAiWelcomeLoading(false);
+        }
       }
-    }, 600);
+    };
 
-    return () => clearTimeout(timer);
+    fetchLiveAiGreeting();
+
+    return () => {
+      isMounted = false;
+    };
   }, [profile, user, isAr]);
 
   // Full Chat Shared State (Community & Support)
@@ -871,35 +937,26 @@ export default function FloatingChatWidget() {
                             className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-xl pl-8 rtl:pl-2 rtl:pr-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-500/30"
                           />
                         </div>
-                        <div className="flex bg-slate-900 p-0.5 rounded-xl border border-slate-800 relative">
-                          <button
-                            type="button"
-                            onClick={() => setSupportFilter("all")}
-                            className={`relative px-2.5 py-1 rounded-lg text-[10px] font-black transition-colors ${supportFilter === "all" ? "text-white" : "text-slate-400"}`}
-                          >
-                            {supportFilter === "all" && (
-                              <motion.div
-                                layoutId="supportFilterPill"
-                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                className="absolute inset-0 bg-emerald-600 rounded-lg shadow -z-10"
-                              />
-                            )}
-                            {isAr ? "الكل" : "All"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSupportFilter("unread")}
-                            className={`relative px-2.5 py-1 rounded-lg text-[10px] font-black transition-colors ${supportFilter === "unread" ? "text-white" : "text-slate-400"}`}
-                          >
-                            {supportFilter === "unread" && (
-                              <motion.div
-                                layoutId="supportFilterPill"
-                                transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                                className="absolute inset-0 bg-emerald-600 rounded-lg shadow -z-10"
-                              />
-                            )}
-                            {isAr ? "غير مقروء" : "Unread"}
-                          </button>
+                        <div className="p-1 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-1 relative shadow-inner">
+                          {(["all", "unread"] as const).map((f) => (
+                            <button
+                              key={f}
+                              type="button"
+                              onClick={() => setSupportFilter(f)}
+                              className={`relative px-3 py-1 rounded-lg text-xs font-black transition-colors flex items-center justify-center z-10 ${
+                                supportFilter === f ? "text-white" : "text-slate-400 hover:text-white"
+                              }`}
+                            >
+                              {supportFilter === f && (
+                                <motion.div
+                                  layoutId="supportFilterPill"
+                                  transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                                  className="absolute inset-0 bg-emerald-600 rounded-lg shadow-md -z-10"
+                                />
+                              )}
+                              <span>{f === "all" ? (isAr ? "الكل" : "All") : (isAr ? "غير مقروء" : "Unread")}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
 
