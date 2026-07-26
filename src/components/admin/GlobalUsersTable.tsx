@@ -328,9 +328,15 @@ export default function GlobalUsersTable() {
         </div>
       </div>
 
-      {/* Table View (Supports Touch & Horizontal Scroll) */}
-      <div className="w-full overflow-x-auto touch-pan-x scrollbar-thin rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
-        <table className="w-full min-w-[850px] text-left rtl:text-right border-collapse">
+      {/* Table View (Supports Touch & Visible Horizontal Scroll) */}
+      <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl touch-pan-x [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar-track]:bg-slate-100 dark:[&::-webkit-scrollbar-track]:bg-slate-800/80 [&::-webkit-scrollbar-thumb]:bg-emerald-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-emerald-400">
+        
+        {/* Scroll hint for smaller screens */}
+        <div className="md:hidden bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
+          <span>👈 {isAr ? "قم بالحب/التمرير يميناً ويساراً لرؤية التفاصيل" : "Swipe / Scroll left & right to view all columns"} 👉</span>
+        </div>
+
+        <table className="w-full min-w-[950px] text-left rtl:text-right border-collapse">
           <thead>
             <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
               <th 

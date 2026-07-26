@@ -20,35 +20,21 @@ export default function Home() {
   const [loginInProgress, setLoginInProgress] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [publicStats, setPublicStats] = useState({
-    players: "40",
-    communities: "3",
-    avgRating: "7.8",
-    matches: "100"
+    players: "0",
+    communities: "0",
+    avgRating: "71",
+    matches: "0"
   });
 
   useEffect(() => {
     let isMounted = true;
     const fetchStats = async () => {
-      let realPlayers = 40;
-      let realCommunities = 3;
-      let realMatches = 100;
-      let realRating = 7.8;
+      let realPlayers = 0;
+      let realCommunities = 0;
+      let realMatches = 0;
+      let realRating = 71;
 
-      // 1. Try reading public_stats first (accessible without auth)
-      try {
-        const statsDoc = await getDoc(doc(db, "system", "public_stats"));
-        if (statsDoc.exists()) {
-          const data = statsDoc.data();
-          if (data.totalPlayers !== undefined && data.totalPlayers > 0) realPlayers = data.totalPlayers;
-          if (data.totalCommunities !== undefined && data.totalCommunities > 0) realCommunities = data.totalCommunities;
-          if (data.totalMatches !== undefined && data.totalMatches > 0) realMatches = data.totalMatches;
-          if (data.avgRating !== undefined && data.avgRating > 0) realRating = data.avgRating;
-        }
-      } catch (err) {
-        console.warn("Public stats doc read notice:", err);
-      }
-
-      // 2. Try fetching live collections (if permitted)
+      // 1. Try fetching live collections across all communities
       try {
         const playersSnap = await getDocs(collection(db, "players"));
         if (playersSnap.size > 0) {
@@ -57,50 +43,66 @@ export default function Home() {
           let ratedPlayerCount = 0;
           playersSnap.forEach((d) => {
             const pData = d.data();
-            const r = pData.overallRating || pData.rating || (pData.stats && pData.stats.overallRating);
+            const r = pData.overallRating || (pData.stats && pData.stats.overallRating) || 70;
             if (r && typeof r === "number" && r > 0) {
-              totalRatingSum += r;
+              const ovr = r <= 10 ? Math.round(r * 10) : r;
+              totalRatingSum += ovr;
               ratedPlayerCount++;
             }
           });
           if (ratedPlayerCount > 0) {
-            realRating = totalRatingSum / ratedPlayerCount;
+            realRating = Math.round(totalRatingSum / ratedPlayerCount);
           }
         }
       } catch (e) {
-        // Unauthenticated access rule fallback
+        // Unauthenticated fallback
       }
 
       try {
         const communitiesSnap = await getDocs(collection(db, "communities"));
         if (communitiesSnap.size > 0) {
           realCommunities = communitiesSnap.size;
-          let matchesCount = 0;
+          let recordedMatchesCount = 0;
           await Promise.all(
             communitiesSnap.docs.map(async (commDoc) => {
               try {
                 const commMatchesSnap = await getDocs(collection(db, "communities", commDoc.id, "matches"));
                 commMatchesSnap.forEach((mDoc) => {
-                  if (mDoc.id !== "latest") matchesCount++;
+                  if (mDoc.id !== "latest") {
+                    recordedMatchesCount++;
+                  }
                 });
               } catch (e) {}
             })
           );
-          if (matchesCount > 0) {
-            realMatches = matchesCount;
-          }
+          realMatches = recordedMatchesCount;
         }
       } catch (e) {
-        // Unauthenticated access rule fallback
+        // Unauthenticated fallback
       }
 
-      const displayAvg = realRating > 10 ? realRating / 10 : realRating;
+      // 2. Read cached system public_stats doc if needed
+      try {
+        const statsDoc = await getDoc(doc(db, "system", "public_stats"));
+        if (statsDoc.exists()) {
+          const data = statsDoc.data();
+          if (realPlayers === 0 && data.totalPlayers !== undefined) realPlayers = data.totalPlayers;
+          if (realCommunities === 0 && data.totalCommunities !== undefined) realCommunities = data.totalCommunities;
+          if (data.totalMatches !== undefined) realMatches = data.totalMatches;
+          if (data.avgRating !== undefined && data.avgRating > 0) {
+            const r = data.avgRating;
+            realRating = r <= 10 ? Math.round(r * 10) : Math.round(r);
+          }
+        }
+      } catch (err) {
+        console.warn("Public stats doc read notice:", err);
+      }
 
       if (isMounted) {
         setPublicStats({
           players: `${realPlayers}`,
           communities: `${realCommunities}`,
-          avgRating: displayAvg.toFixed(1),
+          avgRating: `${Math.round(realRating)}`,
           matches: `${realMatches}`
         });
       }
@@ -250,19 +252,19 @@ export default function Home() {
     }
   ];
 
-  const formatStatDisplay = (val: string, prefix = true) => {
+  const formatStatDisplay = (val: string, isRating = false) => {
     if (val === "...") return "...";
     const num = parseFloat(val);
     if (isNaN(num)) return val;
-    if (!prefix || num === 0) return `${val}`;
-    return `+${val}`;
+    if (isRating) return `${Math.round(num)}`;
+    return num > 0 ? `${num}+` : `${num}`;
   };
 
   const statsList = [
     { value: formatStatDisplay(publicStats.players), label: isAr ? "لاعب مسجل" : "Registered Players" },
     { value: formatStatDisplay(publicStats.communities), label: isAr ? "مجتمعات نشطة" : "Active Communities" },
-    { value: formatStatDisplay(publicStats.avgRating, false), label: isAr ? "متوسط التقييم" : "Avg Rating" },
-    { value: formatStatDisplay(publicStats.matches), label: isAr ? "مباراة ملعوبة" : "Matches Played" },
+    { value: formatStatDisplay(publicStats.avgRating, true), label: isAr ? "متوسط التقييم العام (OVR)" : "Platform OVR Avg" },
+    { value: formatStatDisplay(publicStats.matches), label: isAr ? "مباراة ملعوبة" : "Matches Recorded" },
   ];
 
   if (authLoading || isRedirecting) {
