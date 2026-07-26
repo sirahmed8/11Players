@@ -13,12 +13,6 @@ export default function GuidePage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const [activeTab, setActiveTab] = useState<Tab>('overview');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 350);
-    return () => clearTimeout(t);
-  }, []);
 
   const tabs: { id: Tab; label: string; Icon: React.FC<any>; color: string }[] = [
     { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-blue-500" },
@@ -28,73 +22,6 @@ export default function GuidePage() {
     { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
     { id: 'rules', label: isAr ? "القوانين" : "Rules", Icon: Scale, color: "text-emerald-500" },
   ];
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>
-        <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
-          
-          {/* Real Luxury Sidebar during loading */}
-          <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-              <h2 className="text-xl font-black text-blue-600 dark:text-blue-400 mb-4 px-2">
-                {isAr ? "دليل 11Players" : "11Players Guide"}
-              </h2>
-              <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
-                {tabs.map((tab, idx) => {
-                  const isActive = idx === 0;
-                  return (
-                    <div
-                      key={tab.id}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
-                        isActive 
-                        ? 'bg-blue-600 text-white font-bold shadow-md' 
-                        : 'text-slate-600 dark:text-slate-400 opacity-75'
-                      }`}
-                    >
-                      <span className={`text-xl ${isActive ? 'text-white' : tab.color}`}>
-                        <tab.Icon className="w-5 h-5" />
-                      </span>
-                      <span>{tab.label}</span>
-                    </div>
-                  );
-                })}
-              </nav>
-            </div>
-          </div>
-
-          {/* Luxury Shimmering Main Content Box */}
-          <div className="flex-1 min-w-0 min-h-[80vh]">
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-10 shadow-xl border border-slate-200 dark:border-slate-800 space-y-8 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 dark:via-blue-400/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-              
-              <div className="space-y-4">
-                <div className="h-9 w-72 bg-slate-200 dark:bg-slate-800 rounded-2xl" />
-                <div className="h-5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
-                <div className="h-5 w-5/6 bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
-              </div>
-
-              <div className="space-y-4 pt-2">
-                <div className="h-7 w-64 bg-blue-500/20 rounded-xl" />
-                <div className="h-5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
-                <div className="h-5 w-4/5 bg-slate-100 dark:bg-slate-800/80 rounded-xl" />
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 h-16 w-full mt-4" />
-              </div>
-
-              <div className="grid gap-4 pt-2">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 h-24 space-y-3">
-                    <div className="h-6 w-40 bg-slate-200 dark:bg-slate-700/60 rounded-lg" />
-                    <div className="h-4 w-full bg-slate-100 dark:bg-slate-800 rounded-md" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>

@@ -45,20 +45,7 @@ export default function Sidebar() {
     }
   });
 
-  // Auto-scroll sidebar container to active link on route load
-  useEffect(() => {
-    if (activeLinkRef.current) {
-      try {
-        activeLinkRef.current.scrollIntoView({
-          block: "nearest",
-          inline: "nearest",
-          behavior: "instant" as ScrollBehavior,
-        });
-      } catch (e) {}
-    }
-  }, [pathname]);
-
-  // Close sidebar on route change for mobile
+  // Reset sidebar mobile open state on route change
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
@@ -365,15 +352,15 @@ export default function Sidebar() {
     }
   ];
 
-  // Public pages should not reserve sidebar/top-bar space for guests.
-  const isGuest = (!user && !authLoading && !hasCachedUser) || (authLoading && !hasCachedUser);
+  // Public pages should not reserve sidebar space for guests.
+  const isDefinitelyGuest = !user && !authLoading && !hasCachedUser;
 
-  if (isGuest && PUBLIC_ROUTES.includes(pathname)) {
+  if (isDefinitelyGuest && PUBLIC_ROUTES.includes(pathname)) {
     return null;
   }
 
   // Hide sidebar completely when user is not logged in
-  if (!user && !authLoading && !hasCachedUser) {
+  if (isDefinitelyGuest) {
     return null;
   }
   
