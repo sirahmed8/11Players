@@ -29,28 +29,36 @@ export default function GuidePage() {
       <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar Navigation */}
-        <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800">
-            <h2 className="text-xl font-black text-blue-600 dark:text-blue-400 mb-4 px-2">
-              {isAr ? "دليل 11Players" : "11Players Guide"}
-            </h2>
-            <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
+        <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start min-w-0">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden min-w-0">
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h2 className="text-xl font-black text-blue-600 dark:text-blue-400">
+                {isAr ? "دليل 11Players" : "11Players Guide"}
+              </h2>
+              <span className="text-[10px] font-bold text-slate-400 lg:hidden uppercase tracking-wider">
+                {isAr ? "اسحب للتصفح ←" : "Swipe tabs →"}
+              </span>
+            </div>
+            <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-thin scrollbar-thumb-blue-500/30 touch-pan-x w-full">
               {tabs.map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all whitespace-nowrap ${
+                    onClick={(e) => {
+                      setActiveTab(tab.id);
+                      e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }}
+                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap shrink-0 ${
                       isActive 
-                      ? 'bg-blue-600 text-white font-bold shadow-md' 
+                      ? 'bg-blue-600 text-white font-bold shadow-md scale-[1.02]' 
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                     }`}
                   >
-                    <span className={`text-xl ${isActive ? 'text-white' : tab.color}`}>
-                      <tab.Icon className="w-5 h-5" />
+                    <span className={`text-lg shrink-0 ${isActive ? 'text-white' : tab.color}`}>
+                      <tab.Icon className="w-4 h-4 sm:w-5 sm:h-5" />
                     </span>
-                    <span>{tab.label}</span>
+                    <span className="text-xs sm:text-sm">{tab.label}</span>
                   </button>
                 );
               })}
