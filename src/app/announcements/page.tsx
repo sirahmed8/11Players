@@ -266,16 +266,15 @@ export default function AnnouncementsPage() {
       <div className="min-h-screen bg-slate-950 text-white py-8 px-4 sm:px-6 transition-colors" dir={isAr ? 'rtl' : 'ltr'}>
         <div className="max-w-5xl mx-auto space-y-6">
           
-          {/* Header Banner */}
-          <div className="bg-slate-900/90 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden backdrop-blur-xl">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+          {/* Header Banner - Solid Color Card */}
+          <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 shadow-lg">
-                <Megaphone className="w-7 h-7 text-emerald-400 animate-pulse" />
+              <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-emerald-400 shrink-0 shadow-md">
+                <Megaphone className="w-7 h-7 text-emerald-400" />
               </div>
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-400 border border-emerald-800 mb-1.5 shadow-sm">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-400 animate-spin" />
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{isAr ? "مركز بث الإشعارات المدعوم بالذكاء الاصطناعي" : "AI-Powered Push Broadcast Center"}</span>
                 </span>
                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
