@@ -276,14 +276,10 @@ export default function FloatingChatWidget() {
       return;
     }
 
-    const cacheKey = `11ai_welcome_v4_${user.uid}_${isAr ? "ar" : "en"}`;
-    const cached = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
-    if (cached) {
-      try {
-        setAiMessages(JSON.parse(cached));
-        setAiWelcomeLoading(false);
-        return;
-      } catch (e) {}
+    // If AI messages already loaded in current session memory, don't re-generate
+    if (aiMessages.length > 0) {
+      setAiWelcomeLoading(false);
+      return;
     }
 
     let isMounted = true;
@@ -369,9 +365,6 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
         ];
 
         setAiMessages(msgs);
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem(cacheKey, JSON.stringify(msgs));
-        }
       } catch (err) {
         console.warn("Failed to fetch live AI welcome message:", err);
       } finally {
