@@ -380,7 +380,7 @@ export default function InboxPage() {
             </div>
 
             {/* Right Area: Chat Window */}
-            <div className={`${!activeThreadId ? 'hidden md:flex' : 'flex'} flex-1 flex-col relative bg-slate-50/50 dark:bg-slate-950/50`}>
+            <div className={`${!activeThreadId ? 'hidden md:flex' : 'flex'} flex-1 flex-col relative bg-slate-50/50 dark:bg-slate-950/50 min-w-0 overflow-hidden`}>
               
               {!activeThreadId ? (
                 <div className="flex-1 flex flex-col items-center justify-center text-slate-600 dark:text-slate-400 p-8 text-center">
@@ -401,44 +401,44 @@ export default function InboxPage() {
               ) : (
                 <>
                   {/* Chat Header */}
-                  <div className="bg-white dark:bg-slate-900 px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between z-20 shadow-sm flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                      <button type="button" onClick={() => setActiveThreadId(null)} className="md:hidden p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors">
+                  <div className="bg-white dark:bg-slate-900 px-4 sm:px-5 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 z-20 shadow-sm flex-shrink-0 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <button type="button" onClick={() => setActiveThreadId(null)} className="md:hidden p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors shrink-0">
                         <ArrowLeft className="w-5 h-5" />
                       </button>
                       
-                      <div className="relative">
+                      <div className="relative shrink-0">
                         {activeThread?.userPic ? (
-                          <Image src={activeThread.userPic} alt="" className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" width={40} height={40} referrerPolicy="no-referrer" />
+                          <Image src={activeThread.userPic} alt="" className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-sm" width={40} height={40} referrerPolicy="no-referrer" />
                         ) : (
-                          <div className="w-10 h-10 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-white text-base shadow-sm">
+                          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-amber-500 flex items-center justify-center font-black text-white text-base shadow-sm">
                             {activeThread?.userName?.charAt(0) || "U"}
                           </div>
                         )}
                         <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
                       </div>
 
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="font-black text-base text-slate-900 dark:text-white leading-tight">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h2 className="font-black text-sm sm:text-base text-slate-900 dark:text-white leading-tight truncate">
                             {activeThread?.userName || "Player"}
                           </h2>
-                          <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md font-mono">
+                          <span className="hidden sm:inline-block text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-500 px-2 py-0.5 rounded-md font-mono shrink-0">
                             ID: {activeThread?.id?.slice(0, 8)}...
                           </span>
                         </div>
-                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 mt-0.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse" />
-                          {isAr ? "نشط ومتاح الآن" : "Active Now • Online"}
+                        <p className="text-[11px] sm:text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1 mt-0.5 truncate">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse shrink-0" />
+                          <span className="truncate">{isAr ? "نشط ومتاح الآن" : "Active Now • Online"}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={(e) => handleTogglePinThread(e, activeThread!.id, activeThread!.isPinned)}
-                        className={`p-2 rounded-2xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
+                        className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-bold ${
                           activeThread?.isPinned
                             ? 'bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400'
                             : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
@@ -446,38 +446,38 @@ export default function InboxPage() {
                         title={activeThread?.isPinned ? (isAr ? "إلغاء التثبيت" : "Unpin Chat") : (isAr ? "تثبيت المحادثة" : "Pin Chat")}
                       >
                         {activeThread?.isPinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-                        <span className="hidden sm:inline">{activeThread?.isPinned ? (isAr ? "مثبتة" : "Pinned") : (isAr ? "تثبيت" : "Pin")}</span>
+                        <span className="hidden lg:inline">{activeThread?.isPinned ? (isAr ? "مثبتة" : "Pinned") : (isAr ? "تثبيت" : "Pin")}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setActiveThreadId(null)}
-                        className="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 text-xs font-bold"
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-1.5 text-xs font-bold"
                         title={isAr ? "إغلاق نافذة المحادثة" : "Close Chat Screen"}
                       >
                         <X className="w-4 h-4" />
-                        <span className="hidden sm:inline">{isAr ? "إغلاق" : "Close"}</span>
+                        <span className="hidden lg:inline">{isAr ? "إغلاق" : "Close"}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setThreadToDelete(activeThread!.id)}
-                        className="p-2 rounded-2xl bg-red-500/10 border border-red-500/30 hover:bg-red-500 text-red-500 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
+                        className="p-2 rounded-xl bg-red-500/10 border border-red-500/30 hover:bg-red-500 text-red-500 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold"
                         title={isAr ? "حذف المحادثة" : "Delete Chat"}
                       >
                         <Trash2 className="w-4 h-4" />
-                        <span className="hidden md:inline">{isAr ? "حذف" : "Delete"}</span>
+                        <span className="hidden lg:inline">{isAr ? "حذف" : "Delete"}</span>
                       </button>
 
                       <Link
                         href={`/profile?uid=${activeThread?.id}`}
                         target="_blank"
-                        className="p-2 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all flex items-center gap-1.5 text-xs font-bold border border-slate-200 dark:border-slate-700"
+                        className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all flex items-center gap-1.5 text-xs font-bold border border-slate-200 dark:border-slate-700"
                         title={isAr ? "عرض الملف الشخصي" : "View Profile"}
                       >
                         <User className="w-4 h-4" />
-                        <span className="hidden sm:inline">{isAr ? "الملف" : "Profile"}</span>
-                        <ExternalLink className="w-3 h-3 opacity-60" />
+                        <span className="hidden lg:inline">{isAr ? "الملف" : "Profile"}</span>
+                        <ExternalLink className="w-3 h-3 opacity-60 hidden lg:inline" />
                       </Link>
                     </div>
                   </div>
