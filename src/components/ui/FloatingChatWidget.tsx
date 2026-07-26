@@ -40,6 +40,7 @@ function FormattedText({ content }: { content: string }) {
         const isBullet = trimmed.startsWith("- ") || trimmed.startsWith("• ") || trimmed.startsWith("* ");
         const cleanText = isBullet ? trimmed.replace(/^[-•*]\s*/, "") : trimmed;
 
+        // Split by markdown bold **text** first
         const parts = cleanText.split(/(\*\*.*?\*\*)/g);
         const formattedLine = parts.map((part, pIdx) => {
           if (part && part.startsWith("**") && part.endsWith("**")) {
@@ -49,7 +50,18 @@ function FormattedText({ content }: { content: string }) {
               </strong>
             );
           }
-          return part;
+          // Auto-highlight brand name "11Players" and cardNames in parens e.g. (RADWAN)
+          const subParts = part.split(/(\b11Players\b|\([A-Z0-9\s_]{2,15}\))/g);
+          return subParts.map((sub, sIdx) => {
+            if (sub === "11Players" || (sub.startsWith("(") && sub.endsWith(")") && /^\([A-Z0-9\s_]{2,15}\)$/.test(sub))) {
+              return (
+                <strong key={sIdx} className="font-black text-emerald-300 inline-block [unicode-bidi:isolate]">
+                  {sub}
+                </strong>
+              );
+            }
+            return sub;
+          });
         });
 
         if (isBullet) {

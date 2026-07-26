@@ -178,10 +178,11 @@ ${rosterSummary}
 Strict Behavioral & Data Access Guidelines:
 1. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g. "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
 2. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
-3. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
-4. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
-5. Match response length to user prompt length. If the user sends a short phrase or greeting, respond concisely in 1-2 natural sentences without unsolicited long lectures.
-6. At the very end of your response, ALWAYS add a line formatted exactly as:
+3. ALWAYS highlight key player names, card names in parentheses, OVR ratings, positions, stats, and "11Players" using Markdown bold syntax **text** (e.g. **11Players**, **يوسف راضوان (RADWAN)**, **81 OVR**, **عماد عادل (OMDA)**, **79**). This ensures key details render in bright emerald green text!
+4. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
+5. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
+6. Match response length to user prompt length. If the user sends a short phrase or greeting, respond concisely in 1-2 natural sentences without unsolicited long lectures.
+7. At the very end of your response, ALWAYS add a line formatted exactly as:
 [SUGGESTIONS: Question 1 | Question 2 | Question 3]`;
 
   return generate11AIResponse({
@@ -201,24 +202,24 @@ function generateSmartFallbackReply(message: string, systemPrompt: string, isAr:
   if (isAr) {
     if (msgLower.includes("ضعف") || msgLower.includes("تقييم") || msgLower.includes("ovr")) {
       return {
-        reply: "لرفع تقييمك الـ OVR بشكل ملحوظ، ركّز على تحسين معدل التمرير الناجح والتمركز الصحيح في الملعب، مع الاستمرار في تسجيل الأهداف وصناعة الفرص لزملائك!",
+        reply: "لرفع تقييمك الـ **OVR** بشكل ملحوظ في منصة **11Players**، ركّز على تحسين معدل التمرير الناجح والتمركز الصحيح في الملعب، مع الاستمرار في تسجيل الأهداف وصناعة الفرص لزملائك!",
         suggestedPrompts: ["من هم أفضل اللاعبين في مركزي؟", "استراتيجية الاستعداد للمباراة", "كيف أحصل على جائزة أفضل لاعب؟"],
       };
     }
-    if (msgLower.includes("أفضل") || msgLower.includes("مركز") || msgLower.includes("منافس")) {
+    if (msgLower.includes("أفضل") || msgLower.includes("مركز") || msgLower.includes("منافس") || msgLower.includes("قدرات")) {
       return {
-        reply: "منافسوك في المنصة يتطورون بسرعة! حافظ على حضورك في المباريات القادمة وراقب إحصائيات المتصدرين في لوحة المتصدرين لتتفوق عليهم.",
+        reply: "أعلى لاعب تقييماً في منصة **11Players** هو الكابتن **يوسف راضوان (RADWAN)** بتقييم **81**، ويليه الكابتن **محمد مبروك (HAMO)** بتقييم **80**، ثم الكابتن **عماد عادل (OMDA)** بتقييم **79**!",
         suggestedPrompts: ["كيف ارفع تقييمي الـ OVR؟", "استراتيجية الاستعداد للمباراة", "طريقة تنظيم التكتيك"],
       };
     }
     return {
-      reply: "أهلاً بك يا كابتن! بصفتي 11AI، أنا هنا لمساعدتك في تحليل أداءك وتطوير مهاراتك التكتيكية في الملعب. كيف يمكنني دعمك اليوم؟",
+      reply: "أهلاً بك يا كابتن! بصفتي **11AI**، أنا هنا لمساعدتك في تحليل أداءك وتطوير مهاراتك التكتيكية في منصة **11Players**. كيف يمكنني دعمك اليوم؟",
       suggestedPrompts: ["تحليل نقاط القوة والضعف", "من هم أفضل اللاعبين في مركزي؟", "استراتيجية الاستعداد للمباراة"],
     };
   }
 
   return {
-    reply: "Welcome Captain! To boost your OVR rating, focus on key position attributes, maintain consistent passing accuracy, and keep contributing goals & assists.",
+    reply: "Welcome Captain! To boost your **OVR** rating on **11Players**, focus on key position attributes, maintain consistent passing accuracy, and keep contributing goals & assists.",
     suggestedPrompts: ["Analyze my OVR & weakness", "Who are top players in my position?", "Match preparation strategy"],
   };
 }
