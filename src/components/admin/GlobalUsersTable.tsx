@@ -304,8 +304,8 @@ export default function GlobalUsersTable() {
 
   return (
     <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col h-full">
-      <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-800">
-        <div className="flex items-center gap-3">
+      <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-800">
+        <div className="flex items-center gap-3 shrink-0">
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
             {isAr ? "جميع المستخدمين" : "All Users"}
           </h2>
@@ -314,52 +314,52 @@ export default function GlobalUsersTable() {
           </span>
         </div>
         
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end flex-wrap sm:flex-nowrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           <button
             onClick={handleApplyAIToAllGlobalUsers}
-            className="flex items-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-4 py-2.5 text-xs font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95 shrink-0"
+            className="flex items-center justify-center gap-2 rounded-xl bg-purple-600 hover:bg-purple-500 px-3.5 py-2.5 text-xs font-black text-white shadow-md shadow-purple-600/20 transition-all active:scale-95 shrink-0"
             title={isAr ? "تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لجميع اللاعبين" : "Apply AI best position & play style to all users"}
           >
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse shrink-0" />
             <span>{isAr ? "تطبيق خيار الذكاء الاصطناعي للجميع" : "Apply AI Best to All"}</span>
           </button>
-          <div className="relative w-full sm:w-72">
-            <Search className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <div className="relative w-full sm:w-64 min-w-0">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input 
               type="text" 
               placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-sm"
+              className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs font-medium"
             />
           </div>
         </div>
       </div>
-      {/* Desktop Table View */}
-      <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
-        <table className="w-full text-left border-collapse">
+      {/* Table View (Supports Touch & Horizontal Scroll) */}
+      <div className="w-full overflow-x-auto scrollbar-thin rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl">
+        <table className="w-full min-w-[700px] text-left border-collapse">
           <thead>
             <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
               <th 
-                className="px-6 py-4 text-sm font-semibold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group"
+                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[200px]"
                 onClick={() => handleSort('fullName')}
               >
                 <div className="flex items-center gap-2">
                   {isAr ? "المستخدم" : "User"}
-                  <ArrowUpDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500" />
                 </div>
               </th>
               <th 
-                className="px-6 py-4 text-sm font-semibold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group"
+                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[220px]"
                 onClick={() => handleSort('email')}
               >
                 <div className="flex items-center gap-2">
                   {isAr ? "البريد الإلكتروني" : "Email"}
-                  <ArrowUpDown className="w-4 h-4 text-slate-400 group-hover:text-emerald-500" />
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500" />
                 </div>
               </th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500">{isAr ? "المجتمعات" : "Communities"}</th>
-              <th className="px-6 py-4 text-sm font-semibold text-slate-500 text-right">{isAr ? "إجراءات" : "Actions"}</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 min-w-[160px]">{isAr ? "المجتمعات" : "Communities"}</th>
+              <th className="px-6 py-4 text-xs font-bold text-slate-500 text-right min-w-[140px]">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
