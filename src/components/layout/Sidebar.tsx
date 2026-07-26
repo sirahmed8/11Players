@@ -358,7 +358,7 @@ export default function Sidebar() {
   ];
 
   // Public pages should not reserve sidebar space or flash skeleton for guests
-  if (PUBLIC_ROUTES.includes(pathname) && !hasCachedUser && !user) {
+  if (PUBLIC_ROUTES.includes(pathname) && !user) {
     return null;
   }
 
@@ -369,8 +369,7 @@ export default function Sidebar() {
     return null;
   }
   
-  // Show skeleton only while Firebase auth is resolving.
-  // activeCommunityId is read from localStorage synchronously, so no flicker needed for that.
+  // Show skeleton only while Firebase auth is resolving for logged in users
   if (authLoading) {
     return (
       <aside className="flex-shrink-0 z-50 md:w-80">
@@ -387,13 +386,19 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-        {/* Desktop sidebar - skeleton */}
-        <div className="hidden md:block fixed md:sticky top-0 md:top-4 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 z-50 rounded-3xl mx-4 shadow-2xl shadow-black/20"
+        {/* Desktop sidebar - skeleton with pulse items */}
+        <div
+          className="hidden md:block fixed md:sticky top-0 md:top-4 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 z-50 rounded-3xl mx-4 shadow-2xl shadow-black/20 p-4 space-y-4"
           style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
         >
-          <div className="flex items-center gap-3 p-6 border-b border-slate-200/50 dark:border-slate-800/50 rounded-t-3xl">
+          <div className="flex items-center gap-3 p-2 border-b border-slate-200/50 dark:border-slate-800/50 rounded-t-3xl pb-4">
             <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
             <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
+          </div>
+          <div className="space-y-3 pt-2">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="h-10 bg-slate-800/40 rounded-2xl animate-pulse" />
+            ))}
           </div>
         </div>
       </aside>

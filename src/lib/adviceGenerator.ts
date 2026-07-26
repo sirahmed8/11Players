@@ -3,7 +3,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
-const ADVICE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes per user request
+const ADVICE_COOLDOWN_MS = 2 * 60 * 60 * 1000; // 2 hours minimum between automated advice notifications
 
 interface BilingualAdvice {
   titleAr: string;
@@ -19,13 +19,13 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
     const q = query(
       notificationsRef,
       where("type", "==", "advices"),
-      limit(4)
+      orderBy("createdAt", "desc"),
+      limit(10)
     );
     const snap = await getDocs(q);
     
     const recentTitles = new Set<string>();
     if (!snap.empty) {
-      // Sort in memory or check timestamps
       let lastTime = 0;
       snap.docs.forEach(docSnap => {
         const data = docSnap.data();
@@ -35,7 +35,7 @@ export async function generatePersonalizedAdvices(userUid: string, profile: Play
         if (docTime > lastTime) lastTime = docTime;
       });
       if (Date.now() - lastTime < ADVICE_COOLDOWN_MS) {
-        return []; // Too soon to generate more advices
+        return []; // Cooldown active: max 1 notification every 2 hours
       }
     }
 

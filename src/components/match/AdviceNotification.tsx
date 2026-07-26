@@ -111,7 +111,7 @@ export default function AdviceNotification() {
     return () => unsub();
   }, [user, isAr]);
 
-  // --- Advice generator (after 1m then every 10 minutes while user is active on site) ---
+  // --- Advice generator (runs once after 15m, then every 2 hours while user is active) ---
   useEffect(() => {
     if (!user) return;
 
@@ -132,11 +132,11 @@ export default function AdviceNotification() {
 
     const initialTimeout = setTimeout(() => {
       fetchProfileAndGenerateAdvice();
-    }, 60 * 1000);
+    }, 15 * 60 * 1000);
 
     const interval = setInterval(() => {
       fetchProfileAndGenerateAdvice();
-    }, 10 * 60 * 1000);
+    }, 2 * 60 * 60 * 1000);
 
     return () => {
       clearTimeout(initialTimeout);

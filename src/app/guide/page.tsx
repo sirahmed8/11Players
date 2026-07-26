@@ -24,8 +24,8 @@ export default function GuidePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white transition-colors duration-300 pb-16" dir={isAr ? 'rtl' : 'ltr'}>
-      <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+    <div className="min-h-screen bg-slate-950 text-white transition-colors duration-300 pb-16 w-full max-w-full overflow-x-hidden" dir={isAr ? 'rtl' : 'ltr'}>
+      <main className="w-full max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8 items-start min-w-0">
         
         {/* Sidebar Navigation — Solid Dark Slate */}
         <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start min-w-0">
