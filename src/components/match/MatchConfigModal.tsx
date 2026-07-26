@@ -245,7 +245,12 @@ interface HalfPitchProps {
   onSwapClick?: (teamIndex: number | 'bench' | 'benchA' | 'benchB', playerIndex: number, player: any) => void;
   selectedForSwap?: any;
   teamIndex?: number;
-  onPositionDragChange?: (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => void;
+  onPositionDragChange?: (
+    teamId: 'A' | 'B' | number,
+    playerIndex: number,
+    newPos: PESPosition,
+    customCoords?: { x: number; y: number }
+  ) => void;
 }
 
 function HalfPitch({
@@ -309,7 +314,7 @@ function HalfPitch({
       else detectedPos = 'CF';
     }
 
-    onPositionDragChange(actualTeamIdx, playerIndex, detectedPos);
+    onPositionDragChange(actualTeamIdx, playerIndex, detectedPos, { x: dropX, y: actualY });
   };
 
   return (
@@ -347,7 +352,9 @@ function HalfPitch({
           }
 
           let coords: { x: number; y: number };
-          if (matchedSlotIdx >= 0) {
+          if (playerObj.customPitchCoords) {
+            coords = playerObj.customPitchCoords;
+          } else if (matchedSlotIdx >= 0) {
             usedSlotIndices.add(matchedSlotIdx);
             coords = coordsList[matchedSlotIdx];
           } else if (coordsList[i]) {
@@ -944,10 +951,18 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
       const fullAssignedA = assignPlayersToFormation(fullPoolA, formationA);
       const fullAssignedB = assignPlayersToFormation(fullPoolB, formationB);
 
-      const assignedA = fullAssignedA.slice(0, Math.min(slotsA, fullAssignedA.length));
+      const assignedA = fullAssignedA.slice(0, Math.min(slotsA, fullAssignedA.length)).map(p => {
+        const copy = { ...p };
+        delete (copy as any).customPitchCoords;
+        return copy;
+      });
       const newBenchA = fullAssignedA.slice(Math.min(slotsA, fullAssignedA.length)).map(p => ({ player: p, reason: 'Substitute (Bench)' }));
 
-      const assignedB = fullAssignedB.slice(0, Math.min(slotsB, fullAssignedB.length));
+      const assignedB = fullAssignedB.slice(0, Math.min(slotsB, fullAssignedB.length)).map(p => {
+        const copy = { ...p };
+        delete (copy as any).customPitchCoords;
+        return copy;
+      });
       const newBenchB = fullAssignedB.slice(Math.min(slotsB, fullAssignedB.length)).map(p => ({ player: p, reason: 'Substitute (Bench)' }));
 
       const teamAAvg = calculateTeamAvg(assignedA);
@@ -1000,7 +1015,12 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
 
   // ── Interactive Position & Mood Edit & Recalculate ──
-  const handleSetPlayerPosition = (teamId: 'A' | 'B' | number, playerIndex: number, newPos: PESPosition) => {
+  const handleSetPlayerPosition = (
+    teamId: 'A' | 'B' | number,
+    playerIndex: number,
+    newPos: PESPosition,
+    customCoords?: { x: number; y: number }
+  ) => {
     setPreviewData((prev: any) => {
       if (!prev) return prev;
       if (prev.matchMode === 'standard') {
@@ -1017,6 +1037,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           ...player,
           assignedPosition: newPos,
           isManualPosition: true,
+          customPitchCoords: customCoords || player.customPitchCoords,
           playStyle: newStyle,
           psi: newPsi,
           overallRating: effectiveOvr
@@ -1024,17 +1045,12 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
         const newAvg = Math.round(updatedTeam.reduce((acc, p) => acc + (p.overallRating || 70), 0) / updatedTeam.length);
 
-        const newFormationName = detectFormationFromTeam(updatedTeam);
-        if (teamKey === 'teamA') setSelectedFormationA(newFormationName);
-        if (teamKey === 'teamB') setSelectedFormationB(newFormationName);
+
 
         return {
           ...prev,
           [teamKey]: updatedTeam,
-          formation: {
-            ...(prev.formation || {}),
-            [teamKey]: newFormationName
-          },
+
           metrics: {
             ...prev.metrics,
             [teamKey === 'teamA' || teamId === 0 ? 'teamAOverall' : 'teamBOverall']: newAvg

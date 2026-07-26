@@ -240,12 +240,7 @@ export default function StatsPage() {
     if (selectedPosGroup === 'ALL') return players;
     const group = POS_GROUPS.find(g => g.id === selectedPosGroup);
     if (!group || !group.positions.length) return players;
-    return players.filter(p =>
-      group.positions.includes(p.primaryPosition) ||
-      (p.secondaryPosition && group.positions.includes(p.secondaryPosition)) ||
-      (p.tertiaryPosition && group.positions.includes(p.tertiaryPosition)) ||
-      (p.preferredPosition && group.positions.includes(p.preferredPosition))
-    );
+    return players.filter(p => group.positions.includes(p.primaryPosition));
   }, [players, selectedPosGroup]);
 
   const topScorers = React.useMemo(() => {
@@ -334,12 +329,7 @@ export default function StatsPage() {
                     {POS_GROUPS.map((grp) => {
                       const count = grp.id === 'ALL' 
                         ? players.length 
-                        : players.filter(p =>
-                            grp.positions.includes(p.primaryPosition) ||
-                            (p.secondaryPosition && grp.positions.includes(p.secondaryPosition)) ||
-                            (p.tertiaryPosition && grp.positions.includes(p.tertiaryPosition)) ||
-                            (p.preferredPosition && grp.positions.includes(p.preferredPosition))
-                          ).length;
+                        : players.filter(p => grp.positions.includes(p.primaryPosition)).length;
                       const isActive = selectedPosGroup === grp.id;
                       return (
                         <button
