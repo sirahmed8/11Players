@@ -18,6 +18,7 @@ import {
 import CommunityChallengeModal, { CommunityChallenge } from "@/components/community/CommunityChallengeModal";
 import CreateCommunityModal from "@/components/community/CreateCommunityModal";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 
 // ── Skeleton Grid ─────────────────────────────────────────────────────────────
 function SkeletonGrid() {

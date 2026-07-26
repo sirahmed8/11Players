@@ -87,6 +87,14 @@ export default function GlobalLeaderboardPage() {
     });
   }, [globalPlayers, searchQuery, selectedPosFilter, minOvrFilter, sortBy]);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 max-w-7xl mx-auto">
+        <SiteSkeletonLoader variant="global" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-white transition-colors pb-16" dir={isAr ? 'rtl' : 'ltr'}>
       {/* Background glow effects */}

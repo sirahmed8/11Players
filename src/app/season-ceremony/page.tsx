@@ -148,7 +148,7 @@ export default function SeasonCeremonyPage() {
   if (loading || loadingCommunity) {
     return (
       <ProtectedRoute requireCommunity>
-        <SiteSkeletonLoader />
+        <SiteSkeletonLoader variant="ceremony" />
       </ProtectedRoute>
     );
   }

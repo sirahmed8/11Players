@@ -218,8 +218,8 @@ export default function OwnerPage() {
   if (loading) {
     return (
       <ProtectedRoute ownerOnly>
-        <div className="min-h-screen bg-slate-950 text-white p-8">
-          <SiteSkeletonLoader variant="page" />
+        <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-8 max-w-7xl mx-auto">
+          <SiteSkeletonLoader variant="owner" />
         </div>
       </ProtectedRoute>
     );

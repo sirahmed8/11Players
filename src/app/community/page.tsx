@@ -146,6 +146,16 @@ export default function CommunityPage() {
     }
   };
 
+  if (loading) {
+    return (
+      <ProtectedRoute requireCommunity>
+        <div className="min-h-screen bg-slate-950 text-white p-6 max-w-7xl mx-auto">
+          <SiteSkeletonLoader variant="community" />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-950 text-white transition-colors pb-16" dir={isAr ? 'rtl' : 'ltr'}>
