@@ -127,28 +127,37 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
   // 3. Communities & Global Page Skeleton
   if (variant === "communities" || variant === "global" || variant === "cards") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 md:p-8 max-w-7xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        {/* Search & Filter Bar Skeleton */}
-        <div className="h-16 bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between relative overflow-hidden shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-64 h-8 bg-slate-800 rounded-xl" />
-          <div className="flex gap-2">
-            <div className="w-24 h-8 bg-slate-800 rounded-xl" />
-            <div className="w-24 h-8 bg-slate-800 rounded-xl" />
-          </div>
-        </div>
-
-        {/* Card Grid Skeleton */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-              <div className="flex justify-between items-center">
-                <div className="w-10 h-10 rounded-full bg-slate-800" />
-                <div className="w-14 h-6 bg-emerald-500/20 rounded-full" />
+      <div className="w-full max-w-full overflow-x-hidden space-y-6" dir={isAr ? "rtl" : "ltr"}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              
+              {/* Avatar left + Name & Rating right */}
+              <div className="flex items-start gap-3 justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 shrink-0" />
+                  <div className="space-y-2 min-w-0">
+                    <div className="w-28 h-5 bg-slate-800 rounded-md" />
+                    <div className="flex gap-1">
+                      <div className="w-8 h-4 bg-emerald-500/20 rounded-md" />
+                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
+                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+                <div className="w-14 h-7 bg-emerald-500/20 border border-emerald-500/30 rounded-xl shrink-0" />
               </div>
-              <div className="w-32 h-5 bg-slate-800 rounded-md" />
-              <div className="w-full h-12 bg-slate-950 rounded-xl border border-slate-800" />
+
+              <div className="space-y-1.5 pt-1">
+                <div className="w-36 h-3.5 bg-slate-800/80 rounded" />
+                <div className="w-28 h-3 bg-slate-800/50 rounded" />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                <div className="h-10 bg-emerald-600/30 border border-emerald-500/30 rounded-xl" />
+                <div className="h-10 bg-slate-800 rounded-xl" />
+              </div>
             </div>
           ))}
         </div>
@@ -156,32 +165,102 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 4. Community Page Skeleton
+  // 4. Community Page Skeleton (Home / Players) — Mirrors Real Page 1-to-1
   if (variant === "community") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-7xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        {/* Banner Skeleton */}
-        <div className="h-44 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-64 h-8 bg-slate-800 rounded-xl" />
-          <div className="flex gap-3">
-            <div className="w-28 h-10 bg-emerald-600/30 rounded-xl" />
-            <div className="w-28 h-10 bg-slate-800 rounded-xl" />
+      <div className="w-full max-w-full overflow-x-hidden space-y-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header section skeleton */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div className="space-y-2 min-w-0">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="w-44 sm:w-56 h-9 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              </div>
+              <div className="w-24 h-7 bg-emerald-500/15 border border-emerald-500/30 rounded-full relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              </div>
+            </div>
+            <div className="w-64 max-w-full h-4 bg-slate-900/60 rounded-md" />
+          </div>
+
+          <div className="flex flex-wrap gap-2.5 w-full md:w-auto items-center">
+            <div className="w-32 h-10 bg-emerald-500/10 border border-emerald-500/30 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+            <div className="flex-1 md:w-64 h-10 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+            <div className="w-36 h-10 bg-red-500/10 border border-red-500/30 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
           </div>
         </div>
 
-        {/* Tabs Bar */}
-        <div className="flex gap-3 border-b border-slate-800 pb-3">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="w-32 h-10 bg-slate-900 border border-slate-800 rounded-xl" />
-          ))}
+        {/* Top Tab Bar Skeleton (Player Directory / Community Pulse) */}
+        <div className="bg-slate-900/60 p-2 rounded-2xl border border-slate-800/80 shadow-sm flex items-center justify-between">
+          <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
+            <div className="w-36 sm:w-44 h-10 bg-gradient-to-r from-emerald-600/30 to-teal-600/30 border border-emerald-500/30 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+            <div className="w-36 sm:w-44 h-10 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+          </div>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-40 bg-slate-900 border border-slate-800 rounded-3xl p-5 relative overflow-hidden">
+        {/* Action Tools & Filters Bar Skeleton */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="w-36 h-9 bg-amber-500/10 border border-amber-500/30 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+            <div className="w-28 h-9 bg-emerald-500/10 border border-emerald-500/30 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <div className="w-32 flex-1 sm:flex-initial h-9 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+            <div className="w-28 flex-1 sm:flex-initial h-9 bg-slate-900 border border-slate-800 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            </div>
+          </div>
+        </div>
+
+        {/* PES-Style Player Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              
+              {/* Card Header: Avatar left + Name & Rating right */}
+              <div className="flex items-start gap-3 justify-between">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 shrink-0" />
+                  <div className="space-y-2 min-w-0">
+                    <div className="w-28 h-5 bg-slate-800 rounded-md" />
+                    <div className="flex gap-1">
+                      <div className="w-8 h-4 bg-emerald-500/20 rounded-md" />
+                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
+                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
+                    </div>
+                  </div>
+                </div>
+                <div className="w-14 h-7 bg-emerald-500/20 border border-emerald-500/30 rounded-xl shrink-0" />
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <div className="w-36 h-3.5 bg-slate-800/80 rounded" />
+                <div className="w-28 h-3 bg-slate-800/50 rounded" />
+              </div>
+
+              {/* Bottom Actions: Vote Captain & Compare */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                <div className="h-10 bg-emerald-600/30 border border-emerald-500/30 rounded-xl" />
+                <div className="h-10 bg-slate-800 rounded-xl" />
+              </div>
             </div>
           ))}
         </div>

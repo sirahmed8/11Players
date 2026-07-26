@@ -300,42 +300,44 @@ export default function FloatingChatWidget() {
 
       const systemPrompt = isAr
         ? `أنت 11AI — المحلل التكتيكي والمدرب الشخصي في منصة 11Players.
-قم بتوليد رسالة ترحيبية تكتيكية حية ومخصصة بأسلوب كروي راقٍ ومحفز للاعب:
+قم بتوليد رسالة ترحيبية تكتيكية مخصصة وحماسية ومولدة بالذكاء الاصطناعي خصيصاً للكابتن ${playerName}:
 - اسم اللاعب: ${playerName}
 - المركز: ${playerPos}
 - التقييم الإجمالي (OVR): ${playerOvr}
-- إحصائياته: ${goals} أهداف | ${assists} صناعة
+- إحصائياته: ${goals} أهداف | ${assists} تمريرات حاسمة
 
-تعليمات هامة لاتاه النص العربي:
-اكتب باللغة العربية الفصحى الأنيقة وتجنب وضع كلمات إنجليزية في منتصف الجمل العربية حتى لا يتلخبط اتجاه النص. استخدم عبارة "منصة 11Players" في نهاية السطر.
+اتبع هذا التنسيق بدقة وقم بتوليد فقرة النصيحة التكتيكية الأخيرة ديناميكياً بحسب مركز اللاعب وتقييمه:
 
-اكتب الترحيب بتنسيق Markdown جذاب:
-⚽ **أهلاً بك يا كابتن ${playerName}!**
-أنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.
+⚽ **أهلاً بك يا قائد ${playerName}!**
 
-📊 **ملخص حالتك الحالية:**
+أنا **11AI** — محللك التكتيكي الخاص ومدربك الشخصي على منصة **11Players**.
+
+📊 **حالتك الحالية:**
+
 - **المركز:** ${playerPos}
-- **التقييم:** ${playerOvr}
-- **الأهداف والتمريرات:** ${goals} أهداف | ${assists} صناعة
+- **التقييم العام:** ${playerOvr}
+- **الإحصائيات:** ${goals} أهداف | ${assists} تمريرات حاسمة
 
-ثم أضف نصيحة تكتيكية قصيرة ومشجعة تعتمد على مركزه وتقييمه في سطرين، مع دعوته لطرح أسئلته التكتيكية.`
+(اكتب هنا فقرة حماسية تكتيكية ديناميكية من سطرين تناسب مركره "${playerPos}" بتقييم ${playerOvr}، تحفزه على قيادة الفريق وإثبات جدارته على أرض الملعب).`
         : `You are 11AI — Elite Tactical Analyst & Personal Career Coach on 11Players.
-Generate a personalized, high-energy tactical welcome greeting for:
-- Player: ${playerName}
+Generate a dynamic, high-energy tactical welcome greeting for Captain ${playerName}:
 - Position: ${playerPos}
-- OVR Rating: ${playerOvr}
+- Overall Rating: ${playerOvr}
 - Stats: ${goals} Goals | ${assists} Assists
 
-Format nicely in Markdown:
+Follow this exact Markdown template (dynamically generating the final tactical advice paragraph to match their position "${playerPos}" and rating ${playerOvr}):
+
 ⚽ **Welcome back, Captain ${playerName}!**
+
 I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.
 
-📊 **Your Live Status:**
+📊 **Live Status:**
+
 - **Position:** ${playerPos}
-- **Rating (OVR):** ${playerOvr}
+- **Overall Rating (OVR):** ${playerOvr}
 - **Stats:** ${goals} Goals | ${assists} Assists
 
-Add a 2-line custom tactical motivation tailored to their position and rating.`;
+(Write a custom 2-line tactical motivation tailored dynamically to their position "${playerPos}" and rating ${playerOvr}).`;
 
       try {
         const aiRes = await call11AIChat({
@@ -354,8 +356,8 @@ Add a 2-line custom tactical motivation tailored to their position and rating.`;
         if (!isMounted) return;
 
         const liveText = aiRes?.reply || (isAr
-          ? `⚽ **أهلاً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${goals} أهداف | ${assists} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
-          : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${goals} Goals | ${assists} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`);
+          ? `⚽ **أهلاً بك يا قائد ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي الخاص ومدربك الشخصي على منصة **11Players**.\n\n📊 **حالتك الحالية:**\n\n- **المركز:** ${playerPos}\n- **التقييم العام:** ${playerOvr}\n- **الإحصائيات:** ${goals} أهداف | ${assists} تمريرات حاسمة\n\nبصفتك صمام الأمان في خط الوسط بتقييم ${playerOvr}، فإن مهمتك الأولى هي تدمير هجمات الخصم وبناء اللعب النظيف من الخلف. حان الوقت لإثبات جدارتك على أرضية الملعب وكتابة التاريخ في أولى مبارياتك!`
+          : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Live Status:**\n\n- **Position:** ${playerPos}\n- **Overall Rating (OVR):** ${playerOvr}\n- **Stats:** ${goals} Goals | ${assists} Assists\n\nAs the midfield anchor with an OVR of ${playerOvr}, your primary mission is to break opponent attacks and build clean play from the back. Time to dominate the pitch and write history in your upcoming matches!`);
 
         const msgs: AIChatMsg[] = [
           {
