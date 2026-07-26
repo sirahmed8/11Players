@@ -1250,18 +1250,50 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-xl"
         >
           <motion.div
             layout
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            exit={{ opacity: 0, scale: 0.95, y: 12 }}
             transition={{ duration: 0.3, type: 'spring', bounce: 0.1 }}
-            className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full ${step === 'preview' ? 'max-w-4xl' : 'max-w-lg'} overflow-visible border border-slate-200 dark:border-slate-700 max-h-[92vh] flex flex-col relative`}
+            className={`bg-slate-900 rounded-3xl shadow-2xl shadow-emerald-950/50 w-full ${step === 'preview' ? 'max-w-4xl' : 'max-w-xl'} overflow-hidden border border-slate-800 max-h-[92vh] flex flex-col relative text-white`}
             dir={isAr ? 'rtl' : 'ltr'}
           >
-            <div className="p-6 overflow-y-auto overflow-x-visible flex-1 custom-scrollbar">
+            {/* Header Sticky Navigation Bar */}
+            <div className="p-4 sm:p-5 border-b border-slate-800 bg-slate-900/90 backdrop-blur-md flex items-center justify-between gap-3 shrink-0 relative z-20">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-emerald-400 font-bold text-lg shadow-inner">
+                  ⚙️
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-base sm:text-lg leading-tight flex items-center gap-2">
+                    <span>{isAr ? "مركز إعداد وتنظيم المباريات" : "Match Configuration Hub"}</span>
+                  </h3>
+                  <div className="flex items-center gap-2 mt-1 text-[11px] font-bold">
+                    <span className={`px-2.5 py-0.5 rounded-full border transition-all ${step === 'config' ? 'bg-emerald-950 text-emerald-400 border-emerald-500/40 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
+                      1. {isAr ? "الإعدادات" : "Setup"}
+                    </span>
+                    <span className="text-slate-600">→</span>
+                    <span className={`px-2.5 py-0.5 rounded-full border transition-all ${step === 'preview' ? 'bg-purple-950 text-purple-400 border-purple-500/40 font-black' : 'bg-slate-950 text-slate-400 border-slate-800'}`}>
+                      2. {isAr ? "التشكيل الذكي" : "AI Lineup"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-9 h-9 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 flex items-center justify-center text-slate-400 hover:text-white transition-all active:scale-95 cursor-pointer"
+                title={isAr ? "إغلاق" : "Close"}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto overflow-x-visible flex-1 custom-scrollbar">
               <AnimatePresence mode="wait">
                 {step === 'preview' && previewData ? (
                   <motion.div
@@ -1803,240 +1835,242 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     transition={{ duration: 0.2 }}
                   >
                     <>
-                  <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-5 flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xl">⚙️</span>
-                <span>{isAr ? 'إعدادات المباراة' : 'Match Configuration'}</span>
-              </h2>
-
-              {/* Mode Tabs */}
-              <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => { setActiveTab('standard'); setConfig(prev => ({ ...prev, matchMode: 'standard' })); }}
-                  className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
-                    activeTab === 'standard'
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <span className="text-sm sm:text-base">⚽</span>
-                  <span>{isAr ? 'مباراة قانونية (11 × 11)' : 'Standard (11v11)'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setActiveTab('turf'); setConfig(prev => ({ ...prev, matchMode: 'turf' })); }}
-                  className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
-                    activeTab === 'turf'
-                      ? 'bg-amber-500 text-white shadow-md'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Shuffle className="w-4 h-4 sm:w-4 sm:h-4" />
-                  <span>{isAr ? 'ملاعب خماسي / سداسي' : 'Turf / Casual'}</span>
-                </button>
-              </div>
-
-              <div className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Date Picker */}
-                  <div className="relative" ref={datePickerRef}>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{isAr ? 'التاريخ' : 'Date'}</label>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowDatePicker(!showDatePicker);
-                        setShowTimePicker(false);
-                      }}
-                      className="w-full text-left rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 flex items-center justify-between group"
-                    >
-                      <span className={config.date ? "font-medium text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500"}>
-                        {config.date || (isAr ? 'يوم/شهر/سنة' : 'mm/dd/yyyy')}
-                      </span>
-                      <span className="text-slate-400 group-hover:text-emerald-500 transition-colors">📅</span>
-                    </button>
-
-                    <AnimatePresence>
-                      {showDatePicker && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute left-0 top-full mt-2 z-50 w-72 p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <span className="font-bold text-slate-900 dark:text-white text-base">
-                              {monthNames[month]} {year}
-                            </span>
-                            <div className="flex gap-1">
-                              <button type="button" onClick={() => setCurrentMonthDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors font-bold">‹</button>
-                              <button type="button" onClick={() => setCurrentMonthDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors font-bold">›</button>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-7 gap-1 mb-1 text-center">
-                            {dayNames.map(d => (
-                              <span key={d} className="text-xs font-semibold text-slate-400 dark:text-slate-500 py-1">{d}</span>
-                            ))}
-                          </div>
-
-                          <div className="grid grid-cols-7 gap-1">
-                            {Array.from({ length: firstDayOfWeek }).map((_, i) => (
-                              <div key={`empty-${i}`} />
-                            ))}
-                            {Array.from({ length: daysInMonth }).map((_, i) => {
-                              const dayNum = i + 1;
-                              const formatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                              const isSelected = config.date === formatted;
-                              const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
-                              const isToday = formatted === todayStr;
-
-                              return (
-                                <button
-                                  key={dayNum}
-                                  type="button"
-                                  onClick={() => handleSelectDate(dayNum)}
-                                  className={`h-8 w-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${
-                                    isSelected
-                                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/30 scale-105"
-                                      : isToday
-                                      ? "border border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-500/10"
-                                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/80"
-                                  }`}
-                                >
-                                  {dayNum}
-                                </button>
-                              );
-                            })}
-                          </div>
-
-                          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-700/80 flex justify-between items-center text-xs">
-                            <button type="button" onClick={() => { setConfig(prev => ({ ...prev, date: '' })); setShowDatePicker(false); }} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                              {isAr ? 'مسح' : 'Clear'}
-                            </button>
-                            <button type="button" onClick={handleSelectToday} className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 font-bold px-2 py-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors">
-                              {isAr ? 'اليوم' : 'Today'}
-                            </button>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-black text-white flex items-center gap-2.5">
+                      <span className="p-2 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xl shadow-inner">⚙️</span>
+                      <span>{isAr ? 'إعدادات وخيارات المباراة' : 'Match Settings & Configuration'}</span>
+                    </h2>
                   </div>
 
-                  {/* Time Picker */}
-                  <div className="relative" ref={timePickerRef}>
-                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{isAr ? 'الوقت' : 'Time'}</label>
+                  {/* Mode Tabs */}
+                  <div className="flex gap-2 mb-6 p-1.5 bg-slate-950 rounded-2xl border border-slate-800">
                     <button
                       type="button"
-                      onClick={() => {
-                        setShowTimePicker(!showTimePicker);
-                        setShowDatePicker(false);
-                      }}
-                      className="w-full text-left rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 flex items-center justify-between group"
+                      onClick={() => { setActiveTab('standard'); setConfig(prev => ({ ...prev, matchMode: 'standard' })); }}
+                      className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
+                        activeTab === 'standard'
+                          ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                      }`}
                     >
-                      <span className={config.time ? "font-medium text-slate-900 dark:text-white" : "text-slate-400 dark:text-slate-500"}>
-                        {config.time || "--:-- --"}
-                      </span>
-                      <span className="text-slate-400 group-hover:text-emerald-500 transition-colors">⏰</span>
+                      <span className="text-sm sm:text-base">⚽</span>
+                      <span>{isAr ? 'مباراة رسمية 11 × 11' : 'Standard 11v11'}</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => { setActiveTab('turf'); setConfig(prev => ({ ...prev, matchMode: 'turf' })); }}
+                      className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 p-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-black transition-all leading-tight text-center ${
+                        activeTab === 'turf'
+                          ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30'
+                          : 'text-slate-400 hover:text-white hover:bg-slate-900'
+                      }`}
+                    >
+                      <Shuffle className="w-4 h-4 sm:w-4 sm:h-4" />
+                      <span>{isAr ? 'حجز خماسي / سداسي' : 'Turf / Casual'}</span>
+                    </button>
+                  </div>
 
-                    <AnimatePresence>
-                      {showTimePicker && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 left-auto top-full mt-2 z-50 w-72 p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-slate-900/20"
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Date Picker */}
+                      <div className="relative" ref={datePickerRef}>
+                        <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'تاريخ المباراة' : 'Match Date'}</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowDatePicker(!showDatePicker);
+                            setShowTimePicker(false);
+                          }}
+                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 flex items-center justify-between group shadow-inner"
                         >
-                          <div className="mb-3">
-                            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
-                              {isAr ? 'أوقات شائعة' : 'Popular Presets'}
-                            </span>
-                            <div className="grid grid-cols-3 gap-1.5">
-                              {["06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"].map(t => (
-                                <button key={t} type="button" onClick={() => handlePresetTime(t)} className={`px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${config.time === t ? "bg-emerald-600 text-white shadow-sm" : "bg-slate-50 dark:bg-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"}`}>
-                                  {t}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
+                          <span className={config.date ? "font-bold text-white" : "text-slate-500 font-medium"}>
+                            {config.date || (isAr ? 'يوم/شهر/سنة' : 'YYYY-MM-DD')}
+                          </span>
+                          <span className="text-slate-400 group-hover:text-emerald-400 transition-colors">📅</span>
+                        </button>
 
-                          <div className="border-t border-slate-100 dark:border-slate-700/80 my-3 pt-3">
-                            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
-                              {isAr ? 'وقت مخصص' : 'Custom Time'}
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <div className="flex-1">
-                                <CustomDropdown
-                                  value={selectedHour}
-                                  onChange={(val) => handleTimeUpdate(val, selectedMinute, selectedPeriod)}
-                                  isAr={isAr}
-                                  options={["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => ({
-                                    value: h,
-                                    label: h
-                                  }))}
-                                />
+                        <AnimatePresence>
+                          {showDatePicker && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute left-0 top-full mt-2 z-50 w-72 p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl"
+                            >
+                              <div className="flex items-center justify-between mb-3">
+                                <span className="font-black text-white text-sm">
+                                  {monthNames[month]} {year}
+                                </span>
+                                <div className="flex gap-1">
+                                  <button type="button" onClick={() => setCurrentMonthDate(new Date(year, month - 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors font-bold">‹</button>
+                                  <button type="button" onClick={() => setCurrentMonthDate(new Date(year, month + 1, 1))} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-300 transition-colors font-bold">›</button>
+                                </div>
                               </div>
-                              <span className="font-bold text-slate-400">:</span>
-                              <div className="flex-1">
-                                <CustomDropdown
-                                  value={selectedMinute}
-                                  onChange={(val) => handleTimeUpdate(selectedHour, val, selectedPeriod)}
-                                  isAr={isAr}
-                                  options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => ({
-                                    value: m,
-                                    label: m
-                                  }))}
-                                />
-                              </div>
-                              <div className="flex rounded-xl bg-slate-100 dark:bg-slate-700/60 p-0.5 border border-slate-200 dark:border-slate-700">
-                                {["AM", "PM"].map((p) => (
-                                  <button key={p} type="button" onClick={() => handleTimeUpdate(selectedHour, selectedMinute, p)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedPeriod === p ? "bg-emerald-600 text-white shadow-sm" : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"}`}>
-                                    {p}
-                                  </button>
+
+                              <div className="grid grid-cols-7 gap-1 mb-1 text-center">
+                                {dayNames.map(d => (
+                                  <span key={d} className="text-xs font-bold text-slate-500 py-1">{d}</span>
                                 ))}
                               </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+
+                              <div className="grid grid-cols-7 gap-1">
+                                {Array.from({ length: firstDayOfWeek }).map((_, i) => (
+                                  <div key={`empty-${i}`} />
+                                ))}
+                                {Array.from({ length: daysInMonth }).map((_, i) => {
+                                  const dayNum = i + 1;
+                                  const formatted = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
+                                  const isSelected = config.date === formatted;
+                                  const todayStr = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+                                  const isToday = formatted === todayStr;
+
+                                  return (
+                                    <button
+                                      key={dayNum}
+                                      type="button"
+                                      onClick={() => handleSelectDate(dayNum)}
+                                      className={`h-8 w-8 rounded-xl text-xs font-bold transition-all flex items-center justify-center ${
+                                        isSelected
+                                          ? "bg-emerald-600 text-white font-black shadow-md shadow-emerald-950/40 scale-105"
+                                          : isToday
+                                          ? "border border-emerald-500 text-emerald-400 bg-emerald-950/40"
+                                          : "text-slate-300 hover:bg-slate-800"
+                                      }`}
+                                    >
+                                      {dayNum}
+                                    </button>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-3 pt-3 border-t border-slate-800 flex justify-between items-center text-xs">
+                                <button type="button" onClick={() => { setConfig(prev => ({ ...prev, date: '' })); setShowDatePicker(false); }} className="text-slate-400 hover:text-white font-medium px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors">
+                                  {isAr ? 'مسح' : 'Clear'}
+                                </button>
+                                <button type="button" onClick={handleSelectToday} className="text-emerald-400 hover:text-emerald-300 font-bold px-2 py-1 rounded-lg hover:bg-emerald-950/40 transition-colors">
+                                  {isAr ? 'اليوم' : 'Today'}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Time Picker */}
+                      <div className="relative" ref={timePickerRef}>
+                        <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'وقت المباراة' : 'Match Time'}</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowTimePicker(!showTimePicker);
+                            setShowDatePicker(false);
+                          }}
+                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 flex items-center justify-between group shadow-inner"
+                        >
+                          <span className={config.time ? "font-bold text-white" : "text-slate-500 font-medium"}>
+                            {config.time || "--:-- --"}
+                          </span>
+                          <span className="text-slate-400 group-hover:text-emerald-400 transition-colors">⏰</span>
+                        </button>
+
+                        <AnimatePresence>
+                          {showTimePicker && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute right-0 left-auto top-full mt-2 z-50 w-72 p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl"
+                            >
+                              <div className="mb-3">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                                  {isAr ? 'أوقات شائعة' : 'Popular Presets'}
+                                </span>
+                                <div className="grid grid-cols-3 gap-1.5">
+                                  {["06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"].map(t => (
+                                    <button key={t} type="button" onClick={() => handlePresetTime(t)} className={`px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${config.time === t ? "bg-emerald-600 text-white font-black shadow-md" : "bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800"}`}>
+                                      {t}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="border-t border-slate-800 my-3 pt-3">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                                  {isAr ? 'وقت مخصص' : 'Custom Time'}
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex-1">
+                                    <CustomDropdown
+                                      value={selectedHour}
+                                      onChange={(val) => handleTimeUpdate(val, selectedMinute, selectedPeriod)}
+                                      isAr={isAr}
+                                      options={["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => ({
+                                        value: h,
+                                        label: h
+                                      }))}
+                                    />
+                                  </div>
+                                  <span className="font-bold text-slate-400">:</span>
+                                  <div className="flex-1">
+                                    <CustomDropdown
+                                      value={selectedMinute}
+                                      onChange={(val) => handleTimeUpdate(selectedHour, val, selectedPeriod)}
+                                      isAr={isAr}
+                                      options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => ({
+                                        value: m,
+                                        label: m
+                                      }))}
+                                    />
+                                  </div>
+                                  <div className="flex rounded-xl bg-slate-950 p-0.5 border border-slate-800">
+                                    {["AM", "PM"].map((p) => (
+                                      <button key={p} type="button" onClick={() => handleTimeUpdate(selectedHour, selectedMinute, p)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedPeriod === p ? "bg-emerald-600 text-white font-black shadow-sm" : "text-slate-400 hover:text-white"}`}>
+                                        {p}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'عنوان الملعب أو المكان' : 'Location / Pitch'}</label>
+                      <input
+                        type="text"
+                        placeholder={isAr ? 'مثال: ملعب الأهلي بالشيخ زايد' : 'e.g. Cairo Stadium Pitch 3'}
+                        value={config.location}
+                        onChange={(e) => setConfig({ ...config, location: e.target.value })}
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'التكلفة لكل لاعب' : 'Cost per Player'}</label>
+                      <input
+                        type="text"
+                        placeholder={isAr ? 'مثال: 50 جنيه' : 'e.g. 50 EGP'}
+                        value={config.cost}
+                        onChange={(e) => setConfig({ ...config, cost: e.target.value })}
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'ملاحظات وتتعليمات المباراة' : 'Notes & Instructions'}</label>
+                      <textarea
+                        placeholder={isAr ? 'تعليمات المباراة، الزي المطلوبة، أو أي ملاحظات أخرى...' : 'Match instructions, uniform color, or extra details...'}
+                        value={config.notes}
+                        onChange={(e) => setConfig({ ...config, notes: e.target.value })}
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 min-h-[85px] transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                      />
+                    </div>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{isAr ? 'الملعب' : 'Location / Pitch'}</label>
-                  <input
-                    type="text"
-                    placeholder={isAr ? 'مثال: الملعب الرئيسي' : 'e.g. Cairo Stadium'}
-                    value={config.location}
-                    onChange={(e) => setConfig({ ...config, location: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{isAr ? 'التكلفة لكل لاعب' : 'Cost per Player'}</label>
-                  <input
-                    type="text"
-                    placeholder={isAr ? 'مثال: 50 جنيه' : 'e.g. 50 EGP'}
-                    value={config.cost}
-                    onChange={(e) => setConfig({ ...config, cost: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">{isAr ? 'ملاحظات' : 'Notes'}</label>
-                  <textarea
-                    placeholder={isAr ? 'أي تعليمات خاصة للاعبين...' : 'Any special instructions for players...'}
-                    value={config.notes}
-                    onChange={(e) => setConfig({ ...config, notes: e.target.value })}
-                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-4 py-2.5 text-slate-900 dark:text-slate-200 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] min-h-[80px] transition-all duration-300 placeholder:text-slate-400 dark:placeholder:text-slate-500"
-                  />
-                </div>
-              </div>
 
               {/* ────────── Turf Settings ────────── */}
               {activeTab === 'turf' && (
@@ -2502,7 +2536,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
               </div>
 
               {/* Summary */}
-              <div className="p-3 mt-3 bg-amber-100 dark:bg-amber-500/20 rounded-xl text-xs font-bold text-amber-900 dark:text-amber-200">
+              <div className="p-3.5 mt-4 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-slate-300 leading-relaxed">
                 {activeTab === 'turf'
                   ? (isAr
                     ? `سيتم توزيع ${!config.isOpenRegistration && communityPlayers.length > 0 ? `${selectedUids.size} لاعباً` : 'اللاعبين'} على ${config.numTeams} فرق — ${config.playersPerTeam} لاعب/فريق — ${config.gkMode === 'rotating' ? `حارس دوار ${config.gkRotationInterval === 'per_goal' ? 'كل هدف' : config.gkRotationInterval === 'per_time' ? `كل ${config.gkRotationMinutes} دقيقة` : 'كل مباراة'}` : 'حارس ثابت'} — ${config.matchType === 'friendly' ? 'حجز ودية كاجوال' : config.matchType === 'league' ? 'دوري' : config.matchType === 'knockout' ? 'كأس' : 'الكسبان مستمر'} — ${config.matchDurationMins} دق.`
@@ -2516,21 +2550,21 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 </>
                 
                 {/* Config Footer */}
-                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700 mt-6">
+                <div className="flex gap-3 pt-4 border-t border-slate-800 mt-6">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 px-4 py-2.5 bg-slate-100 dark:bg-slate-700/80 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-slate-400"
+                    className="flex-1 px-4 py-3 bg-slate-950 hover:bg-slate-800 text-slate-300 rounded-2xl font-bold transition-all border border-slate-800 outline-none focus:ring-2 focus:ring-slate-700 active:scale-95"
                   >
                     {isAr ? 'إلغاء' : 'Cancel'}
                   </button>
                   <button
                     type="button"
                     onClick={handleGenerateOrPreview}
-                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 active:scale-[0.98] outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center gap-2"
+                    className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black transition-all shadow-lg shadow-emerald-950/50 active:scale-95 outline-none focus:ring-2 focus:ring-emerald-500 flex items-center justify-center gap-2"
                   >
                     <span>{isAr ? (config.isOpenRegistration ? 'إنشاء حجز للتسجيل' : 'معاينة وتكوين الفرق الذكي') : (config.isOpenRegistration ? 'Create Open Registration' : 'Preview & Smart Generate')}</span>
-                    {!config.isOpenRegistration && <Brain className="w-4 h-4 animate-bounce" />}
+                    {!config.isOpenRegistration && <Brain className="w-4.5 h-4.5 animate-bounce text-emerald-200" />}
                   </button>
                 </div>
               </motion.div>
