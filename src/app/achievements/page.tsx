@@ -39,17 +39,15 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
   return (
     <motion.div
       whileHover={{ y: -2, scale: 1.02 }}
-      className={`relative overflow-hidden rounded-2xl border p-4 bg-white dark:bg-slate-900 ${color} shadow-sm`}
+      className={`relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 bg-white dark:bg-slate-900/90 ${color} shadow-sm flex flex-col justify-between`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2">{icon}</div>
-          <div>
-            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
-            {sub && <p className="text-[10px] text-slate-400 dark:text-slate-500">{sub}</p>}
-          </div>
-        </div>
-        <span className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{value}</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2 shrink-0">{icon}</div>
+        <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tabular-nums shrink-0">{value}</span>
+      </div>
+      <div className="min-w-0">
+        <p className="text-[11px] sm:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{label}</p>
+        {sub && <p className="text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate">{sub}</p>}
       </div>
     </motion.div>
   );
