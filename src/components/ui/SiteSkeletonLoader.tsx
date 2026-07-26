@@ -491,12 +491,58 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 14. Stats Page Skeleton
+  // 14. Stats / Leaderboard Page Skeleton
   if (variant === "stats") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-7xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-44 bg-slate-900 border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+      <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header Banner Skeleton */}
+        <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-3 relative overflow-hidden shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="w-56 h-8 bg-slate-800 rounded-xl" />
+          <div className="w-80 max-w-full h-4 bg-slate-800/60 rounded-md" />
+        </div>
+
+        {/* Podium Top 3 Cards Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map((idx) => (
+            <div key={idx} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-lg flex flex-col items-center">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="w-16 h-16 rounded-full bg-slate-800 border-2 border-slate-700" />
+              <div className="w-32 h-5 bg-slate-800 rounded-md" />
+              <div className="w-20 h-6 bg-emerald-500/20 rounded-xl" />
+            </div>
+          ))}
+        </div>
+
+        {/* Tab Filter Bar Skeleton */}
+        <div className="flex flex-wrap gap-3 items-center justify-between bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="w-24 h-9 bg-slate-800 rounded-xl" />
+            ))}
+          </div>
+          <div className="w-48 h-9 bg-slate-800 rounded-xl" />
+        </div>
+
+        {/* Leaderboard Table Rows Skeleton */}
+        <div className="space-y-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="p-4 bg-slate-900/80 border border-slate-800/80 rounded-2xl flex items-center justify-between gap-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center gap-3">
+                <div className="w-6 h-6 bg-slate-800 rounded-md" />
+                <div className="w-10 h-10 rounded-full bg-slate-800" />
+                <div className="space-y-1.5">
+                  <div className="w-32 h-4 bg-slate-800 rounded-md" />
+                  <div className="w-20 h-3 bg-slate-800/60 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-6 bg-emerald-500/20 rounded-lg" />
+                <div className="w-16 h-6 bg-slate-800 rounded-lg" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );

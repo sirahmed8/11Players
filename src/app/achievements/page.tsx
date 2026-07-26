@@ -87,26 +87,40 @@ function ProgressRing({ earned, total, size = 80 }: { earned: number; total: num
 }
 
 function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolean }) {
-  const rarity = getAchievementRarity(achievement);
-  const cfg = RARITY_CONFIG[rarity];
   const pct = achievement.target > 0 ? Math.min(100, Math.round((achievement.current / achievement.target) * 100)) : 0;
   const isEarned = achievement.earned;
+  const isAllCompleted = achievement.isAllCompleted;
 
   return (
     <motion.div
       whileHover={{ y: -3 }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-3xl border ${cfg.border} ${cfg.bg} p-5 overflow-hidden shadow-xl transition-all duration-200 flex flex-col justify-between`}
+      className={`relative rounded-3xl border ${
+        isAllCompleted
+          ? "border-amber-500/80 bg-gradient-to-b from-amber-950/20 via-slate-900 to-slate-950 shadow-amber-500/10"
+          : isEarned
+          ? "border-emerald-500/60 bg-slate-900 shadow-emerald-500/10"
+          : "border-slate-800 bg-slate-900/90"
+      } p-5 overflow-hidden shadow-xl transition-all duration-200 flex flex-col justify-between`}
     >
-      {/* Rarity & Status badge */}
+      {/* Tier Badge & Status */}
       <div className="flex items-center justify-between gap-2 mb-4">
-        <div className={`text-[10px] font-black px-2.5 py-1 rounded-xl ${cfg.badge} flex items-center gap-1.5 shrink-0 shadow-md`}>
-          <span>{cfg.icon}</span>
-          <span>{isAr ? (rarity === 'gold' ? 'مستوى ذهبي' : rarity === 'silver' ? 'مستوى فضي' : rarity === 'bronze' ? 'مستوى برونزي' : 'مقفل') : cfg.label}</span>
+        <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1 rounded-xl text-[11px] font-black text-amber-400">
+          <span>🏆</span>
+          <span>
+            {isAr
+              ? `المستوى ${achievement.currentTierLevel} من ${achievement.maxTierLevel}`
+              : `Tier ${achievement.currentTierLevel} of ${achievement.maxTierLevel}`}
+          </span>
         </div>
 
-        {isEarned ? (
+        {isAllCompleted ? (
+          <span className="inline-flex items-center gap-1 text-[10px] font-black text-amber-300 bg-amber-950/80 border border-amber-500/50 px-2.5 py-1 rounded-xl">
+            <Crown className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+            {isAr ? "مكتمل بالكامل 👑" : "FULLY COMPLETED 👑"}
+          </span>
+        ) : isEarned ? (
           <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2.5 py-1 rounded-xl">
             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
             {isAr ? "مكتمل" : "UNLOCKED"}
@@ -119,7 +133,7 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
       </div>
 
       {/* Main icon & text */}
-      <div className="flex items-start gap-4 mb-5">
+      <div className="flex items-start gap-4 mb-4">
         <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl shrink-0 shadow-inner">
           {achievement.icon}
         </div>
@@ -132,6 +146,35 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
           </p>
         </div>
       </div>
+
+      {/* Tier Steps Dots Bar */}
+      {Array.isArray(achievement.tiers) && achievement.tiers.length > 0 && (
+        <div className="mb-4 pt-2 border-t border-slate-800/80">
+          <div className="flex items-center justify-between mb-1.5 text-[10px] font-bold text-slate-400">
+            <span>{isAr ? "سلسلة الإنجاز" : "Tier Sequence"}</span>
+            <span className="text-emerald-400 font-black">{achievement.completedTiersCount}/{achievement.maxTierLevel}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {achievement.tiers.map((t: any, idx: number) => {
+              const isTierDone = achievement.current >= t.target;
+              const isCurrentTier = idx + 1 === achievement.currentTierLevel;
+              return (
+                <div
+                  key={idx}
+                  title={`${isAr ? t.nameAr : t.nameEn}: ${t.target}`}
+                  className={`flex-1 h-2 rounded-full transition-all ${
+                    isTierDone
+                      ? "bg-emerald-500 shadow-sm shadow-emerald-500/50"
+                      : isCurrentTier
+                      ? "bg-amber-500 animate-pulse"
+                      : "bg-slate-800"
+                  }`}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Progress track */}
       <div>
@@ -162,7 +205,7 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
         </div>
         <div className="h-2.5 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${cfg.bar}`}
+            className="h-full rounded-full bg-emerald-500"
             initial={{ width: 0 }}
             animate={{ width: `${pct}%` }}
             transition={{ duration: 1, ease: "easeOut" }}

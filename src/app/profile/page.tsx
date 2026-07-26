@@ -23,6 +23,7 @@ import OvrExplanationModal from "@/components/player/OvrExplanationModal";
 import SuggestPeerRatingModal from "@/components/player/SuggestPeerRatingModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import TacticalSuggestionsCard from "@/components/match/TacticalSuggestionsCard";
+import AttributesBreakdown from "@/components/player/AttributesBreakdown";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useCommunity } from "@/contexts/CommunityContext";
@@ -420,24 +421,8 @@ function PlayerProfileContent() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.45 }}
-          className="space-y-4"
         >
-          <h3 className="text-xl font-black text-emerald-400 flex items-center gap-2">
-            ⚡ {isAr ? "تفصيل القدرات" : "Attributes Breakdown"}
-          </h3>
-          <div className="bg-slate-900/90 border border-slate-800 shadow-2xl rounded-3xl p-6 space-y-3.5 backdrop-blur-xl">
-            {attrMap.map((attr) => (
-              <AttributeBar
-                key={attr.key}
-                label={attr.label}
-                value={
-                  player.attributes?.[
-                    attr.key as keyof typeof player.attributes
-                  ] || 0
-                }
-              />
-            ))}
-          </div>
+          <AttributesBreakdown attributes={player.approvedAttributes || player.attributes} />
         </motion.section>
 
         {/* Special Skills Section */}

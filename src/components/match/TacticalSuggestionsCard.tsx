@@ -9,6 +9,7 @@ import { useLocale } from '@/components/ui/ThemeProvider';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import { call11AIChat } from '@/lib/aiService';
+import FormattedText from '@/components/ui/FormattedText';
 
 interface TacticalSuggestionsCardProps {
   attributes?: Partial<PlayerAttributes> | null;
@@ -293,11 +294,11 @@ export default function TacticalSuggestionsCard({
           {/* Real 11AI Live Gemini Coaching Advice */}
           {realAiAdvice && (
             <div className="p-4 bg-emerald-950/40 rounded-2xl border border-emerald-500/40 shadow-md leading-relaxed text-xs text-emerald-200">
-              <span className="font-black text-emerald-400 block mb-1 flex items-center gap-1.5">
+              <span className="font-black text-emerald-400 block mb-1.5 flex items-center gap-1.5">
                 <Brain className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
                 <span>{isAr ? "⚡ نصيحة 11AI التكتيكية اليومية" : "⚡ 11AI Daily Tactical Advice"}</span>
               </span>
-              <p className="text-slate-200 font-medium">{realAiAdvice}</p>
+              <FormattedText content={realAiAdvice} />
             </div>
           )}
         </div>

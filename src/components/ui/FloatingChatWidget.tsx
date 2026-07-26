@@ -27,61 +27,7 @@ interface AIChatMsg {
   timestamp: number;
 }
 
-// Markdown formatting helper with Bidi RTL/LTR isolation
-function FormattedText({ content }: { content: string }) {
-  if (!content || typeof content !== "string") return null;
-  const lines = content.split("\n");
-  return (
-    <div className="space-y-1.5 font-medium leading-relaxed [unicode-bidi:isolate] text-start" dir="auto">
-      {lines.map((line, idx) => {
-        const trimmed = line.trim();
-        if (!trimmed) return <div key={idx} className="h-1" />;
-
-        const isBullet = trimmed.startsWith("- ") || trimmed.startsWith("• ") || trimmed.startsWith("* ");
-        const cleanText = isBullet ? trimmed.replace(/^[-•*]\s*/, "") : trimmed;
-
-        // Split by markdown bold **text** first
-        const parts = cleanText.split(/(\*\*.*?\*\*)/g);
-        const formattedLine = parts.map((part, pIdx) => {
-          if (part && part.startsWith("**") && part.endsWith("**")) {
-            return (
-              <strong key={pIdx} className="font-black text-emerald-300 inline-block [unicode-bidi:isolate]">
-                {part.slice(2, -2)}
-              </strong>
-            );
-          }
-          // Auto-highlight brand name "11Players" and cardNames in parens e.g. (RADWAN)
-          const subParts = part.split(/(\b11Players\b|\([A-Z0-9\s_]{2,15}\))/g);
-          return subParts.map((sub, sIdx) => {
-            if (sub === "11Players" || (sub.startsWith("(") && sub.endsWith(")") && /^\([A-Z0-9\s_]{2,15}\)$/.test(sub))) {
-              return (
-                <strong key={sIdx} className="font-black text-emerald-300 inline-block [unicode-bidi:isolate]">
-                  {sub}
-                </strong>
-              );
-            }
-            return sub;
-          });
-        });
-
-        if (isBullet) {
-          return (
-            <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1 [unicode-bidi:isolate]" dir="auto">
-              <span className="text-emerald-400 font-bold shrink-0">•</span>
-              <span className="[unicode-bidi:isolate]">{formattedLine}</span>
-            </div>
-          );
-        }
-
-        return (
-          <p key={idx} className="[unicode-bidi:isolate]" dir="auto">
-            {formattedLine}
-          </p>
-        );
-      })}
-    </div>
-  );
-}
+import FormattedText, { formatBidiText } from "@/components/ui/FormattedText";
 
 export default function FloatingChatWidget() {
   const [mounted, setMounted] = useState(false);
@@ -101,9 +47,15 @@ export default function FloatingChatWidget() {
   }, []);
 
   // Dynamic Resize Dimensions State
-  const [dimensions, setDimensions] = useState<{ width: number; height: number }>({
-    width: 440,
-    height: 620,
+  const [dimensions, setDimensions] = useState<{ width: number; height: number }>(() => {
+    if (typeof window !== "undefined") {
+      const isMobile = window.innerWidth < 640;
+      return {
+        width: isMobile ? Math.min(360, window.innerWidth - 24) : 440,
+        height: isMobile ? Math.min(500, window.innerHeight - 120) : 600,
+      };
+    }
+    return { width: 440, height: 600 };
   });
   const isResizing = useRef(false);
   const resizeStart = useRef<{ x: number; y: number; w: number; h: number }>({ x: 0, y: 0, w: 440, h: 620 });
@@ -715,9 +667,9 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
           setIsOpen((prev) => !prev);
         }}
         aria-label="Toggle 11AI Chatbot"
-        className="fixed bottom-20 sm:bottom-6 right-6 rtl:right-auto rtl:left-6 z-[9999999] w-14 h-14 rounded-full bg-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/50 flex items-center justify-center text-white cursor-pointer transition-all pointer-events-auto"
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 rtl:right-auto rtl:left-4 sm:rtl:left-6 z-[9999999] w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/50 flex items-center justify-center text-white cursor-pointer transition-all pointer-events-auto"
       >
-        <Bot className="w-7 h-7 text-emerald-400" />
+        <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
       </motion.button>
 
       {/* ── Floating Chatbot Modal Window (iOS Spring Physics Modal) ── */}
@@ -739,7 +691,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
               height: dimensions.height,
               transformOrigin: isAr ? "bottom left" : "bottom right",
             }}
-            className="fixed bottom-36 sm:bottom-24 right-4 rtl:right-auto rtl:left-4 z-[9999999] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[95vw] max-h-[82vh]"
+            className="fixed bottom-16 sm:bottom-24 right-3 sm:right-6 rtl:right-auto rtl:left-3 sm:rtl:left-6 z-[9999999] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[94vw] max-h-[74vh] sm:max-h-[82vh]"
             dir={isAr ? "rtl" : "ltr"}
           >
             {/* Drag Resize Handle (Top Edge) */}
@@ -930,7 +882,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                           className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 text-emerald-400 transition-all text-start shadow-sm flex items-center gap-1.5"
                         >
                           <Sparkles className="w-3 h-3 text-emerald-400 shrink-0" />
-                          <span>{prompt}</span>
+                          <span className="[unicode-bidi:isolate]">{formatBidiText(prompt)}</span>
                         </motion.button>
                       ))}
                     </div>

@@ -34,7 +34,7 @@ describe('Engine Unit Tests', () => {
       gkReflexes: 40,
       gkReach: 40,
     },
-  };
+  } as any;
 
   it('should return primary familiarity (1.0) for primary position', () => {
     const mult = getPositionFamiliarityMultiplier(dummyPlayer, 'LWF');
