@@ -344,3 +344,98 @@ function generateSmartFallbackReply(message: string, systemPrompt: string, isAr:
     suggestedPrompts: ["Analyze my OVR & weakness", "Who are top players in my position?", "Match preparation strategy"],
   };
 }
+
+/**
+ * 11AI One-Click Bilingual Announcement Copywriter & Enhancer
+ */
+export async function enhanceAnnouncementWithAI(payload: {
+  titleEn?: string;
+  titleAr?: string;
+  bodyEn?: string;
+  bodyAr?: string;
+  presetTopic?: string;
+  communityName?: string;
+}): Promise<{
+  titleEn: string;
+  titleAr: string;
+  bodyEn: string;
+  bodyAr: string;
+}> {
+  const prompt = `You are "11AI", the official bilingual sports copywriter and community broadcast manager for the 11Players platform.
+Your objective is to generate or dramatically improve a broadcast announcement in BOTH English AND Arabic simultaneously.
+
+Draft Context:
+- English Title Draft: "${payload.titleEn || ""}"
+- Arabic Title Draft: "${payload.titleAr || ""}"
+- English Body Draft: "${payload.bodyEn || ""}"
+- Arabic Body Draft: "${payload.bodyAr || ""}"
+- Preset Category: "${payload.presetTopic || "General Update"}"
+- Target Community: "${payload.communityName || "11Players"}"
+
+Instructions:
+1. Make both titles catchy, concise (under 8 words), with relevant sports emojis (e.g. ⚽, 📢, 🏆, 🚨).
+2. Make both body descriptions professional, clear, exciting, and well-structured.
+3. Return ONLY a valid JSON object matching this structure with no code blocks or markdown wrapper:
+{
+  "titleEn": "...",
+  "titleAr": "...",
+  "bodyEn": "...",
+  "bodyAr": "..."
+}`;
+
+  try {
+    const res = await generate11AIResponse({
+      message: prompt,
+      systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements.",
+      temperature: 0.3,
+    });
+
+    const jsonMatch = res.reply.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0]);
+      if (parsed.titleEn && parsed.titleAr && parsed.bodyEn && parsed.bodyAr) {
+        return {
+          titleEn: parsed.titleEn.trim(),
+          titleAr: parsed.titleAr.trim(),
+          bodyEn: parsed.bodyEn.trim(),
+          bodyAr: parsed.bodyAr.trim(),
+        };
+      }
+    }
+  } catch (err) {
+    console.error("[11AI Announcement AI Error]:", err);
+  }
+
+  // High Quality Smart Fallback Presets if API offline
+  if (payload.presetTopic === "next_match") {
+    return {
+      titleEn: "⚽ Next Match Sign-Up Open!",
+      titleAr: "⚽ فتح باب التسجيل للمباراة القادمة!",
+      bodyEn: "Sign-ups for our upcoming community fixture are now officially open. Check your stats and reserve your spot in the squad lineup now!",
+      bodyAr: "تم فتح باب التسجيل رسمياً لمباراة المجتمع القادمة. تفقد إحصائياتك واضمن مكانك في تشكيلة الفريق الآن!",
+    };
+  }
+  if (payload.presetTopic === "tournament") {
+    return {
+      titleEn: "🏆 Community Championship Cup Announced!",
+      titleAr: "🏆 الإعلان عن بطولة كأس المجتمع الكبرى!",
+      bodyEn: "Get ready for the ultimate 11Players tournament! Top squads will battle for glory, MVP honors, and exclusive career badges.",
+      bodyAr: "استعد لأقوى بطولات منصة 11Players! أفضل الفرق ستتنافس على المجد، لقب الأفضل (MVP)، وأوسمة المسيرة الاحترافية.",
+    };
+  }
+  if (payload.presetTopic === "urgent_notice") {
+    return {
+      titleEn: "🚨 Important Schedule Update & Maintenance",
+      titleAr: "🚨 تحديث مهم جداً بشأن المواعيد وجدول المباريات",
+      bodyEn: "Please review the updated match timing and venue details. All team captains are requested to confirm their squad availability.",
+      bodyAr: "يرجى مراجعة المواعيد المعدلة للمباراة وتفاصيل الملعب. يرجى من جميع كباتن الفرق تأكيد جاهزية التشكيلة.",
+    };
+  }
+
+  return {
+    titleEn: payload.titleEn || "📢 Official Community Announcement",
+    titleAr: payload.titleAr || "📢 إعلان رسمي من إدارة المجتمع",
+    bodyEn: payload.bodyEn || "Important update for all registered players in our community. Stay tuned for upcoming fixtures and features!",
+    bodyAr: payload.bodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا. تابعوا القادم للمزيد من المباريات والميزات!",
+  };
+}
