@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award } from "lucide-react";
+import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -47,6 +47,11 @@ export default function AnnouncementsPage() {
   // AI Enhancer State
   const [aiEnhancing, setAiEnhancing] = useState(false);
   const [activePreviewTab, setActivePreviewTab] = useState<'push' | 'chat'>('push');
+
+  // Read-More Modal State
+  const [readMoreAnn, setReadMoreAnn] = useState<Announcement | null>(null);
+  // Chat banner body expanded
+  const [chatBodyExpanded, setChatBodyExpanded] = useState(false);
 
   // History Search & Filter State
   const [recentAnnouncements, setRecentAnnouncements] = useState<Announcement[]>([]);
@@ -252,7 +257,7 @@ export default function AnnouncementsPage() {
       <div className="min-h-screen bg-slate-950 text-white py-8 px-4 sm:px-6 transition-colors" dir={isAr ? 'rtl' : 'ltr'}>
         <div className="max-w-5xl mx-auto space-y-6">
           
-          {/* Header Banner — Glowing FUT Emerald Theme */}
+          {/* Header Banner */}
           <div className="bg-slate-900/90 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden backdrop-blur-xl">
             <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
             <div className="flex items-center gap-4">
@@ -265,26 +270,13 @@ export default function AnnouncementsPage() {
                   <span>{isAr ? "مركز بث الإشعارات المدعوم بالذكاء الاصطناعي" : "AI-Powered Push Broadcast Center"}</span>
                 </span>
                 <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
-                  {isAr ? "بث الإشعارات والإعلانات ثنائية اللغة" : "Bilingual Broadcast & Notifications"}
+                  {isAr ? "بث الإشعارات والإعلانات" : "Broadcast & Notifications"}
                 </h1>
                 <p className="text-xs text-slate-400 mt-1 font-semibold">
-                  {isAr ? "أرسل إشعارات فورية وإعلانات ثنائية اللغة لجميع اللاعبين في مجتمعك وبثها بالمحادثة." : "Deliver bilingual push notifications and feed banners instantly to your players."}
+                  {isAr ? "أرسل إشعارات فورية وإعلانات لجميع اللاعبين في مجتمعك وبثها بالمحادثة." : "Deliver push notifications and feed banners instantly to your players."}
                 </p>
               </div>
             </div>
-
-            {/* 🤖 11AI Auto-Enhance Button */}
-            <motion.button
-              type="button"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => handleAiEnhance()}
-              disabled={aiEnhancing}
-              className="px-5 py-3 rounded-2xl font-black text-xs bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white shadow-lg shadow-emerald-600/30 border border-emerald-400/30 flex items-center gap-2 shrink-0 disabled:opacity-50"
-            >
-              {aiEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-amber-300" />}
-              <span>{aiEnhancing ? (isAr ? "جاري تحسين الصياغة..." : "11AI Enhancing...") : (isAr ? "✨ تحسين الإعلان بالذكاء الاصطناعي" : "✨ 11AI Auto-Enhance Copy")}</span>
-            </motion.button>
           </div>
 
           {/* Quick Preset Topics Chips */}
@@ -456,26 +448,46 @@ export default function AnnouncementsPage() {
                 />
               </div>
 
-              {/* Action Button */}
-              <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-4">
+              {/* Action Buttons Row */}
+              <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                {/* AI Polish */}
                 <button
                   type="button"
                   onClick={() => handleAiEnhance()}
                   disabled={aiEnhancing}
                   className="px-4 py-3 rounded-2xl font-bold text-xs bg-slate-950 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/30 transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
                 >
-                  <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span className="hidden sm:inline">{isAr ? "تحسين بالنص" : "AI Polish"}</span>
+                  {aiEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
+                  <span>{aiEnhancing ? (isAr ? "جاري التحسين..." : "Enhancing...") : (isAr ? "تحسين بالنص" : "AI Polish")}</span>
                 </button>
 
-                <button
-                  type="submit"
-                  disabled={broadcasting}
-                  className="px-6 py-3.5 rounded-2xl font-black text-xs shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2.5 disabled:opacity-50 shadow-emerald-600/30 shrink-0"
-                >
-                  {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                  <span>{broadcasting ? (isAr ? "جاري بث الإشعارات..." : "Broadcasting Now...") : (isAr ? "بث الإشعار الآن للجميع" : "Broadcast Notification Now")}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {/* Push Notif Button */}
+                  <motion.button
+                    type="submit"
+                    disabled={broadcasting}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setActivePreviewTab('push')}
+                    className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-amber-600 hover:bg-amber-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-amber-600/30 shrink-0"
+                  >
+                    {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
+                    <span>{isAr ? "بث إشعار" : "Push Notif"}</span>
+                  </motion.button>
+
+                  {/* Chat Banner Button */}
+                  <motion.button
+                    type="submit"
+                    disabled={broadcasting}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => setActivePreviewTab('chat')}
+                    className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-emerald-600/30 shrink-0"
+                  >
+                    {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                    <span>{isAr ? "بث المحادثة" : "Chat Banner"}</span>
+                  </motion.button>
+                </div>
               </div>
             </form>
 
@@ -499,7 +511,7 @@ export default function AnnouncementsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setActivePreviewTab('chat')}
+                      onClick={() => { setActivePreviewTab('chat'); setChatBodyExpanded(false); }}
                       className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${
                         activePreviewTab === 'chat' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                       }`}
@@ -509,51 +521,86 @@ export default function AnnouncementsPage() {
                   </div>
                 </div>
 
-                {activePreviewTab === 'push' ? (
-                  /* Smartphone Lockscreen Notification Card */
-                  <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner space-y-3">
-                    <div className="flex items-center justify-between text-[11px] text-slate-400">
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-[9px] text-white">11</div>
-                        <span className="font-bold text-slate-200">11PLAYERS</span>
+                <AnimatePresence mode="wait">
+                  {activePreviewTab === 'push' ? (
+                    /* Smartphone Lockscreen Notification Card */
+                    <motion.div
+                      key="push"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18 }}
+                      className="p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner space-y-3"
+                    >
+                      <div className="flex items-center justify-between text-[11px] text-slate-400">
+                        <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-lg bg-emerald-600 flex items-center justify-center font-black text-[9px] text-white">11</div>
+                          <span className="font-bold text-slate-200">11PLAYERS</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-mono">Now</span>
                       </div>
-                      <span className="text-[10px] text-slate-500 font-mono">Now</span>
-                    </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-1.5">
-                        {priority === 'urgent' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />}
-                        <h4 className="font-black text-xs text-white">
-                          {(isAr ? titleAr : titleEn) || (isAr ? "عنوان الإشعار يظهر هنا..." : "Notification title preview...")}
-                        </h4>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          {priority === 'urgent' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />}
+                          <h4 className="font-black text-xs text-white">
+                            {(isAr ? titleAr : titleEn) || (isAr ? "عنوان الإشعار يظهر هنا..." : "Notification title preview...")}
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-slate-300 leading-relaxed font-medium line-clamp-2">
+                          {(isAr ? bodyAr : bodyEn) || (isAr ? "تفاصيل ومحتوى الرسالة يظهر هنا على شاشة قفل الهاتف..." : "Message body content preview as displayed on player's device...")}
+                        </p>
                       </div>
-                      <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
-                        {(isAr ? bodyAr : bodyEn) || (isAr ? "تفاصيل ومحتوى الرسالة يظهر هنا على شاشة قفل الهاتف..." : "Message body content preview as displayed on player's device...")}
-                      </p>
-                    </div>
 
-                    {link && (
-                      <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-[10px] text-emerald-400 font-bold">
-                        <span>Tap to open: {link}</span>
-                        <LinkIcon className="w-3 h-3" />
+                      {link && (
+                        <div className="pt-2 border-t border-slate-900 flex items-center justify-between text-[10px] text-emerald-400 font-bold">
+                          <span>Tap to open: {link}</span>
+                          <LinkIcon className="w-3 h-3" />
+                        </div>
+                      )}
+                    </motion.div>
+                  ) : (
+                    /* Community Live Chat Announcement Banner — Title + Read More */
+                    <motion.div
+                      key="chat"
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      transition={{ duration: 0.18 }}
+                      className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner space-y-2"
+                    >
+                      <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-black">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                        <span>{isAr ? "📢 [إعلان رسمي جديد في القناة العامة]" : "📢 [Official Community Broadcast]"}</span>
                       </div>
-                    )}
-                  </div>
-                ) : (
-                  /* Community Live Chat Announcement Banner */
-                  <div className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner space-y-2">
-                    <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-black">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span>{isAr ? "📢 [إعلان رسمي جديد في القناة العامة]" : "📢 [Official Community Broadcast]"}</span>
-                    </div>
-                    <h4 className="font-black text-xs text-white">
-                      {(isAr ? titleAr : titleEn) || "Title preview..."}
-                    </h4>
-                    <p className="text-[11px] text-slate-300 leading-relaxed font-medium">
-                      {(isAr ? bodyAr : bodyEn) || "Body text preview..."}
-                    </p>
-                  </div>
-                )}
+                      <h4 className="font-black text-xs text-white">
+                        {(isAr ? titleAr : titleEn) || "Title preview..."}
+                      </h4>
+                      <AnimatePresence>
+                        {chatBodyExpanded && (
+                          <motion.p
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="text-[11px] text-slate-300 leading-relaxed font-medium overflow-hidden"
+                          >
+                            {(isAr ? bodyAr : bodyEn) || "Body text preview..."}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                      <button
+                        type="button"
+                        onClick={() => setChatBodyExpanded(p => !p)}
+                        className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-1"
+                      >
+                        {chatBodyExpanded
+                          ? (isAr ? "طي" : "Show less")
+                          : (isAr ? "اقرأ المزيد" : "Read more")}
+                        {chatBodyExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 font-medium flex items-center gap-2">
                   <Eye className="w-4 h-4 text-amber-400 shrink-0" />
@@ -617,47 +664,153 @@ export default function AnnouncementsPage() {
             ) : (
               <div className="space-y-3">
                 {filteredHistory.map(ann => (
-                  <div
+                  <motion.div
                     key={ann.id}
-                    className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors"
                   >
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                          ann.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
-                        }`}>
-                          {ann.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
-                        </span>
-                        <span className="text-xs font-bold text-slate-400">
-                          {ann.targetScope === 'global_all_users' ? (isAr ? '🌍 عام للكل' : '🌍 Global All') : (isAr ? '👥 للمجتمع' : '👥 Community')}
-                        </span>
-                        <span className="text-xs text-slate-500 font-medium font-mono">
-                          {new Date(ann.createdAt).toLocaleString()}
-                        </span>
+                    {/* Top row: badges + title + actions */}
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                            ann.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
+                          }`}>
+                            {ann.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
+                          </span>
+                          <span className="text-xs font-bold text-slate-400">
+                            {ann.targetScope === 'global_all_users' ? (isAr ? '🌍 عام للكل' : '🌍 Global All') : (isAr ? '👥 للمجتمع' : '👥 Community')}
+                          </span>
+                          <span className="text-xs text-slate-500 font-medium font-mono">
+                            {new Date(ann.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                        <h4 className="font-black text-sm text-white">{isAr ? ann.titleAr : ann.titleEn}</h4>
                       </div>
-                      <h4 className="font-black text-sm text-white truncate">
-                        {isAr ? ann.titleAr : ann.titleEn}
-                      </h4>
-                      <p className="text-xs text-slate-300 font-medium line-clamp-2 leading-relaxed">
-                        {isAr ? ann.bodyAr : ann.bodyEn}
-                      </p>
-                    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteAnnouncement(ann.id)}
-                      className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 text-rose-400 hover:bg-rose-950/40 transition-colors shrink-0"
-                      title={isAr ? "حذف الإعلان" : "Delete Announcement"}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Read More button */}
+                        <button
+                          type="button"
+                          onClick={() => setReadMoreAnn(ann)}
+                          className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500/50 text-emerald-400 hover:text-emerald-300 text-[11px] font-bold transition-colors flex items-center gap-1.5"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          {isAr ? "اقرأ المزيد" : "Read More"}
+                        </button>
+                        {/* Delete button */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteAnnouncement(ann.id)}
+                          className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 text-rose-400 hover:bg-rose-950/40 transition-colors"
+                          title={isAr ? "حذف الإعلان" : "Delete Announcement"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}
           </div>
         </div>
       </div>
+
+      {/* Read More Modal */}
+      <AnimatePresence>
+        {readMoreAnn && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+            onClick={() => setReadMoreAnn(null)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.92, y: 20 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden"
+              dir={isAr ? 'rtl' : 'ltr'}
+            >
+              {/* Modal Header */}
+              <div className={`p-5 border-b border-slate-800 flex items-start justify-between gap-4 ${
+                readMoreAnn.priority === 'urgent' ? 'bg-rose-950/30' : 'bg-emerald-950/20'
+              }`}>
+                <div className="space-y-1.5 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                      readMoreAnn.priority === 'urgent'
+                        ? 'bg-rose-950 border border-rose-500/40 text-rose-400'
+                        : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
+                    }`}>
+                      {readMoreAnn.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
+                    </span>
+                    <span className="text-[11px] text-slate-400 font-mono">
+                      {new Date(readMoreAnn.createdAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <h2 className="text-base font-black text-white leading-snug">
+                    {isAr ? readMoreAnn.titleAr : readMoreAnn.titleEn}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setReadMoreAnn(null)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
+                <p className="text-sm text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
+                  {isAr ? readMoreAnn.bodyAr : readMoreAnn.bodyEn}
+                </p>
+
+                {/* Show both languages */}
+                <div className="pt-3 border-t border-slate-800 space-y-3">
+                  <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">🇺🇸 English</span>
+                    <p className="text-xs text-slate-400 leading-relaxed mt-1 whitespace-pre-wrap">{readMoreAnn.bodyEn}</p>
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-wider">🇸🇦 عربي</span>
+                    <p className="text-xs text-slate-400 leading-relaxed mt-1 whitespace-pre-wrap" dir="rtl">{readMoreAnn.bodyAr}</p>
+                  </div>
+                </div>
+
+                {readMoreAnn.link && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/30 text-emerald-400 text-xs font-bold">
+                    <LinkIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span>{readMoreAnn.link}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setReadMoreAnn(null)}
+                  className="px-5 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors"
+                >
+                  {isAr ? "إغلاق" : "Close"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </ProtectedRoute>
   );
 }
