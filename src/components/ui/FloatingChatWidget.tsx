@@ -691,7 +691,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
               height: dimensions.height,
               transformOrigin: isAr ? "bottom left" : "bottom right",
             }}
-            className="fixed bottom-16 sm:bottom-24 right-3 sm:right-6 rtl:right-auto rtl:left-3 sm:rtl:left-6 z-[9999999] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[94vw] max-h-[74vh] sm:max-h-[82vh]"
+            className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 rtl:right-auto rtl:left-3 sm:rtl:left-6 z-[9999999] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[94vw] max-h-[72vh] sm:max-h-[82vh]"
             dir={isAr ? "rtl" : "ltr"}
           >
             {/* Drag Resize Handle (Top Edge) */}

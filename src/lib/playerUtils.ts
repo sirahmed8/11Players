@@ -37,14 +37,28 @@ export function calculateAge(birthDate: Date | string | number | undefined | nul
  * Guarantees 100% parity between sorting and PlayerCard display.
  */
 export function getPlayerOverall(player: Partial<PlayerProfile>): number {
-  if (!player) return 40;
-  const activeAttributes = (player.approvedAttributes || player.attributes || {}) as import('@/types').PlayerAttributes;
+  if (!player) return 72;
+  if (player.overallRating && player.overallRating > 40) return player.overallRating;
+
+  const defaultAttrs = {
+    offensiveAwareness: 70, ballControl: 70, dribbling: 70, lowPass: 70, loftedPass: 70,
+    finishing: 70, heading: 70, speed: 70, acceleration: 70, kickingPower: 70,
+    jump: 70, physicalContact: 70, balance: 70, stamina: 70, defensiveAwareness: 70,
+    ballWinning: 70, aggression: 70, gkAwareness: 70, gkCatching: 70, gkClearing: 70,
+    gkReflexes: 70, gkReach: 70
+  };
+
+  const activeAttributes = {
+    ...defaultAttrs,
+    ...(player.approvedAttributes || player.attributes || {})
+  } as import('@/types').PlayerAttributes;
+
   const calculatedOverall = calculateRealisticOverall(
     activeAttributes,
     player.primaryPosition || 'CMF',
     player.playStyle || '',
-    player.height,
-    player.weight,
+    player.height || 175,
+    player.weight || 70,
     player.calculatedAge || calculateAge(player.dateOfBirth),
     player.peerRatingAvg,
     player.peerRatingCount,
@@ -52,11 +66,8 @@ export function getPlayerOverall(player: Partial<PlayerProfile>): number {
     player.specialSkills,
     player.stats
   );
-  const hasAttributes = Object.keys(activeAttributes).length > 0;
-  if (hasAttributes && calculatedOverall > 40) {
-    return calculatedOverall;
-  }
-  return player.overallRating || calculatedOverall || 40;
+
+  return calculatedOverall || player.overallRating || 72;
 }
 
 /**

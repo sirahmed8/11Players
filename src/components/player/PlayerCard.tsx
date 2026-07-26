@@ -32,13 +32,14 @@ function getAttributeColor(value: number): string {
 
 function calculateMainStats(attrs?: PlayerProfile['attributes']) {
   const a = attrs || ({} as any);
+  const def = 70;
   return [
-    { label: 'PAC', value: Math.round(((a.speed || 40) + (a.acceleration || 40)) / 2) },
-    { label: 'SHO', value: Math.round(((a.finishing || 40) + (a.kickingPower || 40) + (a.offensiveAwareness || 40)) / 3) },
-    { label: 'PAS', value: Math.round(((a.lowPass || 40) + (a.loftedPass || 40)) / 2) },
-    { label: 'DRI', value: Math.round(((a.dribbling || 40) + (a.ballControl || 40) + (a.tightPossession || 40) + (a.balance || 40)) / 4) },
-    { label: 'DEF', value: Math.round(((a.defensiveAwareness || 40) + (a.ballWinning || 40) + (a.aggression || 40)) / 3) },
-    { label: 'PHY', value: Math.round(((a.physicalContact || 40) + (a.stamina || 40) + (a.jump || 40)) / 3) },
+    { label: 'PAC', value: Math.round(((a.speed || def) + (a.acceleration || def)) / 2) },
+    { label: 'SHO', value: Math.round(((a.finishing || def) + (a.kickingPower || def) + (a.offensiveAwareness || def)) / 3) },
+    { label: 'PAS', value: Math.round(((a.lowPass || def) + (a.loftedPass || def)) / 2) },
+    { label: 'DRI', value: Math.round(((a.dribbling || def) + (a.ballControl || def) + (a.balance || def)) / 3) },
+    { label: 'DEF', value: Math.round(((a.defensiveAwareness || def) + (a.ballWinning || def) + (a.aggression || def)) / 3) },
+    { label: 'PHY', value: Math.round(((a.physicalContact || def) + (a.stamina || def) + (a.jump || def)) / 3) },
   ];
 }
 

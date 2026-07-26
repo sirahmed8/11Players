@@ -31,57 +31,59 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = isOwner || isCommunityAdmin;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      setLoading(false); // Unblock UI instantly!
+
       if (firebaseUser) {
         const ownerEmail = "a7medorabe7@gmail.com";
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
         const userIsOwner = firebaseUser.email?.toLowerCase() === ownerEmail || firebaseUser.uid === ownerUid;
         setIsOwner(userIsOwner);
         
-        // Force sync missing Google data or restore profile by email across hosts
-        try {
-          const playerDocSnap = await getDoc(doc(db, "players", firebaseUser.uid));
-          if (playerDocSnap.exists()) {
-            const data = playerDocSnap.data();
-            if (!data.email || !data.googlePic || !data.googleName) {
-              updateDoc(doc(db, "players", firebaseUser.uid), {
-                email: firebaseUser.email || '',
-                googlePic: firebaseUser.photoURL || '',
-                googleName: firebaseUser.displayName || ''
-              }).catch(console.error);
-            }
-            setIsGlobalModerator(userIsOwner || !!data.isGlobalModerator);
-          } else if (firebaseUser.email) {
-            // Profile not found by UID. Query by Google email!
-            const { collection, query, where, getDocs } = await import("firebase/firestore");
-            const q = query(collection(db, "players"), where("email", "==", firebaseUser.email));
-            const querySnap = await getDocs(q);
-            if (!querySnap.empty) {
-              const existingData = querySnap.docs[0].data();
-              await setDoc(doc(db, "players", firebaseUser.uid), {
-                ...existingData,
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
-                googlePic: firebaseUser.photoURL || existingData.googlePic || '',
-                googleName: firebaseUser.displayName || existingData.googleName || ''
-              }, { merge: true });
-              setIsGlobalModerator(userIsOwner || !!existingData.isGlobalModerator);
+        // Background non-blocking profile sync
+        (async () => {
+          try {
+            const playerDocSnap = await getDoc(doc(db, "players", firebaseUser.uid));
+            if (playerDocSnap.exists()) {
+              const data = playerDocSnap.data();
+              if (!data.email || !data.googlePic || !data.googleName) {
+                updateDoc(doc(db, "players", firebaseUser.uid), {
+                  email: firebaseUser.email || '',
+                  googlePic: firebaseUser.photoURL || '',
+                  googleName: firebaseUser.displayName || ''
+                }).catch(console.error);
+              }
+              setIsGlobalModerator(userIsOwner || !!data.isGlobalModerator);
+            } else if (firebaseUser.email) {
+              const { collection, query, where, getDocs } = await import("firebase/firestore");
+              const q = query(collection(db, "players"), where("email", "==", firebaseUser.email));
+              const querySnap = await getDocs(q);
+              if (!querySnap.empty) {
+                const existingData = querySnap.docs[0].data();
+                await setDoc(doc(db, "players", firebaseUser.uid), {
+                  ...existingData,
+                  uid: firebaseUser.uid,
+                  email: firebaseUser.email,
+                  googlePic: firebaseUser.photoURL || existingData.googlePic || '',
+                  googleName: firebaseUser.displayName || existingData.googleName || ''
+                }, { merge: true });
+                setIsGlobalModerator(userIsOwner || !!existingData.isGlobalModerator);
+              } else {
+                setIsGlobalModerator(userIsOwner);
+              }
             } else {
               setIsGlobalModerator(userIsOwner);
             }
-          } else {
+          } catch (err) {
+            console.error("Error syncing profile:", err);
             setIsGlobalModerator(userIsOwner);
           }
-        } catch (err) {
-          console.error("Error syncing profile:", err);
-          setIsGlobalModerator(userIsOwner);
-        }
+        })();
       } else {
         setIsOwner(false);
         setIsGlobalModerator(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
