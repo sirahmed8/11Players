@@ -867,14 +867,33 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setAiTacticalReport(null);
 
     try {
-      const teamNamesA = (previewData.teamA || []).map((p: any) => `${p.fullName || p.cardName} (${p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
-      const teamNamesB = (previewData.teamB || []).map((p: any) => `${p.fullName || p.cardName} (${p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+      let prompt = '';
+      if (previewData.matchMode === 'turf' && previewData.turfResult?.teams) {
+        const teamsInfo = previewData.turfResult.teams.map((t: any, idx: number) => {
+          const name = t.name || `${isAr ? 'فريق' : 'Team'} ${String.fromCharCode(65 + idx)}`;
+          const playerList = (t.assignedPlayers || t.players || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+          const avg = t.totalOvr || calculateTeamAvg(t.players || []);
+          return `• ${name} (${isAr ? 'معدل' : 'OVR'} ${avg}): ${playerList}`;
+        }).join('\n');
 
-      const prompt = `أنت 11AI المحلل التكتيكي الرسمي. قم بتحليل مباراة الفريق أ ضد الفريق ب:
+        prompt = `أنت 11AI المحلل التكتيكي الرسمي لمنصة 11Players.
+يوجد حجز كورة يحتوي على ${previewData.turfResult.teams.length} فرق مشاركة:
+${teamsInfo}
+
+المطلوب:
+قدم تحليلاً تكتيكياً موجزاً مع خطة وتوصية تكتيكية مخصصة لكل فريق من الفرق المشاركة على حدة (حتى لو كانت 10 فرق)، ثم اكتب توقعاً سريعاً لحسم المواجهات.`;
+      } else {
+        const teamNamesA = (previewData.teamA || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+        const teamNamesB = (previewData.teamB || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+
+        prompt = `أنت 11AI المحلل التكتيكي الرسمي لمنصة 11Players. قم بتحليل مباراة الفريق أ ضد الفريق ب:
 الفريق أ (متوسط ${previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}): ${teamNamesA}
 الفريق ب (متوسط ${previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}): ${teamNamesB}
 
-قدم تحليلاً تكتيكياً كروياً ممتعاً وموجزاً (في 3 نقاط فقط) ينقل نقاط القوة والتوقع النهائي للمباراة.`;
+المطلوب:
+1. تكتيك مخصص ورسالة توجيهية للفريق أ والفريق ب.
+2. التوقع النهائي ومفتاح الحسم للمباراة.`;
+      }
 
       const data = await call11AIChat({
         message: prompt,
@@ -1430,13 +1449,29 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                             ))}
                           </div>
                           {/* Dedicated Bench for Turf */}
-                          {previewData.turfResult.waitingTeams && previewData.turfResult.waitingTeams.length > 0 && (
-                            <TeamBench
-                              bench={previewData.turfResult.waitingTeams[0]?.players || []}
-                              teamName={isAr ? 'دكة البدلاء العام' : 'Turf Bench'}
-                              isAr={isAr}
-                            />
-                          )}
+                          {(() => {
+                            const waiting = previewData.turfResult.waitingTeams || [];
+                            const reserve = previewData.turfResult.reservePlayers || previewData.turfResult.bench || [];
+                            const allBenchPlayers: any[] = [];
+                            waiting.forEach((wt: any) => {
+                              if (wt.players) allBenchPlayers.push(...wt.players);
+                              else if (Array.isArray(wt)) allBenchPlayers.push(...wt);
+                            });
+                            if (reserve.length > 0) allBenchPlayers.push(...reserve);
+
+                            if (allBenchPlayers.length === 0) return null;
+
+                            return (
+                              <TeamBench
+                                bench={allBenchPlayers}
+                                teamName={isAr ? 'دكة بدلاء وقائمة الانتظار' : 'Turf Bench & Reserves'}
+                                isAr={isAr}
+                                onSwapClick={(bpIdx, bPlayer) => handlePlayerSwapClick('bench', bpIdx, bPlayer)}
+                                selectedForSwap={selectedForSwap}
+                                swapTeamKey="bench"
+                              />
+                            );
+                          })()}
                         </div>
                       )}
 
@@ -2074,96 +2109,95 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
               {/* ────────── Turf Settings ────────── */}
               {activeTab === 'turf' && (
-                <div className="space-y-5 mb-6 p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-2xl">
-                  <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-black text-sm">
+                <div className="space-y-5 mb-6 p-5 bg-slate-950/80 border border-slate-800 rounded-3xl shadow-xl text-white">
+                  <div className="flex items-center gap-2 text-emerald-400 font-black text-sm">
                     <Shuffle className="w-4 h-4" />
                     <span>{isAr ? 'إعدادات حجز الكورة العادي / الخماسي' : 'Turf / Casual Matchmaking Settings'}</span>
                   </div>
 
-                  {/* Num Teams */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="grid grid-cols-1 gap-2">
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center justify-between">
-                        <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{isAr ? 'عدد الفرق' : 'Number of Teams'}</span>
-                      </label>
-                      <div className="flex flex-wrap gap-1.5">
-                        {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
-                          <button
-                            key={n}
-                            type="button"
-                            onClick={() => setConfig(prev => ({ ...prev, numTeams: n }))}
-                            className={`flex-1 min-w-[32px] py-2 rounded-xl text-xs font-black transition-all border ${
-                              config.numTeams === n
-                                ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
-                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-amber-400'
-                            }`}
-                          >
-                            {n}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Players per Team — Custom Animated Dropdown */}
-                    <div className="relative" ref={playersDropdownRef}>
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 flex items-center justify-between">
-                        <span>{isAr ? 'لاعبين/فريق' : 'Players / Team'}</span>
-                        <span className="text-[10px] text-amber-600 dark:text-amber-400 font-normal">({isAr ? 'شامل حارس المرمى' : 'Includes Goalkeeper'})</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowPlayersDropdown(p => !p)}
-                        className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-900 dark:bg-slate-900 border border-slate-700 rounded-2xl text-sm font-black text-white hover:border-amber-500 transition-all"
-                      >
-                        <span>{config.playersPerTeam} {isAr ? 'لاعبين' : 'players'}</span>
-                        <motion.span animate={{ rotate: showPlayersDropdown ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                          <ChevronDown className="w-4 h-4 text-slate-400" />
-                        </motion.span>
-                      </button>
-                      <AnimatePresence>
-                        {showPlayersDropdown && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -8, scaleY: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scaleY: 1 }}
-                            exit={{ opacity: 0, y: -8, scaleY: 0.9 }}
-                            transition={{ duration: 0.18 }}
-                            style={{ originY: 0 }}
-                            className="absolute z-50 top-full mt-1 w-full bg-slate-900 border border-slate-700 rounded-2xl overflow-hidden shadow-xl"
-                          >
-                            {[4, 5, 6, 7, 8, 9, 10].map(n => (
-                              <button
-                                key={n}
-                                type="button"
-                                onClick={() => { setConfig(prev => ({ ...prev, playersPerTeam: n })); setShowPlayersDropdown(false); }}
-                                className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold transition-colors ${
-                                  config.playersPerTeam === n
-                                    ? 'bg-amber-500 text-white'
-                                    : 'text-slate-300 hover:bg-slate-800'
-                                }`}
-                              >
-                                <span>{n} {isAr ? 'لاعبين' : 'players'}</span>
-                                {config.playersPerTeam === n && <Check className="w-4 h-4" />}
-                              </button>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                  {/* Num Teams Section */}
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-emerald-400" />{isAr ? 'عدد الفرق المشاركة' : 'Number of Teams'}</span>
+                      <span className="text-[11px] text-emerald-400 font-bold">{config.numTeams} {isAr ? 'فرق' : 'teams'}</span>
+                    </label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
+                        <button
+                          key={n}
+                          type="button"
+                          onClick={() => setConfig(prev => ({ ...prev, numTeams: n }))}
+                          className={`flex-1 min-w-[34px] py-2 rounded-xl text-xs font-black transition-all border ${
+                            config.numTeams === n
+                              ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner ring-1 ring-emerald-500/30'
+                              : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                          }`}
+                        >
+                          {n}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
+                  {/* Players per Team Dropdown */}
+                  <div className="relative space-y-1.5" ref={playersDropdownRef}>
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                      <span>{isAr ? 'عدد اللاعبين بالفريق الواحدة' : 'Players / Team'}</span>
+                      <span className="text-[11px] text-slate-400 font-normal">({isAr ? 'شامل حارس المرمى' : 'Includes Goalkeeper'})</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowPlayersDropdown(p => !p)}
+                      className="w-full flex items-center justify-between px-4 py-3 bg-slate-950 border border-slate-800 rounded-2xl text-sm font-bold text-white hover:border-emerald-500/50 transition-all shadow-inner"
+                    >
+                      <span className="text-emerald-400 font-black">{config.playersPerTeam} {isAr ? 'لاعبين بكل فريق' : 'players per team'}</span>
+                      <motion.span animate={{ rotate: showPlayersDropdown ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                      </motion.span>
+                    </button>
+                    <AnimatePresence>
+                      {showPlayersDropdown && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scaleY: 1 }}
+                          exit={{ opacity: 0, y: -8, scaleY: 0.95 }}
+                          transition={{ duration: 0.18 }}
+                          style={{ originY: 0 }}
+                          className="absolute z-50 top-full mt-1 w-full bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl"
+                        >
+                          {[4, 5, 6, 7, 8, 9, 10].map(n => (
+                            <button
+                              key={n}
+                              type="button"
+                              onClick={() => { setConfig(prev => ({ ...prev, playersPerTeam: n })); setShowPlayersDropdown(false); }}
+                              className={`w-full flex items-center justify-between px-4 py-2.5 text-sm font-bold transition-colors ${
+                                config.playersPerTeam === n
+                                  ? 'bg-slate-800 text-emerald-400 border-r-4 border-emerald-500 font-black'
+                                  : 'text-slate-300 hover:bg-slate-800/80'
+                              }`}
+                            >
+                              <span>{n} {isAr ? 'لاعبين' : 'players'}</span>
+                              {config.playersPerTeam === n && <Check className="w-4 h-4 text-emerald-400" />}
+                            </button>
+                          ))}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
                   {/* GK Mode */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                      <span className="flex items-center gap-1"><RotateCw className="w-3.5 h-3.5" />{isAr ? 'نظام حارس المرمى' : 'GK System'}</span>
+                  <div className="space-y-2">
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5"><RotateCw className="w-3.5 h-3.5 text-emerald-400" />{isAr ? 'نظام حارس المرمى' : 'GK System'}</span>
                     </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setConfig(prev => ({ ...prev, gkMode: 'fixed' }))}
-                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all border ${
                           config.gkMode === 'fixed'
-                            ? 'bg-amber-500 text-white border-amber-500'
-                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                            ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
                         }`}
                       >
                         🥅 {isAr ? 'حارس ثابت' : 'Fixed GK'}
@@ -2171,19 +2205,19 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       <button
                         type="button"
                         onClick={() => setConfig(prev => ({ ...prev, gkMode: 'rotating' }))}
-                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-black transition-all border ${
                           config.gkMode === 'rotating'
-                            ? 'bg-amber-500 text-white border-amber-500'
-                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                            ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
                         }`}
                       >
                         🔄 {isAr ? 'حارس دوار' : 'Rotating GK'}
                       </button>
                     </div>
                     {config.gkMode === 'fixed' && communityPlayers.length > 0 && (
-                      <div className="mt-3 grid grid-cols-2 gap-3 p-3 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <div className="mt-3 grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-800">
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                          <label className="block text-[10px] font-bold text-slate-400 mb-1">
                             🥅 {isAr ? 'حارس الفريق الأول (A)' : 'Team A Fixed GK'}
                           </label>
                           <CustomDropdown
@@ -2201,7 +2235,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           />
                         </div>
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-500 mb-1">
+                          <label className="block text-[10px] font-bold text-slate-400 mb-1">
                             🥅 {isAr ? 'حارس الفريق الثاني (B)' : 'Team B Fixed GK'}
                           </label>
                           <CustomDropdown
@@ -2226,10 +2260,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           <button
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_match' }))}
-                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                               config.gkRotationInterval === 'per_match'
-                                ? 'bg-amber-400 text-white border-amber-400'
-                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {isAr ? '🔄 كل مباراة' : '🔄 Per match'}
@@ -2237,10 +2271,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           <button
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_goal' }))}
-                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                               config.gkRotationInterval === 'per_goal'
-                                ? 'bg-amber-400 text-white border-amber-400'
-                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {isAr ? '⚽ كل هدف' : '⚽ Per goal'}
@@ -2248,10 +2282,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           <button
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, gkRotationInterval: 'per_time' }))}
-                            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                               config.gkRotationInterval === 'per_time'
-                                ? 'bg-amber-400 text-white border-amber-400'
-                                : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {isAr ? '⏱️ كل وقت' : '⏱️ By time'}
@@ -2259,7 +2293,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         </div>
                         {config.gkRotationInterval === 'per_time' && (
                           <div>
-                            <div className="text-[10px] font-bold text-slate-500 mb-1.5">
+                            <div className="text-[10px] font-bold text-slate-400 mb-1.5">
                               {isAr ? 'تبديل كل (دقيقة)' : 'Rotate every (minutes)'}
                             </div>
                             <div className="flex gap-1.5">
@@ -2268,10 +2302,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                                   key={m}
                                   type="button"
                                   onClick={() => setConfig(prev => ({ ...prev, gkRotationMinutes: m }))}
-                                  className={`flex-1 py-1.5 rounded-xl text-[10px] font-black transition-all border ${
+                                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                                     config.gkRotationMinutes === m
-                                      ? 'bg-amber-500 text-white border-amber-500'
-                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                      ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                      : 'bg-slate-950 text-slate-400 border-slate-800'
                                   }`}
                                 >
                                   {m}&apos;
@@ -2285,31 +2319,31 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   </div>
 
                   {/* Match Format + Duration */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                        <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5" />{isAr ? 'نوع الحجز / البطولة' : 'Match / Tournament Type'}</span>
+                      <label className="block text-xs font-black text-slate-300 uppercase tracking-wider mb-1.5">
+                        <span className="flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-400" />{isAr ? 'نوع الحجز / البطولة' : 'Match / Tournament Type'}</span>
                       </label>
                       <div className="flex flex-col gap-2">
                         <button
                           type="button"
                           onClick={() => setConfig(prev => ({ ...prev, matchType: 'friendly' }))}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all ${
                             config.matchType === 'friendly'
-                              ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm font-black'
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 font-black shadow-inner'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
                           }`}
                         >
-                          <span>⚽ {isAr ? "حجز ودية (لعب مستمر دون بطولة)" : "Casual Friendly (No Tournament)"}</span>
+                          <span>⚽ {isAr ? "حجز ودية (دون بطولة)" : "Casual Friendly (No Tournament)"}</span>
                         </button>
                         <div className="flex gap-1.5">
                           <button
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, matchType: 'league' }))}
-                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                               config.matchType === 'league'
-                                ? 'bg-amber-500 text-white border-amber-500'
-                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {isAr ? 'دوري' : 'League'}
@@ -2317,10 +2351,10 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                           <button
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, matchType: 'knockout' }))}
-                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
                               config.matchType === 'knockout'
-                                ? 'bg-amber-500 text-white border-amber-500'
-                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {isAr ? 'كأس' : 'Knockout'}
@@ -2329,32 +2363,32 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                         <button
                           type="button"
                           onClick={() => setConfig(prev => ({ ...prev, matchType: 'winner_stays' }))}
-                          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-xl border text-xs font-bold transition-all ${
+                          className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border text-xs font-bold transition-all ${
                             config.matchType === 'winner_stays'
-                              ? 'bg-amber-100 dark:bg-amber-900/30 border-amber-500 text-amber-700 dark:text-amber-400'
-                              : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                              ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 font-black shadow-inner'
+                              : 'bg-slate-950 border-slate-800 text-slate-400 hover:bg-slate-900'
                           }`}
                         >
-                          <RotateCw className="w-4 h-4" />
+                          <RotateCw className="w-3.5 h-3.5" />
                           <span>{isAr ? "الكسبان مستمر" : "Winner Stays On"}</span>
                         </button>
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5">
-                        <span className="flex items-center gap-1"><Timer className="w-3.5 h-3.5" />{isAr ? 'مدة المباراة (دقيقة)' : 'Match Duration (min)'}</span>
+                      <label className="block text-xs font-black text-slate-300 uppercase tracking-wider mb-1.5">
+                        <span className="flex items-center gap-1.5"><Timer className="w-3.5 h-3.5 text-emerald-400" />{isAr ? 'مدة المباراة (دقيقة)' : 'Match Duration (min)'}</span>
                       </label>
-                      <div className="flex gap-1.5">
+                      <div className="flex flex-wrap gap-1.5">
                         {[10, 15, 20, 25, 30].map(m => (
                           <button
                             key={m}
                             type="button"
                             onClick={() => setConfig(prev => ({ ...prev, matchDurationMins: m }))}
-                            className={`flex-1 py-2 rounded-xl text-[10px] font-black transition-all border ${
+                            className={`flex-1 min-w-[36px] py-2.5 rounded-xl text-xs font-black transition-all border ${
                               config.matchDurationMins === m
-                                ? 'bg-amber-500 text-white border-amber-500'
-                                : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner'
+                                : 'bg-slate-950 text-slate-400 border-slate-800'
                             }`}
                           >
                             {m}
@@ -2365,16 +2399,16 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                   </div>
 
                   {/* Match Limit / End Condition */}
-                  <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 space-y-2">
-                    <label className="block text-xs font-bold text-slate-600 dark:text-slate-400">
-                      <span className="flex items-center gap-1"><Trophy className="w-3.5 h-3.5 text-amber-500" />{isAr ? 'شرط انتهاء المباراة' : 'Match End Condition'}</span>
+                  <div className="pt-3 border-t border-slate-800 space-y-2">
+                    <label className="block text-xs font-black text-slate-300 uppercase tracking-wider">
+                      <span className="flex items-center gap-1.5"><Trophy className="w-3.5 h-3.5 text-emerald-400" />{isAr ? 'شرط انتهاء المباراة' : 'Match End Condition'}</span>
                     </label>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setConfig(prev => ({ ...prev, endCondition: 'time' }))}
-                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
-                          config.endCondition === 'time' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'time' ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner' : 'bg-slate-950 text-slate-400 border-slate-800'
                         }`}
                       >
                         ⏱️ {isAr ? 'الوقت فقط' : 'Time Only'}
@@ -2382,8 +2416,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       <button
                         type="button"
                         onClick={() => setConfig(prev => ({ ...prev, endCondition: 'goals' }))}
-                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
-                          config.endCondition === 'goals' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'goals' ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner' : 'bg-slate-950 text-slate-400 border-slate-800'
                         }`}
                       >
                         ⚽ {isAr ? 'عدد أهداف' : 'Target Goals'}
@@ -2391,16 +2425,16 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       <button
                         type="button"
                         onClick={() => setConfig(prev => ({ ...prev, endCondition: 'both' }))}
-                        className={`flex-1 py-1.5 rounded-xl text-xs font-black transition-all border ${
-                          config.endCondition === 'both' ? 'bg-amber-500 text-white border-amber-500' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                        className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${
+                          config.endCondition === 'both' ? 'bg-slate-800 text-emerald-400 border-emerald-500/50 shadow-inner' : 'bg-slate-950 text-slate-400 border-slate-800'
                         }`}
                       >
                         ⚡ {isAr ? 'أيهما أقرب' : 'Time or Goals'}
                       </button>
                     </div>
                     {(config.endCondition === 'goals' || config.endCondition === 'both') && (
-                      <div className="flex items-center justify-between p-2.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{isAr ? 'الهدف المطلوب للفوز/التبديل:' : 'Target Goals to Win:'}</span>
+                      <div className="flex items-center justify-between p-2.5 mt-2 bg-slate-950 rounded-xl border border-slate-800">
+                        <span className="text-xs font-bold text-slate-300">{isAr ? 'الهدف المطلوب للفوز/التبديل:' : 'Target Goals to Win:'}</span>
                         <div className="flex gap-1">
                           {[1, 2, 3, 5].map(g => (
                             <button
@@ -2408,7 +2442,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                               type="button"
                               onClick={() => setConfig(prev => ({ ...prev, targetGoals: g }))}
                               className={`w-7 h-7 rounded-lg text-xs font-black transition-all ${
-                                config.targetGoals === g ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                                config.targetGoals === g ? 'bg-slate-800 text-emerald-400 border border-emerald-500/50 shadow-inner' : 'bg-slate-950 text-slate-400 border border-slate-800'
                               }`}
                             >
                               {g}
@@ -2547,8 +2581,6 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                 }
               </div>
 
-                </>
-                
                 {/* Config Footer */}
                 <div className="flex gap-3 pt-4 border-t border-slate-800 mt-6">
                   <button
@@ -2567,6 +2599,7 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                     {!config.isOpenRegistration && <Brain className="w-4.5 h-4.5 animate-bounce text-emerald-200" />}
                   </button>
                 </div>
+                </>
               </motion.div>
               )}
               </AnimatePresence>
