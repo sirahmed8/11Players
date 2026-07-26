@@ -90,9 +90,6 @@ function CommunityCard({
           : "bg-slate-900/60 hover:bg-slate-900/90 border-slate-800/80 hover:border-slate-700/80 shadow-md"
       }`}
     >
-      {/* Top accent line */}
-      <div className={`h-1 w-full ${isActive ? "bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-500" : "bg-slate-800 group-hover:bg-emerald-500/40 transition-colors"}`} />
-
       {/* Hover bg shimmer */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-teal-500/0 to-amber-500/0 group-hover:from-emerald-500/[0.04] group-hover:to-teal-500/[0.03] transition-all duration-500 pointer-events-none" />
 
@@ -412,8 +409,6 @@ function CommunitiesContent() {
           transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           className="mb-8 relative overflow-hidden rounded-3xl border border-emerald-500/25 bg-gradient-to-r from-emerald-950/40 via-teal-950/30 to-slate-900/60 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 backdrop-blur-md shadow-2xl shadow-emerald-950/30"
         >
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-500" />
-
           <div className="relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-xs font-bold mb-3">
               <Sparkles className="w-3.5 h-3.5" />
