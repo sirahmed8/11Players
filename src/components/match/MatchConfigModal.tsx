@@ -283,34 +283,34 @@ function HalfPitch({
     const rect = containerRef.current.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
 
-    const dropX = Math.max(5, Math.min(95, ((info.point.x - rect.left) / rect.width) * 100));
-    const dropY = Math.max(5, Math.min(95, ((info.point.y - rect.top) / rect.height) * 100));
+    const dropX = Math.max(8, Math.min(92, ((info.point.x - rect.left) / rect.width) * 100));
+    const dropY = Math.max(8, Math.min(92, ((info.point.y - rect.top) / rect.height) * 100));
 
     const actualY = flipped ? 100 - dropY : dropY;
 
     let detectedPos: PESPosition = 'CMF';
 
-    if (actualY > 80) {
+    if (actualY > 82) {
       detectedPos = 'GK';
-    } else if (actualY >= 62) {
-      if (dropX < 28) detectedPos = 'LB';
-      else if (dropX > 72) detectedPos = 'RB';
+    } else if (actualY >= 64) {
+      if (dropX < 30) detectedPos = 'LB';
+      else if (dropX > 70) detectedPos = 'RB';
       else detectedPos = 'CB';
     } else if (actualY >= 48) {
-      if (dropX < 26) detectedPos = 'LMF';
-      else if (dropX > 74) detectedPos = 'RMF';
+      if (dropX < 28) detectedPos = 'LMF';
+      else if (dropX > 72) detectedPos = 'RMF';
       else detectedPos = 'DMF';
     } else if (actualY >= 34) {
-      if (dropX < 26) detectedPos = 'LMF';
-      else if (dropX > 74) detectedPos = 'RMF';
+      if (dropX < 28) detectedPos = 'LMF';
+      else if (dropX > 72) detectedPos = 'RMF';
       else detectedPos = 'CMF';
     } else if (actualY >= 20) {
-      if (dropX < 26) detectedPos = 'LWF';
-      else if (dropX > 74) detectedPos = 'RWF';
+      if (dropX < 28) detectedPos = 'LWF';
+      else if (dropX > 72) detectedPos = 'RWF';
       else detectedPos = 'AMF';
     } else {
-      if (dropX < 26) detectedPos = 'LWF';
-      else if (dropX > 74) detectedPos = 'RWF';
+      if (dropX < 28) detectedPos = 'LWF';
+      else if (dropX > 72) detectedPos = 'RWF';
       else detectedPos = 'CF';
     }
 
@@ -343,39 +343,16 @@ function HalfPitch({
           const playerObj = p.player || p;
           const pos = playerObj.assignedPosition || playerObj.primaryPosition || 'CMF';
           
-          let matchedSlotIdx = -1;
-          for (let sIdx = 0; sIdx < formSlots.length; sIdx++) {
-            if (formSlots[sIdx] === pos && !usedSlotIndices.has(sIdx)) {
-              matchedSlotIdx = sIdx;
-              break;
-            }
-          }
-
           let coords: { x: number; y: number };
           if (playerObj.customPitchCoords) {
             coords = playerObj.customPitchCoords;
-          } else if (matchedSlotIdx >= 0) {
-            usedSlotIndices.add(matchedSlotIdx);
-            coords = coordsList[matchedSlotIdx];
           } else if (coordsList[i]) {
             coords = coordsList[i];
           } else {
-            const base = FALLBACK_PITCH_COORDS[pos] || {x:50, y:50};
-            const count = posCounts[pos] || 0;
-            posCounts[pos] = count + 1;
-            coords = { x: Math.min(85, Math.max(15, base.x + (count * 18 - 9))), y: base.y };
+            coords = FALLBACK_PITCH_COORDS[pos] || { x: 50, y: 50 };
           }
 
-          const coordKey = `${coords.x.toFixed(0)}-${coords.y.toFixed(0)}`;
-          const dupIndex = usedCoordCounts[coordKey] || 0;
-          usedCoordCounts[coordKey] = dupIndex + 1;
-          let finalX = coords.x;
-          if (dupIndex > 0) {
-            const dir = dupIndex % 2 === 1 ? 1 : -1;
-            const mult = Math.ceil(dupIndex / 2);
-            finalX = Math.min(88, Math.max(12, coords.x + dir * mult * 14));
-          }
-
+          const finalX = coords.x;
           const y = flipped ? 100 - coords.y : coords.y;
           const ovr = playerObj.overallRating || playerObj?.stats?.overallRating || 70;
           const name = (playerObj.cardName || playerObj.fullName || 'Player').split(' ')[0];
@@ -1030,7 +1007,9 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
         if (!player) return prev;
 
         const newPsi = calculatePSI(player, newPos);
-        const effectiveOvr = Math.round(newPsi);
+        const effectiveOvr = customCoords
+          ? (player.overallRating || Math.round(newPsi))
+          : Math.round(newPsi);
         const newStyle = getBestPlayStyleNameForPosition(player, newPos);
 
         updatedTeam[playerIndex] = {
