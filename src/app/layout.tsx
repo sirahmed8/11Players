@@ -72,7 +72,6 @@ export default function RootLayout({
                         <Sidebar />
                         <div className="flex-1 flex flex-col min-w-0">
                           <GlobalAnnouncementBanner />
-                          <TopNav />
                           {children}
                           <Footer />
                         </div>
