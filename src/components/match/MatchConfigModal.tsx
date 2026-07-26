@@ -281,68 +281,88 @@ function HalfPitch({
   const [activeDragIdx, setActiveDragIdx] = useState<number | null>(null);
   const [dragCoords, setDragCoords] = useState<Record<number, { x: number; y: number }>>({});
 
-  const handlePointerDown = (e: React.PointerEvent, i: number) => {
-    e.stopPropagation();
-    try {
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    } catch (_) {}
+  const handlePointerDown = (e: React.PointerEvent, i: number, player: any) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+    let hasMoved = false;
+
     setActiveDragIdx(i);
-  };
 
-  const handlePointerMove = (e: React.PointerEvent, i: number) => {
-    if (activeDragIdx !== i || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+    const calcDropCoords = (clientX: number, clientY: number) => {
+      const dropX = Math.max(6, Math.min(94, ((clientX - rect.left) / rect.width) * 100));
+      const dropY = Math.max(6, Math.min(94, ((clientY - rect.top) / rect.height) * 100));
+      return { dropX, dropY };
+    };
 
-    const currentX = Math.max(6, Math.min(94, ((e.clientX - rect.left) / rect.width) * 100));
-    const currentY = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+    const initial = calcDropCoords(startClientX, startClientY);
+    setDragCoords(prev => ({ ...prev, [i]: { x: initial.dropX, y: initial.dropY } }));
 
-    setDragCoords(prev => ({ ...prev, [i]: { x: currentX, y: currentY } }));
-  };
+    const onPointerMoveWindow = (moveEvent: PointerEvent) => {
+      const dist = Math.hypot(moveEvent.clientX - startClientX, moveEvent.clientY - startClientY);
+      if (dist > 4) {
+        hasMoved = true;
+      }
+      const { dropX, dropY } = calcDropCoords(moveEvent.clientX, moveEvent.clientY);
+      setDragCoords(prev => ({ ...prev, [i]: { x: dropX, y: dropY } }));
+    };
 
-  const handlePointerUp = (e: React.PointerEvent, i: number, player: any) => {
-    if (activeDragIdx !== i || !containerRef.current) return;
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch (_) {}
-    setActiveDragIdx(null);
+    const onPointerUpWindow = (upEvent: PointerEvent) => {
+      window.removeEventListener('pointermove', onPointerMoveWindow);
+      window.removeEventListener('pointerup', onPointerUpWindow);
+      window.removeEventListener('pointercancel', onPointerUpWindow);
 
-    const rect = containerRef.current.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
+      setActiveDragIdx(null);
 
-    const dropX = Math.max(6, Math.min(94, ((e.clientX - rect.left) / rect.width) * 100));
-    const dropY = Math.max(6, Math.min(94, ((e.clientY - rect.top) / rect.height) * 100));
+      if (!hasMoved) {
+        if (onSwapClick) {
+          onSwapClick(actualTeamIdx, i, player);
+        } else {
+          const teamId = label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B';
+          setActiveTacticalPlayer({ teamId, playerIndex: i, player });
+        }
+        return;
+      }
 
-    const actualY = flipped ? 100 - dropY : dropY;
+      const { dropX, dropY } = calcDropCoords(upEvent.clientX, upEvent.clientY);
+      const actualY = flipped ? 100 - dropY : dropY;
 
-    let detectedPos: PESPosition = 'CMF';
-    if (actualY > 82) {
-      detectedPos = 'GK';
-    } else if (actualY >= 64) {
-      if (dropX < 30) detectedPos = 'LB';
-      else if (dropX > 70) detectedPos = 'RB';
-      else detectedPos = 'CB';
-    } else if (actualY >= 48) {
-      if (dropX < 28) detectedPos = 'LMF';
-      else if (dropX > 72) detectedPos = 'RMF';
-      else detectedPos = 'DMF';
-    } else if (actualY >= 34) {
-      if (dropX < 28) detectedPos = 'LMF';
-      else if (dropX > 72) detectedPos = 'RMF';
-      else detectedPos = 'CMF';
-    } else if (actualY >= 20) {
-      if (dropX < 28) detectedPos = 'LWF';
-      else if (dropX > 72) detectedPos = 'RWF';
-      else detectedPos = 'AMF';
-    } else {
-      if (dropX < 28) detectedPos = 'LWF';
-      else if (dropX > 72) detectedPos = 'RWF';
-      else detectedPos = 'CF';
-    }
+      let detectedPos: PESPosition = 'CMF';
+      if (actualY > 82) {
+        detectedPos = 'GK';
+      } else if (actualY >= 64) {
+        if (dropX < 30) detectedPos = 'LB';
+        else if (dropX > 70) detectedPos = 'RB';
+        else detectedPos = 'CB';
+      } else if (actualY >= 48) {
+        if (dropX < 28) detectedPos = 'LMF';
+        else if (dropX > 72) detectedPos = 'RMF';
+        else detectedPos = 'DMF';
+      } else if (actualY >= 34) {
+        if (dropX < 28) detectedPos = 'LMF';
+        else if (dropX > 72) detectedPos = 'RMF';
+        else detectedPos = 'CMF';
+      } else if (actualY >= 20) {
+        if (dropX < 28) detectedPos = 'LWF';
+        else if (dropX > 72) detectedPos = 'RWF';
+        else detectedPos = 'AMF';
+      } else {
+        if (dropX < 28) detectedPos = 'LWF';
+        else if (dropX > 72) detectedPos = 'RWF';
+        else detectedPos = 'CF';
+      }
 
-    if (onPositionDragChange) {
-      onPositionDragChange(actualTeamIdx, i, detectedPos, { x: dropX, y: actualY });
-    }
+      if (onPositionDragChange) {
+        onPositionDragChange(actualTeamIdx, i, detectedPos, { x: dropX, y: actualY });
+      }
+    };
+
+    window.addEventListener('pointermove', onPointerMoveWindow);
+    window.addEventListener('pointerup', onPointerUpWindow);
+    window.addEventListener('pointercancel', onPointerUpWindow);
   };
 
   return (
@@ -397,21 +417,10 @@ function HalfPitch({
 
           return (
             <div
-              key={`${p.uid || `pitch-${label}-${i}`}-${pos}-${formKey}-${pitchResetCounter || 0}`}
-              onPointerDown={(e) => handlePointerDown(e, i)}
-              onPointerMove={(e) => handlePointerMove(e, i)}
-              onPointerUp={(e) => handlePointerUp(e, i, p)}
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onSwapClick) {
-                  onSwapClick(actualTeamIdx, i, p);
-                } else {
-                  const teamId = label === 'Team A' || label === (isAr ? 'الفريق أ' : 'Team A') ? 'A' : 'B';
-                  setActiveTacticalPlayer({ teamId, playerIndex: i, player: p });
-                }
-              }}
-              className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none transition-transform ${
-                isDraggingThis ? 'scale-125 z-50' : isSelected ? 'scale-110 z-30' : ''
+              key={`pitch-dot-${actualTeamIdx}-${i}-${p.uid || i}`}
+              onPointerDown={(e) => handlePointerDown(e, i, p)}
+              className={`absolute flex flex-col items-center -translate-x-1/2 -translate-y-1/2 group z-10 cursor-grab active:cursor-grabbing select-none touch-none ${
+                isDraggingThis ? 'scale-125 z-50 transition-none' : isSelected ? 'scale-110 z-30 transition-all duration-150' : 'transition-all duration-150'
               }`}
               style={{ left: `${displayX}%`, top: `${displayY}%` }}
               title={isAr ? 'اضغط للتبديل مع أي لاعب آخر، أو اسحب لتعديل المكان، أو اضغط القلم لتعديل المركز' : 'Click to swap with another player, drag to reposition, or click pencil to edit position'}
@@ -1081,6 +1090,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
             updatedPlayers[playerIndex] = {
               ...player,
               assignedPosition: newPos,
+              isManualPosition: true,
+              customPitchCoords: customCoords || player.customPitchCoords,
               playStyle: newStyle,
               psi: newPsi,
               overallRating: Math.round(newPsi)
