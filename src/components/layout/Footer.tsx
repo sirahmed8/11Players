@@ -12,11 +12,11 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4 flex flex-col items-center gap-4">
         
         <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm font-semibold text-slate-500 dark:text-slate-400">
-          <Link href="/privacy" className="hover:text-emerald-500 transition-colors">{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
+          <Link href="/privacy" prefetch={false} className="hover:text-emerald-500 transition-colors">{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</Link>
           <span className="text-slate-300 dark:text-slate-700">•</span>
-          <Link href="/tos" className="hover:text-emerald-500 transition-colors">{isAr ? "شروط الخدمة" : "Terms of Service"}</Link>
+          <Link href="/tos" prefetch={false} className="hover:text-emerald-500 transition-colors">{isAr ? "شروط الخدمة" : "Terms of Service"}</Link>
           <span className="text-slate-300 dark:text-slate-700">•</span>
-          <Link href="/cookie" className="hover:text-emerald-500 transition-colors">{isAr ? "سياسة ملفات الارتباط" : "Cookie Policy"}</Link>
+          <Link href="/cookie" prefetch={false} className="hover:text-emerald-500 transition-colors">{isAr ? "سياسة ملفات الارتباط" : "Cookie Policy"}</Link>
         </div>
 
         <a 

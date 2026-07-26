@@ -108,6 +108,9 @@ export default function CommunityChatPage() {
       setTimeout(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }, 100);
+    }, (err) => {
+      console.warn("Community chat snapshot warning:", err);
+      setLoading(false);
     });
 
     return () => unsub();

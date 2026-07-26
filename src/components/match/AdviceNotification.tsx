@@ -102,6 +102,8 @@ export default function AdviceNotification() {
           ), { duration: 7000, position: "top-center", id: `notif-${id}` });
         }
       });
+    }, (err) => {
+      console.warn("AdviceNotification error:", err);
     });
 
     return () => unsub();

@@ -353,6 +353,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         if (pid) commCounts[pid] = (commCounts[pid] || 0) + 1;
       });
       updateCombined();
+    }, (err) => {
+      console.warn("AdminTable comm editRequests warning:", err);
     });
 
     const unsubGlobal = onSnapshot(qGlobal, (snap) => {
@@ -366,6 +368,8 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
         }
       });
       updateCombined();
+    }, (err) => {
+      console.warn("AdminTable global editRequests warning:", err);
     });
 
     return () => {

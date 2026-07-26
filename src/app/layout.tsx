@@ -51,7 +51,6 @@ export default function RootLayout({
                       for(let registration of registrations) {
                         registration.unregister();
                       }
-                      console.log('ServiceWorkers unregistered successfully');
                     });
                   }
                 } catch (e) {}
@@ -88,7 +87,7 @@ export default function RootLayout({
             </ErrorBoundary>
           </ThemeProvider>
         </LocaleProvider>
-        <Analytics />
+        {process.env.NEXT_PUBLIC_VERCEL_ENV && <Analytics />}
       </body>
     </html>
   );

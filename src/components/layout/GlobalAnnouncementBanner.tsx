@@ -33,6 +33,8 @@ export default function GlobalAnnouncementBanner() {
         }
       }
       setAnnouncement(found);
+    }, (err) => {
+      console.warn("GlobalAnnouncementBanner error:", err);
     });
 
     return () => unsub();

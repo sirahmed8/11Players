@@ -58,6 +58,8 @@ export default function Sidebar() {
     const q = query(collection(db, "users", user.uid, "notifications"), where("read", "==", false));
     const unsub = onSnapshot(q, (snap) => {
       setUnreadNotifsCount(snap.docs.length);
+    }, (err) => {
+      console.warn("Sidebar notifications snapshot warning:", err);
     });
     return () => unsub();
   }, [user]);
@@ -110,6 +112,8 @@ export default function Sidebar() {
           ), { duration: 6000, position: 'top-center' });
         }
       }
+    }, (err) => {
+      console.warn("Sidebar support_threads snapshot warning:", err);
     });
 
     return () => unsub();
@@ -223,6 +227,8 @@ export default function Sidebar() {
           setUnreadSupportCount(0);
         }
       }
+    }, (err) => {
+      console.warn("Sidebar user support_thread snapshot warning:", err);
     });
 
     return () => unsub();
@@ -298,6 +304,8 @@ export default function Sidebar() {
           }
         }
       }
+    }, (err) => {
+      console.warn("Sidebar user support_thread snapshot warning:", err);
     });
 
     return () => unsub();

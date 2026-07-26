@@ -23,7 +23,7 @@ export default function PendingRequests() {
     if (!activeCommunityId) return;
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "communities", activeCommunityId, "joinRequests"));
+      const snap = await getDocs(collection(db, "communities", activeCommunityId, "requests"));
       setRequests(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error("Failed to fetch requests", err);
@@ -46,8 +46,8 @@ export default function PendingRequests() {
         ...request,
         requestedAt: undefined, // remove temp field
       });
-      // Remove from joinRequests
-      await deleteDoc(doc(db, "communities", activeCommunityId, "joinRequests", request.id));
+      // Remove from requests
+      await deleteDoc(doc(db, "communities", activeCommunityId, "requests", request.id));
       
       // Update global profile
       await updateDoc(doc(db, "players", request.id), {
@@ -69,8 +69,8 @@ export default function PendingRequests() {
     if (!activeCommunityId) return;
     setActionLoading(request.id);
     try {
-      // Remove from joinRequests
-      await deleteDoc(doc(db, "communities", activeCommunityId, "joinRequests", request.id));
+      // Remove from requests
+      await deleteDoc(doc(db, "communities", activeCommunityId, "requests", request.id));
       
       // Update global profile
       await updateDoc(doc(db, "players", request.id), {

@@ -27,6 +27,8 @@ export function useAuthProfile(user: any) {
           console.error("Profile sync by email error:", e);
         }
       }
+    }, (err) => {
+      console.warn("useAuthProfile onSnapshot error:", err);
     });
 
     return () => unsub();

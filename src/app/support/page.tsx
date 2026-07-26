@@ -78,6 +78,9 @@ export default function SupportPage() {
       setTimeout(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }, 100);
+    }, (err) => {
+      console.warn("Support messages snapshot warning:", err);
+      setLoading(false);
     });
 
     return () => unsub();

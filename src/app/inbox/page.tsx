@@ -51,6 +51,9 @@ export default function InboxPage() {
       const thrds = snap.docs.map(d => ({ id: d.id, ...d.data() } as SupportThread));
       setThreads(thrds);
       setLoadingThreads(false);
+    }, (err) => {
+      console.warn("Inbox threads snapshot warning:", err);
+      setLoadingThreads(false);
     });
 
     return () => unsub();
@@ -102,6 +105,9 @@ export default function InboxPage() {
       setTimeout(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
       }, 100);
+    }, (err) => {
+      console.warn("Inbox messages snapshot warning:", err);
+      setLoadingMessages(false);
     });
 
     return () => unsub();

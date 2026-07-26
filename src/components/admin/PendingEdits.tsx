@@ -308,6 +308,9 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
       unsubs.push(onSnapshot(q, (snapshot) => {
         communityEdits = snapshot.docs.map(d => ({ id: d.id, _collection: `communities/${activeCommunityId}/editRequests`, ...d.data() }));
         merge();
+      }, (err) => {
+        console.warn("Community editRequests snapshot warning:", err);
+        merge();
       }));
     }
 
@@ -320,6 +323,9 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
             const reqCommId = d.communityId || d.targetCommunityId;
             return !reqCommId || !activeCommunityId || reqCommId === activeCommunityId;
           });
+        merge();
+      }, (err) => {
+        console.warn("Global editRequests snapshot warning:", err);
         merge();
       }));
     }
