@@ -177,19 +177,29 @@ export async function call11AIChat(payload: {
   }
 
   // Client-side fallback generation (for static hosting environments like Firebase)
-  const rosterSummary = Array.isArray(payload.communityRoster) && payload.communityRoster.length > 0
-    ? payload.communityRoster
-        .slice(0, 100)
-        .map((p: any) => {
-          const cardName = p.cardName || p.name || "Player";
-          const fullName = p.name || p.fullName || cardName;
-          const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
-          const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
-          const playStyle = cleanPlayStyleName(p.playStyle);
-          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${playStyle} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
-        })
-        .join("\n")
-    : "No other player data available.";
+  let rosterSummary = "No other player data available.";
+  if (Array.isArray(payload.communityRoster) && payload.communityRoster.length > 0) {
+    const seen = new Set<string>();
+    const uniquePlayers: any[] = [];
+    for (const p of payload.communityRoster) {
+      const identifier = (p.cardName || p.name || "").toLowerCase().trim();
+      if (identifier && !seen.has(identifier)) {
+        seen.add(identifier);
+        uniquePlayers.push(p);
+      }
+    }
+    rosterSummary = uniquePlayers
+      .slice(0, 100)
+      .map((p: any) => {
+        const cardName = p.cardName || p.name || "Player";
+        const fullName = p.name || p.fullName || cardName;
+        const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
+        const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
+        const playStyle = cleanPlayStyleName(p.playStyle);
+        return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${playStyle} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
+      })
+      .join("\n");
+  }
 
   const systemPrompt = `You are "11AI", the official AI Tactical Analyst and Personal Career Coach for the 11Players football platform.
 
@@ -206,12 +216,13 @@ Strict Behavioral & Data Access Guidelines:
 1. NEVER output raw database strings containing underscores! (NEVER write "extra_frontman", "the_destroyer", "defensive_gk", "classic_no_10"). ALWAYS translate them to natural human language: write "المهاجم الإضافي" or "Extra Frontman", write "المحطم" or "The Destroyer", write "الحارس الدفاعي" or "Defensive Goalkeeper", write "صانع الألعاب الكلاسيكي" or "Classic No. 10".
 2. DO NOT repeat the player's full profile script ("بصفتك أحمد علاء...") on every turn! Only mention profile details when directly relevant to the question.
 3. When the user says casual remarks or farewells like "سلام", "خلاص", "ماشي", "شكراً", respond naturally and warmly in 1 short sentence without repeating their profile intro script!
-4. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g. "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
-5. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
-6. ALWAYS highlight key player names, card names in parentheses, OVR ratings, positions, stats, and "11Players" using Markdown bold syntax **text** (e.g. **11Players**, **يوسف راضوان (RADWAN)**, **81 OVR**, **عماد عادل (OMDA)**, **79**). This ensures key details render in bright emerald green text!
-7. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
-8. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
-9. At the very end of your response, ALWAYS add a line formatted exactly as:
+4. NEVER repeat the exact same player multiple times in a list! Ensure every player in any response list appears strictly once.
+5. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g. "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
+6. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
+7. ALWAYS highlight key player names, card names in parentheses, OVR ratings, positions, stats, and "11Players" using Markdown bold syntax **text** (e.g. **11Players**, **يوسف راضوان (RADWAN)**, **81 OVR**, **عماد عادل (OMDA)**, **79**). This ensures key details render in bright emerald green text!
+8. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
+9. Write immaculate, natural Arabic with 100% precise spelling (e.g. write "بتقييم" NOT "برتقييم", write "التسديد" NOT "التسود", write "بنظافة" NOT "ب نظافة").
+10. At the very end of your response, ALWAYS add a line formatted exactly as:
 [SUGGESTIONS: Question 1 | Question 2 | Question 3]`;
 
   return generate11AIResponse({
