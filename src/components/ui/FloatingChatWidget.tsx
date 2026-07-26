@@ -260,30 +260,54 @@ export default function FloatingChatWidget() {
     }
   };
 
+  const [aiWelcomeLoading, setAiWelcomeLoading] = useState(false);
+
   useEffect(() => {
     if (!user) {
       setAiMessages([]);
+      setAiWelcomeLoading(false);
       return;
     }
 
-    const playerName = profile?.fullName || user?.displayName || (isAr ? "كابتن" : "Player");
-    const playerOvr = profile ? getPlayerOverall(profile) : 75;
-    const playerPos = profile?.primaryPosition
-      ? (isAr ? (profile.primaryPosition === "DMF" ? "لاعب وسط دفاعي" : profile.primaryPosition) : profile.primaryPosition)
-      : (isAr ? "لاعب وسط" : "Midfielder");
+    const cacheKey = `11ai_welcome_${user.uid}_${isAr ? "ar" : "en"}`;
+    const cached = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
+    if (cached) {
+      try {
+        setAiMessages(JSON.parse(cached));
+        setAiWelcomeLoading(false);
+        return;
+      } catch (e) {}
+    }
 
-    const greeting = isAr
-      ? `⚽ **مرحباً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${profile?.stats?.goals || 0} أهداف | ${profile?.stats?.assists || 0} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
-      : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${profile?.stats?.goals || 0} Goals | ${profile?.stats?.assists || 0} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`;
+    setAiWelcomeLoading(true);
+    const timer = setTimeout(() => {
+      const playerName = profile?.fullName || user?.displayName || (isAr ? "كابتن" : "Captain");
+      const playerOvr = profile ? getPlayerOverall(profile) : 72;
+      const playerPos = profile?.primaryPosition
+        ? (isAr ? (profile.primaryPosition === "DMF" ? "لاعب وسط دفاعي" : profile.primaryPosition) : profile.primaryPosition)
+        : (isAr ? "لاعب وسط" : "Midfielder");
 
-    setAiMessages([
-      {
-        id: "welcome",
-        sender: "ai",
-        text: greeting,
-        timestamp: Date.now(),
-      },
-    ]);
+      const greeting = isAr
+        ? `⚽ **مرحباً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${profile?.stats?.goals || 0} أهداف | ${profile?.stats?.assists || 0} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
+        : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${profile?.stats?.goals || 0} Goals | ${profile?.stats?.assists || 0} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`;
+
+      const msgs: AIChatMsg[] = [
+        {
+          id: "welcome",
+          sender: "ai",
+          text: greeting,
+          timestamp: Date.now(),
+        },
+      ];
+
+      setAiMessages(msgs);
+      setAiWelcomeLoading(false);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem(cacheKey, JSON.stringify(msgs));
+      }
+    }, 600);
+
+    return () => clearTimeout(timer);
   }, [profile, user, isAr]);
 
   // Full Chat Shared State (Community & Support)
@@ -630,13 +654,18 @@ export default function FloatingChatWidget() {
           >
             {/* Drag Resize Handle (Top Edge) */}
             <div
-              onPointerDown={handlePointerDownResize}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handlePointerDownResize(e);
+              }}
               onPointerMove={handlePointerMoveResize}
               onPointerUp={handlePointerUpResize}
-              className="absolute top-0 left-0 right-0 h-4 cursor-ns-resize z-50 flex items-center justify-center group"
+              className="absolute top-0 left-0 right-0 h-5 cursor-ns-resize z-50 flex items-center justify-center group touch-none select-none"
+              style={{ touchAction: "none" }}
               title={isAr ? "اسحب لتعديل الحجم" : "Drag to resize window"}
             >
-              <div className="w-12 h-1 rounded-full bg-slate-700 group-hover:bg-emerald-400 transition-colors" />
+              <div className="w-12 h-1.5 rounded-full bg-slate-700 group-hover:bg-emerald-400 transition-colors" />
             </div>
 
             {/* Top Header */}
@@ -664,37 +693,30 @@ export default function FloatingChatWidget() {
               </button>
             </div>
 
-            {/* Tab Switcher Bar with Animated Active Pill */}
-            <div className="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between gap-1 relative">
+            {/* Tab Switcher Bar with Stable Active Pill */}
+            <div className="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between gap-1.5 relative">
               {[
                 { id: "ai", label: "11AI", icon: <Bot className="w-4 h-4" /> },
                 { id: "community", label: isAr ? "المجتمع" : "Community", icon: <MessageSquare className="w-4 h-4" /> },
                 { id: "support", label: isAr ? "الدعم" : "Support", icon: <Headphones className="w-4 h-4" /> },
               ].map((tab) => (
-                <motion.button
+                <button
                   key={tab.id}
                   type="button"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.96 }}
                   onClick={() => {
                     setActiveTab(tab.id as any);
                     setReplyTo(null);
                     setShowEmojiPicker(false);
                   }}
-                  className={`relative flex-1 py-2 rounded-xl text-xs font-black transition-colors flex items-center justify-center gap-1.5 z-10 ${
-                    activeTab === tab.id ? "text-white" : "text-slate-400 hover:text-white"
+                  className={`flex-1 py-2 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 z-10 ${
+                    activeTab === tab.id
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-950/40 font-black"
+                      : "bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800"
                   }`}
                 >
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTabPill"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      className="absolute inset-0 bg-emerald-600 rounded-xl shadow-md -z-10"
-                    />
-                  )}
                   {tab.icon}
                   <span>{tab.label}</span>
-                </motion.button>
+                </button>
               ))}
             </div>
 
@@ -721,6 +743,28 @@ export default function FloatingChatWidget() {
               {/* ── TAB 1: 11AI Assistant ──────────────────────────────────── */}
               {activeTab === "ai" && (
                 <>
+                  {aiWelcomeLoading ? (
+                    <div className="space-y-3 animate-pulse">
+                      <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-slate-800" />
+                          <div className="h-4 bg-slate-800 rounded w-2/3" />
+                        </div>
+                        <div className="h-3 bg-slate-800/80 rounded w-full" />
+                        <div className="h-3 bg-slate-800/80 rounded w-5/6" />
+                        <div className="pt-2 space-y-2">
+                          <div className="h-3 bg-slate-800/60 rounded w-1/2" />
+                          <div className="h-3 bg-slate-800/60 rounded w-3/4" />
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        <div className="h-8 w-32 bg-slate-950 border border-slate-800 rounded-xl" />
+                        <div className="h-8 w-40 bg-slate-950 border border-slate-800 rounded-xl" />
+                        <div className="h-8 w-36 bg-slate-950 border border-slate-800 rounded-xl" />
+                      </div>
+                    </div>
+                  ) : (
+                    <>
                   {aiMessages.map((msg) => (
                     <motion.div
                       key={msg.id}
@@ -800,6 +844,8 @@ export default function FloatingChatWidget() {
                         </motion.button>
                       ))}
                     </div>
+                  )}
+                  </>
                   )}
                 </>
               )}

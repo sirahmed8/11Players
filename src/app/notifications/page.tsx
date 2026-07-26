@@ -251,24 +251,30 @@ export default function NotificationsPage() {
 
           {/* Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-4 justify-between items-stretch sm:items-center">
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setFilter("all")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all ${filter === "all" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"}`}
-              >
-                {isAr ? "الكل" : "All"}
-              </button>
-              <button
-                onClick={() => setFilter("unread")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-black transition-all flex items-center gap-1.5 ${filter === "unread" ? "bg-emerald-600 text-white shadow-md shadow-emerald-500/20" : "bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"}`}
-              >
-                <span>{isAr ? "غير مقروء" : "Unread"}</span>
-                {notifications.filter(n => !n.read).length > 0 && (
-                  <span className="px-2 py-0.5 bg-rose-600 text-white text-[10px] rounded-full font-black">
-                    {notifications.filter(n => !n.read).length}
-                  </span>
-                )}
-              </button>
+            <div className="p-1 bg-slate-900 border border-slate-800 rounded-2xl flex items-center gap-1 relative shadow-inner">
+              {(["all", "unread"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`relative px-5 py-2.5 rounded-xl text-xs font-black transition-colors flex items-center gap-2 z-10 ${
+                    filter === f ? "text-white" : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {filter === f && (
+                    <motion.div
+                      layoutId="notifFilterPill"
+                      transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                      className="absolute inset-0 bg-emerald-600 rounded-xl shadow-md -z-10"
+                    />
+                  )}
+                  <span>{f === "all" ? (isAr ? "الكل" : "All") : (isAr ? "غير مقروء" : "Unread")}</span>
+                  {f === "unread" && notifications.filter((n) => !n.read).length > 0 && (
+                    <span className="px-2 py-0.5 bg-rose-600 text-white text-[10px] rounded-full font-black">
+                      {notifications.filter((n) => !n.read).length}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
 
             <div className="relative min-w-[200px] z-20">

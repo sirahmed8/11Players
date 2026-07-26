@@ -861,6 +861,11 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
   const [aiTacticalReport, setAiTacticalReport] = useState<string | null>(null);
   const [aiReportLoading, setAiReportLoading] = useState(false);
 
+  // Clear AI tactical report whenever match parameters are modified
+  useEffect(() => {
+    setAiTacticalReport(null);
+  }, [config, selectedUids, selectedFormationA, selectedFormationB]);
+
   const handleGetAIMatchAnalysis = async () => {
     if (!previewData) return;
     setAiReportLoading(true);
@@ -876,23 +881,26 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           return `• ${name} (${isAr ? 'معدل' : 'OVR'} ${avg}): ${playerList}`;
         }).join('\n');
 
-        prompt = `أنت 11AI المحلل التكتيكي الرسمي لمنصة 11Players.
+        prompt = `أنت 11AI المحلل التكتيكي الكروي الاحترافي لمنصة 11Players.
 يوجد حجز كورة يحتوي على ${previewData.turfResult.teams.length} فرق مشاركة:
 ${teamsInfo}
 
 المطلوب:
-قدم تحليلاً تكتيكياً موجزاً مع خطة وتوصية تكتيكية مخصصة لكل فريق من الفرق المشاركة على حدة (حتى لو كانت 10 فرق)، ثم اكتب توقعاً سريعاً لحسم المواجهات.`;
+1. قدم تحليلاً تكتيكياً عادلاً ومتوازناً باللغة العربية الفصحى بدون انحياز لأي فريق.
+2. اعطِ كل فريق خطة تكتيكية وتوصية مخصصة للعب والتمركز بشكل متوازن.
+3. ممنوع نهائياً توقع فائز أو الجزم بفوز فريق معين! اجعل الخلاصة تركّز على مفاتيح حسم التكافؤ والعوامل التكتيكية المؤثرة على جميع الفرق بشكل متساوي وعدل.`;
       } else {
         const teamNamesA = (previewData.teamA || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
         const teamNamesB = (previewData.teamB || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
 
-        prompt = `أنت 11AI المحلل التكتيكي الرسمي لمنصة 11Players. قم بتحليل مباراة الفريق أ ضد الفريق ب:
+        prompt = `أنت 11AI المحلل التكتيكي الكروي الاحترافي لمنصة 11Players. قم بتحليل متكافئ وعادل لمباراة الفريق (أ) ضد الفريق (ب):
 الفريق أ (متوسط ${previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}): ${teamNamesA}
 الفريق ب (متوسط ${previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}): ${teamNamesB}
 
 المطلوب:
-1. تكتيك مخصص ورسالة توجيهية للفريق أ والفريق ب.
-2. التوقع النهائي ومفتاح الحسم للمباراة.`;
+1. خطة تكتيكية وتوصيات موجهة لكل من الفريق (أ) والفريق (ب) بأسلوب كروي راقٍ وعادل.
+2. مفاتيح الحسم التكتيكية للطرفين والصراع المتكافئ في الملعب.
+3. ممنوع نهائياً توقع فائز أو الجزم بتفوق فريق على الآخر! ركّز على التكافؤ والتوازن التكتيكي بين الفريقين.`;
       }
 
       const data = await call11AIChat({
@@ -1418,8 +1426,32 @@ ${teamsInfo}
                         <Brain className="w-4 h-4 text-emerald-400" />
                         <span>{isAr ? "تحليل 11AI التكتيكي للمباراة" : "11AI Tactical Match Analysis"}</span>
                       </div>
-                      <div className="whitespace-pre-line text-slate-300 font-medium">
-                        {aiTacticalReport}
+                      <div className="space-y-1.5 text-slate-300 font-medium text-xs leading-relaxed">
+                        {aiTacticalReport.split('\n').map((line, idx) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return <div key={idx} className="h-1" />;
+
+                          const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ');
+                          const cleanText = isBullet ? trimmed.replace(/^[-•*]\s*/, '') : trimmed;
+
+                          const parts = cleanText.split(/(\*\*.*?\*\*)/g);
+                          const formatted = parts.map((part, pIdx) => {
+                            if (part && part.startsWith('**') && part.endsWith('**')) {
+                              return <strong key={pIdx} className="font-black text-emerald-400">{part.slice(2, -2)}</strong>;
+                            }
+                            return part;
+                          });
+
+                          if (isBullet) {
+                            return (
+                              <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1">
+                                <span className="text-emerald-400 font-bold shrink-0">•</span>
+                                <span>{formatted}</span>
+                              </div>
+                            );
+                          }
+                          return <p key={idx}>{formatted}</p>;
+                        })}
                       </div>
                     </motion.div>
                   )}
