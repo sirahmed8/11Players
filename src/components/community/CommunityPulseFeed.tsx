@@ -87,7 +87,7 @@ export default function CommunityPulseFeed() {
   }, [players, recentMatches]);
 
   if (playersLoading || loadingMatches) {
-    return <SiteSkeletonLoader variant="cards" />;
+    return <SiteSkeletonLoader variant="pulse" />;
   }
 
   return (

@@ -10,7 +10,7 @@ import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft } from "lucide-react";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles } from "lucide-react";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/community/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -25,7 +25,7 @@ export default function CommunityPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
-  const { activeCommunityId, setActiveCommunityId } = useCommunity();
+  const { activeCommunityId, setActiveCommunityId, activeCommunity } = useCommunity();
 
   const { players, loading } = usePlayers();
   const [searchQuery, setSearchQuery] = useState("");
@@ -50,7 +50,7 @@ export default function CommunityPage() {
   }, [searchQuery, selectedPosFilter, sortBy]);
 
   const filteredPlayers = useMemo(() => {
-    const query = searchQuery.toLowerCase().trim();
+    const queryStr = searchQuery.toLowerCase().trim();
     let result = [...players];
 
     if (selectedPosFilter !== "ALL") {
@@ -62,12 +62,12 @@ export default function CommunityPage() {
       );
     }
 
-    if (query) {
+    if (queryStr) {
       result = result.filter((p) => {
         return (
-          p.fullName.toLowerCase().includes(query) ||
-          p.cardName.toLowerCase().includes(query) ||
-          p.primaryPosition.toLowerCase().includes(query)
+          p.fullName?.toLowerCase().includes(queryStr) ||
+          p.cardName?.toLowerCase().includes(queryStr) ||
+          p.primaryPosition?.toLowerCase().includes(queryStr)
         );
       });
     }
@@ -97,7 +97,6 @@ export default function CommunityPage() {
       const hasVoted = currentVotes.includes(user.uid);
       const communityPlayerRef = doc(db, "communities", activeCommunityId, "players", playerId);
 
-      // The roster is the live source used by every member of this community.
       await updateDoc(communityPlayerRef, {
         captainVotes: hasVoted ? arrayRemove(user.uid) : arrayUnion(user.uid)
       });
@@ -149,46 +148,80 @@ export default function CommunityPage() {
 
   return (
     <ProtectedRoute requireCommunity>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12">
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
+      <div className="min-h-screen bg-slate-950 text-white transition-colors pb-16" dir={isAr ? 'rtl' : 'ltr'}>
+        
+        {/* Background glow effects */}
+        <div className="pointer-events-none fixed inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-emerald-500/5 blur-[120px]" />
+          <div className="absolute top-1/3 right-0 w-[500px] h-[400px] rounded-full bg-teal-500/4 blur-[100px]" />
+        </div>
+
+        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          
+          {/* Header section */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
-              <h2 className="text-3xl font-black mb-2">Player Directory</h2>
-              <p className="text-slate-600 dark:text-slate-400 text-start" dir="ltr">Live roster of all registered Elite players.</p>
+              <div className="flex items-center gap-3 mb-2 flex-wrap">
+                <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+                  {activeCommunity?.name || (isAr ? "الرئيسية / اللاعبين" : "Home / Players")}
+                </h1>
+                <span className="px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1.5">
+                  <Users className="w-3.5 h-3.5" />
+                  {players.length} {isAr ? "لاعب" : "Players"}
+                </span>
+              </div>
+              <p className="text-slate-400 text-sm font-medium">
+                {isAr ? "قائمة لاعبي المجتمع النشط والتصويت والتحليلات المباشرة." : "Live roster of all registered community players."}
+              </p>
             </div>
-            
-            <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-              <motion.div className="relative flex-1 md:w-72" initial="idle" whileFocus="focus">
-                  <motion.div className="absolute -inset-0.5 rounded-xl border-2 border-emerald-500 pointer-events-none z-0" variants={{ idle: { opacity: 0, scale: 0.95 }, focus: { opacity: 0.5, scale: 1 } }} transition={{ duration: 0.2 }} />
-                <Search className="w-5 h-5 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+
+            <div className="flex flex-wrap gap-2.5 w-full md:w-auto items-center">
+              {/* Copy Invite Link */}
+              <button
+                onClick={() => {
+                  if (activeCommunityId) {
+                    const link = `${window.location.origin}/communities?join=${activeCommunityId}`;
+                    navigator.clipboard.writeText(link);
+                    toast.success(isAr ? "تم نسخ رابط دعوة المجتمع!" : "Community invite link copied!");
+                  }
+                }}
+                className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>{isAr ? "دعوة لاعبين" : "Invite Players"}</span>
+              </button>
+
+              <div className="relative flex-1 md:w-64">
+                <Search className="w-4 h-4 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search by name or position..."}
+                  placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search name or position..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-base md:text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 shadow-sm" />
-                </motion.div>
+                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-slate-900/80 border border-slate-800 focus:border-emerald-500/50 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-sm font-bold text-white placeholder-slate-500 shadow-sm"
+                />
+              </div>
 
               <button
                 onClick={() => setIsLeaveModalOpen(true)}
-                className="px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 rounded-2xl font-black text-sm flex items-center gap-2 transition-all shadow-sm shrink-0"
+                className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
                 <span>{isAr ? "مغادرة المجتمع" : "Leave Community"}</span>
               </button>
             </div>
           </div>
-          
-          <div className="space-y-4 mb-8">
+
+          <div className="relative z-10 space-y-4 mb-8">
             {/* Top Tab Bar: Directory vs Pulse */}
-            <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900/90 p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between gap-3 bg-slate-900/60 p-2 rounded-2xl border border-slate-800/80 shadow-sm">
               <div className="grid grid-cols-2 gap-2 w-full sm:w-auto sm:flex sm:items-center">
                 <button
                   onClick={() => setActiveTab("directory")}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all ${
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all cursor-pointer ${
                     activeTab === "directory"
-                      ? "bg-emerald-500 text-slate-950 shadow-md"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                   }`}
                 >
                   <Users className="w-4 h-4 shrink-0" />
@@ -197,10 +230,10 @@ export default function CommunityPage() {
 
                 <button
                   onClick={() => setActiveTab("pulse")}
-                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all ${
+                  className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-black text-sm transition-all cursor-pointer ${
                     activeTab === "pulse"
-                      ? "bg-emerald-500 text-slate-950 shadow-md"
-                      : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      ? "bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                   }`}
                 >
                   <Activity className="w-4 h-4 shrink-0" />
@@ -211,12 +244,12 @@ export default function CommunityPage() {
 
             {/* Directory Action Tools & Filters Bar */}
             {activeTab === "directory" && (
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-white/70 dark:bg-slate-900/60 p-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800/80 shadow-sm">
                 {/* Quick Action Badges */}
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => handleOpenCompare()}
-                    className="flex items-center gap-1.5 bg-amber-50 hover:bg-amber-100 dark:bg-amber-500/10 dark:hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/30 px-3.5 py-2 rounded-xl shadow-sm text-xs font-bold transition-all shrink-0"
+                    className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
                     <span>{isAr ? "مقارنة اللاعبين" : "Compare Players"}</span>
@@ -224,7 +257,7 @@ export default function CommunityPage() {
 
                   <button
                     onClick={() => setIsOvrInfoOpen(true)}
-                    className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3.5 py-2 rounded-xl shadow-sm text-xs font-bold transition-all shrink-0"
+                    className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
                     title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
                   >
                     <HelpCircle className="w-3.5 h-3.5 shrink-0" />
@@ -237,12 +270,15 @@ export default function CommunityPage() {
                   {/* Position Filter */}
                   <div className="relative flex-1 sm:flex-initial">
                     <button 
-                      onClick={() => setIsPosOpen(!isPosOpen)}
-                      className="w-full flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors text-xs font-semibold"
+                      onClick={() => {
+                        setIsPosOpen(prev => !prev);
+                        setIsSortOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl hover:border-slate-700 transition-colors text-xs font-semibold text-white"
                     >
-                      <span className="text-slate-700 dark:text-slate-300 truncate">
+                      <span className="text-slate-400 truncate">
                         {isAr ? "المركز:" : "Position:"}{" "}
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span className="text-emerald-400 font-bold">
                           {selectedPosFilter === "ALL" ? (isAr ? "الكل" : "All") : selectedPosFilter}
                         </span>
                       </span>
@@ -256,7 +292,7 @@ export default function CommunityPage() {
                           initial={{ opacity: 0, y: -10 }} 
                           animate={{ opacity: 1, y: 0 }} 
                           exit={{ opacity: 0, y: -10 }}
-                          className="absolute z-30 top-full mt-2 w-full sm:w-64 max-h-72 overflow-y-auto bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl scrollbar-thin ltr:left-0 rtl:right-0"
+                          className="absolute z-50 top-full mt-2 w-full sm:w-64 max-h-72 overflow-y-auto bg-slate-900 border border-slate-700 rounded-xl shadow-2xl ltr:left-0 rtl:right-0"
                         >
                           {(["ALL", "CF", "SS", "LWF", "RWF", "AMF", "CMF", "DMF", "CB", "RB", "LB", "GK"] as const).map((pos) => {
                             const count = pos === "ALL"
@@ -272,13 +308,13 @@ export default function CommunityPage() {
                               <button
                                 key={pos}
                                 onClick={() => { setSelectedPosFilter(pos); setIsPosOpen(false); }}
-                                className={`flex items-center justify-between w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700/60 font-semibold transition-colors text-xs ${
-                                  isActive ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20" : "text-slate-700 dark:text-slate-300"
+                                className={`flex items-center justify-between w-full text-start px-4 py-2.5 hover:bg-slate-800/60 font-semibold transition-colors text-xs ${
+                                  isActive ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300"
                                 }`}
                               >
                                 <span>{pos === "ALL" ? (isAr ? "كل المراكز" : "All Positions") : pos}</span>
                                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                  isActive ? "bg-emerald-600 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400"
+                                  isActive ? "bg-emerald-600 text-white" : "bg-slate-800 text-slate-400"
                                 }`}>
                                   {count}
                                 </span>
@@ -293,12 +329,15 @@ export default function CommunityPage() {
                   {/* Sort By */}
                   <div className="relative flex-1 sm:flex-initial">
                     <button 
-                      onClick={() => setIsSortOpen(!isSortOpen)}
-                      className="w-full flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2 rounded-xl shadow-sm hover:border-emerald-500 transition-colors text-xs font-semibold"
+                      onClick={() => {
+                        setIsSortOpen(prev => !prev);
+                        setIsPosOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between gap-2 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl hover:border-slate-700 transition-colors text-xs font-semibold text-white"
                     >
-                      <span className="text-slate-700 dark:text-slate-300 truncate">
+                      <span className="text-slate-400 truncate">
                         {isAr ? "ترتيب:" : "Sort:"}{" "}
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        <span className="text-emerald-400 font-bold">
                           {sortBy === "overall" ? "Overall" : sortBy === "position" ? (isAr ? "المركز" : "Position") : sortBy === "goals" ? (isAr ? "الأهداف" : "Goals") : sortBy === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
                         </span>
                       </span>
@@ -312,13 +351,13 @@ export default function CommunityPage() {
                           initial={{ opacity: 0, y: -10 }} 
                           animate={{ opacity: 1, y: 0 }} 
                           exit={{ opacity: 0, y: -10 }}
-                          className="absolute z-20 top-full mt-2 w-44 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg overflow-hidden ltr:right-0 rtl:left-0"
+                          className="absolute z-50 top-full mt-2 w-44 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden ltr:right-0 rtl:left-0"
                         >
                           {(["overall", "position", "goals", "assists", "mvp"] as const).map((s) => (
                             <button
                               key={s}
                               onClick={() => { setSortBy(s); setIsSortOpen(false); }}
-                              className={`block w-full text-start px-4 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 font-semibold text-xs ${sortBy === s ? "text-emerald-600 dark:text-emerald-400" : "text-slate-700 dark:text-slate-300"}`}
+                              className={`block w-full text-start px-4 py-2.5 hover:bg-slate-800/60 font-semibold text-xs ${sortBy === s ? "text-emerald-400 bg-emerald-500/10" : "text-slate-300"}`}
                             >
                               {s === "overall" ? "Overall" : s === "position" ? (isAr ? "المركز" : "Position") : s === "goals" ? (isAr ? "الأهداف" : "Goals") : s === "assists" ? (isAr ? "الصناعة" : "Assists") : "MVP"}
                             </button>
@@ -338,8 +377,9 @@ export default function CommunityPage() {
           ) : loading ? (
             <SiteSkeletonLoader variant="cards" />
           ) : filteredPlayers.length === 0 ? (
-            <div className="text-center py-20 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
-              <p className="text-slate-600 dark:text-slate-400">{isAr ? "لا يوجد لاعبون بهذا الوصف أو المركز." : "No players found matching your criteria."}</p>
+            <div className="text-center py-20 bg-slate-900/40 rounded-2xl border border-slate-800/80">
+              <Users className="w-12 h-12 mx-auto text-slate-700 mb-3" />
+              <p className="text-slate-400 font-bold">{isAr ? "لا يوجد لاعبون بهذا الوصف أو المركز." : "No players found matching your criteria."}</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -349,7 +389,7 @@ export default function CommunityPage() {
                     key={player.uid}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0, duration: 0.2 }}
+                    transition={{ delay: index * 0.03, duration: 0.2 }}
                   >
                     <PlayerCardCompact 
                       player={player} 
@@ -365,7 +405,7 @@ export default function CommunityPage() {
                 <div className="flex justify-center pt-4 pb-8">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 20)}
-                    className="px-6 py-3 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl transition-colors shadow-sm text-sm"
+                    className="px-6 py-3 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold rounded-xl transition-all text-sm"
                   >
                     {isAr ? "عرض المزيد" : "Load More"}
                   </button>
@@ -399,5 +439,3 @@ export default function CommunityPage() {
     </ProtectedRoute>
   );
 }
-
-

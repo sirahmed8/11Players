@@ -26,8 +26,14 @@ export default function ProtectedRoute({
   const { user, loading, isAdmin, isOwner } = useAuth();
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
+  const [mounted, setMounted] = React.useState(false);
 
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAr = locale === "ar";
   const isFullyLoaded = !loading && !loadingCommunity;
 
   useEffect(() => {
@@ -70,7 +76,7 @@ export default function ProtectedRoute({
           className="w-16 h-16 rounded-full border-4 border-emerald-500/30 border-t-emerald-500"
         />
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          {t("loading") || "Loading... / جارٍ التحميل..."}
+          {mounted && isAr ? "جارٍ التحميل..." : "Loading..."}
         </p>
       </div>
     );

@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Zap, ArrowRightLeft, UserX } from "lucide-react";
+import { X, Search, Zap, ArrowRightLeft, UserX, Trophy, Flame, Shield, Activity, Crown, Sparkles } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -18,60 +18,61 @@ interface PlayerComparisonModalProps {
   allPlayers: PlayerProfile[];
 }
 
-// All 22 attributes with display names
 const ALL_ATTRIBUTES: { key: string; nameEn: string; nameAr: string; groupEn: string; groupAr: string }[] = [
   // Offensive
-  { key: "offensiveAwareness", nameEn: "Offensive Awareness", nameAr: "الوعي الهجومي",   groupEn: "Offensive", groupAr: "هجوم" },
-  { key: "finishing",          nameEn: "Finishing",           nameAr: "الإنهاء",          groupEn: "Offensive", groupAr: "هجوم" },
-  { key: "kickingPower",       nameEn: "Kicking Power",       nameAr: "قوة الركل",        groupEn: "Offensive", groupAr: "هجوم" },
-  { key: "heading",            nameEn: "Heading",             nameAr: "الركلة الرأسية",   groupEn: "Offensive", groupAr: "هجوم" },
+  { key: "offensiveAwareness", nameEn: "Offensive Awareness", nameAr: "الوعي الهجومي",   groupEn: "Offensive", groupAr: "الهجوم" },
+  { key: "finishing",          nameEn: "Finishing",           nameAr: "الإنهاء",          groupEn: "Offensive", groupAr: "الهجوم" },
+  { key: "kickingPower",       nameEn: "Kicking Power",       nameAr: "قوة التسديد",      groupEn: "Offensive", groupAr: "الهجوم" },
+  { key: "heading",            nameEn: "Heading",             nameAr: "الرأسيات",         groupEn: "Offensive", groupAr: "الهجوم" },
   // Technical
-  { key: "ballControl",        nameEn: "Ball Control",        nameAr: "التحكم بالكرة",    groupEn: "Technical", groupAr: "تقني" },
-  { key: "dribbling",          nameEn: "Dribbling",           nameAr: "المراوغة",         groupEn: "Technical", groupAr: "تقني" },
-  { key: "lowPass",            nameEn: "Low Pass",            nameAr: "التمرير المنخفض",  groupEn: "Technical", groupAr: "تقني" },
-  { key: "loftedPass",         nameEn: "Lofted Pass",         nameAr: "التمرير العالي",   groupEn: "Technical", groupAr: "تقني" },
+  { key: "ballControl",        nameEn: "Ball Control",        nameAr: "التحكم بالكرة",    groupEn: "Technical", groupAr: "التقنيات" },
+  { key: "dribbling",          nameEn: "Dribbling",           nameAr: "المراوغة",         groupEn: "Technical", groupAr: "التقنيات" },
+  { key: "lowPass",            nameEn: "Low Pass",            nameAr: "التمرير القصير",  groupEn: "Technical", groupAr: "التقنيات" },
+  { key: "loftedPass",         nameEn: "Lofted Pass",         nameAr: "التمرير الطويل",   groupEn: "Technical", groupAr: "التقنيات" },
   // Physical
-  { key: "speed",              nameEn: "Speed",               nameAr: "السرعة",           groupEn: "Physical",  groupAr: "بدني" },
-  { key: "acceleration",       nameEn: "Acceleration",        nameAr: "التسارع",          groupEn: "Physical",  groupAr: "بدني" },
-  { key: "jump",               nameEn: "Jump",                nameAr: "الوثب",            groupEn: "Physical",  groupAr: "بدني" },
-  { key: "physicalContact",    nameEn: "Physical Contact",    nameAr: "التلاقي البدني",   groupEn: "Physical",  groupAr: "بدني" },
-  { key: "balance",            nameEn: "Balance",             nameAr: "الاتزان",          groupEn: "Physical",  groupAr: "بدني" },
-  { key: "stamina",            nameEn: "Stamina",             nameAr: "التحمل",           groupEn: "Physical",  groupAr: "بدني" },
+  { key: "speed",              nameEn: "Speed",               nameAr: "السرعة",           groupEn: "Physical",  groupAr: "البدنيات" },
+  { key: "acceleration",       nameEn: "Acceleration",        nameAr: "التسارع",          groupEn: "Physical",  groupAr: "البدنيات" },
+  { key: "jump",               nameEn: "Jump",                nameAr: "القفز",            groupEn: "Physical",  groupAr: "البدنيات" },
+  { key: "physicalContact",    nameEn: "Physical Contact",    nameAr: "القوة البدنية",    groupEn: "Physical",  groupAr: "البدنيات" },
+  { key: "balance",            nameEn: "Balance",             nameAr: "التوازن",          groupEn: "Physical",  groupAr: "البدنيات" },
+  { key: "stamina",            nameEn: "Stamina",             nameAr: "اللياقة البدنية", groupEn: "Physical",  groupAr: "البدنيات" },
   // Defensive
-  { key: "defensiveAwareness", nameEn: "Defensive Awareness", nameAr: "الوعي الدفاعي",   groupEn: "Defensive", groupAr: "دفاع" },
-  { key: "ballWinning",        nameEn: "Ball Winning",        nameAr: "استرداد الكرة",   groupEn: "Defensive", groupAr: "دفاع" },
-  { key: "aggression",         nameEn: "Aggression",          nameAr: "العدوانية",        groupEn: "Defensive", groupAr: "دفاع" },
+  { key: "defensiveAwareness", nameEn: "Defensive Awareness", nameAr: "الوعي الدفاعي",   groupEn: "Defensive", groupAr: "الدفاع" },
+  { key: "ballWinning",        nameEn: "Ball Winning",        nameAr: "افتكاك الكرة",     groupEn: "Defensive", groupAr: "الدفاع" },
+  { key: "aggression",         nameEn: "Aggression",          nameAr: "الشراسة",          groupEn: "Defensive", groupAr: "الدفاع" },
   // GK
-  { key: "gkAwareness",        nameEn: "GK Awareness",        nameAr: "وعي حارس المرمى", groupEn: "Goalkeeper", groupAr: "حراسة" },
-  { key: "gkCatching",         nameEn: "GK Catching",         nameAr: "مسك الكرة",       groupEn: "Goalkeeper", groupAr: "حراسة" },
-  { key: "gkClearing",         nameEn: "GK Clearing",         nameAr: "إبعاد الكرة",     groupEn: "Goalkeeper", groupAr: "حراسة" },
-  { key: "gkReflexes",         nameEn: "GK Reflexes",         nameAr: "ردود فعل الحارس", groupEn: "Goalkeeper", groupAr: "حراسة" },
-  { key: "gkReach",            nameEn: "GK Reach",            nameAr: "مدى الحارس",      groupEn: "Goalkeeper", groupAr: "حراسة" },
+  { key: "gkAwareness",        nameEn: "GK Awareness",        nameAr: "وعي حارس المرمى", groupEn: "Goalkeeper", groupAr: "حراسة المرمى" },
+  { key: "gkCatching",         nameEn: "GK Catching",         nameAr: "الإمساك بالكرة",  groupEn: "Goalkeeper", groupAr: "حراسة المرمى" },
+  { key: "gkClearing",         nameEn: "GK Clearing",         nameAr: "إبعاد الكرة",     groupEn: "Goalkeeper", groupAr: "حراسة المرمى" },
+  { key: "gkReflexes",         nameEn: "GK Reflexes",         nameAr: "ردود الفعل",      groupEn: "Goalkeeper", groupAr: "حراسة المرمى" },
+  { key: "gkReach",            nameEn: "GK Reach",            nameAr: "التغطية والوصول",  groupEn: "Goalkeeper", groupAr: "حراسة المرمى" },
 ];
 
 const GROUP_ORDER = ["Offensive", "Technical", "Physical", "Defensive", "Goalkeeper"];
 
-// Optimized player list row — no framer-motion, receives pre-computed ovr to avoid scroll lag
 function PlayerListRow({ p, ovr, onClick }: { p: PlayerProfile; ovr: number; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="w-full p-2 rounded-xl flex items-center justify-between hover:bg-emerald-500/10 active:bg-emerald-500/20 transition-colors text-start"
+      className="w-full p-2.5 rounded-xl flex items-center justify-between hover:bg-slate-800/80 active:bg-slate-800 transition-colors text-start border border-transparent hover:border-slate-700/60"
     >
-      <div className="flex items-center gap-2.5">
-        <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 text-slate-700 dark:text-slate-200">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl bg-slate-800 overflow-hidden flex items-center justify-center font-bold text-xs shrink-0 text-slate-300 border border-slate-700 shadow-sm relative">
           {p.photoUrl ? (
-            <img src={p.photoUrl} alt="" width={32} height={32} className="w-full h-full object-cover" loading="lazy" />
+            <Image src={p.photoUrl} alt="" fill sizes="36px" className="object-cover" />
           ) : (
             p.cardName?.charAt(0) || "?"
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-xs font-bold text-slate-900 dark:text-white truncate leading-tight">{p.cardName}</p>
-          <p className="text-[10px] text-slate-500 leading-tight">{p.primaryPosition}</p>
+          <p className="text-xs font-black text-white truncate leading-tight">{p.cardName || p.fullName}</p>
+
+          <p className="text-[10px] font-bold text-emerald-400 leading-tight mt-0.5">{p.primaryPosition}</p>
         </div>
       </div>
-      <span className="text-xs font-black bg-emerald-500 text-white px-2 py-0.5 rounded-lg shrink-0 ml-2">{ovr}</span>
+      <span className="text-xs font-black bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-2.5 py-1 rounded-lg shrink-0 ltr:ml-2 rtl:mr-2 shadow-sm">
+        {ovr}
+      </span>
     </button>
   );
 }
@@ -99,14 +100,6 @@ export default function PlayerComparisonModal({
   const [searchB, setSearchB] = useState("");
   const [isSelectingA, setIsSelectingA] = useState(!initialPlayerA);
   const [isSelectingB, setIsSelectingB] = useState(!initialPlayerB);
-
-  const [visibleCountA, setVisibleCountA] = useState(20);
-  const [visibleCountB, setVisibleCountB] = useState(20);
-
-  // Reset visible counts when search changes
-  React.useEffect(() => { setVisibleCountA(20); }, [searchA]);
-  React.useEffect(() => { setVisibleCountB(20); }, [searchB]);
-
 
   React.useEffect(() => {
     if (initialPlayerA) { setPlayerAId(initialPlayerA.uid); setIsSelectingA(false); }
@@ -156,320 +149,490 @@ export default function PlayerComparisonModal({
 
   const showComparison = playerA && playerB;
 
+  // Compute Head-to-Head stats summary
+  const summary = useMemo(() => {
+    if (!playerA || !playerB) return null;
+    let winsA = 0;
+    let winsB = 0;
+    let ties = 0;
+
+    ALL_ATTRIBUTES.forEach((attr) => {
+      const vA = getAttrValue(playerA, attr.key);
+      const vB = getAttrValue(playerB, attr.key);
+      if (vA > vB) winsA++;
+      else if (vB > vA) winsB++;
+      else ties++;
+    });
+
+    return { winsA, winsB, ties };
+  }, [playerA, playerB]);
+
   return (
     <AnimatePresence>
       {isOpen && (
         <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-3 sm:p-6 bg-slate-950/95"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md"
           dir={isAr ? "rtl" : "ltr"}
         >
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 15 }}
-            transition={{ duration: 0.2 }}
-            className="bg-white dark:bg-slate-900 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 flex flex-col max-h-[92vh] my-auto"
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="bg-slate-900 border border-slate-800 w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] my-auto text-white"
           >
-        {/* Header */}
-        <div className="p-5 sm:p-6 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
-              <ArrowRightLeft className="w-5 h-5" />
-            </div>
-            <h3 className="text-xl font-black">{isAr ? "مقارنة مباشرة بين اللاعبين" : "Head-to-Head Comparison"}</h3>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain transform-gpu p-4 sm:p-6 space-y-8" style={{ WebkitOverflowScrolling: "touch" }}>
-
-          {/* Player Selector Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            {/* Player A */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-indigo-500" />
-              {isSelectingA || !playerA ? (
-                <div className="space-y-3">
-                  <span className="text-xs font-black uppercase text-slate-500">{isAr ? "اختر اللاعب الأول" : "Select Player A"}</span>
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder={isAr ? "ابحث عن اسم..." : "Search name..."}
-                      value={searchA}
-                      onChange={(e) => setSearchA(e.target.value)}
-                      className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
-                    {filteredForA.map((p) => (
-                      <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerAId(p.uid); setIsSelectingA(false); }} />
-                    ))}
-                  </div>
+            {/* ── Modal Header ─────────────────────────────────────────────── */}
+            <div className="p-4 sm:p-6 bg-slate-950/90 border-b border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-md">
+                  <ArrowRightLeft className="w-5 h-5" />
                 </div>
-              ) : (
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-blue-500/40 shadow-lg shrink-0 flex items-center justify-center font-black text-xl text-slate-700 dark:text-slate-200">
-                      {playerA.photoUrl ? (
-                        <img src={playerA.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
-                      ) : (
-                        playerA.cardName?.charAt(0) || "?"
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{playerA.cardName}</h4>
-                        {playerA.form && <FormIcon form={playerA.form} className="w-4 h-4" />}
-                      </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-xs border border-blue-500/20">{playerA.primaryPosition}</span>
-                        {playerA.playStyle && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{playerA.playStyle.replace(/_/g, " ")}</span>}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white font-black text-2xl flex items-center justify-center shadow-md">{ovrA}</div>
-                    <div className="flex gap-1.5">
-                      <button onClick={() => setIsSelectingA(true)} className="text-[10px] font-bold text-blue-600 dark:text-blue-400 hover:underline">{isAr ? "تغيير" : "Change"}</button>
-                      <span className="text-slate-400 text-[10px]">•</span>
-                      <button onClick={removeA} className="text-[10px] font-bold text-red-500 hover:underline flex items-center gap-0.5">
-                        <UserX className="w-3 h-3" />{isAr ? "إزالة" : "Remove"}
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                    <span>{isAr ? "المواجهة المباشرة بين اللاعبين" : "Head-to-Head Comparison"}</span>
+                  </h3>
+                  <p className="text-xs font-semibold text-slate-400">
+                    {isAr ? "مقارنة دقيقة في الطاقات والإحصائيات والقدرات" : "In-depth attribute & stat breakdown"}
+                  </p>
                 </div>
-              )}
+              </div>
+              <button
+                onClick={onClose}
+                className="w-10 h-10 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all active:scale-95 border border-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Player B */}
-            <div className="bg-slate-50 dark:bg-slate-800/60 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-red-500" />
-              {isSelectingB || !playerB ? (
-                <div className="space-y-3">
-                  <span className="text-xs font-black uppercase text-slate-500">{isAr ? "اختر اللاعب الثاني" : "Select Player B"}</span>
-                  <div className="relative">
-                    <Search className="w-4 h-4 absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                      type="text"
-                      placeholder={isAr ? "ابحث عن اسم..." : "Search name..."}
-                      value={searchB}
-                      onChange={(e) => setSearchB(e.target.value)}
-                      className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-emerald-500 text-slate-900 dark:text-white"
-                    />
-                  </div>
-                  <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 overscroll-contain transform-gpu custom-scrollbar">
-                    {filteredForB.map((p) => (
-                      <PlayerListRow key={p.uid} p={p} ovr={ovrMap.get(p.uid) ?? 0} onClick={() => { setPlayerBId(p.uid); setIsSelectingB(false); }} />
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200 dark:bg-slate-700 overflow-hidden border-2 border-amber-500/40 shadow-lg shrink-0 flex items-center justify-center font-black text-xl text-slate-700 dark:text-slate-200">
-                      {playerB.photoUrl ? (
-                        <img src={playerB.photoUrl} alt="" width={80} height={80} className="w-full h-full object-cover" />
-                      ) : (
-                        playerB.cardName?.charAt(0) || "?"
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">{playerB.cardName}</h4>
-                        {playerB.form && <FormIcon form={playerB.form} className="w-4 h-4" />}
+            {/* ── Scrollable Body ────────────────────────────────────────────── */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 custom-scrollbar">
+              {/* Player Selection Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
+                {/* Player A Box */}
+                <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 flex flex-col justify-between relative overflow-hidden shadow-inner">
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 to-blue-500" />
+                  {isSelectingA || !playerA ? (
+                    <div className="space-y-3">
+                      <span className="text-xs font-black uppercase text-cyan-400 tracking-wider">
+                        {isAr ? "اختر اللاعب الأول (أزرق)" : "Select Player A (Blue)"}
+                      </span>
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder={isAr ? "ابحث عن اسم..." : "Search name..."}
+                          value={searchA}
+                          onChange={(e) => setSearchA(e.target.value)}
+                          className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2.5 text-xs bg-slate-900 border border-slate-800 rounded-xl outline-none focus:border-cyan-500/60 text-white placeholder-slate-500"
+                        />
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black text-xs border border-amber-500/20">{playerB.primaryPosition}</span>
-                        {playerB.playStyle && <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{playerB.playStyle.replace(/_/g, " ")}</span>}
+                      <div className="max-h-[220px] overflow-y-auto divide-y divide-slate-800/60 custom-scrollbar pr-1">
+                        {filteredForA.map((p) => (
+                          <PlayerListRow
+                            key={p.uid}
+                            p={p}
+                            ovr={ovrMap.get(p.uid) ?? 0}
+                            onClick={() => {
+                              setPlayerAId(p.uid);
+                              setIsSelectingA(false);
+                            }}
+                          />
+                        ))}
                       </div>
                     </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-red-600 text-white font-black text-2xl flex items-center justify-center shadow-md">{ovrB}</div>
-                    <div className="flex gap-1.5">
-                      <button onClick={() => setIsSelectingB(true)} className="text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:underline">{isAr ? "تغيير" : "Change"}</button>
-                      <span className="text-slate-400 text-[10px]">•</span>
-                      <button onClick={removeB} className="text-[10px] font-bold text-red-500 hover:underline flex items-center gap-0.5">
-                        <UserX className="w-3 h-3" />{isAr ? "إزالة" : "Remove"}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Comparison content — only when both are selected */}
-          {showComparison ? (
-            <div className="space-y-8">
-
-              {/* OVR + Match Stats */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
-                <h4 className="font-black text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 text-center">
-                  {isAr ? "الأداء العام" : "Overall & Match Stats"}
-                </h4>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { labelEn: "OVR Rating", labelAr: "التقييم الكلي",    valA: ovrA,                                                               valB: ovrB },
-                    { labelEn: "Goals",       labelAr: "الأهداف",          valA: playerA.stats?.goals || 0,                                          valB: playerB.stats?.goals || 0 },
-                    { labelEn: "Assists",     labelAr: "التمريرات",        valA: playerA.stats?.assists || 0,                                        valB: playerB.stats?.assists || 0 },
-                    { labelEn: "MVPs",        labelAr: "رجل المباراة",     valA: playerA.stats?.mvp || 0,                                            valB: playerB.stats?.mvp || 0 },
-                    { labelEn: "G+A",         labelAr: "مساهمات",          valA: (playerA.stats?.goals || 0) + (playerA.stats?.assists || 0),        valB: (playerB.stats?.goals || 0) + (playerB.stats?.assists || 0) },
-                    { labelEn: "Matches",     labelAr: "مباريات",          valA: playerA.stats?.matchesPlayed || 0,                                  valB: playerB.stats?.matchesPlayed || 0 },
-                    { labelEn: "Height",      labelAr: "الطول",            valA: playerA.height || 0,                                                valB: playerB.height || 0 },
-                    { labelEn: "Weight",      labelAr: "الوزن",            valA: playerA.weight || 0,                                                valB: playerB.weight || 0 },
-                  ].map((stat, idx) => {
-                    const winA = stat.valA > stat.valB;
-                    const winB = stat.valB > stat.valA;
-                    return (
-                      <div key={idx} className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200/60 dark:border-slate-800 text-center">
-                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 block mb-1.5 uppercase">{isAr ? stat.labelAr : stat.labelEn}</span>
-                        <div className="flex items-center justify-center gap-2 text-sm font-black">
-                          <span className={winA ? "text-blue-600 dark:text-blue-400 text-base" : "text-slate-600 dark:text-slate-400"}>{stat.valA}</span>
-                          <span className="text-slate-300 dark:text-slate-600 text-xs">vs</span>
-                          <span className={winB ? "text-amber-600 dark:text-amber-400 text-base" : "text-slate-600 dark:text-slate-400"}>{stat.valB}</span>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 overflow-hidden border-2 border-cyan-500/50 shadow-lg shrink-0 relative flex items-center justify-center font-black text-xl text-white">
+                          {playerA.photoUrl ? (
+                            <Image src={playerA.photoUrl} alt="" fill sizes="80px" className="object-cover" />
+                          ) : (
+                            playerA.cardName?.charAt(0) || "?"
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-lg sm:text-xl font-black text-white">{playerA.cardName || playerA.fullName}</h4>
+                            {playerA.form && <FormIcon form={playerA.form} className="w-4 h-4" />}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 font-black text-xs border border-cyan-500/30">
+                              {playerA.primaryPosition}
+                            </span>
+                            {playerA.playStyle && (
+                              <span className="text-xs font-bold text-slate-400">
+                                {playerA.playStyle.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    );
-                  })}
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                          {ovrA}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setIsSelectingA(true)}
+                            className="text-[11px] font-bold text-cyan-400 hover:underline"
+                          >
+                            {isAr ? "تغيير" : "Change"}
+                          </button>
+                          <span className="text-slate-600 text-[11px]">•</span>
+                          <button
+                            onClick={removeA}
+                            className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-0.5"
+                          >
+                            <UserX className="w-3 h-3" />
+                            {isAr ? "إزالة" : "Remove"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Player B Box */}
+                <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 flex flex-col justify-between relative overflow-hidden shadow-inner">
+                  <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+                  {isSelectingB || !playerB ? (
+                    <div className="space-y-3">
+                      <span className="text-xs font-black uppercase text-amber-400 tracking-wider">
+                        {isAr ? "اختر اللاعب الثاني (ذهبي)" : "Select Player B (Gold)"}
+                      </span>
+                      <div className="relative">
+                        <Search className="w-4 h-4 absolute left-3 rtl:left-auto rtl:right-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input
+                          type="text"
+                          placeholder={isAr ? "ابحث عن اسم..." : "Search name..."}
+                          value={searchB}
+                          onChange={(e) => setSearchB(e.target.value)}
+                          className="w-full pl-9 pr-3 rtl:pr-9 rtl:pl-3 py-2.5 text-xs bg-slate-900 border border-slate-800 rounded-xl outline-none focus:border-amber-500/60 text-white placeholder-slate-500"
+                        />
+                      </div>
+                      <div className="max-h-[220px] overflow-y-auto divide-y divide-slate-800/60 custom-scrollbar pr-1">
+                        {filteredForB.map((p) => (
+                          <PlayerListRow
+                            key={p.uid}
+                            p={p}
+                            ovr={ovrMap.get(p.uid) ?? 0}
+                            onClick={() => {
+                              setPlayerBId(p.uid);
+                              setIsSelectingB(false);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 overflow-hidden border-2 border-amber-500/50 shadow-lg shrink-0 relative flex items-center justify-center font-black text-xl text-white">
+                          {playerB.photoUrl ? (
+                            <Image src={playerB.photoUrl} alt="" fill sizes="80px" className="object-cover" />
+                          ) : (
+                            playerB.cardName?.charAt(0) || "?"
+                          )}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-lg sm:text-xl font-black text-white">{playerB.cardName || playerB.fullName}</h4>
+                            {playerB.form && <FormIcon form={playerB.form} className="w-4 h-4" />}
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 font-black text-xs border border-amber-500/30">
+                              {playerB.primaryPosition}
+                            </span>
+                            {playerB.playStyle && (
+                              <span className="text-xs font-bold text-slate-400">
+                                {playerB.playStyle.replace(/_/g, " ")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                          {ovrB}
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setIsSelectingB(true)}
+                            className="text-[11px] font-bold text-amber-400 hover:underline"
+                          >
+                            {isAr ? "تغيير" : "Change"}
+                          </button>
+                          <span className="text-slate-600 text-[11px]">•</span>
+                          <button
+                            onClick={removeB}
+                            className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-0.5"
+                          >
+                            <UserX className="w-3 h-3" />
+                            {isAr ? "إزالة" : "Remove"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* All 22 Attributes — grouped */}
-              {GROUP_ORDER.map((group) => {
-                const attrs = ALL_ATTRIBUTES.filter((a) => a.groupEn === group);
-                return (
-                  <div key={group} className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
-                    <h4 className="font-black text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-5 text-center">
-                      {isAr ? attrs[0]?.groupAr : group}
-                    </h4>
-                    <div className="space-y-4">
-                      {attrs.map((attr) => {
-                        const valA = getAttrValue(playerA, attr.key);
-                        const valB = getAttrValue(playerB, attr.key);
-                        const diff = Math.abs(valA - valB);
-                        const winnerA = valA > valB;
-                        const winnerB = valB > valA;
-
-                        return (
-                          <div key={attr.key} className="space-y-1">
-                            {/* Label row */}
-                            <div className="flex items-center justify-between text-xs font-black">
-                              <div className={`flex items-center gap-1.5 min-w-[44px] ${winnerA ? "text-blue-600 dark:text-blue-400" : "text-slate-600 dark:text-slate-400"}`}>
-                                <span>{valA}</span>
-                                {winnerA && diff > 0 && (
-                                  <span className="text-[9px] bg-blue-500 text-white px-1 py-0.5 rounded font-black">+{diff}</span>
-                                )}
-                              </div>
-                              <span className="text-slate-600 dark:text-slate-300 font-bold text-[11px] text-center px-2">
-                                {isAr ? attr.nameAr : attr.nameEn}
+              {/* Comparison Content */}
+              {showComparison ? (
+                <div className="space-y-6">
+                  {/* Head-to-Head Advantage Summary Box */}
+                  {summary && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-slate-950/90 p-5 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-start"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-black text-xl shrink-0">
+                          ⚡
+                        </div>
+                        <div>
+                          <h4 className="font-black text-base text-white">
+                            {summary.winsA > summary.winsB ? (
+                              <span className="text-cyan-400">
+                                {isAr ? `يتفوق ${playerA.cardName} في ${summary.winsA} طاقة!` : `${playerA.cardName} leads in ${summary.winsA} attributes!`}
                               </span>
-                              <div className={`flex items-center gap-1.5 justify-end min-w-[44px] ${winnerB ? "text-amber-600 dark:text-amber-400" : "text-slate-600 dark:text-slate-400"}`}>
-                                {winnerB && diff > 0 && (
-                                  <span className="text-[9px] bg-amber-500 text-white px-1 py-0.5 rounded font-black">+{diff}</span>
-                                )}
-                                <span>{valB}</span>
-                              </div>
-                            </div>
-                            {/* Split bar */}
-                            <div className="grid grid-cols-2 gap-1 h-2.5 overflow-hidden bg-slate-200 dark:bg-slate-700 rounded-full">
-                              <div className="flex justify-end rounded-l-full overflow-hidden">
-                                <div
-                                  style={{ width: valA > 0 ? `${Math.min(100, (valA / 99) * 100)}%` : "0%" }}
-                                  className={`h-full rounded-l-full transition-none ${winnerA ? "bg-gradient-to-l from-blue-600 to-indigo-500" : "bg-blue-300 dark:bg-blue-800"}`}
-                                />
-                              </div>
-                              <div className="flex justify-start rounded-r-full overflow-hidden">
-                                <div
-                                  style={{ width: valB > 0 ? `${Math.min(100, (valB / 99) * 100)}%` : "0%" }}
-                                  className={`h-full rounded-r-full transition-none ${winnerB ? "bg-gradient-to-r from-amber-500 to-red-500" : "bg-amber-300 dark:bg-amber-800"}`}
-                                />
-                              </div>
+                            ) : summary.winsB > summary.winsA ? (
+                              <span className="text-amber-400">
+                                {isAr ? `يتفوق ${playerB.cardName} في ${summary.winsB} طاقة!` : `${playerB.cardName} leads in ${summary.winsB} attributes!`}
+                              </span>
+                            ) : (
+                              <span className="text-teal-400">
+                                {isAr ? "المواجهة متكافئة تماماً!" : "Perfectly Balanced Matchup!"}
+                              </span>
+                            )}
+                          </h4>
+                          <p className="text-xs text-slate-400 font-semibold mt-0.5">
+                            {isAr
+                              ? `${playerA.cardName} (${summary.winsA}) vs ${playerB.cardName} (${summary.winsB}) — التعادلات (${summary.ties})`
+                              : `${playerA.cardName} (${summary.winsA}) vs ${playerB.cardName} (${summary.winsB}) — Ties (${summary.ties})`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 bg-slate-900 px-4 py-2 rounded-2xl border border-slate-800 shrink-0">
+                        <span className="text-xs font-black text-cyan-400">{ovrA} OVR</span>
+                        <span className="text-xs font-bold text-slate-500">vs</span>
+                        <span className="text-xs font-black text-amber-400">{ovrB} OVR</span>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Overall & Match Stats Grid */}
+                  <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+                    <h4 className="font-black text-xs uppercase tracking-wider text-slate-400 text-center flex items-center justify-center gap-2">
+                      <Trophy className="w-4 h-4 text-emerald-400" />
+                      <span>{isAr ? "الأداء العام وإحصائيات المباريات" : "Overall & Match Stats"}</span>
+                    </h4>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { labelEn: "OVR Rating", labelAr: "التقييم الكلي",    valA: ovrA,                                                               valB: ovrB },
+                        { labelEn: "Goals",       labelAr: "الأهداف",          valA: playerA.stats?.goals || 0,                                          valB: playerB.stats?.goals || 0 },
+                        { labelEn: "Assists",     labelAr: "التمريرات",        valA: playerA.stats?.assists || 0,                                        valB: playerB.stats?.assists || 0 },
+                        { labelEn: "MVPs",        labelAr: "رجل المباراة",     valA: playerA.stats?.mvp || 0,                                            valB: playerB.stats?.mvp || 0 },
+                        { labelEn: "G+A",         labelAr: "مساهمات",          valA: (playerA.stats?.goals || 0) + (playerA.stats?.assists || 0),        valB: (playerB.stats?.goals || 0) + (playerB.stats?.assists || 0) },
+                        { labelEn: "Matches",     labelAr: "مباريات",          valA: playerA.stats?.matchesPlayed || 0,                                  valB: playerB.stats?.matchesPlayed || 0 },
+                        { labelEn: "Height",      labelAr: "الطول",            valA: playerA.height || 0,                                                valB: playerB.height || 0 },
+                        { labelEn: "Weight",      labelAr: "الوزن",            valA: playerA.weight || 0,                                                valB: playerB.weight || 0 },
+                      ].map((stat, idx) => {
+                        const winA = stat.valA > stat.valB;
+                        const winB = stat.valB > stat.valA;
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-slate-900 p-3.5 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-between gap-1 shadow-sm"
+                          >
+                            <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                              {isAr ? stat.labelAr : stat.labelEn}
+                            </span>
+                            <div className="flex items-center justify-center gap-3 w-full text-base font-black">
+                              <span className={winA ? "text-cyan-400 font-black text-lg" : "text-slate-400"}>
+                                {stat.valA}
+                              </span>
+                              <span className="text-slate-600 text-xs font-bold">VS</span>
+                              <span className={winB ? "text-amber-400 font-black text-lg" : "text-slate-400"}>
+                                {stat.valB}
+                              </span>
                             </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                );
-              })}
 
-              {/* Special Skills */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80">
-                <h4 className="font-black text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4 text-center">
-                  {isAr ? "المهارات الخاصة" : "Special Skills"}
-                </h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div>
-                    <h5 className="text-xs font-bold text-blue-600 dark:text-blue-400 mb-2 flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5" />
-                      {playerA.cardName} ({playerA.specialSkills?.length || 0})
-                    </h5>
-                    <div className="flex flex-wrap gap-1.5">
-                      {playerA.specialSkills && playerA.specialSkills.length > 0 ? (
-                        playerA.specialSkills.map((sId) => {
-                          const sObj = SKILLS.find((x) => x.id === sId);
-                          return (
-                            <span key={sId} className="px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20 text-xs font-bold">
-                              {sObj ? (isAr ? sObj.labelAr : sObj.label) : sId}
+                  {/* All 22 Attributes — Grouped Bars */}
+                  {GROUP_ORDER.map((group) => {
+                    const attrs = ALL_ATTRIBUTES.filter((a) => a.groupEn === group);
+                    return (
+                      <div
+                        key={group}
+                        className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4"
+                      >
+                        <h4 className="font-black text-xs uppercase tracking-wider text-emerald-400 text-center flex items-center justify-center gap-2">
+                          <Activity className="w-4 h-4" />
+                          <span>{isAr ? attrs[0]?.groupAr : group}</span>
+                        </h4>
+                        <div className="space-y-3.5">
+                          {attrs.map((attr) => {
+                            const valA = getAttrValue(playerA, attr.key);
+                            const valB = getAttrValue(playerB, attr.key);
+                            const diff = Math.abs(valA - valB);
+                            const winnerA = valA > valB;
+                            const winnerB = valB > valA;
+
+                            return (
+                              <div key={attr.key} className="space-y-1.5">
+                                {/* Label & Numeric Row */}
+                                <div className="flex items-center justify-between text-xs font-black">
+                                  <div
+                                    className={`flex items-center gap-1.5 min-w-[50px] ${
+                                      winnerA ? "text-cyan-400" : "text-slate-400"
+                                    }`}
+                                  >
+                                    <span className="text-sm font-black">{valA}</span>
+                                    {winnerA && diff > 0 && (
+                                      <span className="text-[9px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-1.5 py-0.5 rounded-md font-black">
+                                        +{diff}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <span className="text-slate-300 font-bold text-xs text-center px-2">
+                                    {isAr ? attr.nameAr : attr.nameEn}
+                                  </span>
+
+                                  <div
+                                    className={`flex items-center gap-1.5 justify-end min-w-[50px] ${
+                                      winnerB ? "text-amber-400" : "text-slate-400"
+                                    }`}
+                                  >
+                                    {winnerB && diff > 0 && (
+                                      <span className="text-[9px] bg-amber-500/20 text-amber-400 border border-amber-500/40 px-1.5 py-0.5 rounded-md font-black">
+                                        +{diff}
+                                      </span>
+                                    )}
+                                    <span className="text-sm font-black">{valB}</span>
+                                  </div>
+                                </div>
+
+                                {/* Bi-Directional Split Progress Bar */}
+                                <div className="grid grid-cols-2 gap-1.5 h-3 bg-slate-900 rounded-full p-0.5 border border-slate-800">
+                                  <div className="flex justify-end rounded-l-full overflow-hidden">
+                                    <div
+                                      style={{ width: valA > 0 ? `${Math.min(100, (valA / 99) * 100)}%` : "0%" }}
+                                      className={`h-full rounded-l-full transition-all duration-500 ${
+                                        winnerA
+                                          ? "bg-gradient-to-l from-cyan-400 to-blue-600 shadow-sm"
+                                          : "bg-slate-700/60"
+                                      }`}
+                                    />
+                                  </div>
+                                  <div className="flex justify-start rounded-r-full overflow-hidden">
+                                    <div
+                                      style={{ width: valB > 0 ? `${Math.min(100, (valB / 99) * 100)}%` : "0%" }}
+                                      className={`h-full rounded-r-full transition-all duration-500 ${
+                                        winnerB
+                                          ? "bg-gradient-to-r from-amber-400 to-orange-600 shadow-sm"
+                                          : "bg-slate-700/60"
+                                      }`}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {/* Special Skills Section */}
+                  <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 shadow-xl space-y-4">
+                    <h4 className="font-black text-xs uppercase tracking-wider text-amber-400 text-center flex items-center justify-center gap-2">
+                      <Zap className="w-4 h-4" />
+                      <span>{isAr ? "المهارات الخاصة" : "Special Skills"}</span>
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-black text-cyan-400 flex items-center gap-1.5">
+                          <span>{playerA.cardName || playerA.fullName}</span>
+                          <span className="text-[10px] text-slate-500">({playerA.specialSkills?.length || 0})</span>
+                        </h5>
+                        <div className="flex flex-wrap gap-1.5">
+                          {playerA.specialSkills && playerA.specialSkills.length > 0 ? (
+                            playerA.specialSkills.map((sId) => {
+                              const sObj = SKILLS.find((x) => x.id === sId);
+                              return (
+                                <span
+                                  key={sId}
+                                  className="px-2.5 py-1 rounded-xl bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 text-xs font-bold shadow-sm"
+                                >
+                                  ⭐ {sObj ? (isAr ? sObj.labelAr : sObj.label) : sId}
+                                </span>
+                              );
+                            })
+                          ) : (
+                            <span className="text-xs text-slate-500 italic">
+                              {isAr ? "لا توجد مهارات خاصة" : "No special skills"}
                             </span>
-                          );
-                        })
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">{isAr ? "لا توجد مهارات خاصة" : "No special skills"}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1.5">
-                      <Zap className="w-3.5 h-3.5" />
-                      {playerB.cardName} ({playerB.specialSkills?.length || 0})
-                    </h5>
-                    <div className="flex flex-wrap gap-1.5">
-                      {playerB.specialSkills && playerB.specialSkills.length > 0 ? (
-                        playerB.specialSkills.map((sId) => {
-                          const sObj = SKILLS.find((x) => x.id === sId);
-                          return (
-                            <span key={sId} className="px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 text-xs font-bold">
-                              {sObj ? (isAr ? sObj.labelAr : sObj.label) : sId}
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <h5 className="text-xs font-black text-amber-400 flex items-center gap-1.5">
+                          <span>{playerB.cardName || playerB.fullName}</span>
+                          <span className="text-[10px] text-slate-500">({playerB.specialSkills?.length || 0})</span>
+                        </h5>
+                        <div className="flex flex-wrap gap-1.5">
+                          {playerB.specialSkills && playerB.specialSkills.length > 0 ? (
+                            playerB.specialSkills.map((sId) => {
+                              const sObj = SKILLS.find((x) => x.id === sId);
+                              return (
+                                <span
+                                  key={sId}
+                                  className="px-2.5 py-1 rounded-xl bg-amber-950/60 text-amber-300 border border-amber-500/30 text-xs font-bold shadow-sm"
+                                >
+                                  ⭐ {sObj ? (isAr ? sObj.labelAr : sObj.label) : sId}
+                                </span>
+                              );
+                            })
+                          ) : (
+                            <span className="text-xs text-slate-500 italic">
+                              {isAr ? "لا توجد مهارات خاصة" : "No special skills"}
                             </span>
-                          );
-                        })
-                      ) : (
-                        <span className="text-xs text-slate-400 italic">{isAr ? "لا توجد مهارات خاصة" : "No special skills"}</span>
-                      )}
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-
+              ) : (
+                <div className="text-center py-16 bg-slate-950/80 rounded-3xl border border-slate-800 space-y-3">
+                  <ArrowRightLeft className="w-12 h-12 text-emerald-400 mx-auto opacity-60 animate-pulse" />
+                  <p className="text-slate-300 font-bold text-sm">
+                    {isAr
+                      ? "اختر لاعبَين من القائمة أعلاه لبدء المقارنة المفصلة بين الطاقات والإحصائيات."
+                      : "Select two players above to initiate an in-depth head-to-head comparison."}
+                  </p>
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-16 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200 dark:border-slate-800">
-              <ArrowRightLeft className="w-12 h-12 text-slate-400 mx-auto mb-3 opacity-50 animate-pulse" />
-              <p className="text-slate-600 dark:text-slate-400 font-bold text-sm">
-                {isAr ? "اختر لاعبَين من فوق لبدء المقارنة المفصلة." : "Select both players above to start the detailed comparison."}
-              </p>
-            </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="p-4 bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-sm hover:opacity-90 transition-opacity"
-          >
-            {isAr ? "إغلاق" : "Close"}
-          </button>
-        </div>
+            {/* ── Footer ────────────────────────────────────────────────────── */}
+            <div className="p-4 bg-slate-950/90 border-t border-slate-800 flex justify-end shrink-0">
+              <button
+                onClick={onClose}
+                className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm transition-colors"
+              >
+                {isAr ? "إغلاق" : "Close"}
+              </button>
+            </div>
           </motion.div>
         </div>
       )}

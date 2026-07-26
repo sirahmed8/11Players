@@ -42,8 +42,8 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
             transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
             className="w-16 h-16 rounded-full border-4 border-emerald-500/30 border-t-emerald-500"
           />
-          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-            {locale === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400" suppressHydrationWarning>
+            {mounted && locale === 'ar' ? 'جارٍ التحميل...' : 'Loading...'}
           </p>
         </div>
       );

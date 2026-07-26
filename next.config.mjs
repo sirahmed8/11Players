@@ -12,8 +12,9 @@ const withPWA = withPWAInit({
 const nextConfig = {
   reactStrictMode: true,
   trailingSlash: false,
-  // Static export for Firebase; full SSR for Vercel (enables API routes, middleware, Blob)
-  ...(isVercel ? {} : { output: "export" }),
+  // Static export only for Firebase hosting (non-Vercel, non-dev builds).
+  // Skipped in local dev (NODE_ENV=development) to avoid the Middleware+export conflict warning.
+  ...(isVercel || process.env.NODE_ENV === "development" ? {} : { output: "export" }),
   images: {
     // Vercel handles image optimisation natively; Firebase needs unoptimized
     unoptimized: !isVercel,
@@ -40,6 +41,8 @@ const nextConfig = {
       },
     ],
   },
+  // Turbopack config (Next.js 16 default bundler) — empty silences the webpack/turbopack mismatch warning
+  turbopack: {},
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

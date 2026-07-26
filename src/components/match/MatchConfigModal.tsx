@@ -857,6 +857,41 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setConfig(prev => ({ ...prev, time: `${hour}:${minute} ${period}` }));
   };
 
+  const [aiTacticalReport, setAiTacticalReport] = useState<string | null>(null);
+  const [aiReportLoading, setAiReportLoading] = useState(false);
+
+  const handleGetAIMatchAnalysis = async () => {
+    if (!previewData) return;
+    setAiReportLoading(true);
+    setAiTacticalReport(null);
+
+    try {
+      const teamNamesA = (previewData.teamA || []).map((p: any) => `${p.fullName || p.cardName} (${p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+      const teamNamesB = (previewData.teamB || []).map((p: any) => `${p.fullName || p.cardName} (${p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
+
+      const prompt = `أنت 11AI المحلل التكتيكي الرسمي. قم بتحليل مباراة الفريق أ ضد الفريق ب:
+الفريق أ (متوسط ${previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}): ${teamNamesA}
+الفريق ب (متوسط ${previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}): ${teamNamesB}
+
+قدم تحليلاً تكتيكياً كروياً ممتعاً وموجزاً (في 3 نقاط فقط) ينقل نقاط القوة والتوقع النهائي للمباراة.`;
+
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: prompt }),
+      });
+
+      const data = await res.json();
+      if (data.reply) {
+        setAiTacticalReport(data.reply);
+      }
+    } catch (err) {
+      toast.error(isAr ? 'فشل تحليل الذكاء الاصطناعي للمباراة' : 'AI match analysis failed');
+    } finally {
+      setAiReportLoading(false);
+    }
+  };
+
   const handlePresetTime = (preset: string) => {
     const [timePart, period] = preset.split(' ');
     const [h, m] = timePart.split(':');
@@ -1301,6 +1336,16 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       </button>
                       <button
                         type="button"
+                        onClick={handleGetAIMatchAnalysis}
+                        disabled={aiReportLoading}
+                        className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shadow-md active:scale-95 disabled:opacity-50"
+                        title={isAr ? 'احصل على تحليل تكتيكي وتوقع شامل من 11AI للمباراة' : 'Get 11AI tactical analysis and match breakdown'}
+                      >
+                        {aiReportLoading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Brain className="w-3.5 h-3.5" />}
+                        <span>{isAr ? 'تحليل 11AI التكتيكي 🤖' : '11AI Tactical Report 🤖'}</span>
+                      </button>
+                      <button
+                        type="button"
                         onClick={handleRegeneratePreview}
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/80 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all shadow-sm active:scale-95"
                       >
@@ -1309,6 +1354,23 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
                       </button>
                     </div>
                   </div>
+
+                  {/* 11AI Match Tactical Analysis Report Box */}
+                  {aiTacticalReport && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/40 text-xs leading-relaxed text-slate-200 shadow-xl space-y-2"
+                    >
+                      <div className="flex items-center gap-2 text-emerald-400 font-black">
+                        <Brain className="w-4 h-4 text-emerald-400" />
+                        <span>{isAr ? "تحليل 11AI التكتيكي للمباراة" : "11AI Tactical Match Analysis"}</span>
+                      </div>
+                      <div className="whitespace-pre-line text-slate-300 font-medium">
+                        {aiTacticalReport}
+                      </div>
+                    </motion.div>
+                  )}
 
                   {/* Turf Mode Preview */}
                   {previewData.matchMode === 'turf' && previewData.turfResult && (

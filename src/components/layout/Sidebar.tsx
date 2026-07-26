@@ -59,7 +59,7 @@ export default function Sidebar() {
     const unsub = onSnapshot(q, (snap) => {
       setUnreadNotifsCount(snap.docs.length);
     }, (err) => {
-      console.warn("Sidebar notifications snapshot warning:", err);
+      if (err?.code !== 'permission-denied') console.warn("Sidebar notifications snapshot warning:", err);
     });
     return () => unsub();
   }, [user]);
@@ -113,7 +113,7 @@ export default function Sidebar() {
         }
       }
     }, (err) => {
-      console.warn("Sidebar support_threads snapshot warning:", err);
+      if (err?.code !== 'permission-denied') console.warn("Sidebar support_threads snapshot warning:", err);
     });
 
     return () => unsub();
@@ -305,7 +305,7 @@ export default function Sidebar() {
         }
       }
     }, (err) => {
-      console.warn("Sidebar user support_thread snapshot warning:", err);
+      if (err?.code !== 'permission-denied') console.warn("Sidebar user support_thread snapshot warning:", err);
     });
 
     return () => unsub();
@@ -321,7 +321,6 @@ export default function Sidebar() {
           { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
           { href: `/match`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5" /> },
           { href: `/stats`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5" /> },
-          { href: `/community-chat`, labelEn: "Community Chat", labelAr: "دردشة المجتمع", icon: <MessageCircle className="w-5 h-5" /> },
         ] : []),
       ]
     },
@@ -343,7 +342,6 @@ export default function Sidebar() {
         ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5" />, badge: pendingEditsCount > 0 ? pendingEditsCount : undefined }] : []),
         { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5" /> },
         { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5" /> },
-        { href: "/inbox", labelEn: "Support Inbox", labelAr: "بريد الدعم والشكاوى", icon: <InboxIcon className="w-5 h-5" />, badge: unreadInboxCount > 0 ? unreadInboxCount : undefined },
         ...(isOwner ? [
           { href: "/users", labelEn: "Users List", labelAr: "قائمة المستخدمين", icon: <Users className="w-5 h-5" /> },
           { href: "/owner", labelEn: "Owner Control", labelAr: "التحكم الشامل", icon: <ShieldAlert className="w-5 h-5" /> },
@@ -351,21 +349,20 @@ export default function Sidebar() {
       ]
     }] : []),
     {
-      titleEn: "Help & Support",
-      titleAr: "المساعدة والدعم",
+      titleEn: "Help & Rules",
+      titleAr: "المساعدة والقوانين",
       items: [
         { href: "/guide", labelEn: "Guide & Rules", labelAr: "الدليل والقوانين", icon: <BookOpen className="w-5 h-5" /> },
-        ...(user && !isOwner && !isGlobalModerator ? [{ href: "/support", labelEn: "Support Desk", labelAr: "الدعم الفني والشكاوى", icon: <HeadphonesIcon className="w-5 h-5" />, badge: unreadSupportCount > 0 ? unreadSupportCount : undefined }] : []),
       ]
     }
   ];
 
-  // Public pages should not reserve sidebar space for guests.
-  const isDefinitelyGuest = !user && !authLoading && !hasCachedUser;
-
-  if (isDefinitelyGuest && PUBLIC_ROUTES.includes(pathname)) {
+  // Public pages should not reserve sidebar space or flash skeleton for guests
+  if (PUBLIC_ROUTES.includes(pathname) && !hasCachedUser && !user) {
     return null;
   }
+
+  const isDefinitelyGuest = !user && !authLoading && !hasCachedUser;
 
   // Hide sidebar completely when user is not logged in
   if (isDefinitelyGuest) {
@@ -430,8 +427,9 @@ export default function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+            className="fixed inset-0 bg-slate-950/60 z-40 md:hidden backdrop-blur-md"
           />
         )}
       </AnimatePresence>
@@ -462,8 +460,10 @@ export default function Sidebar() {
               if (group.items.length === 0) return null;
               return (
                 <div key={gIdx} className="space-y-1.5">
-                  <div className="px-3 text-[11px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center gap-2">
-                    <span>{isAr ? group.titleAr : group.titleEn}</span>
+                  <div className="px-3 mb-1 text-[10px] font-black tracking-widest uppercase text-slate-400/80 dark:text-slate-600 flex items-center gap-2">
+                    <div className="h-px flex-1 bg-slate-200/60 dark:bg-slate-800/60" />
+                    <span className="shrink-0">{isAr ? group.titleAr : group.titleEn}</span>
+                    <div className="h-px flex-1 bg-slate-200/60 dark:bg-slate-800/60" />
                   </div>
                   <div className="space-y-1">
                     {group.items.map((link: any) => {
@@ -493,26 +493,33 @@ export default function Sidebar() {
                               window.location.href = link.href;
                             }
                           }}
-                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-[background-color,color,box-shadow,transform] duration-150 font-bold text-sm group ${
+                          className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-150 font-bold text-sm group ${
                               isActive
-                                ? "bg-slate-800 text-white shadow-inner shadow-black/30 scale-[1.01]"
-                                : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+                                ? "bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-500 dark:to-teal-500 text-white shadow-lg shadow-emerald-500/25"
+                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-100/80 dark:hover:bg-slate-800/70 hover:text-slate-900 dark:hover:text-white"
                             }`}
                         >
                           <div className="flex items-center gap-3 truncate">
-                              <div className={isActive ? "text-white" : "text-emerald-500"}>
+                              <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-150 ${
+                                isActive
+                                  ? 'bg-white/20'
+                                  : 'bg-emerald-500/10 group-hover:bg-emerald-500/20'
+                              }`}>
                                 {cloneElement(link.icon, {
-                                  className: `w-5 h-5 ${isActive ? 'text-white' : 'text-emerald-500'}`,
+                                  className: `w-4 h-4 ${isActive ? 'text-white' : 'text-emerald-500'}`,
                                 })}
                               </div>
                             <span className="truncate">{isAr ? link.labelAr : link.labelEn}</span>
                           </div>
                           {link.badge !== undefined && link.badge > 0 ? (
-                            <span className="px-2 py-0.5 bg-red-500 text-white text-[11px] font-black rounded-full shadow-sm animate-pulse flex-shrink-0">
-                              {link.badge}
+                            <span className="min-w-[20px] h-5 px-1.5 bg-gradient-to-r from-red-500 to-rose-500 text-white text-[10px] font-black rounded-full shadow-sm shadow-red-500/40 animate-pulse flex items-center justify-center flex-shrink-0">
+                              {link.badge > 99 ? "99+" : link.badge}
                             </span>
                           ) : ((link.href === "/notifications" && unreadNotifsCount > 0) || (link.href === "/inbox" && unreadInboxCount > 0) || (link.href === "/support" && unreadSupportCount > 0)) ? (
-                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-sm shadow-red-500/50 flex-shrink-0" />
+                            <span className="relative flex h-2.5 w-2.5 flex-shrink-0">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
+                            </span>
                           ) : null}
                         </a>
                       );
@@ -524,8 +531,13 @@ export default function Sidebar() {
           </div>
 
           {/* Settings Area (Fixed Footer) */}
-          <div className="mt-auto flex-shrink-0 p-4 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
-            <SettingsMenu direction="up" />
+          <div className="mt-auto flex-shrink-0 p-4 border-t border-slate-200/40 dark:border-slate-800/40 bg-white/80 dark:bg-slate-900/80 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-400 dark:text-slate-600 font-semibold select-none">
+                © 2025 11Players
+              </span>
+              <SettingsMenu direction="up" />
+            </div>
           </div>
         </div>
       </div>

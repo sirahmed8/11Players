@@ -368,53 +368,84 @@ export default function OnboardingWizard() {
   const stepLabels = [txt.step1, txt.step2, txt.step3, txt.step4];
 
   return (
-    <div className="w-full max-w-4xl mx-auto px-4 py-6" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className="w-full max-w-4xl mx-auto" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* ─── Step Indicator ─── */}
-      <div className="mb-8">
-        <div className="relative h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden mb-4">
-          <motion.div
-            className="absolute inset-y-0 bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full"
-            style={{ [isRTL ? 'right' : 'left']: 0 }}
-            animate={{ width: `${progressPercent}%` }}
-            transition={{ duration: 0.4, ease: 'easeInOut' }}
-          />
-        </div>
-
-        <div className="flex justify-between items-center">
+      <div className="mb-6">
+        {/* Step bubbles row */}
+        <div className="flex items-center gap-0 mb-5">
           {stepLabels.map((label, idx) => {
             const stepNum = idx + 1;
             const isActive = stepNum === currentStep;
             const isCompleted = stepNum < currentStep;
+            const isLast = idx === stepLabels.length - 1;
 
             return (
-              <div key={idx} className="flex flex-col items-center gap-1.5">
-                <motion.div
-                  animate={{
-                    scale: isActive ? 1.15 : 1,
-                  }}
-                  className={`
-                    w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all duration-300
-                    ${isCompleted ? 'bg-emerald-500 border-emerald-500 text-white' : isActive ? 'bg-emerald-600 border-emerald-400 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-400 dark:text-slate-500'}
-                  `}
-                >
-                  {isCompleted ? '✓' : stepNum}
-                </motion.div>
-                <span className={`text-xs font-medium hidden sm:block transition-colors ${isActive ? 'text-emerald-700 dark:text-emerald-400' : isCompleted ? 'text-emerald-600 dark:text-emerald-500' : 'text-slate-600 dark:text-slate-400'}`}>
-                  {label}
-                </span>
-              </div>
+              <React.Fragment key={idx}>
+                <div className="flex flex-col items-center gap-2 shrink-0">
+                  <motion.div
+                    animate={{ scale: isActive ? 1.1 : 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    className={`
+                      relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-black transition-all duration-300
+                      ${isCompleted
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        : isActive
+                        ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/40'
+                        : 'bg-slate-800/80 border border-slate-700 text-slate-500'}
+                    `}
+                  >
+                    {isActive && (
+                      <motion.div
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                        className="absolute inset-[-4px] rounded-full border-2 border-emerald-500/50"
+                      />
+                    )}
+                    {isCompleted ? (
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : stepNum}
+                  </motion.div>
+                  <span className={`text-[10px] font-bold hidden sm:block transition-colors whitespace-nowrap
+                    ${isActive ? 'text-emerald-400' : isCompleted ? 'text-emerald-600' : 'text-slate-600'}`}>
+                    {label}
+                  </span>
+                </div>
+                {!isLast && (
+                  <div className="flex-1 mx-1 h-0.5 rounded-full overflow-hidden bg-slate-800">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"
+                      animate={{ width: isCompleted ? '100%' : '0%' }}
+                      transition={{ duration: 0.4, ease: 'easeInOut' }}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
             );
           })}
         </div>
-        <p className="text-center text-sm text-slate-500 mt-3 sm:hidden">
-          {currentStep} {txt.stepOf} {TOTAL_STEPS} — {stepLabels[currentStep - 1]}
+
+        {/* Progress bar */}
+        <div className="relative h-1.5 bg-slate-800/80 rounded-full overflow-hidden">
+          <motion.div
+            className="absolute inset-y-0 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-400"
+            style={{ [isRTL ? 'right' : 'left']: 0, boxShadow: '0 0 12px rgba(16,185,129,0.5)' }}
+            animate={{ width: `${progressPercent}%` }}
+            transition={{ duration: 0.5, ease: 'easeInOut' }}
+          />
+        </div>
+
+        {/* Mobile step label */}
+        <p className="text-center text-xs text-slate-500 mt-3 sm:hidden font-medium">
+          {currentStep} {txt.stepOf} {TOTAL_STEPS} — <span className="text-emerald-400 font-bold">{stepLabels[currentStep - 1]}</span>
         </p>
       </div>
 
       {/* ─── Step Content ─── */}
-      <div className="relative overflow-hidden min-h-[500px]">
+      <div className="relative overflow-hidden min-h-[480px] rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm shadow-2xl shadow-black/30 p-5 md:p-7">
         <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div key={currentStep} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.35, ease: 'easeInOut' }} className="px-2 pb-4">
+          <motion.div key={currentStep} custom={direction} variants={slideVariants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} className="">
             
             {/* ═══ STEP 1: Bio Data ═══ */}
             {currentStep === 1 && (
@@ -470,21 +501,28 @@ export default function OnboardingWizard() {
 
                 <AnimatePresence>
                   {submitMessage && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-3 rounded-xl border ${submitMessage.type === 'success' ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-400 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-300' : 'bg-red-50 dark:bg-red-500/10 border-red-400 dark:border-red-500/30 text-red-700 dark:text-red-300'}`}>
-                      {submitMessage.type === 'success' ? '🎉' : '❌'} {submitMessage.text}
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-4 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 ${submitMessage.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-red-500/10 border-red-500/30 text-red-300'}`}>
+                      <span className="text-lg">{submitMessage.type === 'success' ? '🎉' : '❌'}</span>
+                      {submitMessage.text}
                     </motion.div>
                   )}
                 </AnimatePresence>
                 <motion.button
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting}
-                  className={`w-full py-4 px-8 rounded-2xl text-lg font-bold shadow-md shadow-emerald-500/20 transition-all ${isSubmitting ? 'bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:via-emerald-400 hover:to-teal-400 text-white'}`}
+                  className="relative group w-full py-4 px-8 rounded-2xl text-lg font-black shadow-xl shadow-emerald-500/25 transition-all overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white"
                 >
+                  {/* Shimmer sweep */}
+                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
                   {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-3">
-                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-5 h-5 rounded-full border-2 border-slate-500/30 border-t-slate-300" />
+                    <span className="relative flex items-center justify-center gap-3">
+                      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white" />
                       {txt.submitting}
                     </span>
-                  ) : (<>⚡ {txt.submit}</>)}
+                  ) : (
+                    <span className="relative flex items-center justify-center gap-2">
+                      <span>⚡</span> {txt.submit}
+                    </span>
+                  )}
                 </motion.button>
               </div>
             )}
@@ -493,17 +531,24 @@ export default function OnboardingWizard() {
       </div>
 
       {/* ─── Navigation Buttons ─── */}
-      <div className="flex justify-between items-center mt-8 pt-6 border-t border-slate-300 dark:border-slate-800/60">
+      <div className="flex justify-between items-center mt-6 pt-5 border-t border-slate-800/60">
         {currentStep > 1 ? (
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goPrev} className="flex items-center gap-2 px-6 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border border-slate-300 dark:border-slate-700/50 transition-all">
-            <span className={isRTL ? '' : 'rotate-180 inline-block'}>→</span>
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={goPrev}
+            className="flex items-center gap-2 px-5 py-2.5 bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-semibold rounded-xl border border-slate-700/60 hover:border-slate-600 transition-all text-sm"
+          >
+            <span className={`text-base ${isRTL ? '' : 'rotate-180 inline-block'}`}>→</span>
             {txt.previous}
           </motion.button>
         ) : (<div />)}
         {currentStep < TOTAL_STEPS && (
-          <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={goNext} className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-xl shadow-lg shadow-emerald-900/30 transition-all">
-            {txt.next}
-            <span className={isRTL ? 'rotate-180 inline-block' : ''}>→</span>
+          <motion.button
+            whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} onClick={goNext}
+            className="relative group flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/25 transition-all text-sm overflow-hidden"
+          >
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500 pointer-events-none" />
+            <span className="relative">{txt.next}</span>
+            <span className={`relative text-base ${isRTL ? 'rotate-180 inline-block' : ''}`}>→</span>
           </motion.button>
         )}
       </div>

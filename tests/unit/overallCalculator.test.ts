@@ -1,16 +1,31 @@
 import { describe, it, expect } from 'vitest';
 import { calculateRealisticOverall, calculatePositionRating } from '../../src/lib/overallCalculator';
+import { PlayerAttributes } from '../../src/types';
 
 describe('Overall Calculator Tests', () => {
-  const sampleAttrs = {
-    speed: 80,
-    acceleration: 80,
-    dribbling: 80,
-    ballControl: 80,
+  const sampleAttrs: PlayerAttributes = {
     offensiveAwareness: 80,
-    finishing: 80,
+    ballControl: 80,
+    dribbling: 80,
     lowPass: 75,
     loftedPass: 70,
+    finishing: 80,
+    heading: 60,
+    speed: 80,
+    acceleration: 80,
+    kickingPower: 75,
+    jump: 65,
+    physicalContact: 65,
+    balance: 75,
+    stamina: 75,
+    defensiveAwareness: 40,
+    ballWinning: 40,
+    aggression: 40,
+    gkAwareness: 40,
+    gkCatching: 40,
+    gkClearing: 40,
+    gkReflexes: 40,
+    gkReach: 40,
   };
 
   it('should calculate realistic overall for CMF', () => {
@@ -29,3 +44,4 @@ describe('Overall Calculator Tests', () => {
     expect(gkRating).toBeLessThan(cfRating);
   });
 });
+

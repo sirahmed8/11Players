@@ -2,13 +2,14 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trophy, Crown, Sparkles, Send, CheckCircle2, ShieldAlert, Award, Calendar, RefreshCw, X } from "lucide-react";
+import { Trophy, Crown, Sparkles, Send, CheckCircle2, ShieldAlert, Award, Calendar, RefreshCw, X, Shield, ArrowRight } from "lucide-react";
 import { db } from "@/lib/firebase";
-import { doc, writeBatch, arrayUnion, serverTimestamp, setDoc } from "firebase/firestore";
+import { doc, writeBatch, arrayUnion, serverTimestamp, setDoc, addDoc, collection } from "firebase/firestore";
 import toast from "react-hot-toast";
 import type { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import confetti from 'canvas-confetti';
+import Image from "next/image";
 
 interface SeasonCeremonyModalProps {
   isOpen: boolean;
@@ -62,7 +63,7 @@ export default function SeasonCeremonyModal({
     const topScorer = [...players].sort((a, b) => (b.stats?.goals || 0) - (a.stats?.goals || 0))[0];
     const topAssister = [...players].sort((a, b) => (b.stats?.assists || 0) - (a.stats?.assists || 0))[0];
     const topMVP = [...players].sort((a, b) => (b.stats?.mvp || 0) - (a.stats?.mvp || 0))[0];
-    
+
     const ballonDor = [...players].sort((a, b) => {
       const aScore = ((a.stats?.goals || 0) * 2) + ((a.stats?.assists || 0) * 1) + ((a.stats?.mvp || 0) * 5);
       const bScore = ((b.stats?.goals || 0) * 2) + ((b.stats?.assists || 0) * 1) + ((b.stats?.mvp || 0) * 5);
@@ -91,9 +92,7 @@ export default function SeasonCeremonyModal({
     const dateStr = new Date().toISOString();
 
     try {
-      // We will commit the history & comm tag separately
       const initBatch = writeBatch(db);
-      // 1. Save Season Archive / History only if not the very first season.
       if (!isFirstSeason) {
         const seasonHistoryRef = doc(db, `communities/${activeCommunityId}/seasonHistory`, `season_${currentYear - 1}`);
         initBatch.set(seasonHistoryRef, {
@@ -109,12 +108,11 @@ export default function SeasonCeremonyModal({
         }, { merge: true });
       }
 
-      // Update community last reset year tag
       const commRef = doc(db, 'communities', activeCommunityId);
       initBatch.set(commRef, { lastSeasonResetYear: currentYear }, { merge: true });
       await initBatch.commit();
 
-      // 2. Process all players in chunks to avoid > 500 writes limit per batch
+      // Process players in safe chunks of 200 (under 500 limit)
       const batchSize = 200;
       for (let i = 0; i < players.length; i += batchSize) {
         const batch = writeBatch(db);
@@ -122,7 +120,7 @@ export default function SeasonCeremonyModal({
 
         chunk.forEach(p => {
           const docRef = doc(db, 'communities', activeCommunityId, 'players', p.uid);
-          
+
           const newTrophies: any[] = [];
           if (winners.ballonDor && p.uid === winners.ballonDor.uid) {
             newTrophies.push({ name: "Ballon d'Or", season: previousSeasonName, icon: "👑", date: dateStr });
@@ -155,14 +153,13 @@ export default function SeasonCeremonyModal({
             batch.set(globalDocRef, { trophies: arrayUnion(...newTrophies) }, { merge: true });
           }
 
-          // Use set with merge: true to avoid errors if the community player document doesn't fully exist
           batch.set(docRef, setPayload, { merge: true });
         });
 
         await batch.commit();
       }
 
-      // 3. Dispatch Multi-stage notifications right after successful batch commit
+      // Winners Notifications
       if (sendWinnerNotifs) {
         const winnerMap: Array<{ uid: string; trophy: string; icon: string }> = [];
         if (winners.ballonDor) winnerMap.push({ uid: winners.ballonDor.uid, trophy: "الكرة الذهبية (Ballon d'Or)", icon: "👑" });
@@ -177,8 +174,8 @@ export default function SeasonCeremonyModal({
               type: 'trophies',
               title: isAr ? `${w.icon} تهانينا! لقد توجت بلقب الموسم!` : `${w.icon} Congratulations! You are Season Champion!`,
               body: isAr
-                ? `لقد فزت رسمياً بجائزة ${w.trophy} عن أداءك الخارق في ${previousSeasonName}. تمت إضافة الجائزة لخزانة بطولاتك في ملفك الشخصي!`
-                : `You officially won ${w.trophy} for your incredible performance in ${previousSeasonName}. Added to your Trophy Cabinet!`,
+                ? `لقد فزت رسمياً بجائزة ${w.trophy} عن أدائك الخارق في ${previousSeasonName}. تمت إضافة الجائزة لخزانة بطولاتك في ملفك الشخصي!`
+                : `You officially won ${w.trophy} for your performance in ${previousSeasonName}. Added to your Profile!`,
               read: false,
               createdAt: serverTimestamp(),
               link: `/profile?uid=${w.uid}`
@@ -189,8 +186,8 @@ export default function SeasonCeremonyModal({
         }
       }
 
+      // Community Broadcast
       if (sendCommunityBroadcast) {
-        // Send a community-wide announcement
         try {
           const annRef = doc(db, `communities/${activeCommunityId}/announcements`, `season_${currentYear}_start`);
           await setDoc(annRef, {
@@ -201,40 +198,36 @@ export default function SeasonCeremonyModal({
             date: dateStr,
             author: isAr ? "إدارة المجتمع" : "Community Admin"
           });
-          
-          // Send notification to ALL players
-          players.forEach(async (p) => {
-            try {
-              const notifRef = doc(db, `users/${p.uid}/notifications`, `season_start_${currentYear}_${Date.now()}_${Math.random().toString(36).substring(2,6)}`);
-              await setDoc(notifRef, {
-                type: 'admin',
-                title: isAr ? `🚀 انطلاق الموسم الجديد: ${seasonName}!` : `🚀 New Season Started: ${seasonName}!`,
-                body: isAr
-                  ? `مرحباً بك في الموسم الجديد! إحصائياتك جاهزة للبدء من الصفر. بالتوفيق في الوصول للقمة والمنافسة على الألقاب!`
-                  : `Welcome to the new season! Your stats are fresh and ready. Good luck reaching the top and competing for titles!`,
-                read: false,
-                createdAt: serverTimestamp()
-              });
-            } catch (e) {}
-          });
 
+          // Post to Community Live Chat
+          const bDorName = winners.ballonDor ? (winners.ballonDor.cardName || winners.ballonDor.fullName) : "N/A";
+          const scorerName = winners.topScorer ? `${winners.topScorer.cardName || winners.topScorer.fullName} (${winners.topScorer.stats?.goals || 0} أهداف)` : "N/A";
+
+          await addDoc(collection(db, "communities", activeCommunityId, "chat"), {
+            senderId: "system",
+            senderName: isAr ? "11AI التتويج" : "11AI Ceremony",
+            senderPhoto: "",
+            text: isAr
+              ? `🏆 [حفل التتويج الفاخر]: وانطلق رسمياً موسم ${currentYear}!\n👑 الكرة الذهبية: ${bDorName}\n⚽ الحذاء الذهبي: ${scorerName}\nبالتوفيق للجميع في المشوار الجديد! 🚀`
+              : `🏆 [Official Ceremony]: ${seasonName} Has Launched!\n👑 Ballon d'Or: ${bDorName}\n⚽ Golden Boot: ${scorerName}\nGood luck to all! 🚀`,
+            createdAt: serverTimestamp(),
+            isSystem: true,
+          });
         } catch (e) {
           console.warn("Could not post season broadcast announcement:", e);
         }
       }
 
       onRefresh();
-      
-      // Confetti effect to celebrate the new season!
+
+      // Confetti celebration
       const duration = 3 * 1000;
       const animationEnd = Date.now() + duration;
       const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 99999 };
 
       const interval: any = setInterval(function() {
         const timeLeft = animationEnd - Date.now();
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
+        if (timeLeft <= 0) return clearInterval(interval);
         const particleCount = 50 * (timeLeft / duration);
         confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
       }, 250);
@@ -258,344 +251,309 @@ export default function SeasonCeremonyModal({
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20, transition: { duration: 0.2 } }}
-            transition={{ type: "spring", duration: 0.4, bounce: 0.3 }}
-            className="bg-slate-900 border border-amber-500/40 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ type: "spring", duration: 0.3, damping: 25 }}
+            className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+            dir={isAr ? "rtl" : "ltr"}
           >
-          {/* Header */}
-          <div className="p-6 bg-gradient-to-r from-amber-600/30 via-yellow-500/20 to-amber-600/30 border-b border-amber-500/30 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/20 rounded-2xl border border-amber-500/40 text-amber-400">
-                <Trophy className="w-7 h-7 animate-bounce" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-                  <span>{isFirstSeason 
-                    ? (isAr ? "بدء الموسم الأول" : "Start First Season")
-                    : (isAr ? "حفل تتويج الأبطال وخاتمة الموسم" : "Season Ceremony & Champions Coronation")
-                  }</span>
-                  <Sparkles className="w-5 h-5 text-amber-400" />
-                </h2>
-                <p className="text-xs text-amber-300/80 font-medium">
-                  {isFirstSeason
-                    ? (isAr ? `بدء ${seasonName} للمجتمع` : `Starting ${seasonName} for the community`)
-                    : (isAr
-                        ? `توزيع جوائز ${previousSeasonName} وتصفير الإحصائيات لانطلاق ${seasonName}`
-                        : `Awarding ${previousSeasonName} trophies & launching ${seasonName}`
-                      )
-                  }
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              disabled={isExecuting}
-              className="p-2 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Wizard Steps Tabs */}
-          <div className="flex border-b border-slate-800 bg-slate-950/50 px-6 py-3 gap-4">
-            <button
-              onClick={() => setStep(1)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                step === 1 ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>1</span>
-              <span>{isAr ? "منصة الأبطال" : "Podium & Winners"}</span>
-            </button>
-            <button
-              onClick={() => setStep(2)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                step === 2 ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>2</span>
-              <span>{isAr ? "إشعارات التتويج" : "Ceremony Notifications"}</span>
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                step === 3 ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span>3</span>
-              <span>{isAr ? "التنفيذ والتصفير" : "Execute & Launch"}</span>
-            </button>
-          </div>
-
-          {/* Body Content */}
-          <div className="p-6 overflow-y-auto flex-1 space-y-6">
-            {step === 1 && (
-              <div className="space-y-6">
-                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-300 text-xs flex items-center gap-3">
-                  <Award className="w-6 h-6 shrink-0 text-amber-400" />
-                  <span>
-                    {isAr
-                      ? "تم حساب الفائزين تلقائياً بناءً على إحصائيات الأهداف، الصناعة، ومرات الفوز بأفضل لاعب في الموسم. سيتم إضافة هذه الألقاب لخزانة جوائزهم في ملفهم الشخصي فور الاعتماد."
-                      : "Winners calculated automatically from season stats (Goals, Assists, MVPs). Trophies will be permanently added to their profiles."}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Ballon d'Or */}
-                  <div className="p-5 bg-gradient-to-br from-amber-500/20 to-yellow-600/10 border border-amber-500/40 rounded-2xl flex items-center gap-4 relative overflow-hidden">
-                    <div className="absolute top-2 right-2 text-3xl opacity-20">👑</div>
-                    <div className="w-14 h-14 rounded-full bg-amber-500 flex items-center justify-center text-2xl font-black text-slate-950 shadow-lg shrink-0">
-                      👑
-                    </div>
-                    <div className="truncate flex-1">
-                      <div className="text-xs font-extrabold text-amber-400 uppercase tracking-wider">
-                        {isAr ? "الكرة الذهبية (Ballon d'Or)" : "Ballon d'Or"}
-                      </div>
-                      <div className="text-lg font-black text-white truncate mt-0.5">
-                        {winners.ballonDor ? (winners.ballonDor.cardName || winners.ballonDor.fullName) : (isAr ? "لا يوجد بيانات كافية" : "No Qualifying Player")}
-                      </div>
-                      {winners.ballonDor && (
-                        <div className="text-xs text-amber-300/80 mt-1 flex items-center gap-3 font-semibold">
-                          <span>⚽ {winners.ballonDor.stats?.goals || 0}</span>
-                          <span>👟 {winners.ballonDor.stats?.assists || 0}</span>
-                          <span>⭐ {winners.ballonDor.stats?.mvp || 0} MOTM</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Golden Boot */}
-                  <div className="p-5 bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700 rounded-2xl flex items-center gap-4 relative overflow-hidden">
-                    <div className="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-2xl font-black shrink-0">
-                      ⚽
-                    </div>
-                    <div className="truncate flex-1">
-                      <div className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider">
-                        {isAr ? "الحذاء الذهبي (الهداف)" : "Golden Boot"}
-                      </div>
-                      <div className="text-lg font-black text-white truncate mt-0.5">
-                        {winners.topScorer ? (winners.topScorer.cardName || winners.topScorer.fullName) : (isAr ? "لا يوجد أهداف" : "No goals recorded")}
-                      </div>
-                      {winners.topScorer && (
-                        <div className="text-xs text-emerald-300 mt-1 font-bold">
-                          {winners.topScorer.stats?.goals || 0} {isAr ? "أهداف" : "Goals"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Playmaker */}
-                  <div className="p-5 bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700 rounded-2xl flex items-center gap-4 relative overflow-hidden">
-                    <div className="w-14 h-14 rounded-full bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-2xl font-black shrink-0">
-                      🎯
-                    </div>
-                    <div className="truncate flex-1">
-                      <div className="text-xs font-extrabold text-cyan-400 uppercase tracking-wider">
-                        {isAr ? "أفضل صانع ألعاب" : "Top Playmaker"}
-                      </div>
-                      <div className="text-lg font-black text-white truncate mt-0.5">
-                        {winners.topAssister ? (winners.topAssister.cardName || winners.topAssister.fullName) : (isAr ? "لا يوجد تمريرات" : "No assists recorded")}
-                      </div>
-                      {winners.topAssister && (
-                        <div className="text-xs text-cyan-300 mt-1 font-bold">
-                          {winners.topAssister.stats?.assists || 0} {isAr ? "تمريرة حاسمة" : "Assists"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Season MVP */}
-                  <div className="p-5 bg-gradient-to-br from-slate-800 to-slate-800/80 border border-slate-700 rounded-2xl flex items-center gap-4 relative overflow-hidden">
-                    <div className="w-14 h-14 rounded-full bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-2xl font-black shrink-0">
-                      ⭐
-                    </div>
-                    <div className="truncate flex-1">
-                      <div className="text-xs font-extrabold text-purple-400 uppercase tracking-wider">
-                        {isAr ? "رجل الموسم (MVP)" : "Season MVP"}
-                      </div>
-                      <div className="text-lg font-black text-white truncate mt-0.5">
-                        {winners.topMVP ? (winners.topMVP.cardName || winners.topMVP.fullName) : (isAr ? "لا يوجد جوائز رجل مباراة" : "No MOTM recorded")}
-                      </div>
-                      {winners.topMVP && (
-                        <div className="text-xs text-purple-300 mt-1 font-bold">
-                          {winners.topMVP.stats?.mvp || 0} {isAr ? "مرة أفضل لاعب" : "MOTM Awards"}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-6">
-                <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl text-cyan-300 text-xs flex items-center gap-3">
-                  <Send className="w-6 h-6 shrink-0 text-cyan-400" />
-                  <span>
-                    {isAr
-                      ? "تحكم في الإشعارات التلقائية التي سيتم إرسالها لأعضاء مجتمعك فور تتويج الأبطال وبدء الموسم."
-                      : "Configure automatic congratulatory notifications and broadcast announcements."}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendWinnerNotifs ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
-                    <div className="relative mt-1 flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-300 shadow-inner"
-                         style={{
-                           backgroundColor: sendWinnerNotifs ? '#10b981' : '#334155'
-                         }}>
-                      <input
-                        type="checkbox"
-                        checked={sendWinnerNotifs}
-                        onChange={e => setSendWinnerNotifs(e.target.checked)}
-                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                      />
-                      <motion.div
-                        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
-                        animate={{ x: sendWinnerNotifs ? 24 : 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      >
-                        {sendWinnerNotifs && <CheckCircle2 className="w-3 h-3 text-emerald-500" strokeWidth={4} />}
-                      </motion.div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-white flex items-center gap-2">
-                        <span>{isAr ? "إشعارات التهنئة الفردية للأبطال الفائزين 🏆" : "Personal Winner Notifications 🏆"}</span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                        {isAr
-                          ? "إرسال إشعار فوري لكل فائز (الهداف، أفضل صانع ألعاب، إلخ) يهنئه باللقب ويعلمه بإضافته لملفه الشخصي."
-                          : "Dispatch instant notifications to each trophy winner congratulating them and announcing the new profile trophy."}
-                      </p>
-                    </div>
-                  </label>
-
-                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendCommunityBroadcast ? 'bg-amber-500/10 border-amber-500/50' : 'bg-slate-800/80 border-slate-700 hover:border-amber-500/30'}`}>
-                    <div className="relative mt-1 flex-shrink-0 w-12 h-6 rounded-full transition-colors duration-300 shadow-inner"
-                         style={{
-                           backgroundColor: sendCommunityBroadcast ? '#8b5cf6' : '#334155' // violet-500
-                         }}>
-                      <input
-                        type="checkbox"
-                        checked={sendCommunityBroadcast}
-                        onChange={e => setSendCommunityBroadcast(e.target.checked)}
-                        className="opacity-0 absolute inset-0 w-full h-full cursor-pointer z-10"
-                      />
-                      <motion.div
-                        className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md flex items-center justify-center"
-                        animate={{ x: sendCommunityBroadcast ? 24 : 0 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                      >
-                        {sendCommunityBroadcast && <CheckCircle2 className="w-3 h-3 text-violet-500" strokeWidth={4} />}
-                      </motion.div>
-                    </div>
-                    <div>
-                      <div className="text-sm font-bold text-white flex items-center gap-2">
-                        <span>{isAr ? "إعلان عام للمجتمع ببدء الموسم الجديد 📢" : "Community Announcement Broadcast 📢"}</span>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                        {isAr
-                          ? `نشر إعلان رسمي في صفحة الإعلانات يعلن ختام ${previousSeasonName} وتتويج الأبطال وانطلاق منافسات ${seasonName} الجديد.`
-                          : `Publish an official community post announcing ${previousSeasonName} winners and kicking off ${seasonName}.`}
-                      </p>
-                    </div>
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-6 text-center py-4">
-                <div className="w-20 h-20 mx-auto rounded-full bg-amber-500/20 border-2 border-amber-500/50 flex items-center justify-center text-amber-400 shadow-xl animate-pulse">
-                  <Sparkles className="w-10 h-10" />
+            {/* Solid Dark Header */}
+            <div className="p-6 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400">
+                  <Trophy className="w-6 h-6 animate-pulse" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white">
-                    {isFirstSeason 
-                      ? (isAr ? "هل أنت مستعد لبدء الموسم الأول؟" : "Ready to Start the First Season?")
-                      : (isAr ? "هل أنت مستعد لاعتماد التتويج وبدء الموسم؟" : "Ready to Crown Champions & Launch Season?")
-                    }
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
+                  <h2 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+                    <span>{isFirstSeason
+                      ? (isAr ? "بدء الموسم الأول" : "Start First Season")
+                      : (isAr ? "حفل تتويج الأبطال وتصفير الموسم" : "Season Ceremony & Coronation")
+                    }</span>
+                    <Sparkles className="w-4 h-4 text-amber-400" />
+                  </h2>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
                     {isFirstSeason
-                      ? (isAr
-                          ? `سيتم بدء ${seasonName} وإحصائيات جميع اللاعبين ستبدأ من الصفر.`
-                          : `This will start ${seasonName} and all player stats will begin from zero.`
-                        )
+                      ? (isAr ? `انطلاق ${seasonName} رسميًا للمجتمع` : `Launching ${seasonName} for your community`)
                       : (isAr
-                          ? `سيتم حفظ ألقاب ${previousSeasonName} الدائمة، وإرسال الإشعارات، وتصفير إحصائيات الأهداف والصناعة لجميع اللاعبين لبدء ${seasonName}.`
-                          : `This will permanently archive ${previousSeasonName} trophies, dispatch notifications, and reset stats to 0 to launch ${seasonName}.`
+                          ? `تتويج أبطال ${previousSeasonName} وتصفير العدادات لانطلاق ${seasonName}`
+                          : `Awarding ${previousSeasonName} trophies & launching ${seasonName}`
                         )
                     }
                   </p>
                 </div>
-
-                {!isFirstSeason && (
-                  <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-xs flex items-center gap-3 text-start">
-                    <ShieldAlert className="w-5 h-5 shrink-0 text-red-400" />
-                    <span>
-                      {isAr
-                        ? "تنبيه: تصفير الإحصائيات لا يمكن التراجع عنه، ولكن ستظل ألقاب وجوائز اللاعبين محفوظة للأبد في ملفاتهم وأرشيف المجتمع."
-                        : "Note: Resetting stats cannot be undone, but awarded trophies and season history will remain permanently archived."}
-                    </span>
-                  </div>
-                )}
               </div>
-            )}
-          </div>
-
-          {/* Footer Navigation */}
-          <div className="p-6 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between gap-4">
-            {step > 1 ? (
               <button
-                type="button"
-                onClick={() => setStep((step - 1) as any)}
-                disabled={isExecuting}
-                className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
-              >
-                {isAr ? "السابق" : "Previous"}
-              </button>
-            ) : (
-              <button
-                type="button"
                 onClick={onClose}
                 disabled={isExecuting}
-                className="px-6 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
+                className="p-2.5 hover:bg-slate-800 rounded-2xl text-slate-400 hover:text-white transition-colors border border-slate-800"
               >
-                {isAr ? "إلغاء" : "Cancel"}
+                <X className="w-5 h-5" />
               </button>
-            )}
+            </div>
 
-            {step < 3 ? (
-              <button
-                type="button"
-                onClick={() => setStep((step + 1) as any)}
-                className="px-8 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2"
-              >
-                <span>{isAr ? "التالي" : "Next Step"}</span>
-                <span>➔</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handleExecuteCeremony}
-                disabled={isExecuting}
-                className="px-8 py-3 rounded-xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-sm shadow-xl shadow-emerald-500/20 transition-all flex items-center gap-2 disabled:opacity-50"
-              >
-                <Trophy className="w-5 h-5 animate-bounce" />
-                <span>{isExecuting 
-                  ? (isAr ? "جاري البدء..." : "Starting...") 
-                  : (isFirstSeason 
-                      ? (isAr ? `بدء ${seasonName} 🚀` : `Start ${seasonName} 🚀`)
-                      : (isAr ? `تتويج الأبطال وبدء ${seasonName} 🚀` : `Crown Champions & Launch ${seasonName} 🚀`)
-                    )
-                }</span>
-              </button>
-            )}
-          </div>
-        </motion.div>
+            {/* Wizard Steps Navigation Bar */}
+            <div className="flex border-b border-slate-800 bg-slate-950 p-3 gap-2 overflow-x-auto">
+              {[
+                { stepNum: 1, label: isAr ? "منصة الأبطال" : "Podium & Winners" },
+                { stepNum: 2, label: isAr ? "إشعارات التتويج" : "Notifications & Broadcast" },
+                { stepNum: 3, label: isAr ? "التنفيذ والتصفير" : "Execute & Launch" },
+              ].map(s => (
+                <button
+                  key={s.stepNum}
+                  onClick={() => setStep(s.stepNum as any)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                    step === s.stepNum
+                      ? 'bg-amber-600 text-slate-950 shadow-md shadow-amber-600/30'
+                      : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                    step === s.stepNum ? "bg-slate-950 text-amber-400 font-bold" : "bg-slate-950 text-slate-400"
+                  }`}>
+                    {s.stepNum}
+                  </span>
+                  <span>{s.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Body Content */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              {step === 1 && (
+                <div className="space-y-5">
+                  <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-slate-300 text-xs flex items-center gap-3 font-medium">
+                    <Award className="w-5 h-5 shrink-0 text-amber-400" />
+                    <span>
+                      {isAr
+                        ? "حساب الفائزين يتم تلقائياً بناءً على إحصائيات الأهداف والصناعة ومرات الفوز بأفضل لاعب في الموسم."
+                        : "Winners are calculated automatically from goals, assists, and MOTM stats."}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* Ballon d'Or Card */}
+                    <div className="p-5 bg-slate-950 border border-amber-500/50 rounded-2xl flex items-center gap-4 relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-amber-400 overflow-hidden shrink-0 flex items-center justify-center text-amber-400 text-2xl font-black">
+                        {winners.ballonDor?.photoUrl ? (
+                          <Image src={winners.ballonDor.photoUrl} alt="Ballon d'Or Winner" width={56} height={56} className="w-full h-full object-cover" />
+                        ) : "👑"}
+                      </div>
+                      <div className="truncate flex-1">
+                        <div className="text-[10px] font-black text-amber-400 uppercase tracking-wider">
+                          {isAr ? "الكرة الذهبية (Ballon d'Or)" : "Ballon d'Or"}
+                        </div>
+                        <div className="text-sm font-black text-white truncate mt-0.5">
+                          {winners.ballonDor ? (winners.ballonDor.cardName || winners.ballonDor.fullName) : (isAr ? "لا يوجد بيانات كافية" : "No Qualifying Player")}
+                        </div>
+                        {winners.ballonDor && (
+                          <div className="text-[10px] text-amber-300 mt-1 flex items-center gap-2 font-bold">
+                            <span>⚽ {winners.ballonDor.stats?.goals || 0}</span>
+                            <span>👟 {winners.ballonDor.stats?.assists || 0}</span>
+                            <span>⭐ {winners.ballonDor.stats?.mvp || 0}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Golden Boot */}
+                    <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-4 relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-emerald-400 text-2xl font-black">
+                        {winners.topScorer?.photoUrl ? (
+                          <Image src={winners.topScorer.photoUrl} alt="Golden Boot Winner" width={56} height={56} className="w-full h-full object-cover" />
+                        ) : "⚽"}
+                      </div>
+                      <div className="truncate flex-1">
+                        <div className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">
+                          {isAr ? "الحذاء الذهبي (الهداف)" : "Golden Boot"}
+                        </div>
+                        <div className="text-sm font-black text-white truncate mt-0.5">
+                          {winners.topScorer ? (winners.topScorer.cardName || winners.topScorer.fullName) : (isAr ? "لا يوجد أهداف" : "No goals recorded")}
+                        </div>
+                        {winners.topScorer && (
+                          <div className="text-[10px] text-emerald-400 mt-1 font-bold">
+                            {winners.topScorer.stats?.goals || 0} {isAr ? "أهداف" : "Goals"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Playmaker */}
+                    <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-4 relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-cyan-400 text-2xl font-black">
+                        {winners.topAssister?.photoUrl ? (
+                          <Image src={winners.topAssister.photoUrl} alt="Top Playmaker Winner" width={56} height={56} className="w-full h-full object-cover" />
+                        ) : "🎯"}
+                      </div>
+                      <div className="truncate flex-1">
+                        <div className="text-[10px] font-black text-cyan-400 uppercase tracking-wider">
+                          {isAr ? "أفضل صانع ألعاب" : "Top Playmaker"}
+                        </div>
+                        <div className="text-sm font-black text-white truncate mt-0.5">
+                          {winners.topAssister ? (winners.topAssister.cardName || winners.topAssister.fullName) : (isAr ? "لا يوجد تمريرات" : "No assists recorded")}
+                        </div>
+                        {winners.topAssister && (
+                          <div className="text-[10px] text-cyan-400 mt-1 font-bold">
+                            {winners.topAssister.stats?.assists || 0} {isAr ? "تمريرة حاسمة" : "Assists"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Season MVP */}
+                    <div className="p-5 bg-slate-950 border border-slate-800 rounded-2xl flex items-center gap-4 relative overflow-hidden">
+                      <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-800 overflow-hidden shrink-0 flex items-center justify-center text-purple-400 text-2xl font-black">
+                        {winners.topMVP?.photoUrl ? (
+                          <Image src={winners.topMVP.photoUrl} alt="Season MVP Winner" width={56} height={56} className="w-full h-full object-cover" />
+                        ) : "⭐"}
+                      </div>
+                      <div className="truncate flex-1">
+                        <div className="text-[10px] font-black text-purple-400 uppercase tracking-wider">
+                          {isAr ? "رجل الموسم (MVP)" : "Season MVP"}
+                        </div>
+                        <div className="text-sm font-black text-white truncate mt-0.5">
+                          {winners.topMVP ? (winners.topMVP.cardName || winners.topMVP.fullName) : (isAr ? "لا يوجد جوائز" : "No MOTM recorded")}
+                        </div>
+                        {winners.topMVP && (
+                          <div className="text-[10px] text-purple-400 mt-1 font-bold">
+                            {winners.topMVP.stats?.mvp || 0} {isAr ? "مرة رجل المباراة" : "MOTM Awards"}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-4">
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendWinnerNotifs ? 'bg-slate-950 border-amber-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                    <input
+                      type="checkbox"
+                      checked={sendWinnerNotifs}
+                      onChange={e => setSendWinnerNotifs(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-700 bg-slate-900 accent-emerald-600 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-black text-white flex items-center gap-2">
+                        <span>{isAr ? "إرسال إشعارات التهنئة الفردية للأبطال 🏆" : "Personal Winner Notifications 🏆"}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-medium">
+                        {isAr
+                          ? "إرسال إشعار فوري لكل فائز يهنئه باللقب وتثبيته في خزانة ملفه الشخصي."
+                          : "Dispatch instant notifications to trophy winners to update their profile."}
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-colors ${sendCommunityBroadcast ? 'bg-slate-950 border-emerald-500/50' : 'bg-slate-950 border-slate-800'}`}>
+                    <input
+                      type="checkbox"
+                      checked={sendCommunityBroadcast}
+                      onChange={e => setSendCommunityBroadcast(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-emerald-600 rounded border-slate-700 bg-slate-900 accent-emerald-600 cursor-pointer"
+                    />
+                    <div>
+                      <div className="text-xs font-black text-white flex items-center gap-2">
+                        <span>{isAr ? "بث إعلان رسمي وفي محادثة المجتمع 📢" : "Broadcast Announcement & Community Chat 📢"}</span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1 leading-relaxed font-medium">
+                        {isAr
+                          ? `نشر إشعار وبث رسالة في المحادثة بختام ${previousSeasonName} وانطلاق ${seasonName}.`
+                          : `Publish community post and chat message announcing ${previousSeasonName} winners.`}
+                      </p>
+                    </div>
+                  </label>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="space-y-6 text-center py-4">
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400 shadow-xl">
+                    <Sparkles className="w-8 h-8 text-amber-400 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">
+                      {isFirstSeason
+                        ? (isAr ? "هل أنت مستعد لبدء الموسم الأول؟" : "Ready to Start First Season?")
+                        : (isAr ? "هل أنت مستعد لاعتماد التتويج وبدء الموسم؟" : "Ready to Crown Champions & Launch Season?")
+                      }
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-2 max-w-md mx-auto leading-relaxed font-medium">
+                      {isFirstSeason
+                        ? (isAr ? `سيتم بدء ${seasonName} وإحصائيات جميع اللاعبين ستبدأ من الصفر.` : `Starting ${seasonName} with clean stats.`)
+                        : (isAr
+                            ? `سيتم حفظ ألقاب ${previousSeasonName} الدائمة، وإرسال الإشعارات، وتصفير إحصائيات الأهداف لجميع اللاعبين لبدء ${seasonName}.`
+                            : `Archives ${previousSeasonName} trophies, sends notifications, and resets stats for ${seasonName}.`
+                          )
+                      }
+                    </p>
+                  </div>
+
+                  {!isFirstSeason && (
+                    <div className="p-4 bg-slate-950 border border-rose-500/30 rounded-2xl text-rose-300 text-xs flex items-center gap-3 text-start font-medium">
+                      <ShieldAlert className="w-5 h-5 shrink-0 text-rose-400" />
+                      <span>
+                        {isAr
+                          ? "ملاحظة: تصفير الإحصائيات ينطبق على أهداف وصناعات الموسم فقط، بينما تظل ألقاب وجوائز اللاعبين محفوظة للأبد."
+                          : "Note: Stats reset applies to season goals/assists, while awarded trophies remain permanently archived."}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Navigation */}
+            <div className="p-5 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-4">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={() => setStep((step - 1) as any)}
+                  disabled={isExecuting}
+                  className="px-5 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 font-bold text-xs hover:text-white transition-colors"
+                >
+                  {isAr ? "السابق" : "Previous"}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={isExecuting}
+                  className="px-5 py-2.5 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 font-bold text-xs hover:text-white transition-colors"
+                >
+                  {isAr ? "إلغاء" : "Cancel"}
+                </button>
+              )}
+
+              {step < 3 ? (
+                <button
+                  type="button"
+                  onClick={() => setStep((step + 1) as any)}
+                  className="px-6 py-2.5 rounded-2xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs shadow-md shadow-amber-600/30 transition-all flex items-center gap-2"
+                >
+                  <span>{isAr ? "التالي" : "Next Step"}</span>
+                  <ArrowRight className={`w-4 h-4 ${isAr ? "rotate-180" : ""}`} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleExecuteCeremony}
+                  disabled={isExecuting}
+                  className="px-6 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md shadow-emerald-600/30 transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  <Trophy className="w-4 h-4 animate-bounce" />
+                  <span>{isExecuting
+                    ? (isAr ? "جاري البدء..." : "Starting...")
+                    : (isFirstSeason
+                        ? (isAr ? `بدء ${seasonName} 🚀` : `Start ${seasonName} 🚀`)
+                        : (isAr ? `تتويج الأبطال وبدء ${seasonName} 🚀` : `Crown Champions & Launch ${seasonName} 🚀`)
+                      )
+                  }</span>
+                </button>
+              )}
+            </div>
+          </motion.div>
         </div>
       )}
     </>

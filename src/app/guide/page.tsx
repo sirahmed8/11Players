@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, Target, Shuffle, Star, Rocket, Globe, Scale, CheckCircle2, BarChart3, Trophy } from "lucide-react";
+import { BookOpen, Target, Shuffle, Star, Rocket, Scale, CheckCircle2, Shield, Sparkles, Trophy, Bot, MessageSquare } from "lucide-react";
 import { PLAYER_STYLES } from "@/components/player/PlayerStylePicker";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 
@@ -14,32 +14,30 @@ export default function GuidePage() {
   const isAr = locale === "ar";
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
-  const tabs: { id: Tab; label: string; Icon: React.FC<any>; color: string }[] = [
-    { id: 'overview', label: isAr ? "نظرة عامة" : "Overview", Icon: BookOpen, color: "text-blue-500" },
-    { id: 'positions', label: isAr ? "المراكز" : "Positions", Icon: Target, color: "text-red-500" },
-    { id: 'playstyles', label: isAr ? "أساليب اللعب" : "Play Styles", Icon: Shuffle, color: "text-indigo-500" },
-    { id: 'skills', label: isAr ? "المهارات الخاصة" : "Special Skills", Icon: Star, color: "text-amber-500" },
-    { id: 'features', label: isAr ? "مميزات المنصة" : "Platform Features", Icon: Rocket, color: "text-purple-500" },
-    { id: 'rules', label: isAr ? "القوانين" : "Rules", Icon: Scale, color: "text-emerald-500" },
+  const tabs: { id: Tab; label: string; labelAr: string; Icon: React.FC<any> }[] = [
+    { id: 'overview', label: "Overview", labelAr: "نظرة عامة", Icon: BookOpen },
+    { id: 'positions', label: "Positions", labelAr: "المراكز", Icon: Target },
+    { id: 'playstyles', label: "Play Styles", labelAr: "أساليب اللعب", Icon: Shuffle },
+    { id: 'skills', label: "Special Skills", labelAr: "المهارات الخاصة", Icon: Star },
+    { id: 'features', label: "Platform Features", labelAr: "مميزات المنصة", Icon: Rocket },
+    { id: 'rules', label: "Rules & Fair Play", labelAr: "القوانين والروح الرياضية", Icon: Scale },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? 'rtl' : 'ltr'}>
-      
+    <div className="min-h-screen bg-slate-950 text-white transition-colors duration-300 pb-16" dir={isAr ? 'rtl' : 'ltr'}>
       <main className="max-w-6xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
         
-        {/* Sidebar Navigation */}
+        {/* Sidebar Navigation — Solid Dark Slate */}
         <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 self-start min-w-0">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-lg border border-slate-200 dark:border-slate-800 overflow-hidden min-w-0">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <h2 className="text-xl font-black text-blue-600 dark:text-blue-400">
-                {isAr ? "دليل 11Players" : "11Players Guide"}
+          <div className="bg-slate-900 rounded-3xl p-4 shadow-2xl border border-slate-800 overflow-hidden min-w-0">
+            <div className="flex items-center justify-between mb-4 px-2 pt-1">
+              <h2 className="text-base font-black text-amber-400 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-400" />
+                <span>{isAr ? "دليل 11Players" : "11Players Guide"}</span>
               </h2>
-              <span className="text-[10px] font-bold text-slate-400 lg:hidden uppercase tracking-wider">
-                {isAr ? "اسحب للتصفح ←" : "Swipe tabs →"}
-              </span>
             </div>
-            <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-thin scrollbar-thumb-blue-500/30 touch-pan-x w-full">
+            
+            <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-none touch-pan-x w-full">
               {tabs.map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -49,16 +47,14 @@ export default function GuidePage() {
                       setActiveTab(tab.id);
                       e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
                     }}
-                    className={`flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap shrink-0 ${
+                    className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl transition-all whitespace-nowrap shrink-0 text-xs font-black ${
                       isActive 
-                      ? 'bg-blue-600 text-white font-bold shadow-md scale-[1.02]' 
-                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                        ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                        : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
                     }`}
                   >
-                    <span className={`text-lg shrink-0 ${isActive ? 'text-white' : tab.color}`}>
-                      <tab.Icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                    </span>
-                    <span className="text-xs sm:text-sm">{tab.label}</span>
+                    <tab.Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                    <span>{isAr ? tab.labelAr : tab.label}</span>
                   </button>
                 );
               })}
@@ -66,7 +62,7 @@ export default function GuidePage() {
           </div>
         </div>
 
-        {/* Content Area */}
+        {/* Content Area — Solid Dark Slate */}
         <div className="flex-1 min-w-0 min-h-[80vh]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -75,96 +71,73 @@ export default function GuidePage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-10 shadow-xl border border-slate-200 dark:border-slate-800"
+              className="bg-slate-900 rounded-3xl p-6 md:p-10 shadow-2xl border border-slate-800"
             >
               {activeTab === 'overview' && (
                 <div className="space-y-8">
                   <div>
-                    <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-4">
-                      {isAr ? "مرحباً بك في 11Players" : "Welcome to 11Players"}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-slate-950 text-emerald-400 border border-slate-800 mb-2">
+                      <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span>{isAr ? "دليل المحاكاة الرياضية" : "Sports Simulation Manual"}</span>
+                    </span>
+                    <h1 className="text-2xl sm:text-3xl font-black text-white">
+                      {isAr ? "مرحباً بك في منصة 11Players" : "Welcome to 11Players"}
                     </h1>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
+                    <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mt-2 font-medium">
                       {isAr 
-                        ? "المنصة الأولى لإدارة مجتمعات كرة القدم. قم بإنشاء مجتمعك الخاص، أضف اللاعبين، ونظم المباريات بتقييمات حقيقية وصناعة مباريات عادلة."
-                        : "The premier platform for managing football communities. Create your own community, add players, and organize matches with true-to-life ratings and fair matchmaking."}
+                        ? "المنصة الأولى لإدارة مجتمعات كرة القدم. قم بإنشاء مجتمعك الخاص، أضف اللاعبين، ونظم المباريات بتقييمات واقعية وصناعة مباريات عادلة بالذكاء الاصطناعي."
+                        : "The premier platform for managing football communities. Create your community, add players, and organize matches with true-to-life ratings and AI matchmaking."}
                     </p>
                   </div>
 
-                  <section className="space-y-6">
+                  <section className="space-y-6 pt-4 border-t border-slate-800">
                     <div>
-                      <h2 className="text-2xl font-bold mb-2 text-emerald-600 dark:text-emerald-400">
-                        {isAr ? "كيف يتم حساب التقييم الكلي (OVR) وإحصائيات البطاقة؟" : "How is Overall Rating (OVR) & Card Stats Calculated?"}
+                      <h2 className="text-lg font-black text-amber-400 mb-1">
+                        {isAr ? "كيف يتم حساب التقييم الكلي (OVR) وإحصائيات البطاقة؟" : "How Overall Rating (OVR) & Card Stats Are Calculated"}
                       </h2>
-                      <p className="text-slate-600 dark:text-slate-400 font-medium">
+                      <p className="text-slate-400 text-xs font-semibold">
                         {isAr 
-                          ? "معادلة واقعية تعتمد على المركز ومستوحاة من المحاكيات الاحترافية"
-                          : "Realistic, position-based formula inspired by pro simulations"}
+                          ? "معادلة واقعية تعتمد على المركز ومستوحاة من المحاكيات الاحترافية العالمية"
+                          : "Realistic, position-based formula inspired by pro football simulations"}
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-700">
-                      <h3 className="text-xl font-bold mb-4 text-slate-800 dark:text-slate-200">
-                        {isAr ? "شرح إحصائيات البطاقة (PAC, SHO, PAS, DRI, DEF, PHY)" : "Card Profile Stats Explained (PAC, SHO, PAS, DRI, DEF, PHY)"}
+                    <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 space-y-4">
+                      <h3 className="text-sm font-black text-white">
+                        {isAr ? "شرح إحصائيات البطاقة الستة (PAC, SHO, PAS, DRI, DEF, PHY)" : "Card Profile Stats Explained (PAC, SHO, PAS, DRI, DEF, PHY)"}
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-400 mb-4 text-sm">
+                      <p className="text-slate-400 text-xs font-medium">
                         {isAr 
-                          ? "التقييمات الستة الرئيسية المعروضة على بطاقتك هي متوسطات دقيقة مشتقة من طاقاتك الـ 22 الأساسية:"
-                          : "The 6 headline ratings displayed on your physical player card are precise composites derived from your 22 core abilities:"}
+                          ? "التقييمات الستة الرئيسية المعروضة على بطاقة اللاعب هي متوسطات دقيقة مشتقة من الطاقات الأساسية:"
+                          : "The 6 headline ratings displayed on player cards are precise composites derived from core abilities:"}
                       </p>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PAC (السرعة):" : "PAC (Pace):"}</strong> {isAr ? "متوسط السرعة + التسارع" : "Average of: Speed + Acceleration"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "SHO (التسديد):" : "SHO (Shooting):"}</strong> {isAr ? "متوسط الإنهاء + قوة التسديد + الوعي الهجومي" : "Average of: Finishing + Kicking Power + Offensive Awareness"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PAS (التمرير):" : "PAS (Passing):"}</strong> {isAr ? "متوسط التمرير القصير + التمرير الطويل" : "Average of: Low Pass + Lofted Pass"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "DRI (المراوغة):" : "DRI (Dribbling):"}</strong> {isAr ? "متوسط المراوغة + التحكم بالكرة + التوازن" : "Average of: Dribbling + Ball Control + Balance"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "DEF (الدفاع):" : "DEF (Defense):"}</strong> {isAr ? "متوسط الوعي الدفاعي + افتكاك الكرة + الشراسة" : "Average of: Defensive Awareness + Ball Winning + Aggression"}</li>
-                        <li><strong className="text-slate-800 dark:text-slate-200">{isAr ? "PHY (البدنية):" : "PHY (Physicality):"}</strong> {isAr ? "متوسط الالتحام البدني + التحمل + القفز" : "Average of: Physical Contact + Stamina + Jump"}</li>
+                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-300 font-medium">
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-emerald-400">{isAr ? "PAC (السرعة):" : "PAC (Pace):"}</strong> {isAr ? "متوسط السرعة + التسارع" : "Average of Speed + Acceleration"}</li>
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-amber-400">{isAr ? "SHO (التسديد):" : "SHO (Shooting):"}</strong> {isAr ? "متوسط الإنهاء + قوة التسديد + الوعي الهجومي" : "Average of Finishing + Kicking Power + Offensive Awareness"}</li>
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-cyan-400">{isAr ? "PAS (التمرير):" : "PAS (Passing):"}</strong> {isAr ? "متوسط التمرير القصير + التمرير الطويل" : "Average of Low Pass + Lofted Pass"}</li>
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-purple-400">{isAr ? "DRI (المراوغة):" : "DRI (Dribbling):"}</strong> {isAr ? "متوسط المراوغة + التحكم بالكرة + التوازن" : "Average of Dribbling + Ball Control + Balance"}</li>
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-rose-400">{isAr ? "DEF (الدفاع):" : "DEF (Defense):"}</strong> {isAr ? "متوسط الوعي الدفاعي + افتكاك الكرة + الشراسة" : "Average of Defensive Awareness + Ball Winning + Aggression"}</li>
+                        <li className="p-3 bg-slate-900 rounded-xl border border-slate-800"><strong className="text-indigo-400">{isAr ? "PHY (البدنية):" : "PHY (Physicality):"}</strong> {isAr ? "متوسط الالتحام البدني + التحمل + القفز" : "Average of Physical Contact + Stamina + Jump"}</li>
                       </ul>
                     </div>
 
                     <div className="space-y-4">
-                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
+                      <h3 className="text-sm font-black text-white">
                         {isAr ? "1. أوزان الطاقات حسب المركز" : "1. Position-Specific Attribute Weights"}
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-400 text-sm">
-                        {isAr 
-                          ? "التقييم الكلي ليس مجرد متوسط بسيط لجميع الطاقات الـ 21. بدلاً من ذلك، تعتمد الطاقات ذات الوزن الأكبر على مركزك الأساسي:"
-                          : "OVR is not a simple average of all 21 abilities. Instead, heavily weighted attributes depend on your primary position:"}
-                      </p>
-                      <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-2 mb-4">
-                        <li><strong>CF / SS / RWF / LWF:</strong> {isAr ? "التركيز على: الوعي الهجومي، الإنهاء، السرعة، والتسارع." : "Heavily weights: Offensive Awareness, Finishing, Speed, & Acceleration."}</li>
-                        <li><strong>AMF / CMF / RMF / LMF:</strong> {isAr ? "التركيز على: التمرير القصير/الطويل، التحكم بالكرة، والمراوغة." : "Heavily weights: Low/Lofted Pass, Ball Control, & Dribbling."}</li>
-                        <li><strong>DMF / CB / LB / RB:</strong> {isAr ? "التركيز على: الوعي الدفاعي، افتكاك الكرة، والالتحام البدني." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}</li>
-                        <li><strong>GK:</strong> {isAr ? "التركيز على: ردود أفعال الحارس، الوصول، والتقاط الكرة." : "Heavily weights: GK Reflexes, GK Reach, & GK Catching."}</li>
+                      <ul className="list-disc list-inside text-xs text-slate-400 space-y-2 font-medium">
+                        <li><strong className="text-white">CF / SS / RWF / LWF:</strong> {isAr ? "التركيز على: الوعي الهجومي، الإنهاء، والسرعة." : "Heavily weights: Offensive Awareness, Finishing, & Speed."}</li>
+                        <li><strong className="text-white">AMF / CMF / RMF / LMF:</strong> {isAr ? "التركيز على: التمرير القصير/الطويل، التحكم بالكرة، والمراوغة." : "Heavily weights: Low/Lofted Pass, Ball Control, & Dribbling."}</li>
+                        <li><strong className="text-white">DMF / CB / LB / RB:</strong> {isAr ? "التركيز على: الوعي الدفاعي، افتكاك الكرة، والالتحام البدني." : "Heavily weights: Defensive Awareness, Ball Winning, & Physical Contact."}</li>
+                        <li><strong className="text-white">GK:</strong> {isAr ? "التركيز على: ردود أفعال الحارس، الوصول، والتقاط الكرة." : "Heavily weights: GK Reflexes, GK Reach, & GK Catching."}</li>
                       </ul>
                     </div>
 
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                        {isAr ? "2. المعدلات البدنية والعمرية" : "2. Physical & Age Modifiers"}
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400 text-sm">
+                    <div className="p-4 bg-slate-950 border border-slate-800 rounded-2xl">
+                      <p className="text-xs font-bold text-amber-400">
                         {isAr 
-                          ? "الطول والوزن يعدلان سمات الأداء. على سبيل المثال، قلوب الدفاع أو الحراس الطوال (+185 سم) يحصلون على مكافآت وصول بدني، بينما يؤثر العمر والبنية قليلاً على التحمل والتوازن."
-                          : "Height and Weight (BMI) adjust performance traits. For instance, tall CBs or GKs (185cm+) receive physical reach bonuses, while age and build slightly refine stamina and balance consistency."}
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">
-                        {isAr ? "3. تقييمات الأقران وإجماع الإدارة" : "3. Peer Ratings & Admin Consensus"}
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400 text-sm">
-                        {isAr 
-                          ? "يمكن للأقران اقتراح تحديثات للطاقات وتقييم الأداء في المباريات. يقوم مسؤولو المجتمع بمراجعة واعتماد هذه المتوسطات لضمان توازن الفرق أثناء المباريات."
-                          : "Peers can suggest ability updates and rate match performances. Community Admins review and approve these consensus averages to guarantee balanced squads during matchmaking."}
-                      </p>
-                    </div>
-                    
-                    <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-100 dark:border-amber-800/30">
-                      <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
-                        {isAr 
-                          ? "💡 يتم حساب المراكز الثانوية والثالثة بنفس الطريقة ولكن مع عقوبة كفاءة طفيفة (تقييم أقل)."
-                          : "💡 Secondary and Tertiary positions are calculated similarly but with a slight efficiency penalty (lower rating)."}
+                          ? "💡 ملحوظة: المراكز الثانوية والثالثة تُحسب بنفس المعادلة مع نسبة كفاءة واقعية تعكس قدرة اللاعب في المراكز البديلة."
+                          : "💡 Note: Secondary positions calculate OVR with position adaptation efficiency ratios."}
                       </p>
                     </div>
                   </section>
@@ -173,29 +146,27 @@ export default function GuidePage() {
 
               {activeTab === 'positions' && (
                 <div className="space-y-6">
-                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
-                    {isAr ? "مراكز اللعب" : "Playing Positions"}
+                  <h1 className="text-2xl font-black text-white mb-6">
+                    {isAr ? "مراكز اللعب الـ 11 (PES Positions)" : "11 PES Playing Positions"}
                   </h1>
                   
-                  <div className="grid gap-4">
+                  <div className="grid gap-3">
                     {[
-                      { pos: "CF (Center Forward)", ar: "مهاجم صريح", desc: isAr ? "رأس الحربة الهداف. يعتمد على الإنهاء والوعي الهجومي." : "The main goalscorer. Relies on Finishing and Offensive Awareness." },
-                      { pos: "SS (Second Striker)", ar: "مهاجم متأخر", desc: isAr ? "يلعب خلف المهاجم الصريح لربط اللعب وصناعة الفرص." : "Plays behind the main striker to link play and create chances." },
-                      { pos: "LWF / RWF (Wingers)", ar: "جناح أيسر / أيمن", desc: isAr ? "يعتمدون على السرعة والمراوغة لاختراق الأطراف." : "Relies on Speed and Dribbling to penetrate the flanks." },
-                      { pos: "LMF / RMF (Side Midfielders)", ar: "وسط أيسر / أيمن", desc: isAr ? "لاعبو الأطراف في خط الوسط. يدعمون الهجوم والدفاع." : "Wide midfielders who provide width and support both attack and defense." },
-                      { pos: "AMF (Attacking Mid)", ar: "صانع ألعاب", desc: isAr ? "محور الهجوم. يعتمد على التمرير القصير والتحكم بالكرة." : "The attacking hub. Relies on Low Pass and Ball Control." },
-                      { pos: "LMF / RMF (Wide Midfielders)", ar: "جناح أيسر / أيمن", desc: isAr ? "لاعبو الأطراف. يوفرون العرضيات والسرعة على الأجنحة." : "Wide midfielders. Provide width, speed, and crosses." },
-                      { pos: "CMF (Center Mid)", ar: "خط وسط", desc: isAr ? "حلقة الوصل بين الدفاع والهجوم. يحتاج لياقة وتمرير عالي." : "The link between defense and attack. Requires Stamina and Passing." },
-                      { pos: "DMF (Defensive Mid)", ar: "وسط مدافع", desc: isAr ? "الدرع الواقي للدفاع. يعتمد على افتكاك الكرة والوعي الدفاعي." : "The defensive shield. Relies on Ball Winning and Defensive Awareness." },
+                      { pos: "CF (Center Forward)", ar: "مهاجم صريح", desc: isAr ? "رأس الحربة الهداف. يعتمد على الإنهاء والوعي الهجومي وقوة التسديد." : "The main goalscorer. Relies on Finishing, Kicking Power, and Positioning." },
+                      { pos: "SS (Second Striker)", ar: "مهاجم متأخر", desc: isAr ? "يلعب خلف المهاجم الصريح لربط اللعب وصناعة الفرص والمراوغة." : "Plays behind main striker to link play, dribble, and create chances." },
+                      { pos: "LWF / RWF (Wingers)", ar: "جناح أيسر / أيمن", desc: isAr ? "يعتمدون على السرعة والمراوغة والعرضيات لاختراق الأطراف." : "Relies on Speed, Dribbling, and Crossing to penetrate flanks." },
+                      { pos: "AMF (Attacking Mid)", ar: "صانع ألعاب", desc: isAr ? "محور الهجوم. يعتمد على التمرير القصير والرؤية والتحكم بالكرة." : "The attacking hub. Relies on Low Pass, Vision, and Ball Control." },
+                      { pos: "CMF (Center Mid)", ar: "خط وسط", desc: isAr ? "حلقة الوصل بين الدفاع والهجوم. يحتاج لياقة عالية وتمرير متزن." : "The link between defense and attack. Requires Stamina and Passing." },
+                      { pos: "DMF (Defensive Mid)", ar: "وسط مدافع", desc: isAr ? "الدرع الواقي للدفاع. يعتمد على افتكاك الكرة والوعي الدفاعي." : "The defensive shield. Relies on Ball Winning and Aggression." },
                       { pos: "LB / RB (Fullbacks)", ar: "ظهير أيسر / أيمن", desc: isAr ? "مدافعو الأطراف. يدعمون الهجوم والدفاع بسرعتهم ولياقتهم." : "Flank defenders. Support attack and defense with Speed and Stamina." },
-                      { pos: "CB (Center Back)", ar: "قلب دفاع", desc: isAr ? "صخرة الدفاع. يعتمد على القوة البدنية والقفز وافتكاك الكرة." : "The rock of the defense. Relies on Physical Contact, Jump, and Ball Winning." },
-                      { pos: "GK (Goalkeeper)", ar: "حارس مرمى", desc: isAr ? "حامي العرين. الطاقات الوحيدة المهمة هي حراسة المرمى والتمركز." : "The last line of defense. The only stats that matter are Goalkeeping and positioning." },
+                      { pos: "CB (Center Back)", ar: "قلب دفاع", desc: isAr ? "صخرة الدفاع. يعتمد على القوة البدنية والقفز وافتكاك الكرة." : "The rock of the defense. Relies on Physical Contact, Jump, and Tackling." },
+                      { pos: "GK (Goalkeeper)", ar: "حارس مرمى", desc: isAr ? "حامي العرين. يعتمد على ردود الأفعال، والوصول، والالتقاط." : "The last line of defense. Relies on Reflexes, Reach, and Catching." },
                     ].map((p, i) => (
-                      <div key={i} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-lg text-blue-600 dark:text-blue-400 mb-1">
+                      <div key={i} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                        <div className="font-black text-sm text-emerald-400 mb-1">
                           {isAr ? p.ar : p.pos}
                         </div>
-                        <div className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">{p.desc}</div>
+                        <div className="text-slate-400 text-xs font-medium leading-relaxed">{p.desc}</div>
                       </div>
                     ))}
                   </div>
@@ -204,20 +175,20 @@ export default function GuidePage() {
 
               {activeTab === 'playstyles' && (
                 <div className="space-y-6">
-                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
+                  <h1 className="text-2xl font-black text-white mb-2">
                     {isAr ? "أساليب اللعب (Play Styles)" : "Play Styles"}
                   </h1>
-                  <p className="text-slate-600 dark:text-slate-400 mb-6">
-                    {isAr ? "أسلوب اللعب يحدد تحركات اللاعب داخل الملعب بالذكاء الاصطناعي." : "Play Style defines how the player moves on the pitch automatically."}
+                  <p className="text-slate-400 text-xs font-semibold mb-6">
+                    {isAr ? "أسلوب اللعب يحدد التمركزي التكتيكي والتحركات التلقائية للاعب." : "Play Styles dictate automatic tactical positioning and off-ball movement."}
                   </p>
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     {PLAYER_STYLES.map((s) => (
-                      <div key={s.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-blue-600 dark:text-blue-400 mb-1">
+                      <div key={s.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                        <div className="font-black text-xs text-amber-400 mb-1">
                           {isAr ? s.ar : s.en}
                         </div>
-                        <div className="text-slate-600 dark:text-slate-300 text-sm">
+                        <div className="text-slate-400 text-xs font-medium leading-relaxed">
                           {isAr ? s.descAr : s.descEn}
                         </div>
                       </div>
@@ -228,20 +199,20 @@ export default function GuidePage() {
 
               {activeTab === 'skills' && (
                 <div className="space-y-6">
-                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
+                  <h1 className="text-2xl font-black text-white mb-2">
                     {isAr ? "المهارات الخاصة (Special Skills)" : "Special Skills"}
                   </h1>
-                  <p className="text-slate-600 dark:text-slate-400 mb-6">
-                    {isAr ? "مهارات تمنح اللاعب أفضلية في مواقف محددة." : "Skills that grant the player an advantage in specific situations."}
+                  <p className="text-slate-400 text-xs font-semibold mb-6">
+                    {isAr ? "مهارات تمنح اللاعب تفوقاً وحركات استعراضية في مواقف محددة." : "Skills granting execution advantages and moves in key moments."}
                   </p>
                   
                   <div className="grid sm:grid-cols-2 gap-4">
                     {SKILLS.map((s) => (
-                      <div key={s.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700">
-                        <div className="font-bold text-blue-600 dark:text-blue-400 mb-1">
+                      <div key={s.id} className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                        <div className="font-black text-xs text-cyan-400 mb-1">
                           {isAr ? s.labelAr : s.label}
                         </div>
-                        <div className="text-slate-600 dark:text-slate-300 text-sm">
+                        <div className="text-slate-400 text-xs font-medium leading-relaxed">
                           {isAr ? s.descriptionAr : s.description}
                         </div>
                       </div>
@@ -251,273 +222,49 @@ export default function GuidePage() {
               )}
 
               {activeTab === 'features' && (
-                <div className="space-y-8">
-                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
-                    {isAr ? "مميزات المنصة" : "Platform Features"}
+                <div className="space-y-6">
+                  <h1 className="text-2xl font-black text-white mb-6">
+                    {isAr ? "مميزات منصة 11Players" : "11Players Platform Features"}
                   </h1>
 
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🌍 {isAr ? "المجتمعات المتعددة (Multiple Communities)" : "Multiple Communities"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "يمكنك إنشاء أو الانضمام إلى عدة مجتمعات مختلفة (مثل حجز الإثنين، حجز الجمعة). إحصائياتك منفصلة لكل مجتمع لضمان التنافس العادل!"
-                        : "You can create or join multiple communities (e.g., Monday League, Friday League). Your stats are separated per community for fair competition!"}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⚖️ {isAr ? "صناعة المباريات الذكية (Smart Matchmaking)" : "Smart Matchmaking"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "عندما تعمل حجز، يمكنك استخدام الموقع لتقسيم وتوزيع اللاعبين وتشكيل الفرق بشكل عادل بناءً على الطاقات والمراكز."
-                        : "When you book a match, you can use the platform to divide and distribute players, creating fair teams based on their stats and positions."}
-                    </p>
-                  </section>
-                  
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ✅ {isAr ? "نظام تقييم الأقران (Peer Rating System)" : "Peer Rating System"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام تقييم متبادل بين اللاعبين بعد المباريات، حيث يتم تسجيل كل شيء ومن ثم التواصل بمعلومات من قام بتقييمك."
-                        : "A mutual rating system between players after matches, where everything is recorded and you get notified about who rated you."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🏆 {isAr ? "نظام البطولات والمواسم (Tournaments & Seasons)" : "Tournaments & Seasons System"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام بطولات أو دوري مستمر مع أي فكرة تخطر ببالك. كل شيء موجود على الموقع ويمكن للجميع رؤيته."
-                        : "A continuous tournament or league system with any idea you can think of. Everything is available on the platform and visible to everyone."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🏆 {isAr ? "الإنجازات (Achievements)" : "Achievements"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "تابع إنجازاتك، الجوائز الموسمية، والمتوسطات لكل لاعب. يوفر الموقع لوحة إنجازات تعرض تقدمك وجوائزك الشخصية."
-                        : "Track your achievements, seasonal awards, and per-match averages. The platform shows an achievements dashboard with your progress and personal trophies."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      💡 {isAr ? "نصائح ذكية (Smart Advice)" : "Smart Advice"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نصائح تصل إليك بشكل دوري لمساعدتك في تحسين أدائك."
-                        : "Advice that comes to you periodically to help you improve your performance."}
-                    </p>
-                  </section>
-
-
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⭐ {isAr ? "رجل المباراة MOTM" : "Man of the Match (MOTM)"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام لاختيار أفضل لاعب في كل مباراة."
-                        : "A system to select the best player in each match."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      � {isAr ? "شات المجتمع (Community Chat)" : "Community Chat"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام شات للتواصل بين اللاعبين، بالإضافة إلى إمكانية مواجهة مجتمع ضد مجتمع (تحتاج شهرة الموقع)."
-                        : "A chat system for communication between players, plus the ability to have community vs community matches (requires platform popularity)."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      � {isAr ? "دعم اللغتين العربية والإنجليزية" : "Arabic & English Support"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "الموقع يدعم اللغتين العربية والإنجليزية بالكامل."
-                        : "The platform fully supports both Arabic and English languages."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      👑 {isAr ? "تصويت على كابتن الفريق" : "Team Captain Voting"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام تصويت اللاعبين لاختيار كابتن الفريق."
-                        : "A player voting system to choose the team captain."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🎖️ {isAr ? "نظام المواسم والجوائز الرقمية" : "Seasons & Digital Trophies"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام مواسم مع بطولات وجوائز رقمية للفائزين."
-                        : "A seasons system with tournaments and digital trophies for winners."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⚽ {isAr ? "ركلات الترجيح الذكية" : "Smart Penalty Shootouts"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام ركلات الترجيح يختار أفضل اللاعبين للضربات."
-                        : "A penalty shootout system that selects the best players for penalty kicks."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🔄 {isAr ? "تعديل التشكيلة ديناميكي" : "Dynamic Lineup Changes"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "يمكنك تغيير التشكيلة داخل المباراة أو قبل البداية، ويظهر إذا كان اللاعب ضعيف في هذا المركز."
-                        : "You can change the lineup during the match or before it starts, and it shows if a player is weak in that position."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🟨🟥 {isAr ? "نظام الكروت الصفراء والحمراء والوقت الضائع" : "Yellow/Red Cards & Stoppage Time"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام الكروت الصفراء والحمراء والوقت بدل الضائع لإدارة المباريات بشكل احترافي."
-                        : "Yellow and red cards system plus stoppage time for professional match management."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      📊 {isAr ? "تتبع الإحصائيات الشامل" : "Comprehensive Stats Tracking"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "تسجيل شامل للأهداف والتمريرات الحاسمة والمباريات اللعبة وكل شيء يخص الأداء."
-                        : "Comprehensive recording of goals, assists, matches played, and everything related to performance."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⭐ {isAr ? "رجل المباراة MOTM" : "Man of the Match (MOTM)"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "نظام لاختيار أفضل لاعب في كل مباراة."
-                        : "A system to select the best player in each match."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🏆 {isAr ? "الإنجازات (Achievements)" : "Achievements"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "تابع إنجازاتك، الجوائز الموسمية، والمتوسطات لكل لاعب. يوفر الموقع لوحة إنجازات تعرض تقدمك وجوائزك الشخصية."
-                        : "Track your achievements, seasonal awards, and per-match averages. The platform shows an achievements dashboard with your progress and personal trophies."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      ⚖️ {isAr ? "مقارنة اللاعبين وجهًا لوجه (Player Comparison)" : "Head-to-Head Player Comparison"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-3">
-                      {isAr 
-                        ? "يمكنك مقارنة بطاقتين أو لاعبين وجهًا لوجه لعرض الفرق في الطاقات الـ22 والتقييم العام والإحصائيات، وتحديد نقطة التفوق في كل جانب سواء الهجوم، الدفاع، التمرير، أو اللياقة البدنية."
-                        : "Compare two player cards or profiles head-to-head to analyze exact differences across all 22 attributes, overall ratings, and match stats, highlighting clear tactical advantages in attack, defense, passing, and stamina."}
-                    </p>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      🔮 {isAr ? "المزيد قادم" : "More Coming Soon"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm">
-                      {isAr 
-                        ? "هناك الكثير من المميزات الأخرى القادمة، وإذا كان لديك أي فكرة فأخبرنا وسنقوم بتنفيذها!"
-                        : "There are many more features coming soon, and if you have any idea, let us know and we'll implement it!"}
-                    </p>
-                  </section>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {[
+                      { icon: <Bot className="w-5 h-5 text-emerald-400" />, title: isAr ? "مساعد 11AI التكتيكي والدردشة" : "11AI Tactical Advisor & Chatbot", desc: isAr ? "مساعد ذكاء اصطناعي مدمج بـ 3 أقسام (تحليل تكتيكي، دعم فني، ودردشة عامة) مع صوت عربي واقعي." : "3-in-1 AI chatbot with tactical analysis, support center, and human Arabic voice." },
+                      { icon: <Rocket className="w-5 h-5 text-amber-400" />, title: isAr ? "صناعة المباريات والخلط العادل" : "Smart AI Matchmaking", desc: isAr ? "توزيع وتوازن الفرق تلقائياً بناءً على تقييمات اللاعبين ومراكزهم لضمان تكافؤ الفرص." : "Automated team generation and balancing based on OVR and positions." },
+                      { icon: <MessageSquare className="w-5 h-5 text-cyan-400" />, title: isAr ? "محادثة المجتمع والإعلانات" : "Community Live Chat & Broadcasts", desc: isAr ? "غرفة محادثة حية للمجتمع وبث الإعلانات الرسمية وإشعارات الهاتف الفورية." : "Real-time community chat and instant bilingual push notifications." },
+                      { icon: <Trophy className="w-5 h-5 text-purple-400" />, title: isAr ? "حفل التتويج والمواسم" : "Season Ceremony & Archives", desc: isAr ? "أرشفة المواسم وتوزيع ألقاب خزانة الجوائز (الكرة الذهبية، الهداف، صانع الألعاب)." : "Season history archiving and awarding digital trophies (Ballon d'Or, Golden Boot)." },
+                    ].map((f, i) => (
+                      <div key={i} className="p-5 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 rounded-xl bg-slate-900 border border-slate-800">{f.icon}</div>
+                          <h3 className="font-black text-sm text-white">{f.title}</h3>
+                        </div>
+                        <p className="text-xs text-slate-400 font-medium leading-relaxed">{f.desc}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {activeTab === 'rules' && (
-                <div className="space-y-8">
-                  <h1 className="text-3xl font-black text-slate-800 dark:text-white mb-6">
-                    {isAr ? "القوانين" : "Rules"}
+                <div className="space-y-6">
+                  <h1 className="text-2xl font-black text-white mb-6">
+                    {isAr ? "القوانين والروح الرياضية" : "Rules & Fair Play Guidelines"}
                   </h1>
 
-                  <section className="space-y-3">
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                  <div className="p-6 bg-slate-950 rounded-2xl border border-slate-800 space-y-4">
+                    <p className="text-xs text-slate-300 leading-relaxed font-semibold">
                       {isAr
-                        ? "هذه القوانين وضعت لحماية جميع اللاعبين وضمان تجربة عادلة وممتعة على 11Players. الرجاء اتباعها بدقة."
-                        : "These rules are designed to protect all players and ensure a fair, enjoyable experience on 11Players. Please follow them carefully."}
+                        ? "هذه القوانين وضعت لحماية جميع اللاعبين وضمان تجربة عادلة وممتعة على 11Players. نرجو اتباعها بدقة:"
+                        : "Designed to protect all members and guarantee a fair, competitive experience. Please strictly adhere:"}
                     </p>
-                    <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 text-sm">
-                      <li>{isAr ? "احترم اللاعبين الآخرين وامتنع عن الإساءة أو السلوك العنصري أو المسيء." : "Respect other players; do not use abusive, racist, or offensive language."}</li>
-                      <li>{isAr ? "لا تستخدم حسابات مزيفة أو بيانات تجريبية للتلاعب بالترتيب أو الجوائز." : "Do not use fake accounts or mock data to manipulate rankings or awards."}</li>
-                      <li>{isAr ? "شارك فقط في المباريات التي يمكنك إتمامها، ولا تترك الفريق من دون سبب." : "Only join matches you can complete; do not abandon teams without cause."}</li>
-                      <li>{isAr ? "احترم قرارات مديري المجتمع والمالكين أثناء تنظيم المباريات وإدارة التسجيلات." : "Respect community admins' and owners' decisions when organizing matches and managing registrations."}</li>
-                      <li>{isAr ? "لا تحاول التلاعب بأسماء اللاعبين أو الإحصائيات للحصول على مزايا غير عادلة." : "Do not attempt to alter player names or stats for unfair advantage."}</li>
-                      <li>{isAr ? "استخدم نظام التقييم والنقاد بصدق، ولا تقم بإرسال تقييمات خادعة." : "Use peer ratings honestly; do not submit fraudulent ratings."}</li>
-                      <li>{isAr ? "المكافآت الموسمية والإنجازات تُمنح على أساس الأداء الحقيقي داخل الموقع فقط." : "Seasonal awards and achievements are granted based on real on-platform performance only."}</li>
+                    <ul className="list-disc list-inside space-y-2.5 text-xs text-slate-400 font-medium">
+                      <li>{isAr ? "الاحترام المتبادل والامتناع عن أي سلوك أو لفظ غير رياضي." : "Maintain mutual respect; zero tolerance for abusive or unsportsmanlike behavior."}</li>
+                      <li>{isAr ? "التزام الحضور والمشاركة الفعالة في المباريات المسجل بها." : "Commit to confirmed match bookings; do not abandon teams."}</li>
+                      <li>{isAr ? "تقييم الأقران بإنصاف وموضوعية بدون تحيز شخصي." : "Submit honest, unbiased peer ratings after matches."}</li>
+                      <li>{isAr ? "احترام قرارات مسؤولي المجتمع ومالك الحجز." : "Respect decisions made by community admins and match hosts."}</li>
                     </ul>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      {isAr ? "قواعد خاصة بالإنجازات" : "Achievements Rules"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                      {isAr
-                        ? "الإنجازات تُحتسب حسب الأداء الفعلي في المباريات وحسب التعليقات التي يحصل عليها اللاعب. لا يمكن ترحيل إنجازات إلى موسم آخر بدون إتمامه." 
-                        : "Achievements are calculated based on actual match performance and received ratings. They cannot be carried over to the next season without completing it."}
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 text-slate-600 dark:text-slate-400 text-sm">
-                      <li>{isAr ? "كل لاعب يكسب الجوائز الموسمية بناءً على الأهداف والتمريرات وأداء منتخب الأفضل لاعب." : "Players earn seasonal awards based on goals, assists, and Man of the Match performance."}</li>
-                      <li>{isAr ? "إحصائيات الأهداف والتمريرات لكل مباراة تحسب فقط من المباريات المسجلة في المجتمع." : "Goals and assists per match are counted only from matches recorded in the community."}</li>
-                      <li>{isAr ? "المستخدمون الذين يحاولون التلاعب بنظام التتويج قد يتم منعهم من المباريات المستقبلية." : "Users who attempt to manipulate the ceremony system may be banned from future matches."}</li>
-                    </ul>
-                  </section>
-
-                  <section>
-                    <h2 className="text-xl font-bold mb-2 text-slate-800 dark:text-slate-200">
-                      {isAr ? "التقارير والمخالفات" : "Reporting & Violations"}
-                    </h2>
-                    <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                      {isAr
-                        ? "إذا رأيت لاعباً ينتهك القوانين، استخدم نظام الدعم أو اتصل بمالك المجتمع. سيتم النظر في المخالفات واتخاذ الإجراءات المناسبة." 
-                        : "If you see a player violating the rules, use the support system or contact the community owner. Violations will be reviewed and appropriate action taken."}
-                    </p>
-                  </section>
+                  </div>
                 </div>
               )}
             </motion.div>

@@ -9,42 +9,21 @@ import { db } from "@/lib/firebase";
 import { Community } from "@/types";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import GlobalUsersTable from "@/components/admin/GlobalUsersTable";
-import { Users, FileText, UserCheck, ShieldCheck, Lock, X } from "lucide-react";
+import { Users, FileText, UserCheck, ShieldCheck, Lock, X, Crown, Sparkles, AlertTriangle, RefreshCw, Trash2, Edit } from "lucide-react";
 import ConfirmModal from "@/components/ui/ConfirmModal";
-
-function OwnerCommunitiesSkeleton() {
-  return (
-    <div className="space-y-4 animate-pulse">
-      {[...Array(3)].map((_, i) => (
-        <div
-          key={i}
-          className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 overflow-hidden"
-        >
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-            <div className="min-w-0 flex-1 space-y-2.5">
-              <div className="h-5 w-40 max-w-[75%] rounded-lg bg-slate-200 dark:bg-slate-700" />
-              <div className="h-3.5 w-56 max-w-full rounded-md bg-slate-200/80 dark:bg-slate-800" />
-              <div className="h-3.5 w-72 max-w-full rounded-md bg-slate-200/70 dark:bg-slate-800" />
-            </div>
-            <div className="flex gap-2 self-end sm:self-auto">
-              <div className="h-9 w-16 rounded-xl bg-slate-200 dark:bg-slate-700" />
-              <div className="h-9 w-16 rounded-xl bg-slate-200 dark:bg-slate-700" />
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 
 export default function OwnerPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  
   const [communities, setCommunities] = useState<Community[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   
+  // AI Model Choice state
+  const [activeModel, setActiveModel] = useState<string>("gemini-3.5-flash-lite");
+
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -97,7 +76,6 @@ export default function OwnerPage() {
         createdAt: serverTimestamp()
       });
 
-      // Add admin to the community's players
       if (newCommAdmin) {
         const adminDoc = await getDoc(doc(db, "players", newCommAdmin));
         if (adminDoc.exists()) {
@@ -108,14 +86,13 @@ export default function OwnerPage() {
             joinedAt: new Date().toISOString()
           });
 
-          // Update admin's global profile
           await updateDoc(doc(db, "players", newCommAdmin), {
             memberCommunities: arrayUnion(id),
             joinedCommunities: arrayUnion(id)
           });
         }
       }
-      toast.success(isAr ? "تم إنشاء المجتمع!" : "Community created!");
+      toast.success(isAr ? "تم إنشاء المجتمع بنجاح! 🏰" : "Community created successfully! 🏰");
       setNewCommName("");
       setNewCommDesc("");
       setNewCommAdmin("");
@@ -124,7 +101,7 @@ export default function OwnerPage() {
       fetchCommunities();
     } catch (e) {
       console.error(e);
-      toast.error("Failed to create");
+      toast.error(isAr ? "فشل إنشاء المجتمع" : "Failed to create community");
     }
     setCreating(false);
   };
@@ -133,14 +110,14 @@ export default function OwnerPage() {
     setConfirmModal({
       isOpen: true,
       title: isAr ? "حذف المجتمع" : "Delete Community",
-      message: isAr ? "هل أنت متأكد من رغبتك في حذف هذا المجتمع؟ سيتم فقدان جميع بيانات اللاعبين داخله." : "Are you SURE you want to delete this community? ALL PLAYERS inside will be lost.",
+      message: isAr ? "هل أنت متأكد من رغبتك في حذف هذا المجتمع نهائياً؟ سيتم مسح كافة البيانات المسجلة داخله." : "Are you SURE you want to delete this community? ALL DATA inside will be lost.",
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, "communities", id));
-          toast.success("Community deleted");
+          toast.success(isAr ? "تم حذف المجتمع بنجاح" : "Community deleted successfully");
           fetchCommunities();
         } catch (e) {
-          toast.error("Failed to delete");
+          toast.error(isAr ? "فشل حذف المجتمع" : "Failed to delete community");
         }
       }
     });
@@ -155,7 +132,7 @@ export default function OwnerPage() {
         isPrivate: isEditPrivate,
         password: isEditPrivate ? editPassword : null,
       }, { merge: true });
-      toast.success(isAr ? "تم تحديث المجتمع بنجاح" : "Community updated successfully");
+      toast.success(isAr ? "تم تحديث بيانات المجتمع بنجاح" : "Community updated successfully");
       setEditingCommunity(null);
       fetchCommunities();
     } catch (e) {
@@ -166,25 +143,22 @@ export default function OwnerPage() {
   const handleWipeAllData = () => {
     setConfirmModal({
       isOpen: true,
-      title: isAr ? "تنبيه خطير جداً!" : "CRITICAL WARNING!",
-      message: isAr ? "هل أنت متأكد من مسح كافة بيانات الموقع والمجتمعات واللاعبين؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to wipe ALL site data? This CANNOT be undone.",
+      title: isAr ? "⚠️ تنبيه خطير جداً (مسح كامل البيانات)!" : "⚠️ CRITICAL WARNING (Full System Wipe)!",
+      message: isAr ? "هل أنت متأكد من مسح كافة بيانات الموقع والمجتمعات واللاعبين نهائياً؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to wipe ALL site data? This CANNOT be undone.",
       onConfirm: async () => {
         setProcessing(true);
         try {
           const batch = writeBatch(db);
-          // Delete all players
           const pSnap = await getDocs(collection(db, "players"));
           pSnap.forEach(d => batch.delete(d.ref));
           
-          // Delete all communities
           const cSnap = await getDocs(collection(db, "communities"));
           cSnap.forEach(d => batch.delete(d.ref));
 
-          // Delete match
           batch.delete(doc(db, "system", "latestMatch"));
 
           await batch.commit();
-          toast.success("Wipe complete.");
+          toast.success(isAr ? "تم مسح كافة البيانات بالكامل" : "Wipe complete.");
           fetchCommunities();
           setProcessing(false);
         } catch (e) {
@@ -204,13 +178,11 @@ export default function OwnerPage() {
       onConfirm: async () => {
         setProcessing(true);
         try {
-          // For each community, fetch players and matches, and reset/delete them
           const cSnap = await getDocs(collection(db, "communities"));
           for (const cDoc of cSnap.docs) {
             const batch = writeBatch(db);
-            let operationsCount = 0;
+            let opsCount = 0;
             
-            // Reset players
             const pSnap = await getDocs(collection(db, "communities", cDoc.id, "players"));
             pSnap.forEach(p => {
               const docRef = doc(db, "communities", cDoc.id, "players", p.id);
@@ -220,17 +192,16 @@ export default function OwnerPage() {
                 'stats.mvp': 0,
                 'stats.matchesPlayed': 0,
               });
-              operationsCount++;
+              opsCount++;
             });
 
-            // Delete matches
             const mSnap = await getDocs(collection(db, "communities", cDoc.id, "matches"));
             mSnap.forEach(m => {
               batch.delete(m.ref);
-              operationsCount++;
+              opsCount++;
             });
 
-            if (operationsCount > 0) {
+            if (opsCount > 0) {
               await batch.commit();
             }
           }
@@ -247,25 +218,8 @@ export default function OwnerPage() {
   if (loading) {
     return (
       <ProtectedRoute ownerOnly>
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12">
-          <main className="max-w-7xl mx-auto px-4 py-8">
-            <div className="mb-8">
-              <div className="h-8 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mb-2" />
-              <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse" />
-            </div>
-            <div className="grid lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-1 space-y-6">
-                <div className="bg-white dark:bg-slate-800 h-96 rounded-2xl border border-slate-200 dark:border-slate-700 animate-pulse" />
-                <div className="bg-red-50 dark:bg-red-900/10 h-40 rounded-2xl border border-red-200 dark:border-red-800/30 animate-pulse" />
-              </div>
-              <div className="lg:col-span-2 space-y-8">
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                  <div className="h-6 w-48 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse mb-4" />
-                  <OwnerCommunitiesSkeleton />
-                </div>
-              </div>
-            </div>
-          </main>
+        <div className="min-h-screen bg-slate-950 text-white p-8">
+          <SiteSkeletonLoader variant="page" />
         </div>
       </ProtectedRoute>
     );
@@ -273,152 +227,248 @@ export default function OwnerPage() {
 
   return (
     <ProtectedRoute ownerOnly>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pb-12">
-        <main className="max-w-7xl mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-black text-red-600 mb-2">
-              {isAr ? "لوحة المالك (Owner)" : "Owner Dashboard"}
-            </h1>
-            <p className="text-slate-500">
-              {isAr ? "إدارة المجتمعات، وصلاحيات المسؤولين، والنظام بأكمله." : "Manage communities, admins, and the entire system."}
-            </p>
+      <div className="min-h-screen bg-slate-950 text-white pb-16 transition-colors" dir={isAr ? 'rtl' : 'ltr'}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+          
+          {/* Header Banner — Solid Dark Slate */}
+          <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <Crown className="w-6 h-6 text-amber-400" />
+              </div>
+              <div>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-slate-950 text-amber-400 border border-slate-800 mb-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span>{isAr ? "مركز الحوكمة والإدارة العليا للمالك" : "Owner Portal & Executive Suite"}</span>
+                </span>
+                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+                  {isAr ? "لوحة المالك (Owner Portal)" : "Owner Portal"}
+                </h1>
+                <p className="text-xs text-slate-400 mt-1 font-semibold">
+                  {isAr 
+                    ? "التحكم الكامل بالنظام، إنشاء المجتمعات، اختيار نماذج الذكاء الاصطناعي، وإجراءات الطوارئ."
+                    : "Full system administration, community management, AI model configuration, and emergency controls."}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid lg:grid-cols-3 gap-8">
+            
+            {/* Left Column: Create Community & AI Configuration & Danger Zone */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <h2 className="text-xl font-bold mb-4">{isAr ? "إنشاء مجتمع جديد" : "Create New Community"}</h2>
+              
+              {/* Create Community Form */}
+              <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
+                <h2 className="text-sm font-black text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <span>🏰</span>
+                  <span>{isAr ? "إنشاء مجتمع جديد" : "Create New Community"}</span>
+                </h2>
+
                 <form onSubmit={handleCreateCommunity} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الاسم" : "Name"}</label>
-                    <div className="relative w-full">
-                      <Users className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Elite League..." />
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "اسم المجتمع" : "Community Name"}</label>
+                    <div className="relative">
+                      <Users className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
+                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Elite Champions..." />
                     </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
-                    <div className="relative w-full">
-                      <FileText className="w-5 h-5 absolute left-3 top-4 text-slate-400 pointer-events-none" />
-                      <textarea rows={2} value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-medium text-slate-900 dark:text-white placeholder-slate-400 resize-none" placeholder={isAr ? "أفضل مجتمع للمباريات..." : "The best community for..."} />
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "الوصف" : "Description"}</label>
+                    <div className="relative">
+                      <FileText className="w-4 h-4 absolute left-3 top-3 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
+                      <textarea rows={2} value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500 resize-none" placeholder={isAr ? "وصف المجتمع والأقسام..." : "Community description..."} />
                     </div>
                   </div>
+
                   <div>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "معرف المسؤول (UID)" : "Admin UID (User ID)"}</label>
-                    <div className="relative w-full">
-                      <UserCheck className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="e.g. 8xJ9..." />
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "معرف المشرف المسؤول (Admin UID)" : "Admin UID"}</label>
+                    <div className="relative">
+                      <UserCheck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
+                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold font-mono text-white placeholder-slate-500" placeholder="e.g. 8xJ9..." />
                     </div>
                   </div>
-                  <div className="p-4 bg-slate-100 dark:bg-slate-900/50 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-colors">
-                    <label className="flex items-center justify-between cursor-pointer group">
+
+                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                    <label className="flex items-center justify-between cursor-pointer">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${isPrivate ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'} transition-colors`}>
-                          <ShieldCheck className="w-5 h-5" />
+                        <div className={`p-2 rounded-xl ${isPrivate ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-slate-900 text-slate-500 border border-slate-800'}`}>
+                          <ShieldCheck className="w-4 h-4" />
                         </div>
                         <div>
-                          <span className="block font-bold text-slate-900 dark:text-white">{isAr ? "مجتمع خاص" : "Private Community"}</span>
-                          <span className="text-xs text-slate-500">{isAr ? "يتطلب كلمة مرور للدخول" : "Requires password to join"}</span>
+                          <span className="block text-xs font-black text-white">{isAr ? "مجتمع خاص (مغلق)" : "Private Community"}</span>
+                          <span className="text-[10px] text-slate-400 font-medium">{isAr ? "يتطلب كلمة مرور للانضمام" : "Requires password to join"}</span>
                         </div>
                       </div>
-                      <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
-                        <motion.div animate={{ x: isPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
-                      </div>
-                      <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="sr-only" />
+                      <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="w-4 h-4 accent-emerald-500 rounded" />
                     </label>
                   </div>
-                  
-                  <div className={`transition-all duration-300 overflow-hidden ${isPrivate ? 'max-h-24 opacity-100 mt-3' : 'max-h-0 opacity-0'}`}>
-                    <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                    <div className="relative w-full">
-                      <Lock className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-sm font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500" placeholder="Secret..." />
+
+                  {isPrivate && (
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
+                      <div className="relative">
+                        <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
+                        <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Secret..." />
+                      </div>
                     </div>
-                  </div>
-                  
-                  <button disabled={creating} className="w-full mt-4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-black rounded-xl hover:shadow-lg hover:shadow-emerald-500/30 active:scale-[0.98] transition-all flex justify-center items-center gap-2">
+                  )}
+
+                  <button disabled={creating} className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-xs shadow transition-all flex justify-center items-center gap-2">
                     {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء مجتمع جديد" : "Create New Community")}
                   </button>
                 </form>
               </div>
 
+              {/* AI Model Selector Config Card */}
+              <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
+                <h2 className="text-sm font-black text-white flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span>{isAr ? "نموذج الذكاء الاصطناعي الافتراضي" : "Default AI Model Config"}</span>
+                </h2>
+                <p className="text-xs text-slate-400 font-medium">
+                  {isAr ? "تحديد النموذج الأساسي لمساعد الذكاء الاصطناعي وحاسبة التكتيكات:" : "Select active LLM candidate for 11AI Chatbot & Tactical Advisor:"}
+                </p>
 
-              <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-200 dark:border-red-800/30 flex flex-col gap-4">
-                <h2 className="text-xl font-bold text-red-600 mb-2">Danger Zone</h2>
-                <button disabled={processing} onClick={handleGlobalResetStats} className="w-full py-2 bg-orange-600 disabled:opacity-50 text-white font-bold rounded-lg hover:bg-orange-700">
-                  Global Stats Reset (All Communities)
+                <div className="space-y-2">
+                  {[
+                    { id: "gemini-3.5-flash-lite", label: "Gemini 3.5 Flash-Lite (Recommended)" },
+                    { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash-Lite (Fallback)" },
+                    { id: "gemma-4-31b-it", label: "Gemma 4 31B IT" },
+                    { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash (Comprehensive)" },
+                  ].map((m) => (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveModel(m.id);
+                        toast.success(isAr ? `تم اختيار النموذج: ${m.label}` : `Selected model: ${m.label}`);
+                      }}
+                      className={`w-full p-3 rounded-2xl border text-xs font-bold transition-all text-start flex items-center justify-between ${
+                        activeModel === m.id
+                          ? 'bg-slate-950 text-emerald-400 border-emerald-500/50 shadow'
+                          : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white'
+                      }`}
+                    >
+                      <span>{m.label}</span>
+                      {activeModel === m.id && <span className="text-emerald-400 font-black">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Danger Zone */}
+              <div className="bg-slate-900 p-6 rounded-3xl border border-rose-500/40 shadow-2xl space-y-4">
+                <h2 className="text-sm font-black text-rose-400 flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  <span>Danger Zone (إجراءات الطوارئ)</span>
+                </h2>
+                
+                <button disabled={processing} onClick={handleGlobalResetStats} className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-slate-950 font-black rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Global Stats Reset (All Communities)</span>
                 </button>
-                <button disabled={processing} onClick={handleWipeAllData} className="w-full py-2 bg-red-600 disabled:opacity-50 text-white font-bold rounded-lg hover:bg-red-700">
-                  Wipe ALL Site Data
+                <button disabled={processing} onClick={handleWipeAllData} className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-black rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Wipe ALL Site Data</span>
                 </button>
               </div>
+
             </div>
 
-            <div className="lg:col-span-2 space-y-8">
-              <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                <h2 className="text-xl font-bold mb-4">{isAr ? "المجتمعات الحالية" : "Active Communities"}</h2>
+            {/* Right Column: Active Communities List */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                  <h2 className="text-lg font-black text-white flex items-center gap-2">
+                    <span>🏰</span>
+                    <span>{isAr ? "المجتمعات الحالية بالنظام" : "Active System Communities"}</span>
+                  </h2>
+                  <span className="bg-slate-950 text-emerald-400 border border-slate-800 px-3 py-1 rounded-full text-xs font-mono font-bold">
+                    {communities.length} {isAr ? "مجتمع" : "Communities"}
+                  </span>
+                </div>
+
                 <div className="space-y-4">
-                    {communities.map(c => (
-                      <div key={c.id} className="p-4 border border-slate-200 dark:border-slate-700 rounded-xl flex flex-col gap-4 bg-slate-50 dark:bg-slate-900">
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4">
-                          <div>
-                            <div className="font-black text-lg flex items-center gap-2">
-                              {c.name} {c.isPrivate && <span className="text-xs bg-amber-500/20 text-amber-600 px-2 py-0.5 rounded-lg">Private</span>}
+                  {communities.map(c => (
+                    <div key={c.id} className="p-5 border border-slate-800 rounded-2xl flex flex-col gap-4 bg-slate-950 hover:border-slate-700 transition-all">
+                      <div className="flex flex-col sm:flex-row justify-between sm:items-center w-full gap-4">
+                        <div>
+                          <div className="font-black text-base text-white flex items-center gap-2">
+                            <span>{c.name}</span>
+                            {c.isPrivate && (
+                              <span className="text-[10px] font-black bg-amber-950 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full">
+                                Private 🔒
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-semibold text-slate-400 mt-1 font-mono">Admin UID: {c.adminUid || 'Unassigned'}</div>
+                          <div className="text-xs text-slate-400 truncate max-w-md mt-1 font-medium">{c.description || 'No description'}</div>
+                          {c.isPrivate && (
+                            <div className="text-[10px] font-mono bg-slate-900 text-amber-300 border border-slate-800 px-2.5 py-1 rounded-lg mt-2 inline-block">
+                              Password: {c.password}
                             </div>
-                            <div className="text-sm font-semibold text-slate-500 mt-1">Admin UID: {c.adminUid}</div>
-                            <div className="text-sm text-slate-500 truncate max-w-sm mt-1">{c.description}</div>
-                            {c.isPrivate && <div className="text-xs font-mono bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded-md mt-2 inline-block">Password: {c.password}</div>}
-                          </div>
-                          <div className="flex gap-2 self-end sm:self-auto">
-                            <button 
-                              onClick={() => {
-                                setEditingCommunity(c.id);
-                                setEditName(c.name);
-                                setEditDesc(c.description || "");
-                                setEditAdminUid(c.adminUid);
-                                setIsEditPrivate(c.isPrivate || false);
-                                setEditPassword(c.password || "");
-                              }} 
-                              className="text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 px-4 py-2 rounded-xl font-bold text-sm transition-colors"
-                            >
-                              Edit
-                            </button>
-                            <button onClick={() => handleDeleteCommunity(c.id)} className="text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-xl font-bold text-sm transition-colors">Delete</button>
-                          </div>
+                          )}
+                        </div>
+                        <div className="flex gap-2 self-end sm:self-auto">
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              setEditingCommunity(c.id);
+                              setEditName(c.name);
+                              setEditDesc(c.description || "");
+                              setEditAdminUid(c.adminUid);
+                              setIsEditPrivate(c.isPrivate || false);
+                              setEditPassword(c.password || "");
+                            }} 
+                            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold rounded-xl text-xs transition-colors flex items-center gap-1"
+                          >
+                            <Edit className="w-3 h-3 text-amber-400" />
+                            <span>Edit</span>
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleDeleteCommunity(c.id)} 
+                            className="px-4 py-2 bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-500/30 font-bold rounded-xl text-xs transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
+                          </button>
                         </div>
                       </div>
-                    ))}
-                    {communities.length === 0 && <p className="text-slate-500">No communities exist yet.</p>}
-                  </div>
+                    </div>
+                  ))}
+                  {communities.length === 0 && (
+                    <p className="text-slate-500 text-xs italic text-center py-8">
+                      {isAr ? "لا توجد مجتمعات مسجلة حالياً." : "No communities exist yet."}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
+
           </div>
         </main>
       </div>
 
+      {/* Edit Community Modal */}
       <AnimatePresence>
         {editingCommunity && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-              onClick={() => setEditingCommunity(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-lg bg-slate-900 rounded-3xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-xl font-black text-slate-900 dark:text-white">
+              <div className="flex items-center justify-between p-6 border-b border-slate-800">
+                <h3 className="text-base font-black text-white">
                   {isAr ? "تعديل بيانات المجتمع" : "Edit Community"}
                 </h3>
                 <button
                   onClick={() => setEditingCommunity(null)}
-                  className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
+                  className="p-1.5 text-slate-400 hover:text-white rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -426,63 +476,52 @@ export default function OwnerPage() {
 
               <div className="p-6 overflow-y-auto space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الاسم" : "Name"}</label>
-                  <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Name" />
+                  <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "الاسم" : "Name"}</label>
+                  <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Name" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "الوصف" : "Description"}</label>
-                  <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Description" />
+                  <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "الوصف" : "Description"}</label>
+                  <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Description" />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "معرف المسؤول" : "Admin UID"}</label>
-                  <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Admin UID" />
+                  <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "معرف المسؤول (Admin UID)" : "Admin UID"}</label>
+                  <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-mono font-bold text-white outline-none focus:border-emerald-500" placeholder="Admin UID" />
                 </div>
                 
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border-2 border-slate-200 dark:border-slate-700">
-                  <label className="flex items-center justify-between cursor-pointer group">
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
+                  <label className="flex items-center justify-between cursor-pointer">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${isEditPrivate ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'} transition-colors`}>
-                        <ShieldCheck className="w-5 h-5" />
+                      <div className={`p-2 rounded-xl ${isEditPrivate ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-slate-900 text-slate-500 border border-slate-800'}`}>
+                        <ShieldCheck className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="block font-bold text-slate-900 dark:text-white">{isAr ? "مجتمع خاص" : "Private Community"}</span>
+                        <span className="block text-xs font-bold text-white">{isAr ? "مجتمع خاص" : "Private Community"}</span>
                       </div>
                     </div>
-                    <div className={`relative w-12 h-6 transition-colors duration-300 ease-in-out rounded-full ${isEditPrivate ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
-                      <motion.div animate={{ x: isEditPrivate ? 24 : 0 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-1 left-1 bg-white w-4 h-4 rounded-full shadow-sm" />
-                    </div>
-                    <input type="checkbox" checked={isEditPrivate} onChange={e => setIsEditPrivate(e.target.checked)} className="sr-only" />
+                    <input type="checkbox" checked={isEditPrivate} onChange={e => setIsEditPrivate(e.target.checked)} className="w-4 h-4 accent-emerald-500 rounded" />
                   </label>
                 </div>
                 
-                <AnimatePresence>
-                  {isEditPrivate && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: "auto", opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pt-1 pb-1">
-                        <label className="block text-sm font-semibold mb-1 text-slate-700 dark:text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
-                        <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl border-2 border-slate-200 dark:border-slate-700 focus:border-emerald-500 focus:bg-white dark:focus:bg-slate-900 transition-all outline-none" placeholder="Password" />
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {isEditPrivate && (
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "كلمة المرور" : "Password"}</label>
+                    <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Password" />
+                  </div>
+                )}
               </div>
 
-              <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex gap-3 justify-end">
+              <div className="p-6 border-t border-slate-800 bg-slate-950 flex gap-3 justify-end">
                 <button
+                  type="button"
                   onClick={() => setEditingCommunity(null)}
-                  className="px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-bold transition-colors border border-slate-200 dark:border-slate-700"
+                  className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 rounded-2xl font-bold text-xs border border-slate-800 transition-colors"
                 >
                   {isAr ? "إلغاء" : "Discard"}
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleEditSave(editingCommunity!)}
-                  className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold text-xs transition-all shadow"
                 >
                   {isAr ? "حفظ التغييرات" : "Save Changes"}
                 </button>
@@ -501,12 +540,12 @@ export default function OwnerPage() {
       />
 
       {processing && (
-        <div className="fixed inset-0 z-[9999] bg-slate-900/90 backdrop-blur-md flex flex-col items-center justify-center text-white">
+        <div className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center text-white">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-emerald-500 mb-6 shadow-lg"></div>
-          <h2 className="text-3xl font-black mb-2 animate-pulse text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">
+          <h2 className="text-2xl font-black mb-2 animate-pulse text-emerald-400">
             {isAr ? "جاري معالجة البيانات..." : "Processing Operation..."}
           </h2>
-          <p className="text-slate-300 font-medium tracking-wide">
+          <p className="text-slate-400 font-semibold text-xs tracking-wide">
             {isAr ? "الرجاء عدم إغلاق أو تحديث هذه الصفحة" : "Please do not close or refresh this page"}
           </p>
         </div>

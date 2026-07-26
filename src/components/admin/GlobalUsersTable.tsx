@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles, Shield, UserCheck, Activity, CheckSquare, Square, Filter } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -15,11 +15,12 @@ import GlobalUserRow from "@/components/admin/GlobalUserRow";
 import { getAllPlayerCommunities } from '@/lib/playerUtils';
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import ManageUserCommunitiesModal from "@/components/community/ManageUserCommunitiesModal";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export default function GlobalUsersTable() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
-  
+
   const [users, setUsers] = useState<PlayerProfile[]>([]);
   const usersRef = useRef(users);
   usersRef.current = users;
@@ -28,9 +29,13 @@ export default function GlobalUsersTable() {
   const [userCommMap, setUserCommMap] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
   const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>({ key: 'fullName', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
+
+  // Selected UIDs for Bulk Operations Panel
+  const [selectedUids, setSelectedUids] = useState<string[]>([]);
 
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -56,13 +61,11 @@ export default function GlobalUsersTable() {
       const uCommMap: Record<string, string[]> = {};
       const allUsersMap: Record<string, PlayerProfile> = {};
 
-      // Process global players first ensuring explicit uid field
       usersSnap.docs.forEach(d => {
         const data = d.data();
         allUsersMap[d.id] = { uid: d.id, ...data } as PlayerProfile;
       });
 
-      // Fetch all community player rosters in parallel
       const communityRosterPromises = commsSnap.docs.map(async (cDoc) => {
         const cData = cDoc.data();
         commMap[cDoc.id] = cData.name || cDoc.id;
@@ -81,9 +84,7 @@ export default function GlobalUsersTable() {
               allUsersMap[pDoc.id] = { uid: pDoc.id, ...pData } as PlayerProfile;
             }
           });
-        } catch (e) {
-          // Ignore individual subcollection access errors
-        }
+        } catch (e) {}
       });
 
       await Promise.all(communityRosterPromises);
@@ -108,25 +109,23 @@ export default function GlobalUsersTable() {
     setConfirmModal({
       isOpen: true,
       title: isAr ? "حظر / حذف مستخدم" : "Ban / Delete User",
-      message: isAr ? "هل أنت متأكد من حظر/حذف هذا المستخدم نهائياً؟" : "Are you sure you want to completely ban/delete this user?",
+      message: isAr ? `هل أنت متأكد من حظر/حذف المستخدم (${user.fullName}) نهائياً؟` : `Are you sure you want to delete ${user.fullName}?`,
       onConfirm: async () => {
         try {
           const { writeBatch } = await import("firebase/firestore");
           const batch = writeBatch(db);
 
-          // Remove from all communities they are a member of
           if (user.memberCommunities && user.memberCommunities.length > 0) {
             user.memberCommunities.forEach(cId => {
               batch.delete(doc(db, "communities", cId, "players", user.uid));
             });
           }
 
-          // Remove global profile
           batch.delete(doc(db, "players", user.uid));
-          
           await batch.commit();
 
           setUsers(prev => prev.filter(u => u.uid !== user.uid));
+          setSelectedUids(prev => prev.filter(id => id !== user.uid));
           toast.success(isAr ? "تم حذف المستخدم من النظام" : "User completely deleted");
         } catch (err) {
           console.error(err);
@@ -136,45 +135,14 @@ export default function GlobalUsersTable() {
     });
   };
 
-  const handleDeleteAllMock = () => {
+  const handleApplyAIToSelectedUsers = (targetList: PlayerProfile[]) => {
+    if (targetList.length === 0) return;
     setConfirmModal({
       isOpen: true,
-      title: isAr ? "حذف اللاعبين الوهميين" : "Delete Mock Players",
-      message: isAr ? "هل أنت متأكد من حذف جميع اللاعبين الوهميين (32 لاعب) من كافة المجتمعات والنظام؟" : "Are you sure you want to delete all dummy/mock players from all communities and system?",
-      onConfirm: async () => {
-        try {
-          const { writeBatch } = await import("firebase/firestore");
-          const mockUsers = users.filter(u => u.isMockData || u.uid.startsWith('dummy_') || u.uid.startsWith('test-player-') || (u.email && u.email.includes('dummy')));
-          if (mockUsers.length === 0) {
-            toast.success(isAr ? "لا يوجد لاعبين وهميين" : "No mock players found");
-            return;
-          }
-          const batch = writeBatch(db);
-          for (const u of mockUsers) {
-            const commIds = getAllPlayerCommunities(u);
-            for (const commId of commIds) {
-              batch.delete(doc(db, "communities", commId as string, "players", u.uid));
-            }
-            batch.delete(doc(db, "players", u.uid));
-          }
-          await batch.commit();
-          setUsers(prev => prev.filter(u => !mockUsers.some(m => m.uid === u.uid)));
-          toast.success(isAr ? `تم حذف ${mockUsers.length} لاعب وهمي بنجاح` : `Successfully deleted ${mockUsers.length} mock players`);
-        } catch (err) {
-          console.error(err);
-          toast.error(isAr ? "فشل حذف اللاعبين الوهميين" : "Failed to delete mock players");
-        }
-      }
-    });
-  };
-
-  const handleApplyAIToAllGlobalUsers = () => {
-    setConfirmModal({
-      isOpen: true,
-      title: isAr ? "تطبيق اختيار الذكاء الاصطناعي الأفضل للجميع" : "Apply AI Best Choice to All Players",
+      title: isAr ? "تطبيق الذكاء الاصطناعي على المحددين" : "Apply AI Best Choice to Selected",
       message: isAr
-        ? `هل أنت متأكد من تحليل طاقات جميع المستخدمين (${users.length}) وتطبيق أفضل مركز وأسلوب لعب من الذكاء الاصطناعي وحفظها في قاعدة البيانات؟`
-        : `Are you sure you want to analyze all (${users.length}) users and save their AI-recommended primary position & play style directly to the database?`,
+        ? `هل أنت متأكد من تحليل طاقات ${targetList.length} لاعب وتطبيق أفضل مركز وتكتيك لهم بالذكاء الاصطناعي؟`
+        : `Analyze & apply AI position choices for ${targetList.length} selected players?`,
       onConfirm: async () => {
         try {
           const { writeBatch, doc } = await import("firebase/firestore");
@@ -182,9 +150,9 @@ export default function GlobalUsersTable() {
           let count = 0;
 
           const batchSize = 350;
-          for (let i = 0; i < users.length; i += batchSize) {
+          for (let i = 0; i < targetList.length; i += batchSize) {
             const batch = writeBatch(db);
-            const chunk = users.slice(i, i + batchSize);
+            const chunk = targetList.slice(i, i + batchSize);
 
             chunk.forEach((p) => {
               const suggestions = getTacticalSuggestions(
@@ -228,14 +196,6 @@ export default function GlobalUsersTable() {
                   overallRating:     newOverall
                 };
 
-                if (!p.homeCommunityId || p.homeCommunityId === 'unlocked') {
-                  const effectiveHome = p.memberCommunities?.[0] || p.joinedCommunities?.[0];
-                  if (effectiveHome) {
-                    updates.homeCommunityId = effectiveHome;
-                    updates.primaryCommunityId = effectiveHome;
-                  }
-                }
-
                 batch.update(doc(db, 'players', p.uid), updates);
                 count++;
               }
@@ -244,15 +204,11 @@ export default function GlobalUsersTable() {
             await batch.commit();
           }
 
-          toast.success(
-            isAr
-              ? `تم تطبيق أفضل مراكز وأساليب الذكاء الاصطناعي لـ ${count} لاعب بنجاح! ⚡`
-              : `Successfully applied AI best choices to ${count} players! ⚡`
-          );
+          toast.success(isAr ? `تم تحديث ${count} لاعب بنجاح! ⚡` : `Updated ${count} players with AI! ⚡`);
           fetchUsers();
         } catch (err) {
-          console.error("Failed to apply AI choices to all users:", err);
-          toast.error(isAr ? "فشل تطبيق خيارات الذكاء الاصطناعي" : "Failed to apply AI choices");
+          console.error(err);
+          toast.error(isAr ? "فشل تحديث المستخدمين" : "Failed to update users");
         }
       }
     });
@@ -266,15 +222,32 @@ export default function GlobalUsersTable() {
     setSortConfig({ key, direction });
   };
 
-  const filteredUsers = React.useMemo(() => {
+  const toggleSelectUser = (uid: string) => {
+    setSelectedUids(prev => prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedUids.length === paginatedUsers.length) {
+      setSelectedUids([]);
+    } else {
+      setSelectedUids(paginatedUsers.map(u => u.uid));
+    }
+  };
+
+  const filteredUsers = useMemo(() => {
     let result = [...users];
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       result = result.filter(u => 
-        u.fullName.toLowerCase().includes(q) || 
-        u.cardName.toLowerCase().includes(q) || 
+        (u.fullName || '').toLowerCase().includes(q) || 
+        (u.cardName || '').toLowerCase().includes(q) || 
         (u.email && u.email.toLowerCase().includes(q))
       );
+    }
+    if (roleFilter !== "all") {
+      if (roleFilter === "owner") result = result.filter(u => (u as any).isOwner);
+      else if (roleFilter === "admin") result = result.filter(u => (u as any).isAdmin || (u as any).isOwner);
+      else if (roleFilter === "player") result = result.filter(u => !(u as any).isAdmin && !(u as any).isOwner);
     }
     if (sortConfig) {
       result.sort((a, b) => {
@@ -286,14 +259,14 @@ export default function GlobalUsersTable() {
       });
     }
     return result;
-  }, [users, searchQuery, sortConfig]);
+  }, [users, searchQuery, roleFilter, sortConfig]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, sortConfig]);
+  }, [searchQuery, roleFilter, sortConfig]);
 
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
-  const paginatedUsers = React.useMemo(() => {
+  const paginatedUsers = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredUsers.slice(start, start + itemsPerPage);
   }, [filteredUsers, currentPage, itemsPerPage]);
@@ -303,80 +276,137 @@ export default function GlobalUsersTable() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden flex flex-col h-full">
-      <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-slate-50 dark:bg-slate-800">
+    <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full text-white" dir={isAr ? 'rtl' : 'ltr'}>
+      
+      {/* Header & Controls — Solid Dark Slate */}
+      <div className="p-6 border-b border-slate-800 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-slate-950">
         <div className="flex items-center gap-3 shrink-0">
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            {isAr ? "جميع المستخدمين" : "All Users"}
-          </h2>
-          <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1 rounded-full text-sm font-semibold">
-            {filteredUsers.length} {isAr ? "مستخدم" : "Users"}
-          </span>
+          <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-emerald-400 font-black">
+            <Users className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              <span>{isAr ? "دليل جميع لاعبي المنصة" : "All Platform Players Directory"}</span>
+              <span className="bg-emerald-950 text-emerald-400 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-xs font-mono">
+                {filteredUsers.length}
+              </span>
+            </h2>
+            <p className="text-xs text-slate-400 font-semibold mt-0.5">
+              {isAr ? "إدارة الأدوار، الصلاحيات، وتطبيق تكتيكات الذكاء الاصطناعي" : "Manage roles, community memberships, and bulk AI choices"}
+            </p>
+          </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <div className="relative w-full sm:w-64 min-w-0">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          {/* Search Input */}
+          <div className="relative w-full sm:w-64">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-400 pointer-events-none" />
             <input 
               type="text" 
-              placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search by name or email..."}
+              placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search name or email..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none transition-all text-xs font-medium"
+              className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold placeholder-slate-500"
+            />
+          </div>
+
+          {/* Role Filter */}
+          <div className="w-full sm:w-48">
+            <CustomDropdown
+              value={roleFilter}
+              onChange={(val) => setRoleFilter(val)}
+              isAr={isAr}
+              options={[
+                { value: "all", label: isAr ? "👑 جميع الرتب" : "👑 All Roles" },
+                { value: "owner", label: isAr ? "👑 المالكين فقط" : "👑 Owners Only" },
+                { value: "admin", label: isAr ? "⚡ المشرفين والمالكين" : "⚡ Admins & Owners" },
+                { value: "player", label: isAr ? "👤 اللاعبين" : "👤 Players Only" },
+              ]}
             />
           </div>
         </div>
       </div>
 
-      {/* Table View (Supports Touch & Visible Horizontal Scroll) */}
-      <div className="w-full overflow-x-auto overflow-y-hidden rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-xl touch-pan-x [&::-webkit-scrollbar]:h-3 [&::-webkit-scrollbar-track]:bg-slate-100 dark:[&::-webkit-scrollbar-track]:bg-slate-800/80 [&::-webkit-scrollbar-thumb]:bg-emerald-500 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb:hover]:bg-emerald-400">
-        
-        {/* Scroll hint for smaller screens */}
-        <div className="md:hidden bg-emerald-500/10 border-b border-emerald-500/20 px-4 py-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center justify-between">
-          <span>👈 {isAr ? "قم بالحب/التمرير يميناً ويساراً لرؤية التفاصيل" : "Swipe / Scroll left & right to view all columns"} 👉</span>
+      {/* Bulk Action Panel (When users selected) */}
+      {selectedUids.length > 0 && (
+        <div className="bg-slate-950 border-b border-slate-800 p-4 px-6 flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
+            <CheckSquare className="w-4 h-4 text-amber-400" />
+            <span>{isAr ? `تم تحديد ${selectedUids.length} لاعب` : `${selectedUids.length} players selected`}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleApplyAIToSelectedUsers(users.filter(u => selectedUids.includes(u.uid)))}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-1.5 shadow"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <span>{isAr ? "تطبيق الذكاء الاصطناعي للمحددين ⚡" : "Apply AI Choice to Selected ⚡"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedUids([])}
+              className="px-3 py-2 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-bold"
+            >
+              {isAr ? "إلغاء التحديد" : "Deselect"}
+            </button>
+          </div>
         </div>
+      )}
 
+      {/* Table View */}
+      <div className="w-full overflow-x-auto rounded-none border-t border-slate-800 bg-slate-900 shadow-xl">
         <table className="w-full min-w-[950px] text-left rtl:text-right border-collapse">
           <thead>
-            <tr className="bg-slate-100 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-700">
+            <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-xs font-black">
+              <th className="px-4 py-4 w-12 text-center">
+                <button type="button" onClick={toggleSelectAll} className="text-slate-400 hover:text-emerald-400">
+                  {selectedUids.length > 0 && selectedUids.length === paginatedUsers.length ? (
+                    <CheckSquare className="w-4 h-4 text-emerald-400" />
+                  ) : (
+                    <Square className="w-4 h-4 text-slate-500" />
+                  )}
+                </button>
+              </th>
               <th 
-                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[220px]"
+                className="px-6 py-4 cursor-pointer hover:bg-slate-900 transition-colors group min-w-[220px]"
                 onClick={() => handleSort('fullName')}
               >
                 <div className="flex items-center gap-2">
-                  {isAr ? "المستخدم" : "User"}
-                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500" />
+                  {isAr ? "اللاعب" : "Player"}
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400" />
                 </div>
               </th>
-              <th 
-                className="px-6 py-4 text-xs font-bold text-slate-500 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors group min-w-[240px]"
-                onClick={() => handleSort('email')}
-              >
-                <div className="flex items-center gap-2">
-                  {isAr ? "البريد الإلكتروني" : "Email"}
-                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500" />
-                </div>
-              </th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 min-w-[200px]">{isAr ? "المجتمعات" : "Communities"}</th>
-              <th className="px-6 py-4 text-xs font-bold text-slate-500 text-right rtl:text-left min-w-[190px]">{isAr ? "إجراءات" : "Actions"}</th>
+              <th className="px-6 py-4 min-w-[200px]">{isAr ? "المركز والأسلوب" : "Position & Style"}</th>
+              <th className="px-6 py-4 min-w-[180px]">{isAr ? "المجتمعات والنشاط" : "Communities & Activity"}</th>
+              <th className="px-6 py-4 text-right rtl:text-left min-w-[190px]">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {paginatedUsers.map(u => (
-              <GlobalUserRow
-                key={u.uid}
-                u={u}
-                isAr={isAr}
-                communitiesMap={communitiesMap}
-                userCommMap={userCommMap}
-                onBanUser={handleBanUser}
-                onManageCommunities={(user) => setManageCommModal({ open: true, user })}
-              />
-            ))}
+          <tbody className="divide-y divide-slate-800">
+            {paginatedUsers.map(u => {
+              const isSelected = selectedUids.includes(u.uid);
+              return (
+                <tr key={u.uid} className={`transition-colors ${isSelected ? 'bg-slate-950/90' : 'hover:bg-slate-950/50'}`}>
+                  <td className="px-4 py-4 text-center">
+                    <button type="button" onClick={() => toggleSelectUser(u.uid)} className="text-slate-400 hover:text-emerald-400">
+                      {isSelected ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-slate-600" />}
+                    </button>
+                  </td>
+                  <GlobalUserRow
+                    u={u}
+                    isAr={isAr}
+                    communitiesMap={communitiesMap}
+                    userCommMap={userCommMap}
+                    onBanUser={handleBanUser}
+                    onManageCommunities={(user) => setManageCommModal({ open: true, user })}
+                  />
+                </tr>
+              );
+            })}
             {filteredUsers.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-slate-500">
-                  {isAr ? "لا يوجد مستخدمين" : "No users found"}
+                <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium text-xs">
+                  {isAr ? "لا يوجد مستخدمين مطقين للفلاتر" : "No matching users found"}
                 </td>
               </tr>
             )}
@@ -384,112 +414,31 @@ export default function GlobalUsersTable() {
         </table>
       </div>
 
-      {/* Mobile Card View */}
-      <div className="md:hidden space-y-3.5">
-        {paginatedUsers.map(u => {
-          const photo = u.photoUrl || u.googlePic || (u as any).photoURL || (u as any).userPic || "";
-          const activeLocalComm = typeof window !== "undefined" ? localStorage.getItem("activeCommunityId") : null;
-          const commIds = Array.from(
-            new Set([
-              ...(u.memberCommunities || []),
-              ...(u.joinedCommunities || []),
-              ...(userCommMap[u.uid] || []),
-              ...((u as any).lastCommunityId ? [(u as any).lastCommunityId] : []),
-              ...((activeLocalComm && (userCommMap[u.uid] || u.memberCommunities?.includes(activeLocalComm))) ? [activeLocalComm] : []),
-            ].filter(Boolean))
-          ) as string[];
-
-          return (
-            <div key={u.uid} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 shadow-sm flex flex-col gap-3">
-              <div className="flex items-center gap-3">
-                {photo ? (
-                  <Image src={photo} alt={u.fullName} className="w-12 h-12 rounded-full object-cover shrink-0 ring-2 ring-emerald-500/30" width={48} height={48} referrerPolicy="no-referrer" />
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 font-bold shrink-0 text-lg">
-                    {u.fullName?.charAt(0) || "?"}
-                  </div>
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="font-bold text-slate-900 dark:text-white truncate text-sm">{u.fullName}</div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 truncate font-medium">{u.cardName || u.email || "N/A"}</div>
-                  {u.email && <div className="text-[11px] text-slate-400 truncate mt-0.5">{u.email}</div>}
-                </div>
-              </div>
-
-              {/* Communities */}
-              <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-2.5">
-                <span className="text-[10px] text-slate-400 block font-bold mb-1.5 uppercase tracking-wider">{isAr ? "المجتمعات" : "Communities"}</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {commIds.length > 0 ? (
-                    commIds.map((c) => (
-                      <span key={c} className="text-xs bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold px-2.5 py-1 rounded-lg">
-                        {communitiesMap[c] || c}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-slate-400 italic">{isAr ? "لا يوجد مجتمعات" : "No communities"}</span>
-                  )}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex-wrap">
-                <button
-                  onClick={() => setManageCommModal({ open: true, user: u })}
-                  className="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>{isAr ? "المجتمعات" : "Communities"}</span>
-                </button>
-                <Link
-                  href={`/profile?uid=${u.uid}`}
-                  className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>{isAr ? "الملف الشخصي" : "Profile"}</span>
-                </Link>
-                <button
-                  onClick={() => handleBanUser(u)}
-                  className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                  title={isAr ? "حظر / حذف" : "Ban / Delete User"}
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          );
-        })}
-        {filteredUsers.length === 0 && (
-          <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 text-slate-500">
-            {isAr ? "لا يوجد مستخدمين" : "No users found"}
-          </div>
-        )}
-      </div>
-
-      {/* Clean Standalone Pagination Bar */}
+      {/* Pagination Bar */}
       {totalPages > 1 && (
-        <div className="mt-4 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg flex items-center justify-between gap-4 flex-wrap">
-          <div className="text-xs font-bold text-slate-500">
+        <div className="p-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between gap-4 flex-wrap">
+          <div className="text-xs font-bold text-slate-400">
             {isAr ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-40 disabled:pointer-events-none hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
+              className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold disabled:opacity-40 hover:bg-emerald-600 hover:text-white transition-all"
             >
               {isAr ? "السابق" : "Previous"}
             </button>
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold disabled:opacity-40 disabled:pointer-events-none hover:bg-emerald-500 hover:text-white transition-all shadow-sm"
+              className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold disabled:opacity-40 hover:bg-emerald-600 hover:text-white transition-all"
             >
               {isAr ? "التالي" : "Next"}
             </button>
           </div>
         </div>
       )}
+
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
@@ -497,6 +446,7 @@ export default function GlobalUsersTable() {
         title={confirmModal.title}
         message={confirmModal.message}
       />
+      
       <ManageUserCommunitiesModal
         user={manageCommModal.user}
         isOpen={manageCommModal.open}

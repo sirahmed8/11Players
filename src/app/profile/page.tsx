@@ -1,14 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef, Suspense } from "react";
-import { doc, onSnapshot, updateDoc, collection, query, where, getDocs, getDoc, setDoc } from "firebase/firestore";
+import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import PlayerCard from "@/components/player/PlayerCard";
 import FormIcon from "@/components/ui/FormIcon";
-import { PlayerProfile } from "@/types";
 import { generateProfilePDF } from "@/lib/pdf";
 import EditProfileModal from "@/components/player/EditProfileModal";
 import SVGPitchDisplay from "@/components/match/SVGPitchDisplay";
@@ -17,13 +16,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles } from "lucide-react";
+import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, ArrowLeft } from "lucide-react";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/player/OvrExplanationModal";
 import SuggestPeerRatingModal from "@/components/player/SuggestPeerRatingModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import TacticalSuggestionsCard from "@/components/match/TacticalSuggestionsCard";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import { useCommunity } from "@/contexts/CommunityContext";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -57,44 +58,40 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
   const pct = Math.min(Math.max(value, 0), 99);
   const color =
     pct >= 80
-      ? "from-emerald-400 to-emerald-600"
+      ? "bg-emerald-500"
       : pct >= 60
-      ? "from-teal-400 to-teal-600"
+      ? "bg-teal-500"
       : pct >= 40
-      ? "from-amber-400 to-amber-600"
-      : "from-red-400 to-red-600";
+      ? "bg-amber-500"
+      : "bg-rose-500";
 
   return (
     <div className="flex items-center gap-3">
-      <span className="w-32 text-xs font-bold text-slate-600 dark:text-slate-300 tracking-wider truncate">
+      <span className="w-36 text-xs font-bold text-slate-300 tracking-wider truncate">
         {label}
       </span>
-      <div className="flex-1 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+      <div className="flex-1 h-2.5 bg-slate-950 border border-slate-800/80 rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 1, ease: "easeOut" }}
-          className={`h-full rounded-full bg-gradient-to-r ${color}`}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className={`h-full rounded-full ${color}`}
         />
       </div>
-      <span className="w-8 text-right text-sm font-bold text-slate-800 dark:text-white">{value}</span>
+      <span className="w-8 text-right text-xs font-black text-white">{value}</span>
     </div>
   );
 }
 
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-
 export default function PlayerProfilePage() {
   return (
     <ProtectedRoute>
-      <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">Loading...</div>}>
+      <Suspense fallback={<SiteSkeletonLoader variant="profile" />}>
         <PlayerProfileContent />
       </Suspense>
     </ProtectedRoute>
   );
 }
-
-import { useCommunity } from "@/contexts/CommunityContext";
 
 function PlayerProfileContent() {
   const router = useRouter();
@@ -106,7 +103,6 @@ function PlayerProfileContent() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  // If uid query parameter was passed, use it. Otherwise default to logged in user.
   const effectiveUid = rawUid ? uid : user?.uid;
   const isViewingOwnProfile = Boolean(user?.uid && effectiveUid && user.uid === effectiveUid);
 
@@ -116,7 +112,7 @@ function PlayerProfileContent() {
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
-  const { player, setPlayer, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
+  const { player, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
 
   useEffect(() => {
     if (!effectiveUid && !authLoading) setLoading(false);
@@ -155,22 +151,24 @@ function PlayerProfileContent() {
 
   if (!player) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 gap-6">
-        <div className="text-6xl">🔍</div>
-        <h2 className="text-2xl font-bold text-slate-950 dark:text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white gap-6 px-4">
+        <div className="w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-4xl shadow-inner">
+          🔍
+        </div>
+        <h2 className="text-2xl font-black text-white">
           {isAr ? "اللاعب غير موجود" : "Player Not Found"}
         </h2>
         {isViewingOwnProfile ? (
           <Link
             href="/onboarding"
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition-colors"
+            className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-bold transition-all shadow-lg shadow-emerald-950/40"
           >
             {isAr ? "إنشاء ملف اللاعب" : "Create Player Profile"}
           </Link>
         ) : (
           <Link
             href="/community"
-            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-white font-bold transition-colors"
+            className="px-6 py-3 bg-slate-900 border border-slate-800 hover:bg-slate-800 rounded-2xl text-white font-bold transition-all"
           >
             {isAr ? "العودة إلى المجتمع" : "Back to Community"}
           </Link>
@@ -179,36 +177,34 @@ function PlayerProfileContent() {
     );
   }
 
-
-
   const statCards = [
     {
-      icon: <Target className="w-5 h-5 text-emerald-500" />,
+      icon: <Target className="w-5 h-5 text-emerald-400" />,
       label: isAr ? "الأهداف" : "Goals",
       value: player.stats?.goals || 0,
     },
     {
-      icon: <Handshake className="w-5 h-5 text-emerald-500" />,
+      icon: <Handshake className="w-5 h-5 text-teal-400" />,
       label: isAr ? "التمريرات الحاسمة" : "Assists",
       value: player.stats?.assists || 0,
     },
     {
-      icon: <Trophy className="w-5 h-5 text-amber-500" />,
+      icon: <Trophy className="w-5 h-5 text-amber-400" />,
       label: isAr ? "أفضل لاعب" : "MVP",
       value: player.stats?.mvp || 0,
     },
     {
-      icon: <Swords className="w-5 h-5 text-blue-500" />,
+      icon: <Swords className="w-5 h-5 text-blue-400" />,
       label: isAr ? "المباريات" : "Matches",
       value: player.stats?.matchesPlayed || 0,
     },
     {
-      icon: <span className="text-base">🟨</span>,
+      icon: <span className="text-lg">🟨</span>,
       label: isAr ? "الإنذارات (صفراء)" : "Yellow Cards",
       value: player.stats?.yellowCards || 0,
     },
     {
-      icon: <span className="text-base">🟥</span>,
+      icon: <span className="text-lg">🟥</span>,
       label: isAr ? "الكروت الحمراء" : "Red Cards",
       value: player.stats?.redCards || 0,
     },
@@ -221,27 +217,31 @@ function PlayerProfileContent() {
       : []),
   ];
 
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300">
-      
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-10">
-        {/* Top Section: Card + Physical Info */}
+    <div
+      className="min-h-screen bg-slate-950 text-white pt-20 pb-16 transition-colors"
+      dir={isAr ? "rtl" : "ltr"}
+    >
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
+        {/* Top Header Card */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="space-y-8"
+          transition={{ duration: 0.5 }}
+          className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl space-y-6 relative overflow-hidden"
         >
-          {/* Full Name & Form */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Ambient Glow */}
+          <div className="pointer-events-none absolute -top-24 -right-24 w-96 h-96 rounded-full bg-emerald-500/10 blur-[120px]" />
+
+          {/* Full Name & OVR Info Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="flex flex-wrap items-center gap-3">
-              <h2 className="text-3xl sm:text-4xl font-black text-amber-500 dark:text-amber-400">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white">
                 {player.fullName}
-              </h2>
+              </h1>
               <button
                 onClick={() => setIsOvrInfoOpen(true)}
-                className="flex items-center gap-1.5 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-3 py-1.5 rounded-xl shadow-sm text-xs font-bold transition-all"
+                className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
                 title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
               >
                 <HelpCircle className="w-4 h-4" />
@@ -250,77 +250,88 @@ function PlayerProfileContent() {
             </div>
           </div>
 
+          {/* Suspension Banner */}
           {player.stats?.isSuspended && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="p-4 bg-red-50 dark:bg-red-500/10 border-2 border-red-500 rounded-2xl flex items-center gap-3 text-red-800 dark:text-red-200 shadow-md"
+              className="p-4 bg-red-950/40 border border-red-500/60 rounded-2xl flex items-center gap-3.5 text-red-300 shadow-lg relative z-10"
             >
-              <span className="text-2xl">🚫</span>
+              <div className="p-2.5 bg-red-500/10 rounded-xl border border-red-500/30 text-red-400 shrink-0">
+                <ShieldAlert className="w-6 h-6" />
+              </div>
               <div>
-                <h4 className="font-black text-sm">{isAr ? "اللاعب موقوف حالياً عن المشاركة (كرت أحمر)" : "Player Currently Suspended (Red Card)"}</h4>
-                <p className="text-xs text-red-600 dark:text-red-300 mt-0.5">
+                <h4 className="font-black text-sm text-white">
+                  {isAr ? "اللاعب موقوف حالياً عن المشاركة (كرت أحمر)" : "Player Currently Suspended (Red Card)"}
+                </h4>
+                <p className="text-xs text-red-300/80 mt-0.5 leading-relaxed">
                   {isAr
-                    ? "حصل هذا اللاعب على كرت أحمر في مباراته السابقة، ولن يتمكن من المشاركة في الحجز/المباراة القادمة حتى انتهاء مدة الإيقاف."
-                    : "This player received a red card in their previous match and cannot play in the next match/turf session."}
+                    ? "حصل هذا اللاعب على كرت أحمر في مباراته السابقة، ولن يتمكن من المشاركة في المباراة القادمة حتى انتهاء مدة الإيقاف."
+                    : "This player received a red card in their previous match and cannot play in the next match session."}
                 </p>
               </div>
             </motion.div>
           )}
 
-            <div className="flex flex-col lg:flex-row gap-8 w-full justify-center lg:justify-between items-center lg:items-start bg-white dark:bg-slate-800/30 p-6 md:p-8 rounded-3xl border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none">
-              {/* Left Column: Card & Form */}
-              <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
-                {isViewingOwnProfile && (
-                  <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800 px-6 py-3 rounded-2xl border border-slate-300 dark:border-slate-600 w-full max-w-[340px] justify-between shadow-sm dark:shadow-lg">
-                    <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">{isAr ? "فورمة اللاعب (قبل المباراة):" : "Match Form:"}</span>
-                    <div className="flex gap-2">
-                      {['⬆️', '↗️', '➡️', '↘️', '⬇️'].map((arrow) => (
-                        <button
-                          key={arrow}
-                          onClick={async () => {
-                            try {
-                              const ref = doc(db, "players", player.uid);
-                              await updateDoc(ref, { form: arrow });
-                            } catch (e) {
-                              console.error("Failed to update form", e);
-                            }
-                          }}
-                          className={`p-1.5 hover:scale-125 transition-transform ${player.form === arrow ? 'bg-slate-200 dark:bg-slate-700 rounded-full border border-slate-300 dark:border-slate-600 shadow-[0_0_10px_rgba(0,0,0,0.1)]' : 'opacity-40 hover:opacity-100 grayscale hover:grayscale-0'}`}
-                          title={isAr ? `تحديث الحالة` : `Update form`}
-                        >
-                          <FormIcon form={arrow} className="w-6 h-6" />
-                        </button>
-                      ))}
-                    </div>
+          {/* Split Column: Card + Match Form + Pitch */}
+          <div className="flex flex-col lg:flex-row gap-8 w-full justify-between items-center lg:items-start pt-2 relative z-10">
+            {/* Left Column: Player Card & Form Selector */}
+            <div className="flex flex-col items-center gap-6 w-full lg:w-auto">
+              {isViewingOwnProfile && (
+                <div className="flex items-center gap-3 bg-slate-950/80 px-5 py-3 rounded-2xl border border-slate-800 w-full max-w-[340px] justify-between shadow-inner">
+                  <span className="text-xs text-slate-300 font-bold">
+                    {isAr ? "فورمة اللاعب (قبل المباراة):" : "Match Form:"}
+                  </span>
+                  <div className="flex gap-1.5">
+                    {['⬆️', '↗️', '➡️', '↘️', '⬇️'].map((arrow) => (
+                      <button
+                        key={arrow}
+                        onClick={async () => {
+                          try {
+                            const ref = doc(db, "players", player.uid);
+                            await updateDoc(ref, { form: arrow });
+                          } catch (e) {
+                            console.error("Failed to update form", e);
+                          }
+                        }}
+                        className={`p-1.5 hover:scale-125 transition-transform rounded-xl ${
+                          player.form === arrow
+                            ? 'bg-slate-800 border border-slate-700 shadow-md scale-110'
+                            : 'opacity-40 hover:opacity-100 grayscale hover:grayscale-0'
+                        }`}
+                        title={isAr ? `تحديث الحالة` : `Update form`}
+                      >
+                        <FormIcon form={arrow} className="w-5 h-5" />
+                      </button>
+                    ))}
                   </div>
-                )}
-                
-                <PlayerCard 
-                  player={player} 
-                  onCompare={() => setIsCompareModalOpen(true)}
-                />
-              </div>
-
-              {/* Right Column: SVG Pitch */}
-              <div className="flex flex-col items-center w-full max-w-[400px]">
-                <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4 self-center lg:self-start bg-emerald-50 dark:bg-slate-800/50 px-4 py-2 rounded-lg border border-emerald-200 dark:border-emerald-500/20">
-                  {isAr ? "مراكز اللعب والتقييم" : "Positions & Ratings"}
-                </h3>
-                <div className="w-full">
-                  <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
                 </div>
-              </div>
+              )}
+              
+              <PlayerCard 
+                player={player} 
+                onCompare={() => setIsCompareModalOpen(true)}
+              />
             </div>
 
+            {/* Right Column: Interactive Pitch */}
+            <div className="flex flex-col items-center w-full max-w-[400px]">
+              <h3 className="text-sm font-black text-emerald-400 mb-3.5 self-center lg:self-start bg-slate-950/80 px-4 py-2 rounded-xl border border-slate-800">
+                {isAr ? "⚽ مراكز اللعب والتقييم" : "⚽ Positions & Ratings"}
+              </h3>
+              <div className="w-full">
+                <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
+              </div>
+            </div>
+          </div>
         </motion.div>
 
-        {/* AI Tactical Analysis Section - Visible to profile owner, admins, and owners */}
+        {/* AI Tactical Analysis Section */}
         {(isViewingOwnProfile || isAdmin || isOwner) && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
+            transition={{ delay: 0.2 }}
           >
             <TacticalSuggestionsCard
               attributes={player.approvedAttributes || player.attributes}
@@ -333,36 +344,36 @@ function PlayerProfileContent() {
           </motion.section>
         )}
 
-        {/* Match Stats */}
+        {/* Match Statistics Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          className="space-y-4"
         >
-          <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4">
-            {isAr ? "إحصائيات المباريات" : "Match Statistics"}
+          <h3 className="text-xl font-black text-emerald-400 flex items-center gap-2">
+            📊 {isAr ? "إحصائيات المباريات" : "Match Statistics"}
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {statCards.map((stat, i) => (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }}
-                className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none rounded-2xl p-6 text-center"
+                transition={{ delay: 0.35 + i * 0.05 }}
+                className="bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 shadow-xl rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.02]"
               >
-                <div className="text-3xl mb-2 flex justify-center">{stat.icon}</div>
-                <div className="text-3xl font-black text-slate-800 dark:text-white">
+                <div className="text-2xl mb-2 flex justify-center">{stat.icon}</div>
+                <div className="text-2xl md:text-3xl font-black text-white">
                   {typeof stat.value === 'number'
                     ? <AnimatedCounter value={stat.value} />
                     : <span>{stat.value}</span>
                   }
                 </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                <div className="text-xs text-slate-400 mt-1.5 font-bold">
                   {stat.label}
                 </div>
               </motion.div>
-
             ))}
           </div>
         </motion.section>
@@ -372,9 +383,10 @@ function PlayerProfileContent() {
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.45 }}
+            transition={{ delay: 0.4 }}
+            className="space-y-4"
           >
-            <h3 className="text-xl font-black text-amber-600 dark:text-amber-500 mb-4 flex items-center gap-2">
+            <h3 className="text-xl font-black text-amber-400 flex items-center gap-2">
               🏆 {isAr ? "خزانة البطولات والجوائز" : "Trophy Cabinet"}
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -388,10 +400,13 @@ function PlayerProfileContent() {
                   tName.includes("Shield") || tName.includes("المدافع") ? "🛡️" : "🏆"
                 );
                 return (
-                  <div key={i} className="bg-gradient-to-br from-amber-50 dark:from-amber-500/10 to-amber-100/50 dark:to-amber-600/5 border border-amber-200 dark:border-amber-500/30 rounded-2xl p-4 text-center hover:scale-105 transition-transform shadow-sm dark:shadow-none flex flex-col items-center justify-center">
+                  <div
+                    key={i}
+                    className="bg-gradient-to-br from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/30 rounded-2xl p-5 text-center hover:scale-105 transition-transform shadow-xl flex flex-col items-center justify-center"
+                  >
                     <div className="text-3xl mb-2 animate-bounce">{tIcon}</div>
-                    <div className="font-black text-amber-600 dark:text-amber-500 text-xs sm:text-sm">{tName}</div>
-                    <div className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">{trophy?.season || ''}</div>
+                    <div className="font-black text-amber-400 text-xs sm:text-sm">{tName}</div>
+                    <div className="text-[10px] sm:text-xs text-slate-400 mt-1 font-semibold">{trophy?.season || ''}</div>
                   </div>
                 );
               })}
@@ -399,16 +414,17 @@ function PlayerProfileContent() {
           </motion.section>
         )}
 
-        {/* Attributes Breakdown */}
+        {/* Attributes Breakdown Section */}
         <motion.section
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.45 }}
+          className="space-y-4"
         >
-          <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4">
-            {isAr ? "تفصيل القدرات" : "Attributes Breakdown"}
+          <h3 className="text-xl font-black text-emerald-400 flex items-center gap-2">
+            ⚡ {isAr ? "تفصيل القدرات" : "Attributes Breakdown"}
           </h3>
-          <div className="bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none rounded-2xl p-6 space-y-3">
+          <div className="bg-slate-900/90 border border-slate-800 shadow-2xl rounded-3xl p-6 space-y-3.5 backdrop-blur-xl">
             {attrMap.map((attr) => (
               <AttributeBar
                 key={attr.key}
@@ -423,17 +439,18 @@ function PlayerProfileContent() {
           </div>
         </motion.section>
 
-        {/* Special Skills */}
+        {/* Special Skills Section */}
         {player.specialSkills && player.specialSkills.length > 0 && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-4"
           >
-            <h3 className="text-xl font-black text-emerald-600 dark:text-emerald-400 mb-4">
-              {isAr ? "المهارات الخاصة" : "Special Skills"}
+            <h3 className="text-xl font-black text-emerald-400 flex items-center gap-2">
+              ⭐ {isAr ? "المهارات الخاصة" : "Special Skills"}
             </h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2.5">
               {player.specialSkills.map((skillId, i) => {
                 const sId = skillId || '';
                 let label = sId.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
@@ -446,10 +463,11 @@ function PlayerProfileContent() {
                     key={i}
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 + i * 0.05 }}
-                    className="px-4 py-2 bg-gradient-to-r from-emerald-100 dark:from-emerald-900/60 to-teal-100 dark:to-teal-900/60 border border-emerald-300 dark:border-emerald-700/40 text-emerald-800 dark:text-emerald-300 shadow-sm dark:shadow-none rounded-full text-sm font-bold"
+                    transition={{ delay: 0.55 + i * 0.04 }}
+                    className="px-4 py-2 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 border border-emerald-500/40 text-emerald-300 rounded-full text-xs font-black shadow-md flex items-center gap-1.5"
                   >
-                    ⭐ {label}
+                    <span>⭐</span>
+                    <span>{label}</span>
                   </motion.span>
                 );
               })}
@@ -457,19 +475,19 @@ function PlayerProfileContent() {
           </motion.section>
         )}
 
-        {/* Export PDF, Edit Profile, Suggest Rating */}
+        {/* Action Bar: Export PDF, Edit Profile, Suggest Rating */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-          className="flex flex-wrap justify-center gap-4"
+          transition={{ delay: 0.6 }}
+          className="flex flex-wrap justify-center gap-4 pt-4"
         >
           {user?.uid === effectiveUid && (
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm dark:shadow-none rounded-2xl text-slate-800 dark:text-white font-black text-lg transition-all active:scale-95 flex items-center gap-2"
+              className="px-7 py-3.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 rounded-2xl text-white font-black text-base transition-all active:scale-95 flex items-center gap-2 shadow-xl cursor-pointer"
             >
-              <span>✏️</span>
+              <Edit className="w-5 h-5 text-emerald-400" />
               <span>{isAr ? "تعديل الملف الشخصي" : "Edit Profile"}</span>
             </button>
           )}
@@ -477,10 +495,10 @@ function PlayerProfileContent() {
           {user?.uid && user.uid !== effectiveUid && (
             <button
               onClick={() => (isAdmin || isOwner) ? setIsEditModalOpen(true) : setIsSuggestModalOpen(true)}
-              className={`px-8 py-4 rounded-2xl text-white font-black text-lg transition-all active:scale-95 flex items-center gap-2.5 ${
+              className={`px-7 py-3.5 rounded-2xl text-white font-black text-base transition-all active:scale-95 flex items-center gap-2.5 cursor-pointer ${
                 isAdmin || isOwner 
-                  ? "bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/30"
-                  : "bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-500/20"
+                  ? "bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-950/50"
+                  : "bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-950/40"
               }`}
             >
               <Sparkles className="w-5 h-5" />
@@ -495,20 +513,21 @@ function PlayerProfileContent() {
           {canExport && (
             <button
               onClick={() => generateProfilePDF(player, isAr ? 'ar' : 'en')}
-              className="px-8 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl text-white font-black text-lg transition-all shadow-lg shadow-emerald-900/30 hover:shadow-emerald-800/50 active:scale-95 flex items-center gap-2"
+              className="px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 rounded-2xl text-white font-black text-base transition-all shadow-lg shadow-emerald-950/40 active:scale-95 flex items-center gap-2 cursor-pointer"
             >
-              <span>📄</span>
+              <FileText className="w-5 h-5" />
               <span>{isAr ? "تصدير ملف PDF" : "Export PDF"}</span>
             </button>
           )}
         </motion.div>
       </main>
 
+      {/* Modals */}
       <EditProfileModal
         player={player}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        onRefresh={() => {}} // Data updates automatically via onSnapshot
+        onRefresh={() => {}}
       />
 
       <SuggestPeerRatingModal
@@ -533,4 +552,3 @@ function PlayerProfileContent() {
     </div>
   );
 }
-

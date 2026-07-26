@@ -72,28 +72,29 @@ export default function AdviceNotification() {
                 }
               }}
               onClick={() => toast.dismiss(t.id)}
-              className="max-w-md w-full bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-md shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-amber-500/30 p-4 gap-3.5 items-center cursor-pointer border border-amber-500/40 hover:scale-[1.02] transition-transform select-none"
+              className="max-w-md w-full bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl pointer-events-auto flex p-4 gap-3.5 items-center cursor-pointer border border-slate-800 hover:border-emerald-500/50 transition-all select-none"
               dir={isAr ? "rtl" : "ltr"}
             >
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-xl shrink-0">
+              <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0 shadow-md">
                 {icon}
               </div>
               <div className="flex-1 w-0">
                 <p className="text-sm font-black text-white truncate">
                   {isAr ? (notif.titleAr || notif.title) : (notif.titleEn || notif.title)}
                 </p>
-                <p className="mt-1 text-xs text-slate-300 line-clamp-2 font-medium">
+                <p className="mt-1 text-xs text-slate-300 line-clamp-2 font-medium leading-relaxed">
                   {isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)}
                 </p>
-                <p className="text-[10px] text-amber-400/80 font-bold mt-1.5">
-                  {isAr ? "↑ اسحب للأعلى للإغلاق" : "↑ Swipe up to dismiss"}
+                <p className="text-[10px] text-slate-400 font-bold mt-1.5 flex items-center gap-1">
+                  <span>↑</span>
+                  <span>{isAr ? "اسحب للأعلى للإغلاق" : "Swipe up to dismiss"}</span>
                 </p>
               </div>
               {notif.link && (
                 <Link
                   href={notif.link}
                   onClick={(e) => { e.stopPropagation(); toast.dismiss(t.id); }}
-                  className="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-black shrink-0 hover:bg-amber-400 transition-colors"
+                  className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shrink-0 shadow-md active:scale-95 transition-all"
                 >
                   {isAr ? "عرض" : "View"}
                 </Link>
@@ -114,7 +115,6 @@ export default function AdviceNotification() {
     if (!user) return;
 
     const fetchProfileAndGenerateAdvice = async () => {
-      // Only generate if user is actively viewing the site
       if (typeof document !== "undefined" && document.visibilityState !== "visible") {
         return;
       }
@@ -131,11 +131,11 @@ export default function AdviceNotification() {
 
     const initialTimeout = setTimeout(() => {
       fetchProfileAndGenerateAdvice();
-    }, 60 * 1000); // 1 minute after entering site
+    }, 60 * 1000);
 
     const interval = setInterval(() => {
       fetchProfileAndGenerateAdvice();
-    }, 10 * 60 * 1000); // Check every 10 minutes while on site
+    }, 10 * 60 * 1000);
 
     return () => {
       clearTimeout(initialTimeout);

@@ -59,7 +59,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }
       setLoadingCommunity(false);
     }, (err) => {
-      console.error("Failed to fetch community:", err);
+      if (err?.code !== "permission-denied") {
+        console.error("Failed to fetch community:", err);
+      }
       setLoadingCommunity(false);
     });
 
@@ -70,7 +72,9 @@ export const CommunityProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setCommunitySettings({ slowModeDelay: 0 });
       }
     }, (err) => {
-      console.error("Failed to fetch community settings:", err);
+      if (err?.code !== "permission-denied") {
+        console.error("Failed to fetch community settings:", err);
+      }
     });
 
     return () => {

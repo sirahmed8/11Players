@@ -25,25 +25,51 @@ const POSITIONS: PositionInfo[] = [
   { id: 'CF',  x: 200, y: 55  },
 ];
 
-const TIER_COLORS = {
-  0: { fill: '#f59e0b', stroke: '#d97706', glow: 'rgba(245,158,11,0.5)', label: 'Primary' },
-  1: { fill: '#94a3b8', stroke: '#64748b', glow: 'rgba(148,163,184,0.5)', label: 'Secondary' },
-  2: { fill: '#d97706', stroke: '#b45309', glow: 'rgba(217,119,6,0.5)', label: 'Tertiary' },
-} as const;
-
 interface SVGPitchDisplayProps {
   ratings: { position: PESPosition; rating: number; tier: number }[];
 }
 
 export default function SVGPitchDisplay({ ratings }: SVGPitchDisplayProps) {
   return (
-    <div className="w-full max-w-sm mx-auto relative rounded-2xl overflow-hidden border-2 border-emerald-700/40 shadow-xl shadow-emerald-900/30">
+    <div className="w-full max-w-sm mx-auto relative rounded-3xl overflow-hidden border-2 border-emerald-500/30 shadow-2xl shadow-emerald-950/50 group">
+      {/* Glossy Overlay */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent z-10" />
+
       <svg
         viewBox="0 0 400 560"
         className="w-full h-auto"
-        style={{ background: 'linear-gradient(180deg, #15803d 0%, #166534 50%, #14532d 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #022c22 0%, #064e3b 50%, #022c22 100%)' }}
       >
-        {/* Pitch grass stripes */}
+        <defs>
+          {/* Gradients for Nodes */}
+          <linearGradient id="primaryGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#10b981" />
+          </linearGradient>
+
+          <linearGradient id="secondaryGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#14b8a6" />
+            <stop offset="100%" stopColor="#06b6d4" />
+          </linearGradient>
+
+          <linearGradient id="tertiaryGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#f97316" />
+            <stop offset="100%" stopColor="#eab308" />
+          </linearGradient>
+
+          {/* Glow Filter for Lines */}
+          <filter id="emeraldGlow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+
+          {/* Shadow Filter for Nodes */}
+          <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="160%">
+            <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000000" floodOpacity="0.6" />
+          </filter>
+        </defs>
+
+        {/* Tactical Pitch Grass Stripes */}
         {Array.from({ length: 8 }).map((_, i) => (
           <rect
             key={i}
@@ -51,92 +77,112 @@ export default function SVGPitchDisplay({ ratings }: SVGPitchDisplayProps) {
             y={i * 70}
             width={400}
             height={70}
-            fill={i % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'transparent'}
+            fill={i % 2 === 0 ? 'rgba(16, 185, 129, 0.04)' : 'transparent'}
           />
         ))}
 
-        {/* Outer boundary */}
-        <rect x={20} y={20} width={360} height={520} rx={4} fill="none" stroke="white" strokeWidth={2} opacity={0.7} />
+        {/* Tactical Radar Grid Guidelines */}
+        <line x1={0} y1={140} x2={400} y2={140} stroke="#10b981" strokeWidth={0.5} strokeDasharray="4 4" opacity={0.25} />
+        <line x1={0} y1={420} x2={400} y2={420} stroke="#10b981" strokeWidth={0.5} strokeDasharray="4 4" opacity={0.25} />
+        <line x1={133} y1={0} x2={133} y2={560} stroke="#10b981" strokeWidth={0.5} strokeDasharray="4 4" opacity={0.25} />
+        <line x1={267} y1={0} x2={267} y2={560} stroke="#10b981" strokeWidth={0.5} strokeDasharray="4 4" opacity={0.25} />
 
-        {/* Center line & circle */}
-        <line x1={20} y1={280} x2={380} y2={280} stroke="white" strokeWidth={1.5} opacity={0.6} />
-        <circle cx={200} cy={280} r={55} fill="none" stroke="white" strokeWidth={1.5} opacity={0.6} />
-        <circle cx={200} cy={280} r={3} fill="white" opacity={0.6} />
+        {/* Outer Boundary Markings */}
+        <rect x={20} y={20} width={360} height={520} rx={8} fill="none" stroke="#34d399" strokeWidth={2} opacity={0.8} filter="url(#emeraldGlow)" />
 
-        {/* Top penalty area */}
-        <rect x={105} y={20} width={190} height={85} fill="none" stroke="white" strokeWidth={1.5} opacity={0.6} />
-        <rect x={140} y={20} width={120} height={40} fill="none" stroke="white" strokeWidth={1.5} opacity={0.5} />
-        <path d="M 155 105 Q 200 130 245 105" fill="none" stroke="white" strokeWidth={1.5} opacity={0.5} />
-        <circle cx={200} cy={78} r={2.5} fill="white" opacity={0.5} />
+        {/* Center Line & Circle */}
+        <line x1={20} y1={280} x2={380} y2={280} stroke="#34d399" strokeWidth={1.8} opacity={0.75} />
+        <circle cx={200} cy={280} r={55} fill="none" stroke="#34d399" strokeWidth={1.8} opacity={0.75} />
+        <circle cx={200} cy={280} r={3.5} fill="#34d399" opacity={0.9} />
 
-        {/* Bottom penalty area */}
-        <rect x={105} y={455} width={190} height={85} fill="none" stroke="white" strokeWidth={1.5} opacity={0.6} />
-        <rect x={140} y={500} width={120} height={40} fill="none" stroke="white" strokeWidth={1.5} opacity={0.5} />
-        <path d="M 155 455 Q 200 430 245 455" fill="none" stroke="white" strokeWidth={1.5} opacity={0.5} />
-        <circle cx={200} cy={480} r={2.5} fill="white" opacity={0.5} />
+        {/* Top Penalty Area */}
+        <rect x={105} y={20} width={190} height={85} fill="none" stroke="#34d399" strokeWidth={1.8} opacity={0.75} />
+        <rect x={140} y={20} width={120} height={40} fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.65} />
+        <path d="M 155 105 Q 200 130 245 105" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.65} />
+        <circle cx={200} cy={78} r={3} fill="#34d399" opacity={0.8} />
 
-        {/* Goal areas */}
-        <rect x={165} y={20} width={70} height={5} fill="white" opacity={0.3} rx={1} />
-        <rect x={165} y={535} width={70} height={5} fill="white" opacity={0.3} rx={1} />
+        {/* Bottom Penalty Area */}
+        <rect x={105} y={455} width={190} height={85} fill="none" stroke="#34d399" strokeWidth={1.8} opacity={0.75} />
+        <rect x={140} y={500} width={120} height={40} fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.65} />
+        <path d="M 155 455 Q 200 430 245 455" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.65} />
+        <circle cx={200} cy={480} r={3} fill="#34d399" opacity={0.8} />
 
-        {/* Corner arcs */}
-        <path d="M 20 30 Q 30 20 30 20" fill="none" stroke="white" strokeWidth={1} opacity={0.4} />
-        <path d="M 370 20 Q 380 30 380 30" fill="none" stroke="white" strokeWidth={1} opacity={0.4} />
-        <path d="M 20 530 Q 30 540 30 540" fill="none" stroke="white" strokeWidth={1} opacity={0.4} />
-        <path d="M 370 540 Q 380 530 380 530" fill="none" stroke="white" strokeWidth={1} opacity={0.4} />
+        {/* Goal Frames */}
+        <rect x={165} y={15} width={70} height={5} fill="#34d399" opacity={0.6} rx={1.5} />
+        <rect x={165} y={540} width={70} height={5} fill="#34d399" opacity={0.6} rx={1.5} />
 
-        {/* Position Markers */}
+        {/* Corner Arcs */}
+        <path d="M 20 35 Q 35 20 35 20" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.6} />
+        <path d="M 365 20 Q 380 35 380 35" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.6} />
+        <path d="M 20 525 Q 35 540 35 540" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.6} />
+        <path d="M 365 540 Q 380 525 380 525" fill="none" stroke="#34d399" strokeWidth={1.5} opacity={0.6} />
+
+        {/* Position Nodes */}
         {ratings.map((r) => {
           const pos = POSITIONS.find(p => p.id === r.position);
           if (!pos) return null;
-          const tierStyle = TIER_COLORS[r.tier as 0 | 1 | 2];
+
+          const isPrimary = r.tier === 0;
+          const isSecondary = r.tier === 1;
+
+          const fillGrad = isPrimary ? "url(#primaryGrad)" : isSecondary ? "url(#secondaryGrad)" : "url(#tertiaryGrad)";
+          const ringStroke = isPrimary ? "#f59e0b" : isSecondary ? "#14b8a6" : "#f97316";
 
           return (
-            <g key={r.position}>
-              {/* Glow */}
-              <circle cx={pos.x} cy={pos.y} r={28} fill="none" stroke={tierStyle.fill} strokeWidth={2} opacity={0.4} />
-              
-              {/* Main circle */}
+            <g key={r.position} filter="url(#nodeShadow)">
+              {/* Outer Pulse Glow Ring */}
               <circle
                 cx={pos.x}
                 cy={pos.y}
-                r={22}
-                fill={tierStyle.fill}
-                stroke={tierStyle.stroke}
-                strokeWidth={3}
-                style={{ filter: `drop-shadow(0 0 8px ${tierStyle.glow})` }}
+                r={isPrimary ? 28 : 24}
+                fill="none"
+                stroke={ringStroke}
+                strokeWidth={isPrimary ? 2.5 : 1.5}
+                opacity={isPrimary ? 0.6 : 0.35}
               />
 
-              {/* Overall Rating Text */}
+              {/* Main Rating Sphere */}
+              <circle
+                cx={pos.x}
+                cy={pos.y}
+                r={isPrimary ? 23 : 20}
+                fill={fillGrad}
+                stroke="#090d16"
+                strokeWidth={2.5}
+              />
+
+              {/* Rating Text inside Node */}
               <text
                 x={pos.x}
-                y={pos.y + 5}
+                y={pos.y + (isPrimary ? 5 : 4.5)}
                 textAnchor="middle"
-                fontSize="14"
-                fontWeight="bold"
-                fill="#0f172a"
+                fontSize={isPrimary ? "15" : "13"}
+                fontWeight="900"
+                fill="#090d16"
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
                 {r.rating}
               </text>
 
-              {/* Position Label Badge */}
+              {/* Position Label Pill */}
               <rect
-                x={pos.x - 16}
-                y={pos.y + 26}
-                width={32}
-                height={16}
-                rx={4}
-                fill="#0f172a"
-                opacity={0.85}
+                x={pos.x - (r.position.length > 2 ? 20 : 17)}
+                y={pos.y + (isPrimary ? 26 : 23)}
+                width={r.position.length > 2 ? 40 : 34}
+                height={17}
+                rx={5}
+                fill="#090d16"
+                stroke="#334155"
+                strokeWidth={1}
               />
               <text
                 x={pos.x}
-                y={pos.y + 37}
+                y={pos.y + (isPrimary ? 38 : 35)}
                 textAnchor="middle"
                 fontSize="10"
-                fontWeight="bold"
-                fill="#e2e8f0"
+                fontWeight="900"
+                fill="#ffffff"
+                style={{ pointerEvents: 'none', userSelect: 'none' }}
               >
                 {r.position}
               </text>

@@ -6,11 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, setDoc, doc, deleteDoc, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Bell, Send, Trash2, AlertTriangle, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2 } from "lucide-react";
+import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 
 export interface Announcement {
   id: string;
@@ -89,7 +90,7 @@ export default function AnnouncementsPage() {
       return;
     }
     if (targetScope === 'active_community' && !activeCommunityId) {
-      toast.error(isAr ? "يرجى اختيار مجتمع نشط أولاً قبل البث الخاص بالمجتمع" : "Please select an active community before broadcasting to a community");
+      toast.error(isAr ? "يرجى اختيار مجتمع نشط أولاً قبل البث الخاص بالمجتمع" : "Please select an active community before broadcasting");
       return;
     }
 
@@ -114,7 +115,25 @@ export default function AnnouncementsPage() {
       // 1. Save to global announcements collection
       await setDoc(doc(db, "announcements", annId), announcementData);
 
-      // 2. Deliver to users/{uid}/notifications
+      // 2. Broadcast to community live chat
+      if (targetScope === 'active_community' && activeCommunityId) {
+        try {
+          await addDoc(collection(db, "communities", activeCommunityId, "chat"), {
+            senderId: "system",
+            senderName: isAr ? "11AI إعلانات" : "11AI Announcement",
+            senderPhoto: "",
+            text: isAr
+              ? `📢 [إعلان رسمي جديد]: ${titleAr.trim()}\n${bodyAr.trim()}`
+              : `📢 [Official Announcement]: ${titleEn.trim()}\n${bodyEn.trim()}`,
+            createdAt: serverTimestamp(),
+            isSystem: true,
+          });
+        } catch (chatErr) {
+          console.warn("Chat broadcast skipped:", chatErr);
+        }
+      }
+
+      // 3. Deliver to users/{uid}/notifications in safe 400 chunks
       let targetUids: string[] = [];
       if (targetScope === 'active_community' && activeCommunityId) {
         const snap = await getDocs(collection(db, "communities", activeCommunityId, "players"));
@@ -124,7 +143,6 @@ export default function AnnouncementsPage() {
         snap.forEach(d => targetUids.push(d.id));
       }
 
-      // Batch send notifications cleanly
       const chunkSize = 400;
       for (let i = 0; i < targetUids.length; i += chunkSize) {
         const chunk = targetUids.slice(i, i + chunkSize);
@@ -176,50 +194,55 @@ export default function AnnouncementsPage() {
     }
   };
 
+  if (loadingHistory || authLoading) {
+    return (
+      <ProtectedRoute adminOnly>
+        <div className="min-h-screen bg-slate-950 text-white py-8 px-4 sm:px-6 max-w-5xl mx-auto">
+          <SiteSkeletonLoader variant="list" />
+        </div>
+      </ProtectedRoute>
+    );
+  }
+
   return (
     <ProtectedRoute adminOnly>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-10 px-4 transition-colors" dir={isAr ? 'rtl' : 'ltr'}>
-        <div className="max-w-5xl mx-auto space-y-8">
-          {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900 dark:bg-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-          >
+      <div className="min-h-screen bg-slate-950 text-white py-8 px-4 sm:px-6 transition-colors" dir={isAr ? 'rtl' : 'ltr'}>
+        <div className="max-w-5xl mx-auto space-y-6">
+          {/* Header Banner — Solid Dark Slate */}
+          <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl shrink-0">
-                📢
+              <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400 shrink-0 shadow-inner">
+                <Megaphone className="w-6 h-6 text-amber-400 animate-pulse" />
               </div>
               <div>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-slate-800 text-amber-400 border border-slate-700 mb-2">
-                  ⚡ {isAr ? "مركز البث المباشر والإعلانات" : "Bilingual Push Broadcast Center"}
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black bg-slate-950 text-amber-400 border border-slate-800 mb-1">
+                  <Sparkles className="w-3 h-3 text-amber-400" />
+                  <span>{isAr ? "مركز الإعلانات والبث الفوري" : "Push Broadcast Center"}</span>
                 </span>
-                <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white">
-                  {isAr ? "بث الإشعارات والإعلانات المزدوجة" : "Broadcast Push Notifications & Announcements"}
+                <h1 className="text-xl sm:text-3xl font-black text-white tracking-tight">
+                  {isAr ? "بث الإشعارات والإعلانات ثنائية اللغة" : "Bilingual Broadcast & Notifications"}
                 </h1>
-                <p className="text-sm text-slate-300 mt-1">
-                  {isAr ? "أرسل إشعارات فورية وإعلانات ثنائية اللغة لجميع اللاعبين في مجتمعك أو لكامل التطبيق" : "Deliver bilingual real-time push notifications and feed banners instantly to your community players."}
+                <p className="text-xs text-slate-400 mt-1 font-semibold">
+                  {isAr ? "أرسل إشعارات فورية وإعلانات ثنائية اللغة لجميع اللاعبين في مجتمعك وبثها بالمحادثة." : "Deliver bilingual push notifications and feed banners instantly to your players."}
                 </p>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Broadcast Form */}
-          <motion.form
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+          {/* Broadcast Form — Solid Dark Slate */}
+          <form
             onSubmit={handleBroadcast}
-            className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6"
+            className="bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-6"
           >
-            <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <Bell className="w-6 h-6 text-amber-500" />
+            <h2 className="text-lg font-black text-white flex items-center gap-2 border-b border-slate-800 pb-4">
+              <Bell className="w-5 h-5 text-amber-400" />
               <span>{isAr ? "إنشاء إعلان أو إشعار جديد" : "Create New Broadcast Notification"}</span>
             </h2>
 
             {/* Scope & Priority Selector */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
+                <label className="block text-xs font-black text-slate-300 mb-2">
                   {isAr ? "نطاق المستهدفين بالبث (Target Scope)" : "Target Audience Scope"}
                 </label>
                 <CustomDropdown
@@ -240,7 +263,7 @@ export default function AnnouncementsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2">
+                <label className="block text-xs font-black text-slate-300 mb-2">
                   {isAr ? "أولوية الإشعار (Priority Level)" : "Notification Priority"}
                 </label>
                 <CustomDropdown
@@ -258,8 +281,8 @@ export default function AnnouncementsPage() {
             {/* Titles Grid (English + Arabic) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">
-                  🇺🇸 {isAr ? "عنوان الإشعار بالإنجليزية (English Title)" : "English Title"} <span className="text-red-500">*</span>
+                <label className="block text-xs font-black text-slate-300">
+                  🇺🇸 {isAr ? "عنوان الإشعار بالإنجليزية (English Title)" : "English Title"} <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -267,13 +290,13 @@ export default function AnnouncementsPage() {
                   placeholder="e.g. Next Match Sign-Up Open!"
                   value={titleEn}
                   onChange={e => setTitleEn(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">
-                  🇸🇦 {isAr ? "عنوان الإشعار بالعربية (Arabic Title)" : "Arabic Title"} <span className="text-red-500">*</span>
+                <label className="block text-xs font-black text-slate-300">
+                  🇸🇦 {isAr ? "عنوان الإشعار بالعربية (Arabic Title)" : "Arabic Title"} <span className="text-rose-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -281,7 +304,7 @@ export default function AnnouncementsPage() {
                   placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                   value={titleAr}
                   onChange={e => setTitleAr(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
                 />
               </div>
             </div>
@@ -289,8 +312,8 @@ export default function AnnouncementsPage() {
             {/* Bodies Grid (English + Arabic) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">
-                  🇺🇸 {isAr ? "نص الرسالة بالإنجليزية (English Message Body)" : "English Message Body"} <span className="text-red-500">*</span>
+                <label className="block text-xs font-black text-slate-300">
+                  🇺🇸 {isAr ? "نص الرسالة بالإنجليزية (English Message Body)" : "English Message Body"} <span className="text-rose-400">*</span>
                 </label>
                 <textarea
                   rows={4}
@@ -298,13 +321,13 @@ export default function AnnouncementsPage() {
                   placeholder="Type your message description here in English..."
                   value={bodyEn}
                   onChange={e => setBodyEn(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-300">
-                  🇸🇦 {isAr ? "نص الرسالة بالعربية (Arabic Message Body)" : "Arabic Message Body"} <span className="text-red-500">*</span>
+                <label className="block text-xs font-black text-slate-300">
+                  🇸🇦 {isAr ? "نص الرسالة بالعربية (Arabic Message Body)" : "Arabic Message Body"} <span className="text-rose-400">*</span>
                 </label>
                 <textarea
                   rows={4}
@@ -312,15 +335,15 @@ export default function AnnouncementsPage() {
                   placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                   value={bodyAr}
                   onChange={e => setBodyAr(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
                 />
               </div>
             </div>
 
             {/* Optional Link / Target URL */}
             <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-2 flex items-center gap-1.5">
-                <LinkIcon className="w-4 h-4 text-amber-500" />
+              <label className="block text-xs font-black text-slate-300 mb-2 flex items-center gap-1.5">
+                <LinkIcon className="w-4 h-4 text-amber-400" />
                 <span>{isAr ? "رابط الانتقال عند الضغط (اختياري، مثلاً /match أو /stats)" : "Action Link / Route (Optional, e.g. /match or /stats)"}</span>
               </label>
               <input
@@ -328,76 +351,77 @@ export default function AnnouncementsPage() {
                 placeholder={isAr ? "مثال: /match" : "e.g. /match"}
                 value={link}
                 onChange={e => setLink(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono text-sm focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all placeholder-slate-400 dark:placeholder-slate-500 shadow-sm"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
               />
             </div>
 
             {/* Action Button */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+            <div className="pt-4 border-t border-slate-800 flex justify-end">
               <button
                 type="submit"
                 disabled={broadcasting}
-                className="px-8 py-4 rounded-2xl font-black text-base shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-3 disabled:opacity-50"
+                className="px-6 py-3.5 rounded-2xl font-black text-xs shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2.5 disabled:opacity-50 shadow-emerald-600/30"
               >
-                {broadcasting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
-                <span>{broadcasting ? (isAr ? "جاري بث الإشعارات..." : "Broadcasting Now...") : (isAr ? "بث الإشعار الآن للجميع" : "Broadcast Push Notification Now")}</span>
+                {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                <span>{broadcasting ? (isAr ? "جاري بث الإشعارات..." : "Broadcasting Now...") : (isAr ? "بث الإشعار الآن للجميع" : "Broadcast Notification Now")}</span>
               </button>
             </div>
-          </motion.form>
+          </form>
 
           {/* Past Broadcast History */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200 dark:border-slate-800 space-y-6">
-            <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+          <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-6">
+            <h3 className="text-base font-black text-white flex items-center justify-between border-b border-slate-800 pb-4">
               <div className="flex items-center gap-2">
                 <span>📜</span>
                 <span>{isAr ? "سجل البث والإعلانات السابقة" : "Recent Broadcast History"}</span>
               </div>
-              <span className="text-xs font-mono text-slate-400">{recentAnnouncements.length} {isAr ? "إعلانات" : "broadcasts"}</span>
+              <span className="text-xs font-mono text-slate-400 font-bold">{recentAnnouncements.length} {isAr ? "إعلانات" : "broadcasts"}</span>
             </h3>
 
             {loadingHistory ? (
               <div className="py-12 flex justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
               </div>
             ) : recentAnnouncements.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+              <div className="py-12 text-center text-slate-400 border border-slate-800 rounded-2xl font-medium text-xs">
                 {isAr ? "لم يتم إرسال أي إعلانات بعد." : "No broadcasts sent yet."}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {recentAnnouncements.map(ann => (
                   <div
                     key={ann.id}
-                    className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors"
+                    className="p-5 rounded-2xl bg-slate-950 border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-colors"
                   >
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                          ann.priority === 'urgent' ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30'
+                          ann.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
                         }`}>
                           {ann.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
                         </span>
                         <span className="text-xs font-bold text-slate-400">
                           {ann.targetScope === 'global_all_users' ? (isAr ? '🌍 عام للكل' : '🌍 Global All') : (isAr ? '👥 للمجتمع' : '👥 Community')}
                         </span>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-slate-500 font-medium">
                           {new Date(ann.createdAt).toLocaleString()}
                         </span>
                       </div>
-                      <h4 className="font-bold text-base text-slate-900 dark:text-white truncate">
+                      <h4 className="font-black text-sm text-white truncate">
                         {isAr ? ann.titleAr : ann.titleEn}
                       </h4>
-                      <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                      <p className="text-xs text-slate-300 font-medium line-clamp-2">
                         {isAr ? ann.bodyAr : ann.bodyEn}
                       </p>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => handleDeleteAnnouncement(ann.id)}
-                      className="p-2.5 rounded-xl bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 transition-colors shrink-0"
+                      className="p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 text-rose-400 hover:bg-rose-950/40 transition-colors shrink-0"
                       title={isAr ? "حذف الإعلان" : "Delete Announcement"}
                     >
-                      <Trash2 className="w-5 h-5" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 ))}

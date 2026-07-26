@@ -1,68 +1,565 @@
+/* ============================================================
+   11Players — Global Design System
+   ============================================================ */
+
+/* ---- Google Fonts ---- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
+
 @import "tailwindcss";
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
-  --color-pitch-light: #22c55e;
-  --color-pitch-dark: #15803d;
-  --color-pitch-deep: #14532d;
-  --color-pitch-boundary: #ffffff;
-  
-  --color-card-light: #ffffff;
-  --color-card-dark: #1e293b;
-  
-  --color-bg-light: #f8fafc;
-  --color-bg-dark: #0f172a;
-}
-
+/* ============================================================
+   DESIGN TOKENS — CSS Custom Properties
+   ============================================================ */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  /* -- Brand Colors -- */
+  --color-primary:        #10b981;   /* emerald-500 */
+  --color-primary-dark:   #059669;   /* emerald-600 */
+  --color-primary-deeper: #047857;   /* emerald-700 */
+  --color-primary-glow:   rgba(16,185,129,0.25);
+
+  --color-gold:           #f59e0b;   /* amber-500 */
+  --color-gold-light:     #fbbf24;   /* amber-400 */
+  --color-gold-glow:      rgba(245,158,11,0.30);
+
+  --color-accent-blue:    #3b82f6;   /* blue-500 */
+  --color-accent-purple:  #8b5cf6;   /* violet-500 */
+  --color-accent-rose:    #f43f5e;   /* rose-500 */
+
+  /* -- Surface / Background -- */
+  --color-bg:             #f8fafc;   /* slate-50 */
+  --color-bg-2:           #f1f5f9;   /* slate-100 */
+  --color-surface:        #ffffff;
+  --color-surface-2:      #f8fafc;
+  --color-border:         #e2e8f0;   /* slate-200 */
+  --color-border-2:       #cbd5e1;   /* slate-300 */
+
+  /* -- Text -- */
+  --color-text:           #0f172a;   /* slate-900 */
+  --color-text-2:         #334155;   /* slate-700 */
+  --color-text-muted:     #64748b;   /* slate-500 */
+  --color-text-faint:     #94a3b8;   /* slate-400 */
+
+  /* -- Radius -- */
+  --radius-sm:            8px;
+  --radius-md:            12px;
+  --radius-lg:            16px;
+  --radius-xl:            20px;
+  --radius-2xl:           24px;
+  --radius-full:          9999px;
+
+  /* -- Shadows -- */
+  --shadow-sm:            0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:            0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-lg:            0 10px 40px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+  --shadow-xl:            0 20px 60px rgba(0,0,0,0.16), 0 8px 24px rgba(0,0,0,0.08);
+  --shadow-glow-primary:  0 0 30px var(--color-primary-glow);
+  --shadow-glow-gold:     0 0 30px var(--color-gold-glow);
+
+  /* -- Transitions -- */
+  --transition-fast:      all 0.15s ease;
+  --transition-base:      all 0.25s ease;
+  --transition-slow:      all 0.4s ease;
+
+  /* -- Football Pitch -- */
+  --pitch-green:          #15803d;
+  --pitch-green-light:    #22c55e;
+  --pitch-line:           rgba(255,255,255,0.12);
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f8fafc;
+  /* -- Surface / Background -- */
+  --color-bg:             #020617;   /* slate-950 */
+  --color-bg-2:           #0f172a;   /* slate-900 */
+  --color-surface:        #0f172a;   /* slate-900 */
+  --color-surface-2:      #1e293b;   /* slate-800 */
+  --color-border:         #1e293b;   /* slate-800 */
+  --color-border-2:       #334155;   /* slate-700 */
+
+  /* -- Text -- */
+  --color-text:           #f8fafc;
+  --color-text-2:         #cbd5e1;
+  --color-text-muted:     #94a3b8;
+  --color-text-faint:     #64748b;
+
+  /* -- Shadows (deeper for dark) -- */
+  --shadow-sm:            0 1px 3px rgba(0,0,0,0.3),  0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md:            0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.2);
+  --shadow-lg:            0 10px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+  --shadow-xl:            0 20px 60px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
   margin: 0;
   padding: 0;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Soccer Pitch styles */
+/* Comfortable Dark Text Selection Highlight */
+::selection {
+  background-color: #064e3b;
+  color: #f8fafc;
+}
+
+::-moz-selection {
+  background-color: #064e3b;
+  color: #f8fafc;
+}
+
+/* ============================================================
+   TAILWIND THEME EXTENSION
+   ============================================================ */
+@theme {
+  --color-pitch-light:    #22c55e;
+  --color-pitch-dark:     #15803d;
+  --color-pitch-deep:     #14532d;
+  --color-pitch-boundary: #ffffff;
+  --color-card-light:     #ffffff;
+  --color-card-dark:      #1e293b;
+  --color-bg-light:       #f8fafc;
+  --color-bg-dark:        #0f172a;
+  --font-sans:            "Inter", system-ui, sans-serif;
+}
+
+/* ============================================================
+   GLASSMORPHISM UTILITIES
+   ============================================================ */
+.glass {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.4);
+}
+
+.dark .glass {
+  background: rgba(15,23,42,0.6);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.glass-card {
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+  border: 1px solid rgba(255,255,255,0.5);
+  box-shadow: var(--shadow-lg);
+}
+
+.dark .glass-card {
+  background: rgba(15,23,42,0.75);
+  border-color: rgba(255,255,255,0.07);
+}
+
+.glass-surface {
+  background: rgba(248,250,252,0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+}
+
+.dark .glass-surface {
+  background: rgba(30,41,59,0.8);
+  border-color: var(--color-border);
+}
+
+/* ============================================================
+   FOOTBALL PITCH BACKGROUND
+   ============================================================ */
 .pitch-bg {
   position: relative;
-  background-color: #15803d;
+  background-color: var(--pitch-green);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      var(--pitch-line),
+      var(--pitch-line) 1px,
+      transparent 1px,
+      transparent 60px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      var(--pitch-line),
+      var(--pitch-line) 1px,
+      transparent 1px,
+      transparent 60px
+    );
+}
+
+.pitch-stripes {
+  background-color: var(--pitch-green);
   background-image: repeating-linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.05),
-    rgba(255, 255, 255, 0.05) 40px,
+    rgba(255,255,255,0.04),
+    rgba(255,255,255,0.04) 40px,
     transparent 40px,
     transparent 80px
   );
 }
 
-/* Hide default scrollbars globally */
-::-webkit-scrollbar { display: none; } ::-webkit-scrollbar-track { background: transparent; }
-
-/* Hide number input arrows */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
+/* ============================================================
+   GRADIENT UTILITIES
+   ============================================================ */
+.gradient-primary {
+  background: linear-gradient(135deg, #10b981, #0d9488);
 }
 
+.gradient-gold {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.gradient-premium {
+  background: linear-gradient(135deg, #10b981 0%, #0d9488 50%, #0891b2 100%);
+}
+
+.gradient-text-primary {
+  background: linear-gradient(135deg, #10b981, #0d9488);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.dark .gradient-text-primary {
+  background: linear-gradient(135deg, #34d399, #2dd4bf);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.gradient-text-gold {
+  background: linear-gradient(135deg, #f59e0b, #fbbf24);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ============================================================
+   CARD UTILITIES
+   ============================================================ */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-elevated {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+
+.card-glow-primary {
+  box-shadow: var(--shadow-md), 0 0 0 1px rgba(16,185,129,0.2), var(--shadow-glow-primary);
+}
+
+.card-glow-gold {
+  box-shadow: var(--shadow-md), 0 0 0 1px rgba(245,158,11,0.2), var(--shadow-glow-gold);
+}
+
+/* ============================================================
+   BUTTON UTILITIES
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  border-radius: var(--radius-lg);
+  transition: var(--transition-fast);
+  cursor: pointer;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.btn-primary {
+  background: linear-gradient(135deg, #10b981, #0d9488);
+  color: white;
+  box-shadow: 0 4px 15px rgba(16,185,129,0.35);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #34d399, #2dd4bf);
+  box-shadow: 0 6px 20px rgba(16,185,129,0.45);
+  transform: translateY(-1px);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text-2);
+  border: 1px solid var(--color-border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  border-color: var(--color-border-2);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  box-shadow: 0 4px 15px rgba(239,68,68,0.3);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  box-shadow: 0 6px 20px rgba(239,68,68,0.4);
+  transform: translateY(-1px);
+}
+
+/* ============================================================
+   BADGE UTILITIES
+   ============================================================ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-primary {
+  background: rgba(16,185,129,0.15);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+
+.badge-gold {
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245,158,11,0.3);
+}
+
+.badge-danger {
+  background: rgba(239,68,68,0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+.badge-info {
+  background: rgba(59,130,246,0.15);
+  color: #3b82f6;
+  border: 1px solid rgba(59,130,246,0.3);
+}
+
+.badge-purple {
+  background: rgba(139,92,246,0.15);
+  color: #8b5cf6;
+  border: 1px solid rgba(139,92,246,0.3);
+}
+
+/* ============================================================
+   INPUT UTILITIES
+   ============================================================ */
+.input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.625rem 0.875rem;
+  font-size: 0.9rem;
+  color: var(--color-text);
+  font-family: inherit;
+  transition: var(--transition-fast);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-text-faint);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+}
+
+/* ============================================================
+   SECTION UTILITIES
+   ============================================================ */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.section-subtitle {
+  font-size: 1.05rem;
+  color: var(--color-text-muted);
+  margin-top: 0.75rem;
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   ANIMATION KEYFRAMES
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-primary-glow); }
+  50%       { box-shadow: 0 0 20px 6px var(--color-primary-glow); }
+}
+
+@keyframes pulseGlowGold {
+  0%, 100% { box-shadow: 0 0 0 0 var(--color-gold-glow); }
+  50%       { box-shadow: 0 0 20px 6px var(--color-gold-glow); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-8px); }
+}
+
+@keyframes bounceSoft {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes ripple {
+  0%   { transform: scale(0); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   ANIMATION UTILITY CLASSES
+   ============================================================ */
+.animate-fade-up      { animation: fadeSlideUp 0.5s ease both; }
+.animate-fade-down    { animation: fadeSlideDown 0.5s ease both; }
+.animate-fade-in      { animation: fadeIn 0.4s ease both; }
+.animate-scale-in     { animation: scaleIn 0.3s ease both; }
+.animate-float        { animation: float 3s ease-in-out infinite; }
+.animate-bounce-soft  { animation: bounceSoft 2s ease-in-out infinite; }
+.animate-pulse-glow   { animation: pulseGlow 2s ease-in-out infinite; }
+.animate-pulse-gold   { animation: pulseGlowGold 2s ease-in-out infinite; }
+.animate-spin         { animation: spin 1s linear infinite; }
+.animate-gradient     {
+  background-size: 200% 200%;
+  animation: gradientShift 4s ease infinite;
+}
+
+/* Shimmer skeleton loader */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface-2) 0%,
+    var(--color-border)    50%,
+    var(--color-surface-2) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 1.8s infinite linear;
+  border-radius: var(--radius-md);
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    #1e293b 0%,
+    #334155 50%,
+    #1e293b 100%
+  );
+  background-size: 1000px 100%;
+}
+
+/* ============================================================
+   SCROLLBAR STYLES
+   ============================================================ */
+
+/* Hide scrollbars globally */
+::-webkit-scrollbar { display: none; }
+::-webkit-scrollbar-track { background: transparent; }
 html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 
-/* Custom UI Scrollbar overrides */
+/* Custom scrollbar (opt-in) */
 .custom-scrollbar {
   -ms-overflow-style: auto;
   scrollbar-width: thin;
@@ -71,25 +568,260 @@ html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
 
 .custom-scrollbar::-webkit-scrollbar {
   display: block;
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #475569;
-  border-radius: 10px;
+  background-color: #334155;
+  border-radius: var(--radius-full);
 }
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #475569;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #64748b;
 }
 
-.hide-scrollbar {
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ============================================================
+   INPUT NUMBER ARROW REMOVAL
+   ============================================================ */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
-.hide-scrollbar::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ============================================================
+   INTERACTIVE STATES
+   ============================================================ */
+.interactive {
+  cursor: pointer;
+  transition: var(--transition-fast);
+  user-select: none;
 }
 
+.interactive:hover  { opacity: 0.85; }
+.interactive:active { transform: scale(0.97); }
+
+/* ============================================================
+   GLOW EFFECTS
+   ============================================================ */
+.glow-primary {
+  box-shadow: 0 0 20px var(--color-primary-glow), 0 0 40px rgba(16,185,129,0.1);
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px var(--color-gold-glow), 0 0 40px rgba(245,158,11,0.1);
+}
+
+.text-glow-primary {
+  text-shadow: 0 0 20px rgba(16,185,129,0.6);
+}
+
+.text-glow-gold {
+  text-shadow: 0 0 20px rgba(245,158,11,0.6);
+}
+
+/* ============================================================
+   DIVIDER
+   ============================================================ */
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.divider-gradient {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border-2),
+    transparent
+  );
+}
+
+/* ============================================================
+   PITCH FIELD SVG OVERLAY (used on hero/background sections)
+   ============================================================ */
+.pitch-lines-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    /* Center circle */
+    radial-gradient(circle 80px at 50% 50%, transparent 78px, rgba(255,255,255,0.07) 79px, rgba(255,255,255,0.07) 82px, transparent 83px),
+    /* Center line */
+    linear-gradient(90deg, transparent 49.5%, rgba(255,255,255,0.07) 49.5%, rgba(255,255,255,0.07) 50.5%, transparent 50.5%),
+    /* Horizontal stripes (alternating pitch shades) */
+    repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.02),
+      rgba(255,255,255,0.02) 60px,
+      transparent 60px,
+      transparent 120px
+    );
+  opacity: 0.6;
+}
+
+/* ============================================================
+   STAT COUNTER (animated number display)
+   ============================================================ */
+.stat-value {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  animation: countUp 0.6s ease both;
+}
+
+/* ============================================================
+   RESPONSIVE UTILITIES
+   ============================================================ */
+.container-main {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+@media (min-width: 640px)  { .container-main { padding: 0 1.5rem; } }
+@media (min-width: 1024px) { .container-main { padding: 0 2rem;   } }
+
+/* ============================================================
+   TOAST OVERRIDES (react-hot-toast)
+   ============================================================ */
+.toast-premium {
+  border-radius: var(--radius-xl) !important;
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+  box-shadow: var(--shadow-xl) !important;
+  border: 1px solid var(--color-border) !important;
+}
+
+/* ============================================================
+   FOCUS VISIBLE (accessibility)
+   ============================================================ */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ============================================================
+   SELECTION COLOR
+   ============================================================ */
+::selection {
+  background: rgba(16,185,129,0.25);
+  color: var(--color-text);
+}
+
+/* ============================================================
+   EMOJI PICKER — 11PLAYERS DARK SLATE / EMERALD UI THEME
+   ============================================================ */
+aside.EmojiPickerReact,
+.EmojiPickerReact,
+aside.epr-main {
+  height: 100% !important;
+  max-height: none !important;
+  background-color: #0f172a !important; /* bg-slate-900 */
+  border: 1px solid #1e293b !important; /* border-slate-800 */
+  font-family: inherit !important;
+  border-radius: 0 0 1rem 1rem !important;
+}
+
+/* Search bar styling */
+.epr-search-container input.epr-search {
+  background-color: #020617 !important; /* bg-slate-950 */
+  border: 1px solid #1e293b !important; /* border-slate-800 */
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  font-size: 13px !important;
+}
+.epr-search-container input.epr-search:focus {
+  border-color: rgba(16,185,129,0.6) !important;
+  box-shadow: 0 0 0 2px rgba(16,185,129,0.2) !important;
+}
+
+/* Category Navigation Icons */
+.epr-category-nav {
+  background-color: #0f172a !important;
+  border-bottom: 1px solid #1e293b !important;
+}
+.epr-category-nav button.epr-cat-btn {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+.epr-category-nav button.epr-cat-btn:hover,
+.epr-category-nav button.epr-active {
+  opacity: 1 !important;
+  color: #10b981 !important;
+}
+.epr-category-nav button.epr-active::after {
+  background-color: #10b981 !important;
+}
+
+/* Emoji Group Headers */
+h2.epr-emoji-category-label {
+  background-color: #0f172a !important;
+  color: #10b981 !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  padding: 8px 12px !important;
+}
+
+/* Emoji List Body & Scrollable Viewport */
+.epr-body {
+  height: calc(100% - 90px) !important;
+  max-height: none !important;
+  background-color: #0f172a !important;
+  flex: 1 1 auto !important;
+}
+
+.epr-emoji-list,
+ul.epr-emoji-list,
+.epr-emoji-category-content,
+.epr-main-container {
+  max-height: none !important;
+  min-height: 100% !important;
+}
+
+/* Bottom Preview Bar */
+.epr-preview {
+  background-color: #020617 !important;
+  border-top: 1px solid #1e293b !important;
+  color: #cbd5e1 !important;
+}
+.epr-preview .epr-title {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Custom Scrollbar for Emoji List */
+.epr-body::-webkit-scrollbar {
+  width: 6px;
+}
+.epr-body::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.epr-body::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 9999px;
+}
+.epr-body::-webkit-scrollbar-thumb:hover {
+  background: #10b981;
+}

@@ -7,17 +7,15 @@ import { usePlayers } from "@/contexts/PlayersContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminTable from "@/components/admin/AdminTable";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
-import { balanceTeams, generateTurfMatch } from "@/lib/engine";
 import { getTacticalSuggestions } from "@/lib/suggestionEngine";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import PendingRequests from "@/components/admin/PendingRequests";
-import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
-import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, query, where, writeBatch } from "firebase/firestore";
+import { doc, setDoc, getDoc, deleteDoc, updateDoc, collection, getDocs, getCountFromServer, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { Target, AlertTriangle, Swords, FileDown, UserCheck, UserX, ShieldCheck, Sparkles, Lock } from "lucide-react";
+import { Target, Users, Sparkles, FileDown, UserX, ShieldCheck, Lock, CheckCircle2, RefreshCw, BarChart3, AlertCircle, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -29,6 +27,9 @@ export default function AdminPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const router = useRouter();
+
+  const [activeTab, setActiveTab] = useState<"overview" | "players" | "ai" | "pending">("overview");
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
 
   // Auto-run daily peer rating aggregation on first admin visit each day
   useEffect(() => {
@@ -44,7 +45,6 @@ export default function AdminPage() {
             : `Updated peer ratings for ${result.updatedCount} players`);
         }
       } catch (err) {
-        // Silent fail — aggregation is best-effort background work
         console.warn("Daily aggregation skipped:", err);
       }
     })();
@@ -88,8 +88,8 @@ export default function AdminPage() {
     if (!activeCommunityId) return;
     setConfirmModal({
       isOpen: true,
-      title: isAr ? 'تطبيق ذكاء اصطناعي على الجميع' : 'Apply AI to All Players',
-      message: isAr ? 'هل أنت متأكد من تطبيق أفضل المراكز والتقييم لجميع اللاعبين؟ سيتم استبدال المراكز الحالية.' : 'Are you sure you want to apply best AI positions and OVR for all players? This will overwrite their current positions.',
+      title: isAr ? 'تطبيق الذكاء الاصطناعي على الجميع' : 'Apply AI to All Players',
+      message: isAr ? 'هل أنت متأكد من تطبيق أفضل المراكز والتقييم لجميع اللاعبين؟ سيتم تحديث مراكزهم وتقييماتهم بناءً على الإحصائيات.' : 'Are you sure you want to apply best AI positions and OVR for all players? This will update their positions and ratings.',
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
         const loadingToast = toast.loading(isAr ? 'جاري تطبيق الذكاء الاصطناعي...' : 'Applying AI to all...');
@@ -156,8 +156,8 @@ export default function AdminPage() {
       isOpen: true,
       title: isAr ? 'تثبيت جميع اللاعبين لمجتمعي الرئيسي' : 'Lock All Players to Home Community',
       message: isAr
-        ? `هل أنت متأكد من تعيين هذا المجتمع كمجتمع رئيسي (قفل التعديل) لجميع اللاعبين (${players.length})؟`
-        : `Are you sure you want to set your active community as the Home Community (Edit Lock) for all ${players.length} players?`,
+        ? `هل أنت متأكد من تعيين هذا المجتمع كمجتمع رئيسي لجميع اللاعبين (${players.length})؟`
+        : `Are you sure you want to set your active community as the Home Community for all ${players.length} players?`,
       onConfirm: async () => {
         setConfirmModal(prev => ({ ...prev, isOpen: false }));
         const loadingToast = toast.loading(isAr ? 'جاري تثبيت جميع اللاعبين...' : 'Locking all players to home community...');
@@ -179,7 +179,7 @@ export default function AdminPage() {
             await batch.commit();
           }
           toast.dismiss(loadingToast);
-          toast.success(isAr ? `تم تثبيت جميع اللاعبين (${count}) كجامعة رئيسية بنجاح! 🔒` : `Successfully locked all ${count} players to this Home Community! 🔒`);
+          toast.success(isAr ? `تم تثبيت جميع اللاعبين (${count}) بنجاح! 🔒` : `Successfully locked all ${count} players! 🔒`);
           if (refreshPlayers) refreshPlayers();
         } catch (err) {
           toast.dismiss(loadingToast);
@@ -193,59 +193,6 @@ export default function AdminPage() {
   const handleBulkPdf = () => {
     generateMasterBulkPDF(players, isAr ? 'ar' : 'en');
   };
-
-  // Auto-update public site stats silently on every admin page load (best-effort, owner only)
-  useEffect(() => {
-    const OWNER_EMAIL = "a7medorabe7@gmail.com";
-    const OWNER_UID = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
-    if (!user) return;
-    const isActualOwner = user.email?.toLowerCase() === OWNER_EMAIL || user.uid === OWNER_UID;
-    if (!isActualOwner) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        // Count all players and their ratings
-        const playersSnap = await getDocs(collection(db, "players"));
-        if (cancelled) return;
-        let totalRating = 0;
-        let ratedCount = 0;
-        playersSnap.forEach(d => {
-          const data = d.data();
-          if (data.overallRating) { totalRating += data.overallRating; ratedCount++; }
-        });
-        const avgRating = ratedCount > 0 ? totalRating / ratedCount : 7.8;
-
-        // Count all communities
-        const commsSnap = await getCountFromServer(collection(db, "communities"));
-        if (cancelled) return;
-
-        // Count matches across all communities
-        const commsListSnap = await getDocs(collection(db, "communities"));
-        if (cancelled) return;
-        let totalMatches = 0;
-        await Promise.all(commsListSnap.docs.map(async (commDoc) => {
-          const matchesSnap = await getCountFromServer(collection(db, "communities", commDoc.id, "matches"));
-          totalMatches += matchesSnap.data().count;
-        }));
-        if (cancelled) return;
-
-        await setDoc(doc(db, "system", "public_stats"), {
-          totalPlayers: playersSnap.size,
-          totalCommunities: commsSnap.data().count,
-          totalMatches,
-          avgRating,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-
-        console.log("[Stats] Public site stats updated:", { totalPlayers: playersSnap.size, totalCommunities: commsSnap.data().count, totalMatches, avgRating: avgRating.toFixed(1) });
-      } catch (err) {
-        console.warn("[Stats] Auto public stats update skipped:", err);
-      }
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]);
 
   const handleMakeMeAdmin = () => {
     if (!activeCommunityId || !user) return;
@@ -295,166 +242,340 @@ export default function AdminPage() {
     }
   };
 
+  // Position Stats Calculation
+  const positionCounts = React.useMemo(() => {
+    const counts = { FW: 0, MID: 0, DEF: 0, GK: 0 };
+    players.forEach(p => {
+      const pos = p.primaryPosition || "CMF";
+      if (["CF", "ST", "SS", "LWF", "RWF"].includes(pos)) counts.FW++;
+      else if (["AMF", "CMF", "DMF", "LMF", "RMF"].includes(pos)) counts.MID++;
+      else if (["CB", "LB", "RB", "LWB", "RWB"].includes(pos)) counts.DEF++;
+      else if (pos === "GK") counts.GK++;
+      else counts.MID++;
+    });
+    return counts;
+  }, [players]);
+
+  const tabs = [
+    { id: "overview", label: isAr ? "📊 نظرة عامة ومؤشرات" : "📊 Overview & Metrics" },
+    { id: "players", label: isAr ? "👥 إدارة اللاعبين" : "👥 Player Management" },
+    { id: "ai", label: isAr ? "⚡ عمليات الذكاء الاصطناعي" : "⚡ AI & Bulk Operations" },
+    { id: "pending", label: isAr ? "📝 الطلبات المعلقة" : "📝 Pending Approvals" },
+  ];
+
+  if (loading) {
+    return (
+      <ProtectedRoute adminOnly requireCommunity={false}>
+        <div className="min-h-screen bg-slate-950 text-white p-8 max-w-7xl mx-auto">
+          <SiteSkeletonLoader variant="table" />
+        </div>
+      </ProtectedRoute>
+    );
+  }
 
   return (
     <ProtectedRoute adminOnly requireCommunity={false}>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors pb-12">
-        
-        <main className="max-w-7xl mx-auto px-4 py-8">
+      <div className="min-h-screen bg-slate-950 text-white transition-colors pb-12" dir={isAr ? "rtl" : "ltr"}>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
           {!activeCommunityId ? (
-            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
-              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-6">
-                <Target className="w-10 h-10 text-emerald-500" />
+            <div className="flex flex-col items-center justify-center min-h-[50vh] text-center bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl">
+              <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-center mb-4">
+                <Target className="w-8 h-8 text-emerald-400" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-xl font-black text-white mb-2">
                 {isAr ? "لا يوجد مجتمع محدد" : "No Community Selected"}
               </h2>
-              <p className="text-slate-500 dark:text-slate-400 max-w-md mb-8">
-                {isAr ? "يرجى تحديد مجتمع من قائمة المجتمعات للوصول إلى أدوات التحكم." : "Please select a community from the communities list to access admin controls."}
+              <p className="text-xs text-slate-400 max-w-md mb-6 font-medium">
+                {isAr ? "يرجى تحديد مجتمع من قائمة المجتمعات للوصول إلى لوحة التحكم." : "Please select a community to access executive controls."}
               </p>
-              <a href="/communities" className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all shadow-lg hover:shadow-xl hover:-translate-y-1">
+              <a href="/communities" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl transition-all shadow-lg shadow-emerald-600/30">
                 {isAr ? "الذهاب للمجتمعات" : "Go to Communities"}
               </a>
             </div>
           ) : (
             <>
-              <div className="mb-10">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-3">
-                  <div>
-                    <h2 className="text-3xl font-black mb-1.5 text-slate-900 dark:text-white flex items-center gap-2.5">
-                      <span>{isAr ? "أدوات التحكم وإدارة المنصة" : "Platform Control Center"}</span>
-                      <span className="text-xs px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-500/20">
-                        {isAr ? "الإدارة الشاملة" : "EXECUTIVE"}
-                      </span>
-                    </h2>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium" dir={isAr ? "rtl" : "ltr"}>
-                      {isAr
-                        ? "تنظيم البطولات وتشكيل الفرق بالذكاء الاصطناعي وتصدير التقارير الرسمية وإدارة الصلاحيات."
-                        : "AI Matchmaking, official roster exports, squad synchronization, and platform permissions."}
-                    </p>
-                  </div>
+              {/* Header Title Banner */}
+              <div className="bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+                    <span>{isAr ? "لوحة أدوات التحكم وإدارة المنصة" : "Executive Control Center"}</span>
+                    <span className="text-[10px] px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 font-black border border-emerald-500/30">
+                      ADMIN
+                    </span>
+                  </h1>
+                  <p className="text-xs font-semibold text-slate-400 mt-1">
+                    {isAr ? "إدارة التشكيلات التنافسية بالذكاء الاصطناعي، وتحديث الصلاحيات، وتصدير التقارير الرسمية" : "AI match balancing, official roster exports, and platform management."}
+                  </p>
                 </div>
 
-                {/* Organized Luxury Control Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                <button
+                  type="button"
+                  onClick={handleBulkPdf}
+                  className="px-4 py-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 text-amber-400 hover:text-amber-300 font-black text-xs rounded-2xl transition-all flex items-center gap-2 shadow"
+                >
+                  <FileDown className="w-4 h-4 text-amber-400" />
+                  <span>{isAr ? "تصدير الكتيب الشامل PDF" : "Export Roster PDF"}</span>
+                </button>
+              </div>
 
-                  {/* Card 2: Official Reports & Bulk PDF */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                          <FileDown className="w-6 h-6" />
-                        </div>
-                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400">
-                          {isAr ? "تصدير رسمي" : "REPORTS"}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
-                        {isAr ? "بطاقات وقوائم جميع اللاعبين" : "Master Roster PDF"}
-                      </h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
-                        {isAr
-                          ? "تصدير كتيب احترافي يشمل جميع بطاقات اللاعبين مع الإحصائيات والتقييمات بجودة عالية للطباعة."
-                          : "Export a high-definition official PDF catalogue containing all player cards and stats."}
-                      </p>
-                    </div>
+              {/* Dropdown / List Select Navigation Menu */}
+              <div className="relative z-30 max-w-md">
+                <button
+                  type="button"
+                  onClick={() => setIsNavDropdownOpen(!isNavDropdownOpen)}
+                  className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl flex items-center justify-between gap-3 text-start hover:border-emerald-500/50 transition-all font-black text-xs text-white active:scale-98"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="w-7 h-7 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-xs font-black shadow-md shadow-emerald-600/30">
+                      {tabs.findIndex(t => t.id === activeTab) + 1}
+                    </span>
+                    <span>{tabs.find(t => t.id === activeTab)?.label}</span>
+                  </div>
+                  <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-200 ${isNavDropdownOpen ? "rotate-180 text-emerald-400" : ""}`} />
+                </button>
 
-                    <button
-                      onClick={handleBulkPdf}
-                      className="w-full py-3.5 px-5 bg-slate-900 hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-black rounded-2xl shadow-md transition-all flex items-center justify-center gap-2.5"
+                <AnimatePresence>
+                  {isNavDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      className="absolute top-full mt-2 inset-x-0 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden divide-y divide-slate-800/80 z-50"
                     >
-                      <FileDown className="w-5 h-5 text-amber-400" />
-                      <span>{isAr ? "تصدير الكتيب الشامل PDF" : "Export Master Roster PDF"}</span>
-                    </button>
-                  </div>
-
-                  {/* Card 3: Admin Permissions */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-11 h-11 rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                          <Sparkles className="w-6 h-6" />
-                        </div>
-                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
-                          {isAr ? "الصلاحيات" : "PERMISSIONS"}
-                        </span>
-                      </div>
-                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
-                        {isAr ? "إدارة الصلاحيات" : "Admin Permissions"}
-                      </h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
-                        {isAr
-                          ? "تعديل صلاحيات المسؤول في المجتمع أو إعادة تعيين تصويتات الكابتن."
-                          : "Toggle admin permissions or reset captain votes in the community."}
-                      </p>
-                    </div>
-
-                    <div className="flex flex-col gap-2.5">
-                      {(isOwner || players.length === 0) && (
+                      {tabs.map((tab, idx) => (
                         <button
-                          onClick={handleMakeMeAdmin}
-                          className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                          key={tab.id}
+                          type="button"
+                          onClick={() => {
+                            setActiveTab(tab.id as any);
+                            setIsNavDropdownOpen(false);
+                          }}
+                          className={`w-full p-4 text-start font-black text-xs transition-colors flex items-center justify-between ${
+                            activeTab === tab.id
+                              ? "bg-emerald-600/10 text-emerald-400"
+                              : "hover:bg-slate-800 text-slate-300"
+                          }`}
                         >
-                          <ShieldCheck className="w-4 h-4 text-amber-500" />
-                          <span>
-                            {user && players.some(p => p.uid === user.uid)
-                              ? (isAr ? "إلغاء صلاحية المسؤول لحسابي" : "Remove me as Admin")
-                              : (isAr ? "مزامنة صلاحية المسؤول لحسابي" : "Sync Admin Permissions")}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${
+                              activeTab === tab.id ? "bg-emerald-500 text-slate-950" : "bg-slate-950 border border-slate-800 text-slate-400"
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <span>{tab.label}</span>
+                          </div>
+                          {activeTab === tab.id && (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                          )}
                         </button>
-                      )}
-                      
-                      <button
-                        onClick={handleResetCaptainVotes}
-                        className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700/50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
-                      >
-                        <UserX className="w-4 h-4 text-red-500" />
-                        <span>{isAr ? "إعادة تعيين تصويتات الكابتن" : "Reset Captain Votes"}</span>
-                      </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* TAB 1: OVERVIEW & METRICS */}
+              {activeTab === "overview" && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-xs font-black">{isAr ? "إجمالي اللاعبين" : "Total Players"}</span>
+                        <Users className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-white">{players.length}</div>
+                      <p className="text-[10px] text-slate-500 font-semibold">{isAr ? "مسجلين في هذا المجتمع" : "Registered in active community"}</p>
+                    </div>
+
+                    <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-xs font-black">{isAr ? "المهاجمون (FW)" : "Forwards (FW)"}</span>
+                        <Target className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-amber-400">{positionCounts.FW}</div>
+                      <p className="text-[10px] text-slate-500 font-semibold">{isAr ? "مهاجمين ورأس حربة" : "Strikers & Wingers"}</p>
+                    </div>
+
+                    <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-xs font-black">{isAr ? "خط الوسط (MID)" : "Midfielders (MID)"}</span>
+                        <BarChart3 className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-cyan-400">{positionCounts.MID}</div>
+                      <p className="text-[10px] text-slate-500 font-semibold">{isAr ? "صناع لعب ووسط دفاعي" : "Central & Defensive MIDs"}</p>
+                    </div>
+
+                    <div className="p-5 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl space-y-2">
+                      <div className="flex items-center justify-between text-slate-400">
+                        <span className="text-xs font-black">{isAr ? "المدافعون وحراس" : "Defenders & GK"}</span>
+                        <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <div className="text-2xl sm:text-3xl font-black text-emerald-400">{positionCounts.DEF + positionCounts.GK}</div>
+                      <p className="text-[10px] text-slate-500 font-semibold">{isAr ? "مدافعين وحراس مرمى" : "CB, LB, RB & Goalkeepers"}</p>
                     </div>
                   </div>
 
-                  {/* Card 4: AI Tools */}
-                  <div className="rounded-3xl bg-white dark:bg-slate-800/90 p-6 shadow-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="w-11 h-11 rounded-2xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
-                          <Sparkles className="w-6 h-6" />
+                  {/* Position Distribution Mapped Bar */}
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl space-y-4">
+                    <h3 className="text-xs font-black uppercase tracking-wider text-emerald-400">
+                      {isAr ? "توزيع المراكز التكتيكية بالمجتمع" : "Tactical Position Distribution"}
+                    </h3>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                          <span>{isAr ? "المهاجمون (FW)" : "Forwards (FW)"}</span>
+                          <span>{positionCounts.FW} ({players.length ? Math.round((positionCounts.FW / players.length) * 100) : 0}%)</span>
                         </div>
-                        <span className="text-[11px] font-black tracking-wider uppercase px-2.5 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                          {isAr ? "الذكاء الاصطناعي" : "AI TOOLS"}
-                        </span>
+                        <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                          <div className="h-full bg-amber-500 rounded-full" style={{ width: `${players.length ? (positionCounts.FW / players.length) * 100 : 0}%` }} />
+                        </div>
                       </div>
-                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">
+
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                          <span>{isAr ? "لاعبو الوسط (MID)" : "Midfielders (MID)"}</span>
+                          <span>{positionCounts.MID} ({players.length ? Math.round((positionCounts.MID / players.length) * 100) : 0}%)</span>
+                        </div>
+                        <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                          <div className="h-full bg-cyan-500 rounded-full" style={{ width: `${players.length ? (positionCounts.MID / players.length) * 100 : 0}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                          <span>{isAr ? "المدافعون (DEF)" : "Defenders (DEF)"}</span>
+                          <span>{positionCounts.DEF} ({players.length ? Math.round((positionCounts.DEF / players.length) * 100) : 0}%)</span>
+                        </div>
+                        <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${players.length ? (positionCounts.DEF / players.length) * 100 : 0}%` }} />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-xs font-bold text-slate-300 mb-1">
+                          <span>{isAr ? "حراس المرمى (GK)" : "Goalkeepers (GK)"}</span>
+                          <span>{positionCounts.GK} ({players.length ? Math.round((positionCounts.GK / players.length) * 100) : 0}%)</span>
+                        </div>
+                        <div className="h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                          <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${players.length ? (positionCounts.GK / players.length) * 100 : 0}%` }} />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* TAB 2: PLAYERS TABLE */}
+              {activeTab === "players" && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  {loading ? (
+                    <SiteSkeletonLoader variant="table" />
+                  ) : (
+                    <AdminTable players={players} onRefresh={refreshPlayers || (() => {})} />
+                  )}
+                </motion.div>
+              )}
+
+              {/* TAB 3: AI & BULK OPERATIONS */}
+              {activeTab === "ai" && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                  {/* Card 1: Apply AI to All */}
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-emerald-400">
+                        <Sparkles className="w-5 h-5 text-emerald-400" />
+                      </div>
+                      <h3 className="text-base font-black text-white">
                         {isAr ? "تطبيق AI للجميع" : "Apply AI to All"}
                       </h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed mb-6">
-                        {isAr
-                          ? "تطبيق أفضل المراكز (الأساسي، الثانوي، الثالث) وأسلوب اللعب لجميع اللاعبين باستخدام الذكاء الاصطناعي بناءً على إحصائياتهم."
-                          : "Auto-fill the best Primary, Secondary, Tertiary positions & play style for all players using AI based on their attributes."}
+                      <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                        {isAr ? "تحديث التقييم وتحديد المراكز الثلاثة المناسبة تلقائياً لكل لاعب." : "Auto-assign top 3 positions and OVR for all players using AI stats calculations."}
                       </p>
                     </div>
 
                     <button
                       onClick={handleApplyAIToAll}
-                      className="w-full py-3.5 px-5 bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-black rounded-2xl shadow-lg shadow-purple-500/20 transition-all flex items-center justify-center gap-2.5"
+                      className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-2"
                     >
-                      <Sparkles className="w-5 h-5 fill-white text-white" />
-                      <span>{isAr ? "تطبيق AI للجميع" : "Apply AI to All"}</span>
+                      <Sparkles className="w-4 h-4" />
+                      <span>{isAr ? "تطبيق الذكاء الاصطناعي" : "Apply AI Engine"}</span>
                     </button>
                   </div>
-                </div>
-              </div>
-              <PendingRequests />
 
-              {loading ? (
-                <SiteSkeletonLoader variant="table" />
-              ) : (
-                <AdminTable players={players} onRefresh={refreshPlayers || (() => {})} />
+                  {/* Card 2: Lock All to Home Community */}
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-cyan-400">
+                        <Lock className="w-5 h-5 text-cyan-400" />
+                      </div>
+                      <h3 className="text-base font-black text-white">
+                        {isAr ? "تثبيت المجتمع الرئيسي" : "Lock Home Community"}
+                      </h3>
+                      <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                        {isAr ? `تثبيت جميع اللاعبين (${players.length}) لمجتمعك كمرجع رئيسي لبطاقاتهم.` : `Set active community as home community for all ${players.length} registered players.`}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={handleLockAllToHomeCommunity}
+                      className="w-full py-3 px-4 bg-slate-950 border border-slate-800 hover:border-cyan-500/50 text-cyan-400 font-black text-xs rounded-2xl transition-all flex items-center justify-center gap-2"
+                    >
+                      <Lock className="w-4 h-4 text-cyan-400" />
+                      <span>{isAr ? "تثبيت الجميع" : "Lock All Players"}</span>
+                    </button>
+                  </div>
+
+                  {/* Card 3: Admin & Voting Tools */}
+                  <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl shadow-xl flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400">
+                        <ShieldCheck className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <h3 className="text-base font-black text-white">
+                        {isAr ? "الصلاحيات والتصويتات" : "Permissions & Voting"}
+                      </h3>
+                      <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                        {isAr ? "إعادة تعيين اصوات الكابتن أو تحديث صلاحية المشرف لحسابك." : "Reset community captain votes or sync admin authorization."}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      {(isOwner || players.length === 0) && (
+                        <button
+                          onClick={handleMakeMeAdmin}
+                          className="w-full py-2.5 px-3 bg-slate-950 border border-slate-800 text-amber-400 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>
+                            {user && players.some(p => p.uid === user.uid)
+                              ? (isAr ? "إلغاء صلاحيتي كمسؤول" : "Remove me as Admin")
+                              : (isAr ? "مزامنة صلاحيتي كمسؤول" : "Sync Admin Permissions")}
+                          </span>
+                        </button>
+                      )}
+
+                      <button
+                        onClick={handleResetCaptainVotes}
+                        className="w-full py-2.5 px-3 bg-slate-950 border border-slate-800 text-rose-400 hover:border-rose-500/50 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2"
+                      >
+                        <UserX className="w-4 h-4 text-rose-400" />
+                        <span>{isAr ? "إعادة تعيين الأصوات" : "Reset Captain Votes"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* TAB 4: PENDING APPROVALS */}
+              {activeTab === "pending" && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                  <PendingRequests />
+                </motion.div>
               )}
             </>
           )}
         </main>
+
         <ConfirmModal
           isOpen={confirmModal.isOpen}
           onClose={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
@@ -466,6 +587,3 @@ export default function AdminPage() {
     </ProtectedRoute>
   );
 }
-
-
-

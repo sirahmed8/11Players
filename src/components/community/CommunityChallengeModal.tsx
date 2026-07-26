@@ -89,6 +89,9 @@ export default function CommunityChallengeModal({
           setSelectedSquadUids(mySquad);
         }
         setLoading(false);
+      }, (err) => {
+        if (err?.code !== 'permission-denied') console.warn("CommunityChallengeModal error:", err);
+        setLoading(false);
       });
       return () => unsub();
     } else if (targetCommunity) {

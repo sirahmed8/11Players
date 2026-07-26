@@ -11,12 +11,28 @@ describe('Engine Unit Tests', () => {
     secondaryPosition: 'RWF',
     tertiaryPosition: 'SS',
     attributes: {
+      offensiveAwareness: 80,
+      ballControl: 80,
+      dribbling: 80,
+      lowPass: 70,
+      loftedPass: 70,
+      finishing: 75,
+      heading: 60,
       speed: 85,
       acceleration: 85,
-      dribbling: 80,
-      ballControl: 80,
-      offensiveAwareness: 80,
-      finishing: 75,
+      kickingPower: 75,
+      jump: 65,
+      physicalContact: 65,
+      balance: 75,
+      stamina: 75,
+      defensiveAwareness: 40,
+      ballWinning: 40,
+      aggression: 40,
+      gkAwareness: 40,
+      gkCatching: 40,
+      gkClearing: 40,
+      gkReflexes: 40,
+      gkReach: 40,
     },
   };
 
@@ -35,3 +51,4 @@ describe('Engine Unit Tests', () => {
     expect(psi).toBeGreaterThan(60);
   });
 });
+

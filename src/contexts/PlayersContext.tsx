@@ -141,7 +141,9 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoading(false);
       }
     }, (error) => {
-      console.error("Real-time roster sync failed:", error);
+      if (error?.code !== "permission-denied") {
+        console.error("Real-time roster sync failed:", error);
+      }
       if (fallbackTimer) clearTimeout(fallbackTimer);
       setLoading(false);
     });

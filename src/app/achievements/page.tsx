@@ -14,7 +14,7 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, Target, Handshake, Star, Sparkles, Zap, Shield, Lock,
-  CheckCircle2, BarChart3, TrendingUp, Award, Medal, Crown, Filter
+  CheckCircle2, BarChart3, TrendingUp, Award, Medal, Crown, Filter, ChevronRight
 } from "lucide-react";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
@@ -29,59 +29,56 @@ function getAchievementRarity(achievement: any): "gold" | "silver" | "bronze" | 
 }
 
 const RARITY_CONFIG = {
-  gold:   { bg: "from-yellow-500/20 to-amber-500/10",   border: "border-yellow-400/50",  badge: "bg-yellow-500 text-white", label: "Gold",   icon: "🥇" },
-  silver: { bg: "from-slate-400/15 to-slate-300/5",      border: "border-slate-400/40",   badge: "bg-slate-400 text-white",  label: "Silver", icon: "🥈" },
-  bronze: { bg: "from-orange-500/15 to-amber-600/5",     border: "border-orange-400/40",  badge: "bg-orange-500 text-white", label: "Bronze", icon: "🥉" },
-  locked: { bg: "from-slate-800/20 to-slate-900/10",     border: "border-slate-600/30",   badge: "bg-slate-700 text-slate-300", label: "Locked", icon: "🔒" },
+  gold:   { bg: "bg-slate-900", border: "border-amber-500/60", badge: "bg-amber-500 text-slate-950 font-black", label: "Gold Tier", icon: "🥇", bar: "bg-amber-500" },
+  silver: { bg: "bg-slate-900", border: "border-slate-600/70",  badge: "bg-slate-400 text-slate-950 font-black", label: "Silver Tier", icon: "🥈", bar: "bg-slate-400" },
+  bronze: { bg: "bg-slate-900", border: "border-orange-500/60", badge: "bg-orange-500 text-white font-black",    label: "Bronze Tier", icon: "🥉", bar: "bg-orange-500" },
+  locked: { bg: "bg-slate-950/80", border: "border-slate-800", badge: "bg-slate-800 text-slate-400 font-bold",  label: "Locked", icon: "🔒", bar: "bg-slate-800" },
 };
 
-function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) {
+function StatTile({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
   return (
     <motion.div
-      whileHover={{ y: -2, scale: 1.02 }}
-      className={`relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 bg-white dark:bg-slate-900/90 ${color} shadow-sm flex flex-col justify-between`}
+      whileHover={{ y: -2 }}
+      className="relative overflow-hidden rounded-3xl border border-slate-800 p-5 bg-slate-900 shadow-xl flex flex-col justify-between"
     >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-2 shrink-0">{icon}</div>
-        <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tabular-nums shrink-0">{value}</span>
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
+          {icon}
+        </div>
+        <span className="text-3xl font-black text-white tabular-nums shrink-0">{value}</span>
       </div>
       <div className="min-w-0">
-        <p className="text-[11px] sm:text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wide truncate">{label}</p>
-        {sub && <p className="text-[9px] sm:text-[10px] font-semibold text-slate-400 dark:text-slate-500 truncate">{sub}</p>}
+        <p className="text-xs font-black text-slate-400 uppercase tracking-wider truncate">{label}</p>
+        {sub && <p className="text-[10px] font-bold text-slate-500 truncate mt-0.5">{sub}</p>}
       </div>
     </motion.div>
   );
 }
 
-function ProgressRing({ earned, total, size = 80 }: { earned: number; total: number; size?: number }) {
+function ProgressRing({ earned, total, size = 96 }: { earned: number; total: number; size?: number }) {
   const pct = total > 0 ? earned / total : 0;
-  const r = (size - 10) / 2;
+  const strokeWidth = 8;
+  const r = (size - strokeWidth * 2) / 2;
   const circ = 2 * Math.PI * r;
   const dash = circ * pct;
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: size, height: size }}>
+    <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={8} className="text-slate-200 dark:text-slate-700" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-slate-800" />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r}
-          fill="none" stroke="url(#progGrad)" strokeWidth={8}
+          fill="none" stroke="#10b981" strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circ}
           initial={{ strokeDashoffset: circ }}
           animate={{ strokeDashoffset: circ - dash }}
           transition={{ duration: 1.2, ease: "easeOut" }}
         />
-        <defs>
-          <linearGradient id="progGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" />
-            <stop offset="100%" stopColor="#06b6d4" />
-          </linearGradient>
-        </defs>
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-sm font-black text-slate-900 dark:text-white leading-none">{earned}</span>
-        <span className="text-[10px] text-slate-400 leading-none">/{total}</span>
+        <span className="text-lg font-black text-white leading-none">{earned}</span>
+        <span className="text-[11px] font-bold text-slate-400 leading-none mt-0.5">/{total}</span>
       </div>
     </div>
   );
@@ -91,48 +88,58 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
   const rarity = getAchievementRarity(achievement);
   const cfg = RARITY_CONFIG[rarity];
   const pct = achievement.target > 0 ? Math.min(100, Math.round((achievement.current / achievement.target) * 100)) : 0;
+  const isEarned = achievement.earned;
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
+      whileHover={{ y: -3 }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-2xl border bg-gradient-to-br ${cfg.bg} ${cfg.border} p-4 overflow-hidden transition-all duration-200`}
+      className={`relative rounded-3xl border ${cfg.border} ${cfg.bg} p-5 overflow-hidden shadow-xl transition-all duration-200 flex flex-col justify-between`}
     >
-      {/* Rarity badge */}
-      <div className={`absolute top-3 ${isAr ? 'left-3' : 'right-3'} text-[10px] font-black px-2 py-0.5 rounded-full ${cfg.badge} flex items-center gap-1`}>
-        <span>{cfg.icon}</span>
-        <span>{isAr ? (rarity === 'gold' ? 'ذهبي' : rarity === 'silver' ? 'فضي' : rarity === 'bronze' ? 'برونزي' : 'مقفل') : cfg.label}</span>
+      {/* Rarity & Status badge */}
+      <div className="flex items-center justify-between gap-2 mb-4">
+        <div className={`text-[10px] font-black px-2.5 py-1 rounded-xl ${cfg.badge} flex items-center gap-1.5 shrink-0 shadow-md`}>
+          <span>{cfg.icon}</span>
+          <span>{isAr ? (rarity === 'gold' ? 'مستوى ذهبي' : rarity === 'silver' ? 'مستوى فضي' : rarity === 'bronze' ? 'مستوى برونزي' : 'مقفل') : cfg.label}</span>
+        </div>
+
+        {isEarned ? (
+          <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-400 bg-emerald-950/80 border border-emerald-800 px-2.5 py-1 rounded-xl">
+            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+            {isAr ? "مكتمل" : "UNLOCKED"}
+          </span>
+        ) : (
+          <span className="text-[10px] font-bold text-slate-400 bg-slate-950 border border-slate-800 px-2.5 py-1 rounded-xl">
+            {pct}%
+          </span>
+        )}
       </div>
 
-      {/* Locked overlay */}
-      {rarity === "locked" && (
-        <div className="absolute inset-0 bg-slate-950/30 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10 pointer-events-none">
-          <Lock className="w-5 h-5 text-slate-400 opacity-60" />
+      {/* Main icon & text */}
+      <div className="flex items-start gap-4 mb-5">
+        <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-2xl shrink-0 shadow-inner">
+          {achievement.icon}
         </div>
-      )}
-
-      <div className="flex items-start gap-3 mb-4 pr-16 rtl:pr-0 rtl:pl-16">
-        <span className="text-2xl shrink-0">{achievement.icon}</span>
-        <div className="min-w-0">
-          <p className="font-black text-sm text-slate-900 dark:text-white leading-tight">
+        <div className="min-w-0 flex-1">
+          <h3 className="font-black text-base text-white leading-tight">
             {isAr ? achievement.nameAr : achievement.nameEn}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400 leading-tight">
+          </h3>
+          <p className="mt-1 text-xs text-slate-400 leading-relaxed font-medium">
             {isAr ? achievement.descriptionAr : achievement.descriptionEn}
           </p>
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress track */}
       <div>
-        <div className="flex items-center justify-between text-[10px] font-bold text-slate-600 dark:text-slate-300 mb-1.5">
-          <span>{isAr ? "التقدم" : "Progress"}</span>
-          <span>{isAr ? achievement.progressAr : achievement.progressEn} ({pct}%)</span>
+        <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-2">
+          <span>{isAr ? "التقدم الحالي" : "Current Progress"}</span>
+          <span className="text-white font-black">{isAr ? achievement.progressAr : achievement.progressEn}</span>
         </div>
-        <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+        <div className="h-2.5 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
           <motion.div
-            className={`h-full rounded-full ${rarity === 'gold' ? 'bg-gradient-to-r from-yellow-400 to-amber-500' : rarity === 'silver' ? 'bg-gradient-to-r from-slate-400 to-slate-300' : rarity === 'locked' ? 'bg-slate-600' : 'bg-gradient-to-r from-emerald-500 to-teal-400'}`}
+            className={`h-full rounded-full ${cfg.bar}`}
             initial={{ width: 0 }}
             animate={{ width: `${pct}%` }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -190,6 +197,12 @@ export default function AchievementsPage() {
   const matchesPlayed = player?.stats?.matchesPlayed || 0;
   const ovr = player ? getPlayerOverall(player) : 0;
 
+  // XP level calculations (100 XP per earned achievement)
+  const xpEarned = earned.length * 100;
+  const userLevel = Math.floor(xpEarned / 300) + 1;
+  const xpInCurrentLevel = xpEarned % 300;
+  const xpLevelPct = Math.min(100, Math.round((xpInCurrentLevel / 300) * 100));
+
   const filteredAchievements = useMemo(() => {
     if (filter === "earned") return earned;
     if (filter === "inProgress") return inProgress;
@@ -197,11 +210,11 @@ export default function AchievementsPage() {
     return allAchievements;
   }, [filter, allAchievements, earned, inProgress, locked]);
 
-  const filterTabs: { id: FilterTab; label: string; labelAr: string; count: number; color: string }[] = [
-    { id: "all",        label: "All",         labelAr: "الكل",       count: allAchievements.length, color: "text-slate-700 dark:text-slate-200" },
-    { id: "earned",     label: "Earned",      labelAr: "مكتسبة",     count: earned.length,          color: "text-emerald-600 dark:text-emerald-400" },
-    { id: "inProgress", label: "In Progress", labelAr: "جارٍ",       count: inProgress.length,      color: "text-amber-600 dark:text-amber-400" },
-    { id: "locked",     label: "Locked",      labelAr: "مقفلة",      count: locked.length,          color: "text-slate-500 dark:text-slate-500" },
+  const filterTabs: { id: FilterTab; label: string; labelAr: string; count: number }[] = [
+    { id: "all",        label: "All",         labelAr: "الكل",       count: allAchievements.length },
+    { id: "earned",     label: "Earned",      labelAr: "مكتسبة",     count: earned.length },
+    { id: "inProgress", label: "In Progress", labelAr: "جارٍ",       count: inProgress.length },
+    { id: "locked",     label: "Locked",      labelAr: "مقفلة",      count: locked.length },
   ];
 
   if (!user) return null;
@@ -209,13 +222,13 @@ export default function AchievementsPage() {
 
   if (!player) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white px-4" dir={isAr ? "rtl" : "ltr"}>
-        <div className="text-6xl">🔍</div>
-        <h1 className="mt-4 text-3xl font-black">{isAr ? "ملف اللاعب غير متوفر" : "Player profile not found"}</h1>
-        <p className="mt-2 text-slate-600 dark:text-slate-300 text-sm text-center max-w-xl">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white px-4" dir={isAr ? "rtl" : "ltr"}>
+        <div className="text-6xl mb-4">🔍</div>
+        <h1 className="text-3xl font-black">{isAr ? "ملف اللاعب غير متوفر" : "Player Profile Not Found"}</h1>
+        <p className="mt-2 text-slate-400 text-sm text-center max-w-xl">
           {isAr ? "يجب أن تنشئ ملف لاعب أولاً حتى تتمكن من عرض إنجازاتك." : "You need to create your player profile first to view achievements."}
         </p>
-        <Link href="/onboarding" className="mt-6 px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-500 transition-all">
+        <Link href="/onboarding" className="mt-6 px-6 py-3 rounded-2xl bg-emerald-600 text-white font-black hover:bg-emerald-500 transition-all shadow-xl">
           {isAr ? "إنشاء ملف اللاعب" : "Create Player Profile"}
         </Link>
       </div>
@@ -224,113 +237,133 @@ export default function AchievementsPage() {
 
   const photo = player?.photoUrl || player?.googlePic || (player as any)?.photoURL || "";
 
-
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors duration-300" dir={isAr ? "rtl" : "ltr"}>
+      <div className="min-h-screen bg-slate-950 text-white transition-colors duration-300 pb-16" dir={isAr ? "rtl" : "ltr"}>
         <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
 
-          {/* ── Hero Header ─────────────────────────────────────────────────── */}
-          <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 border border-slate-700 shadow-2xl p-6 sm:p-8">
-            {/* Ambient glow */}
-            <div className="absolute -top-16 -right-16 w-48 h-48 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+          {/* ── Trophy Room Hall of Fame Hero Banner ────────────────────────── */}
+          <section className="relative overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl p-6 sm:p-8">
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+              
+              {/* Player Identity */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 text-center sm:text-start rtl:sm:text-right w-full lg:w-auto">
+                <div className="relative shrink-0">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border-2 border-slate-700 shadow-2xl bg-slate-950 flex items-center justify-center">
+                    {photo ? (
+                      <Image src={photo} alt={player.fullName} width={112} height={112} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-slate-800 flex items-center justify-center text-white font-black text-4xl">
+                        {player.cardName?.charAt(0) || player.fullName?.charAt(0) || "P"}
+                      </div>
+                    )}
+                  </div>
+                  {/* OVR Badge */}
+                  <div className="absolute -bottom-2 -right-2 rtl:-bottom-2 rtl:-left-2 rtl:right-auto px-3 py-1 rounded-xl bg-emerald-600 border border-emerald-500 text-white flex items-center gap-1 shadow-xl">
+                    <span className="text-[10px] font-black opacity-80">OVR</span>
+                    <span className="text-base font-black leading-none">{ovr}</span>
+                  </div>
+                </div>
 
-            <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              {/* Player Avatar */}
-              <div className="relative shrink-0">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden border-2 border-emerald-500/50 shadow-xl shadow-emerald-500/20">
-                  {photo ? (
-                    <Image src={photo} alt={player.fullName} width={96} height={96} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center text-white font-black text-3xl">
-                      {player.cardName?.charAt(0) || player.fullName?.charAt(0) || "P"}
+                <div className="min-w-0">
+                  <div className="flex items-center justify-center sm:justify-start rtl:sm:justify-end gap-2 mb-1.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 border border-emerald-800 text-emerald-400 uppercase tracking-widest">
+                      {isAr ? `المستوى ${userLevel}` : `Level ${userLevel}`}
+                    </span>
+                    <span className="text-xs font-bold text-slate-400">
+                      {isAr ? "خزانة الإنجازات" : "Hall of Achievements"}
+                    </span>
+                  </div>
+                  <h1 className="text-3xl sm:text-4xl font-black text-white truncate">
+                    {player.cardName || player.fullName}
+                  </h1>
+                  <p className="text-sm font-semibold text-slate-400 mt-1">
+                    {player.primaryPosition} {player.playStyle ? `• ${player.playStyle.replace(/_/g, " ")}` : ""}
+                  </p>
+
+                  {/* Medal Counters Pill */}
+                  <div className="flex flex-wrap justify-center sm:justify-start rtl:sm:justify-end gap-4 mt-4">
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-sm font-black text-amber-400">
+                      <span>🥇</span><span>{goldCount}</span>
                     </div>
-                  )}
-                </div>
-                {/* OVR badge */}
-                <div className="absolute -bottom-2 -right-2 rtl:-bottom-2 rtl:-left-2 rtl:right-auto w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex flex-col items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <span className="text-[9px] font-bold leading-none opacity-80">OVR</span>
-                  <span className="text-sm font-black leading-none">{ovr}</span>
-                </div>
-              </div>
-
-              {/* Player Info */}
-              <div className="flex-1 text-center sm:text-start rtl:sm:text-right min-w-0">
-                <p className="text-xs font-black uppercase tracking-[0.25em] text-emerald-400 mb-1">
-                  {isAr ? "سجل الإنجازات" : "Achievements & Records"}
-                </p>
-                <h1 className="text-2xl sm:text-3xl font-black text-white truncate">
-                  {player.cardName || player.fullName}
-                </h1>
-                <p className="text-sm text-slate-400 mt-1">
-                  {player.primaryPosition} {player.playStyle ? `• ${player.playStyle.replace(/_/g, " ")}` : ""}
-                </p>
-
-                {/* Rarity breakdown */}
-                <div className="flex flex-wrap justify-center sm:justify-start rtl:sm:justify-end gap-3 mt-4">
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-yellow-400">
-                    <span>🥇</span><span>{goldCount}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-slate-300">
-                    <span>🥈</span><span>{silverCount}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-orange-400">
-                    <span>🥉</span><span>{bronzeCount}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-sm font-bold text-amber-400">
-                    <Trophy className="w-4 h-4" /><span>{trophyCount}</span>
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-sm font-black text-slate-300">
+                      <span>🥈</span><span>{silverCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-sm font-black text-orange-400">
+                      <span>🥉</span><span>{bronzeCount}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl text-sm font-black text-emerald-400">
+                      <Trophy className="w-4 h-4 text-emerald-400" /><span>{trophyCount}</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* Progress Ring */}
-              <div className="shrink-0 flex flex-col items-center gap-2">
-                <ProgressRing earned={earned.length} total={allAchievements.length} size={88} />
-                <p className="text-xs text-slate-400 font-bold">
-                  {isAr ? "الإنجازات" : "Achievements"}
-                </p>
+              {/* Collector XP & Radial Progress */}
+              <div className="flex items-center gap-6 bg-slate-950/80 border border-slate-800 rounded-3xl p-5 w-full lg:w-auto shrink-0 justify-around">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-black text-slate-300 gap-4">
+                    <span>{isAr ? "نقاط الإنجاز XP" : "Achievement XP"}</span>
+                    <span className="text-emerald-400">{xpEarned} XP</span>
+                  </div>
+                  <div className="w-44 h-2.5 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${xpLevelPct}%` }} />
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-bold">
+                    {isAr ? `${300 - xpInCurrentLevel} XP للمستوى التالي` : `${300 - xpInCurrentLevel} XP to Level ${userLevel + 1}`}
+                  </p>
+                </div>
+
+                <div className="h-10 w-[1px] bg-slate-800" />
+
+                <div className="flex flex-col items-center gap-1">
+                  <ProgressRing earned={earned.length} total={allAchievements.length} size={84} />
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                    {isAr ? "الإنجازات" : "Unlocked"}
+                  </p>
+                </div>
               </div>
+
             </div>
           </section>
 
           {/* ── Quick Stats Row ──────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <StatCard icon={<Target className="w-4 h-4 text-emerald-500" />} label={isAr ? "الأهداف" : "Goals"} value={player.stats?.goals || 0} sub={isAr ? "إجمالي" : "Total"} color="border-emerald-200 dark:border-emerald-700/40" />
-            <StatCard icon={<Handshake className="w-4 h-4 text-cyan-500" />} label={isAr ? "التمريرات" : "Assists"} value={player.stats?.assists || 0} sub={isAr ? "إجمالي" : "Total"} color="border-cyan-200 dark:border-cyan-700/40" />
-            <StatCard icon={<Star className="w-4 h-4 text-amber-500" />} label={isAr ? "MVP" : "MVPs"} value={player.stats?.mvp || 0} sub={isAr ? "أفضل لاعب" : "Best Player"} color="border-amber-200 dark:border-amber-700/40" />
-            <StatCard icon={<Sparkles className="w-4 h-4 text-blue-500" />} label={isAr ? "المباريات" : "Matches"} value={matchesPlayed} sub={isAr ? "مُلعبت" : "Played"} color="border-blue-200 dark:border-blue-700/40" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <StatTile icon={<Target className="w-5 h-5 text-emerald-400" />} label={isAr ? "الأهداف" : "Goals"} value={player.stats?.goals || 0} sub={isAr ? "إجمالي الأهداف" : "Total Career Goals"} />
+            <StatTile icon={<Handshake className="w-5 h-5 text-cyan-400" />} label={isAr ? "التمريرات" : "Assists"} value={player.stats?.assists || 0} sub={isAr ? "إجمالي التمريرات" : "Total Career Assists"} />
+            <StatTile icon={<Star className="w-5 h-5 text-amber-400" />} label={isAr ? "MVP" : "MVPs"} value={player.stats?.mvp || 0} sub={isAr ? "أفضل لاعب بالمباراة" : "Man of the Match"} />
+            <StatTile icon={<Sparkles className="w-5 h-5 text-blue-400" />} label={isAr ? "المباريات" : "Matches"} value={matchesPlayed} sub={isAr ? "مباريات ملعوبة" : "Matches Played"} />
           </div>
 
           {/* ── Main Content Grid ────────────────────────────────────────────── */}
           <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
 
             {/* Left: Achievement List */}
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 dark:text-white">
+                  <h2 className="text-2xl font-black text-white">
                     {isAr ? "قائمة الإنجازات" : "Achievement List"}
                   </h2>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {isAr ? `${earned.length} من ${allAchievements.length} مكتسبة` : `${earned.length} of ${allAchievements.length} earned`}
+                  <p className="mt-1 text-xs font-semibold text-slate-400">
+                    {isAr ? `تم تحقيق ${earned.length} من أصل ${allAchievements.length} إنجاز` : `Completed ${earned.length} of ${allAchievements.length} achievements`}
                   </p>
                 </div>
 
-                {/* Filter tabs */}
-                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl p-1 flex-wrap">
+                {/* Filter Tabs */}
+                <div className="flex items-center gap-1.5 bg-slate-900 rounded-2xl border border-slate-800 p-1.5 flex-wrap shadow-lg">
                   {filterTabs.map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setFilter(tab.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-200 ${
+                      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 ${
                         filter === tab.id
-                          ? "bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white"
-                          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"
+                          ? "bg-emerald-600 text-white font-black shadow-md"
+                          : "text-slate-400 hover:text-white hover:bg-slate-800/60"
                       }`}
                     >
-                      {isAr ? tab.labelAr : tab.label}
-                      <span className={`text-[10px] font-black ${filter === tab.id ? tab.color : ""}`}>
+                      <span>{isAr ? tab.labelAr : tab.label}</span>
+                      <span className={`min-w-[20px] h-5 px-1.5 inline-flex items-center justify-center text-[10px] font-black rounded-full leading-none ${filter === tab.id ? 'bg-slate-950 text-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
                         {tab.count}
                       </span>
                     </button>
@@ -345,12 +378,12 @@ export default function AchievementsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
-                  className="grid gap-3 sm:grid-cols-2"
+                  className="grid gap-4 sm:grid-cols-2"
                 >
                   {filteredAchievements.length === 0 ? (
-                    <div className="col-span-2 text-center py-12 text-slate-400 dark:text-slate-600">
-                      <Trophy className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                      <p className="text-sm font-bold">
+                    <div className="col-span-2 text-center py-16 text-slate-500 bg-slate-900 border border-slate-800 rounded-3xl">
+                      <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30 text-amber-400" />
+                      <p className="text-sm font-bold text-white">
                         {isAr ? "لا توجد إنجازات في هذه الفئة بعد" : "No achievements in this category yet"}
                       </p>
                     </div>
@@ -364,28 +397,28 @@ export default function AchievementsPage() {
             </div>
 
             {/* Right Sidebar */}
-            <aside className="space-y-5">
+            <aside className="space-y-6">
               {/* Trophy Cabinet */}
-              <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500">
+              <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-xl">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-amber-400 shadow-inner">
                     <Trophy className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-black text-slate-900 dark:text-white text-sm">{isAr ? "خزانة الجوائز" : "Trophy Cabinet"}</p>
-                    <p className="text-[10px] text-slate-400">{isAr ? `${trophyCount} ألقاب` : `${trophyCount} trophies`}</p>
+                    <h3 className="font-black text-white text-base">{isAr ? "خزانة الكؤوس والجوائز" : "Trophy Cabinet"}</h3>
+                    <p className="text-xs text-slate-400 font-medium">{isAr ? `${trophyCount} ألقاب مكتسبة` : `${trophyCount} trophies won`}</p>
                   </div>
                 </div>
 
                 {trophyCount === 0 ? (
-                  <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-700 p-5 text-center">
-                    <span className="text-3xl">🏆</span>
-                    <p className="mt-2 text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-                      {isAr ? "لم تحصل على ألقاب بعد. سجل أهدافاً ومباريات أكثر." : "No trophies yet. Score more goals and matches."}
+                  <div className="rounded-2xl border border-dashed border-slate-800 p-6 text-center bg-slate-950/60">
+                    <span className="text-4xl block mb-2 opacity-50">🏆</span>
+                    <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                      {isAr ? "لم تحصل على كؤوس موسمية بعد. شارك في المباريات وحقق الألقاب!" : "No season trophies yet. Participate in matches to win titles!"}
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                  <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                     {player.trophies?.map((trophy, idx) => {
                       const emoji = trophy.name.includes("Golden Boot") || trophy.name.includes("Boot") ? "⚽" :
                                     trophy.name.includes("Ballon") ? "👑" :
@@ -398,12 +431,12 @@ export default function AchievementsPage() {
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: idx * 0.05 }}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60"
+                          className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-950 border border-slate-800"
                         >
-                          <span className="text-xl">{emoji}</span>
+                          <span className="text-2xl">{emoji}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-black text-slate-900 dark:text-white truncate">{trophy.name}</p>
-                            <p className="text-[10px] text-slate-400">{trophy.season || (isAr ? "بدون موسم" : "No season")}</p>
+                            <p className="text-xs font-black text-white truncate">{trophy.name}</p>
+                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{trophy.season || (isAr ? "موسم عام" : "General Season")}</p>
                           </div>
                         </motion.div>
                       );
@@ -412,36 +445,35 @@ export default function AchievementsPage() {
                 )}
               </div>
 
-              {/* Extended Stats */}
-              <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
-                <p className="font-black text-sm text-slate-900 dark:text-white mb-3">{isAr ? "إحصائيات متقدمة" : "Extended Stats"}</p>
+              {/* Extended Career Metrics */}
+              <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-xl space-y-3">
+                <h3 className="font-black text-base text-white mb-4">{isAr ? "معدلات الأداء" : "Career Efficiency"}</h3>
                 {[
-                  { icon: <Target className="w-4 h-4 text-emerald-500" />, label: isAr ? "أهداف/مباراة" : "Goals/Match", value: matchesPlayed > 0 ? ((player.stats?.goals || 0) / matchesPlayed).toFixed(2) : "0.00" },
-                  { icon: <Handshake className="w-4 h-4 text-cyan-500" />, label: isAr ? "تمريرات/مباراة" : "Assists/Match", value: matchesPlayed > 0 ? ((player.stats?.assists || 0) / matchesPlayed).toFixed(2) : "0.00" },
-                  { icon: <span className="text-yellow-500 text-sm">🟨</span>, label: isAr ? "الكروت الصفراء" : "Yellow Cards", value: player.stats?.yellowCards || 0 },
-                  { icon: <span className="text-red-500 text-sm">🟥</span>, label: isAr ? "الكروت الحمراء" : "Red Cards", value: player.stats?.redCards || 0 },
+                  { icon: <Target className="w-4 h-4 text-emerald-400" />, label: isAr ? "أهداف / مباراة" : "Goals / Match", value: matchesPlayed > 0 ? ((player.stats?.goals || 0) / matchesPlayed).toFixed(2) : "0.00" },
+                  { icon: <Handshake className="w-4 h-4 text-cyan-400" />, label: isAr ? "تمريرات / مباراة" : "Assists / Match", value: matchesPlayed > 0 ? ((player.stats?.assists || 0) / matchesPlayed).toFixed(2) : "0.00" },
+                  { icon: <span className="text-yellow-400 text-sm">🟨</span>, label: isAr ? "الكروت الصفراء" : "Yellow Cards", value: player.stats?.yellowCards || 0 },
+                  { icon: <span className="text-red-400 text-sm">🟥</span>, label: isAr ? "الكروت الحمراء" : "Red Cards", value: player.stats?.redCards || 0 },
                 ].map((stat, idx) => (
-                  <div key={idx} className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60">
-                    <div className="flex items-center gap-2">
-                      <div className="rounded-lg bg-white dark:bg-slate-800 p-1.5 border border-slate-100 dark:border-slate-700">{stat.icon}</div>
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{stat.label}</span>
+                  <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-slate-950 border border-slate-800">
+                    <div className="flex items-center gap-2.5">
+                      <div className="rounded-xl bg-slate-900 p-2 border border-slate-800">{stat.icon}</div>
+                      <span className="text-xs font-bold text-slate-300">{stat.label}</span>
                     </div>
-                    <span className="text-sm font-black text-slate-900 dark:text-white">{stat.value}</span>
+                    <span className="text-sm font-black text-white tabular-nums">{stat.value}</span>
                   </div>
                 ))}
               </div>
 
-              {/* How to earn */}
-              <div className="rounded-2xl bg-slate-100 dark:bg-slate-950 p-4 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 text-sm">
-                <p className="font-black mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-500" />
-                  {isAr ? "كيفية كسب الجوائز" : "How to Earn Awards"}
+              {/* How to Earn Banner */}
+              <div className="rounded-3xl bg-slate-900 p-6 border border-slate-800 text-slate-300 text-sm shadow-xl">
+                <p className="font-black mb-3 flex items-center gap-2 text-white text-sm">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  {isAr ? "كيفية كسب الإنجازات والـ XP" : "How to Earn XP & Badges"}
                 </p>
-                <ul className="list-disc list-inside space-y-1.5 text-xs leading-5 text-slate-500 dark:text-slate-400">
-                  <li>{isAr ? "سجل أهدافاً وتمريرات في المباريات لجوائز الهداف." : "Score goals & assists in matches for scorer awards."}</li>
-                  <li>{isAr ? "احصل على تقييم أفضل لاعب للحصول على جوائز MVP." : "Earn MVP ratings for outstanding match performances."}</li>
-                  <li>{isAr ? "أكمل مزيداً من المباريات لإنجازات المشاركة." : "Complete more matches to unlock participation achievements."}</li>
-                  <li>{isAr ? "اجمع ألقاب الموسم خلال حفل التتويج." : "Collect season trophies during the ceremony."}</li>
+                <ul className="list-disc list-inside space-y-2 text-xs leading-5 text-slate-400 font-medium">
+                  <li>{isAr ? "سجل أهدافاً وتمريرات حاسمة لفتح شارات الهداف." : "Score goals & assists in matches to unlock scorer badges."}</li>
+                  <li>{isAr ? "احصل على لقب رجل المباراة لمضاعفة نقاط الـ XP." : "Earn Man of the Match awards to double XP gain."}</li>
+                  <li>{isAr ? "حافظ على تكرار مشاركاتك لزيادة مستوى حسابك." : "Play consistently to increase your player collector level."}</li>
                 </ul>
               </div>
             </aside>
