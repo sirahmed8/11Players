@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useLocale } from "@/components/ui/ThemeProvider";
 
 interface Props {
-  variant?: "page" | "cards" | "profile" | "table" | "list" | "match" | "stats" | "pulse" | "chat";
+  variant?: "page" | "cards" | "profile" | "table" | "list" | "match" | "stats" | "pulse" | "chat" | "admin";
 }
 
 export default function SiteSkeletonLoader({ variant = "page" }: Props) {
@@ -149,6 +149,94 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (variant === "admin") {
+    return (
+      <div className="space-y-6 w-full max-w-7xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header Banner Skeleton */}
+        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-56 h-8 bg-slate-800 rounded-xl" />
+              <div className="w-16 h-6 bg-emerald-500/20 rounded-full" />
+            </div>
+            <div className="w-80 h-4 bg-slate-800/60 rounded-lg" />
+          </div>
+          <div className="w-44 h-11 bg-slate-800 rounded-2xl shrink-0" />
+        </div>
+
+        {/* Tab Dropdown Pill Skeleton */}
+        <div className="w-64 h-12 bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden flex items-center px-4 justify-between shadow-md">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-6 h-6 rounded-full bg-emerald-500/20" />
+            <div className="w-32 h-4 bg-slate-800 rounded-lg" />
+          </div>
+          <div className="w-4 h-4 rounded bg-slate-800" />
+        </div>
+
+        {/* 4 Metric Cards Grid Skeleton */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden space-y-3"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center justify-between">
+                <div className="w-28 h-4 bg-slate-800 rounded-md" />
+                <div className="w-8 h-8 rounded-xl bg-slate-800" />
+              </div>
+              <div className="w-16 h-8 bg-slate-800 rounded-lg" />
+              <div className="w-36 h-3 bg-slate-800/60 rounded-md" />
+            </div>
+          ))}
+        </div>
+
+        {/* Tactical Position Distribution Box Skeleton (Image 4 exact mirror) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-xl relative overflow-hidden space-y-5">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="w-56 h-4 bg-emerald-500/20 rounded-md mb-2" />
+          
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="flex justify-between items-center text-xs">
+                <div className="w-32 h-3.5 bg-slate-800 rounded-md" />
+                <div className="w-16 h-3.5 bg-slate-800/80 rounded-md" />
+              </div>
+              <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div
+                  className={`h-full rounded-full bg-emerald-500/30`}
+                  style={{ width: `${80 - i * 20}%` }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* User Roster Table Skeleton */}
+        <div className="space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div
+              key={i}
+              className="h-16 rounded-2xl bg-slate-900 border border-slate-800 p-4 flex items-center justify-between shadow-sm relative overflow-hidden"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-800" />
+                <div className="w-40 h-5 bg-slate-800 rounded-lg" />
+              </div>
+              <div className="flex gap-3 items-center">
+                <div className="w-16 h-7 bg-emerald-500/20 rounded-xl" />
+                <div className="w-16 h-7 bg-slate-800 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
