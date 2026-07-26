@@ -45,10 +45,15 @@ export default function Sidebar() {
     }
   });
 
-  // Reset sidebar mobile open state on route change
+  // Auto-scroll active tab into view when mobile sidebar opens
   useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+    if (isOpen && activeLinkRef.current) {
+      const timer = setTimeout(() => {
+        activeLinkRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -407,23 +412,25 @@ export default function Sidebar() {
 
   return (
     <aside className="flex-shrink-0 z-50 md:w-80">
-      {/* Mobile Top Bar */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-50 rounded-b-3xl shadow-sm">
-        <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md -z-10 rounded-b-3xl" />
+      {/* Mobile Top Bar (Always Fixed at Top While Scrolling) */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-[100] h-16 px-4 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={toggleSidebar} className="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 relative">
-            <Menu className="w-6 h-6" />
+          <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-800 text-slate-200 relative border border-slate-700">
+            <Menu className="w-5 h-5" />
             {(unreadInboxCount > 0 || unreadSupportCount > 0 || unreadNotifsCount > 0 || pendingEditsCount > 0) && (
-              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white dark:border-slate-900" />
+              <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-slate-900" />
             )}
           </button>
           <a href="/communities" className="flex items-center gap-2">
             <Image src="/logo.jpg" alt="11Players" width={32} height={32} className="rounded-lg object-cover shadow-sm" priority />
-            <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl tracking-tight">11Players</span>
+            <span className="font-black text-emerald-400 text-xl tracking-tight">11Players</span>
           </a>
         </div>
         <SettingsMenu direction="down" />
       </div>
+
+      {/* Spacer for Fixed Mobile Top Bar */}
+      <div className="h-16 md:hidden" />
 
       {/* Sidebar Overlay (Mobile) */}
       <AnimatePresence>
@@ -434,14 +441,14 @@ export default function Sidebar() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-slate-950/60 z-40 md:hidden backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/70 z-40 md:hidden backdrop-blur-md"
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container (Floats above mobile bottom navigation bar) */}
       <div
-        className={`fixed md:sticky top-0 md:top-4 h-screen md:h-[calc(100vh-2rem)] w-72 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl shadow-black/20 ${
+        className={`fixed md:sticky top-0 md:top-4 h-[calc(100vh-4.5rem)] md:h-[calc(100vh-2rem)] max-h-[90vh] bottom-16 md:bottom-auto w-72 bg-slate-900/95 border border-slate-800 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl shadow-black/60 my-auto ${
           isOpen ? "translate-x-0" : isAr ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${isAr ? "right-0 left-auto rounded-l-3xl md:rounded-3xl md:mx-4" : "left-0 right-auto rounded-r-3xl md:rounded-3xl md:mx-4"}`}
         style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}

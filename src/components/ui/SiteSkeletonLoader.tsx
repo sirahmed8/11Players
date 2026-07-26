@@ -326,27 +326,27 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 6. Notifications, Announcements & List Skeleton
+  // 6. Notifications, Announcements & List Skeleton (100% Mobile Responsive)
   if (variant === "notifications" || variant === "announcements" || variant === "list") {
     return (
-      <div className="space-y-4 w-full max-w-4xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-20 bg-slate-900 border border-slate-800 rounded-3xl p-5 flex items-center justify-between relative overflow-hidden shadow-xl">
+      <div className="space-y-4 w-full max-w-4xl mx-auto p-3 sm:p-6 overflow-hidden" dir={isAr ? "rtl" : "ltr"}>
+        <div className="h-20 bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 flex items-center justify-between relative overflow-hidden shadow-xl">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-48 h-6 bg-slate-800 rounded-xl" />
-          <div className="w-28 h-9 bg-emerald-600/30 rounded-xl" />
+          <div className="w-36 sm:w-48 h-6 bg-slate-800 rounded-xl" />
+          <div className="w-20 sm:w-28 h-8 sm:h-9 bg-emerald-600/30 rounded-xl shrink-0" />
         </div>
 
         {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-20 rounded-3xl bg-slate-900 border border-slate-800 p-5 flex items-center justify-between shadow-sm relative overflow-hidden">
+          <div key={i} className="rounded-3xl bg-slate-900 border border-slate-800 p-4 sm:p-5 flex items-center justify-between gap-3 shadow-sm relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-slate-800" />
-              <div className="space-y-2">
-                <div className="w-48 h-4 bg-slate-800 rounded-md" />
-                <div className="w-64 h-3 bg-slate-800/60 rounded-md" />
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="w-10 h-10 rounded-2xl bg-slate-800 shrink-0" />
+              <div className="space-y-2 min-w-0 flex-1">
+                <div className="w-32 sm:w-48 h-4 bg-slate-800 rounded-md" />
+                <div className="w-full max-w-[220px] h-3 bg-slate-800/60 rounded-md" />
               </div>
             </div>
-            <div className="w-16 h-6 bg-slate-800 rounded-full" />
+            <div className="w-12 sm:w-16 h-5 sm:h-6 bg-slate-800 rounded-full shrink-0" />
           </div>
         ))}
       </div>

@@ -86,7 +86,7 @@ function ProgressRing({ earned, total, size = 80 }: { earned: number; total: num
   );
 }
 
-function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolean }) {
+function AchievementCard({ achievement, isAr, player }: { achievement: any; isAr: boolean; player?: PlayerProfile | null }) {
   const pct = achievement.target > 0 ? Math.min(100, Math.round((achievement.current / achievement.target) * 100)) : 0;
   const isEarned = achievement.earned;
   const isAllCompleted = achievement.isAllCompleted;
@@ -184,20 +184,126 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
             <span className="text-white font-black">{isAr ? achievement.progressAr : achievement.progressEn}</span>
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-                } catch (e) {}
-                const title = isAr ? achievement.nameAr : achievement.nameEn;
-                const desc = isAr ? achievement.descriptionAr : achievement.descriptionEn;
-                const text = `🏆 11Players Achievement Unlocked!\n${title} — ${desc}\nCheck out 11Players community platform!`;
-                if (navigator.clipboard) {
-                  navigator.clipboard.writeText(text);
-                  toast.success(isAr ? `تم نسخ إنجاز "${title}" لمشاركته! 🏆` : `Achievement "${title}" copied! 🏆`);
+                  try { confetti({ particleCount: 60, spread: 70, origin: { y: 0.8 } }); } catch (e) {}
+                  
+                  const title = isAr ? achievement.nameAr : achievement.nameEn;
+                  const desc = isAr ? achievement.descriptionAr : achievement.descriptionEn;
+                  
+                  const canvas = document.createElement("canvas");
+                  canvas.width = 600;
+                  canvas.height = 600;
+                  const ctx = canvas.getContext("2d");
+                  if (!ctx) return;
+
+                  // Dark Background Gradient
+                  const bgGradient = ctx.createLinearGradient(0, 0, 600, 600);
+                  bgGradient.addColorStop(0, "#0b1322");
+                  bgGradient.addColorStop(0.5, "#070b14");
+                  bgGradient.addColorStop(1, "#04060a");
+                  ctx.fillStyle = bgGradient;
+                  ctx.fillRect(0, 0, 600, 600);
+
+                  // Glowing Border Frame
+                  ctx.strokeStyle = "#10b981";
+                  ctx.lineWidth = 6;
+                  ctx.beginPath();
+                  ctx.roundRect(15, 15, 570, 570, 32);
+                  ctx.stroke();
+
+                  // 11PLAYERS Watermark Header
+                  ctx.fillStyle = "#10b981";
+                  ctx.font = "900 24px system-ui, sans-serif";
+                  ctx.textAlign = "center";
+                  ctx.fillText("11PLAYERS ELITE", 300, 60);
+
+                  // Subtitle
+                  ctx.fillStyle = "#94a3b8";
+                  ctx.font = "700 14px system-ui, sans-serif";
+                  ctx.fillText("OFFICIAL ACHIEVEMENT UNLOCKED 🏆", 300, 85);
+
+                  // Draw Large Achievement Icon
+                  ctx.fillStyle = "#0f172a";
+                  ctx.strokeStyle = "rgba(16,185,129,0.4)";
+                  ctx.lineWidth = 3;
+                  ctx.beginPath();
+                  ctx.arc(300, 170, 55, 0, Math.PI * 2);
+                  ctx.fill();
+                  ctx.stroke();
+
+                  ctx.font = "50px system-ui, sans-serif";
+                  ctx.fillText(achievement.icon || "🏆", 300, 186);
+
+                  // Achievement Title & Description
+                  ctx.fillStyle = "#ffffff";
+                  ctx.font = "900 24px system-ui, sans-serif";
+                  ctx.fillText(title, 300, 260);
+
+                  ctx.fillStyle = "#cbd5e1";
+                  ctx.font = "600 15px system-ui, sans-serif";
+                  ctx.fillText(desc, 300, 292);
+
+                  // Player Profile Section Card Box
+                  ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+                  ctx.strokeStyle = "rgba(245, 158, 11, 0.4)";
+                  ctx.lineWidth = 2;
+                  ctx.beginPath();
+                  ctx.roundRect(60, 335, 480, 160, 24);
+                  ctx.fill();
+                  ctx.stroke();
+
+                  // Player Info
+                  const pName = player?.cardName || player?.fullName || "Captain Ahmed";
+                  const pOvr = player ? getPlayerOverall(player) : 72;
+                  const pPos = player?.primaryPosition || "DMF";
+
+                  ctx.fillStyle = "#fbbf24";
+                  ctx.font = "900 36px system-ui, sans-serif";
+                  ctx.fillText(`${pOvr} OVR`, 300, 390);
+
+                  ctx.fillStyle = "#ffffff";
+                  ctx.font = "900 22px system-ui, sans-serif";
+                  ctx.fillText(`${pName} • ${pPos}`, 300, 430);
+
+                  ctx.fillStyle = "#94a3b8";
+                  ctx.font = "700 13px system-ui, sans-serif";
+                  ctx.fillText(`Unlocked on 11Players Platform`, 300, 460);
+
+                  // Bottom Footer URL
+                  ctx.fillStyle = "#10b981";
+                  ctx.font = "800 14px system-ui, sans-serif";
+                  ctx.fillText("https://an-11-players.web.app", 300, 545);
+
+                  canvas.toBlob(async (blob) => {
+                    if (!blob) return;
+                    const file = new File([blob], `${title.replace(/\s+/g, "_")}_achievement.png`, { type: "image/png" });
+                    
+                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                      try {
+                        await navigator.share({
+                          files: [file],
+                          title: `🏆 11Players Achievement: ${title}`,
+                          text: `I just unlocked ${title} on 11Players! ⚽`
+                        });
+                        toast.success(isAr ? "تم مشاركة صورة الإنجاز بنجاح! 🏆" : "Achievement card shared! 🏆");
+                        return;
+                      } catch (e) {}
+                    }
+
+                    // Fallback: Download Image
+                    const link = document.createElement("a");
+                    link.download = `${title.replace(/\s+/g, "_")}_achievement.png`;
+                    link.href = canvas.toDataURL("image/png");
+                    link.click();
+                    toast.success(isAr ? "تم تحميل صورة الإنجاز! 📸" : "Achievement card image downloaded! 📸");
+                  }, "image/png");
+                } catch (err) {
+                  console.error("Share error:", err);
                 }
               }}
-              className="p-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500 text-slate-400 hover:text-emerald-400 transition-all cursor-pointer"
-              title={isAr ? "مشاركة الإنجاز" : "Share Achievement"}
+              className="p-1.5 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500 text-slate-400 hover:text-emerald-400 transition-all cursor-pointer shadow-sm"
+              title={isAr ? "مشاركة كصورة إنجاز" : "Share Achievement Card"}
             >
               <Share2 className="w-3.5 h-3.5" />
             </button>
@@ -455,7 +561,7 @@ export default function AchievementsPage() {
                     </div>
                   ) : (
                     filteredAchievements.map((achievement) => (
-                      <AchievementCard key={achievement.id} achievement={achievement} isAr={isAr} />
+                      <AchievementCard key={achievement.id} achievement={achievement} isAr={isAr} player={player} />
                     ))
                   )}
                 </motion.div>
