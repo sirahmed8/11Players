@@ -9,7 +9,8 @@ import FormIcon from '@/components/ui/FormIcon';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import { useLocale } from '@/components/ui/ThemeProvider';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
-import { ArrowRightLeft, Crown, Sparkles, Shield, Trophy } from 'lucide-react';
+import { ArrowRightLeft, Crown, Sparkles, Shield, Trophy, Share2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import OVRHistoryChart from '@/components/player/OVRHistoryChart';
 
 export interface PlayerCardProps {
@@ -396,38 +397,52 @@ const PlayerCard = React.memo(function PlayerCard({
           </div>
         )}
 
-        {/* --- Action Buttons (Captain Vote / Compare) --- */}
-        {(onVoteCaptain || onCompare) && (
-          <div className="flex items-center gap-2 p-3 bg-slate-950 border-t border-slate-800 z-20">
-            {onVoteCaptain && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onVoteCaptain(player.uid);
-                }}
-                className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95"
-              >
-                {isAr ? "تصويت كابتن" : "Vote Captain"}
-              </button>
-            )}
-            {onCompare && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCompare(player);
-                }}
-                className={`flex-1 py-2 px-3 ${theme.accentBtn} rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg transition-all active:scale-95`}
-              >
-                <ArrowRightLeft className="w-4 h-4" />
-                <span>{isAr ? "مقارنة" : "Compare"}</span>
-              </button>
-            )}
-          </div>
-        )}
+        {/* --- Action Buttons (Captain Vote / Compare / Share) --- */}
+        <div className="flex items-center gap-2 p-3 bg-slate-950 border-t border-slate-800 z-20">
+          {onVoteCaptain && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onVoteCaptain(player.uid);
+              }}
+              className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-xl shadow-lg transition-all active:scale-95 cursor-pointer"
+            >
+              {isAr ? "تصويت كابتن" : "Vote Captain"}
+            </button>
+          )}
+          {onCompare && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onCompare(player);
+              }}
+              className={`flex-1 py-2 px-3 ${theme.accentBtn} rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg transition-all active:scale-95 cursor-pointer`}
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+              <span>{isAr ? "مقارنة" : "Compare"}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              const url = typeof window !== 'undefined' ? `${window.location.origin}/profile?uid=${player.uid}` : '';
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(url);
+                toast.success(isAr ? `تم نسخ رابط ملف ${player.cardName || player.fullName}!` : `Profile link for ${player.cardName || player.fullName} copied!`);
+              }
+            }}
+            className="p-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-emerald-400 rounded-xl text-xs flex items-center justify-center shadow transition-all active:scale-95 cursor-pointer"
+            title={isAr ? "مشاركة الملف" : "Share Profile"}
+          >
+            <Share2 className="w-4 h-4" />
+          </button>
+        </div>
       </motion.div>
     </CardWrapper>
   );

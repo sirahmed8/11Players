@@ -1039,7 +1039,20 @@ export default function FloatingChatWidget() {
 
             {/* Full Input Footer */}
             <div className="p-3 bg-slate-950 border-t border-slate-800">
-              {activeTab === "ai" ? (
+              {!user ? (
+                <div className="flex items-center justify-between gap-3 p-2.5 bg-slate-900/90 border border-amber-500/30 rounded-2xl">
+                  <span className="text-xs font-bold text-amber-400">
+                    {isAr ? "🔒 يجب تسجيل الدخول للتفاعل مع 11AI والقنوات" : "🔒 Sign in required to interact with 11AI & channels"}
+                  </span>
+                  <Link
+                    href="/"
+                    onClick={() => setIsOpen(false)}
+                    className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition-all shrink-0 shadow-md"
+                  >
+                    {isAr ? "دخول" : "Sign In"}
+                  </Link>
+                </div>
+              ) : activeTab === "ai" ? (
                 <div className="space-y-2">
                   <input
                     type="file"

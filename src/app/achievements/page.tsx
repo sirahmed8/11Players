@@ -14,8 +14,10 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy, Target, Handshake, Star, Sparkles, Zap, Shield, Lock,
-  CheckCircle2, BarChart3, TrendingUp, Award, Medal, Crown, Filter, ChevronRight
+  CheckCircle2, BarChart3, TrendingUp, Award, Medal, Crown, Filter, ChevronRight, Share2
 } from "lucide-react";
+import toast from "react-hot-toast";
+import confetti from "canvas-confetti";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
 type FilterTab = "all" | "earned" | "inProgress" | "locked";
@@ -135,7 +137,28 @@ function AchievementCard({ achievement, isAr }: { achievement: any; isAr: boolea
       <div>
         <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mb-2">
           <span>{isAr ? "التقدم الحالي" : "Current Progress"}</span>
-          <span className="text-white font-black">{isAr ? achievement.progressAr : achievement.progressEn}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-white font-black">{isAr ? achievement.progressAr : achievement.progressEn}</span>
+            <button
+              type="button"
+              onClick={() => {
+                try {
+                  confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+                } catch (e) {}
+                const title = isAr ? achievement.nameAr : achievement.nameEn;
+                const desc = isAr ? achievement.descriptionAr : achievement.descriptionEn;
+                const text = `🏆 11Players Achievement Unlocked!\n${title} — ${desc}\nCheck out 11Players community platform!`;
+                if (navigator.clipboard) {
+                  navigator.clipboard.writeText(text);
+                  toast.success(isAr ? `تم نسخ إنجاز "${title}" لمشاركته! 🏆` : `Achievement "${title}" copied! 🏆`);
+                }
+              }}
+              className="p-1 rounded-lg bg-slate-950 border border-slate-800 hover:border-emerald-500 text-slate-400 hover:text-emerald-400 transition-all cursor-pointer"
+              title={isAr ? "مشاركة الإنجاز" : "Share Achievement"}
+            >
+              <Share2 className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
         <div className="h-2.5 rounded-full bg-slate-950 border border-slate-800 overflow-hidden">
           <motion.div

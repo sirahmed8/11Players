@@ -16,7 +16,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, ArrowLeft } from "lucide-react";
+import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, ArrowLeft, Share2 } from "lucide-react";
+import toast from "react-hot-toast";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/player/OvrExplanationModal";
 import SuggestPeerRatingModal from "@/components/player/SuggestPeerRatingModal";
@@ -246,6 +247,21 @@ function PlayerProfileContent() {
               >
                 <HelpCircle className="w-4 h-4" />
                 <span>{isAr ? "كيف يحسب التقييم؟" : "OVR Formula"}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  const url = typeof window !== 'undefined' ? window.location.href : '';
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url);
+                    toast.success(isAr ? "تم نسخ رابط ملف اللاعب بنجاح! 📋" : "Player profile link copied! 📋");
+                  }
+                }}
+                className="flex items-center gap-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 cursor-pointer"
+                title={isAr ? "مشاركة الملف الشخصي" : "Share Profile"}
+              >
+                <Share2 className="w-4 h-4 text-emerald-400" />
+                <span>{isAr ? "مشاركة الملف" : "Share Profile"}</span>
               </button>
             </div>
           </div>

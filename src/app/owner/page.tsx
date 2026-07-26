@@ -362,7 +362,7 @@ export default function OwnerPage() {
               <div className="bg-slate-900 p-6 rounded-3xl border border-rose-500/40 shadow-2xl space-y-4">
                 <h2 className="text-sm font-black text-rose-400 flex items-center gap-2 border-b border-slate-800 pb-3">
                   <AlertTriangle className="w-4 h-4 text-rose-400" />
-                  <span>Danger Zone (إجراءات الطوارئ)</span>
+                  <span>{isAr ? "منطقة الخطر وإجراءات الطوارئ" : "Danger Zone"}</span>
                 </h2>
                 
                 <button disabled={processing} onClick={handleGlobalResetStats} className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-slate-950 font-black rounded-2xl text-xs transition-all flex items-center justify-center gap-1.5">

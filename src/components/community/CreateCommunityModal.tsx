@@ -119,13 +119,15 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                 {isAr ? "اسم المجتمع *" : "Community Name *"}
               </label>
-              <input
+              <motion.input
+                whileFocus={{ scale: 1.01, borderColor: "rgba(16, 185, 129, 0.8)" }}
+                transition={{ duration: 0.2 }}
                 type="text"
                 required
                 placeholder={isAr ? "مثال: رابطة أبطال القاهرة" : "e.g. Cairo Champions League"}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
               />
             </div>
 
@@ -134,21 +136,32 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">
                 {isAr ? "وصف المجتمع" : "Description"}
               </label>
-              <textarea
+              <motion.textarea
+                whileFocus={{ scale: 1.01, borderColor: "rgba(16, 185, 129, 0.8)" }}
+                transition={{ duration: 0.2 }}
                 rows={3}
                 placeholder={isAr ? "اكتب نبذة عن مجتمعك ومواعيد المباريات..." : "Describe your community, match schedules..."}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-800/80 border border-slate-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all resize-none"
+                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all resize-none shadow-inner"
               />
             </div>
 
-            {/* Privacy toggle */}
-            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 flex items-center justify-between gap-4">
+            {/* Privacy toggle with animated switch */}
+            <motion.div
+              whileHover={{ scale: 1.01 }}
+              className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4 shadow-inner"
+            >
               <div className="flex items-center gap-3">
-                <div className={`p-2.5 rounded-xl border ${isPrivate ? "bg-amber-500/15 border-amber-500/30 text-amber-400" : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"}`}>
+                <motion.div
+                  key={isPrivate ? "private" : "public"}
+                  initial={{ scale: 0.8, rotate: -15 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  className={`p-2.5 rounded-xl border ${isPrivate ? "bg-amber-500/15 border-amber-500/30 text-amber-400" : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"}`}
+                >
                   {isPrivate ? <Lock className="w-5 h-5" /> : <Globe className="w-5 h-5" />}
-                </div>
+                </motion.div>
                 <div>
                   <p className="text-sm font-black text-white">
                     {isPrivate ? (isAr ? "مجتمع خاص" : "Private Community") : (isAr ? "مجتمع عام" : "Public Community")}
@@ -164,32 +177,43 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               <button
                 type="button"
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative w-12 h-7 rounded-full transition-colors ${isPrivate ? "bg-amber-500" : "bg-slate-700"}`}
+                className={`relative w-14 h-8 rounded-full p-1 transition-colors duration-300 flex items-center cursor-pointer ${isPrivate ? "bg-amber-500" : "bg-slate-800 border border-slate-700"}`}
               >
-                <span className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform ${isPrivate ? "translate-x-5" : ""}`} />
+                <motion.span
+                  layout
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  className={`w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-[10px] ${isPrivate ? "ml-auto" : "mr-auto"}`}
+                >
+                  {isPrivate ? "🔒" : "🌐"}
+                </motion.span>
               </button>
-            </div>
+            </motion.div>
 
             {/* Password input if private */}
-            {isPrivate && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
-                  {isAr ? "كلمة مرور الانضمام *" : "Join Password *"}
-                </label>
-                <input
-                  type="password"
-                  required={isPrivate}
-                  placeholder={isAr ? "أنشئ كلمة مرور" : "Create password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-800/80 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all"
-                />
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {isPrivate && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, y: -10 }}
+                  animate={{ opacity: 1, height: "auto", y: 0 }}
+                  exit={{ opacity: 0, height: 0, y: -10 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
+                    {isAr ? "كلمة مرور المجتمع *" : "Community Password *"}
+                  </label>
+                  <motion.input
+                    whileFocus={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.8)" }}
+                    transition={{ duration: 0.2 }}
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 bg-slate-950 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Submit button */}
             <div className="pt-4">
