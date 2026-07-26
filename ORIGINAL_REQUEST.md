@@ -273,3 +273,50 @@ Integrity mode: development
 - [ ] Only the owner can see the matchmaking button, and it does not say "(Admin)".
 - [ ] Matchmaking button is disabled when `< 22` players are available.
 - [ ] Matchmaking logic successfully balances teams based on improved ratings and positions.
+
+## Follow-up — 2026-07-26T09:31:23Z
+
+Build "Hagoozat Elite" - Enterprise 100x Overhaul, Performance Optimization, Security Hardening & Feature Expansion for 11Players Football Community & Matchmaking System.
+
+Working directory: d:\11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. UI/UX, Theme & Visual Excellence
+- Refine and elevate UI aesthetics across all pages (`/`, `/admin`, `/community`, `/match`, `/onboarding`, `/stats`, `/achievements`, etc.).
+- Ensure dark and light themes are visually cohesive, micro-animations (Framer Motion) are smooth, scrollbars are hidden/custom, and mobile responsiveness is optimized.
+
+### R2. Matchmaking Engine & Positional Balance
+- Verify and harden client/server matchmaking logic in `src/lib/engine.ts` and `src/app/api/matchmaking`.
+- Maintain strict 11v11 team balancing (overall, speed, stamina, defense variance < 5%), positional suitability indices (PSI), out-of-position penalties, and dynamic tactical formations.
+
+### R3. Security, Authorization & Firestore Protection
+- Validate `firestore.rules` and API route security checks (Bearer token validation, Owner/Admin privilege enforcement).
+- Prevent cross-community data leaks and enforce strict Zod validation schemas for all inputs.
+
+### R4. Performance Optimization & Listener Management
+- Resolve load bottlenecks on page navigation.
+- Ensure Firestore `onSnapshot` listeners are properly unsubscribed on component unmount and lists use virtualization.
+
+### R5. Complete Arabic & English Localization
+- Verify full Modern Standard Arabic (RTL) and English (LTR) language support with proper punctuation placement and clean translations across all pages.
+
+### R6. Comprehensive Testing & Build Verification
+- Expand unit test coverage (`vitest`) for key engine utilities (`engine.ts`, `overallCalculator.ts`, `ratingAggregator.ts`, `pesConstants.ts`).
+- Verify `npm run build` and `npm test` succeed cleanly without errors or warnings.
+
+## Acceptance Criteria
+
+### UI/UX & Localization
+- [ ] Navbar highlights active tab, light/dark mode works seamlessly, and scrollbars are clean across all viewports.
+- [ ] Both English (LTR) and Arabic (RTL) layouts render without text wrapping or punctuation alignment bugs.
+
+### Engine & Security
+- [ ] Matchmaking engine balances 22 players with exactly 1 GK per team and rating variance < 5%.
+- [ ] Admin/Owner endpoints and Firestore rules strictly reject unauthorized access attempts.
+
+### Quality & Deployment
+- [ ] Vitest unit tests pass 100%.
+- [ ] Production build (`npm run build`) finishes with zero errors.
+
