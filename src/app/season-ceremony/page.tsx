@@ -125,15 +125,15 @@ export default function SeasonCeremonyPage() {
             <div className="absolute top-0 right-0 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <div className="absolute bottom-0 left-0 w-48 h-48 bg-yellow-400/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
             
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="text-center md:text-start space-y-4 max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-xs font-bold uppercase tracking-wider">
-                  <Crown className="w-4 h-4 animate-bounce" />
+                  <Crown className="w-4 h-4 animate-bounce shrink-0" />
                   <span>{isAr ? "حفل ختام الموسم والتتويج" : "Season Ceremony & Hall of Fame"}</span>
                 </div>
-                <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-3">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight flex items-center justify-center md:justify-start gap-3 flex-wrap">
                   <span>{isAr ? `منصة أبطال الموسم` : `Season Champions Podium`}</span>
-                  <Sparkles className="w-8 h-8 text-yellow-300 shrink-0" />
+                  <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-yellow-300 shrink-0" />
                 </h1>
                 <p className="text-sm sm:text-base text-amber-50 font-medium leading-relaxed">
                   {isAr
@@ -146,14 +146,14 @@ export default function SeasonCeremonyPage() {
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="shrink-0"
+                  className="w-full md:w-auto shrink-0"
                 >
                   <button
                     onClick={() => setShowWizardModal(true)}
-                    className="px-8 py-4 rounded-2xl bg-white hover:bg-amber-50 text-amber-700 font-black text-sm sm:text-base shadow-xl shadow-black/20 flex items-center gap-3 transition-all border-2 border-amber-300"
+                    className="w-full md:w-auto px-6 py-3.5 sm:px-8 sm:py-4 rounded-2xl bg-white hover:bg-amber-50 text-amber-700 font-black text-sm sm:text-base shadow-xl shadow-black/20 flex items-center justify-center gap-2.5 transition-all border-2 border-amber-300"
                   >
-                    <Crown className="w-5 h-5 fill-amber-700" />
-                    <span>{isAr ? "بدء معالج حفل التتويج وتصفير الموسم 🚀" : "Launch Ceremony & Reset Wizard 🚀"}</span>
+                    <Crown className="w-5 h-5 fill-amber-700 shrink-0" />
+                    <span>{isAr ? "بدء معالج حفل التتويج وتصفير الموسم 🚀" : "Launch Ceremony & Reset 🚀"}</span>
                   </button>
                 </motion.div>
               )}
