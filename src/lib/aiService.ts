@@ -131,17 +131,83 @@ export async function generate11AIResponse(options: AIServiceOptions): Promise<A
           }
         } else {
           const errText = await response.text();
-          console.warn(`[11AI] Model ${model} failed (${response.status}):`, errText);
-          lastError = { status: response.status, body: errText };
+          console.warn(`[11AI Gemini] Model ${model} failed (${response.status}):`, errText);
         }
       } catch (err: any) {
-        console.error(`[11AI] Exception on model ${model}:`, err);
+        console.error(`[11AI Gemini] Exception on model ${model}:`, err);
         lastError = err;
       }
     }
   }
 
-  // Smart fallback response when API key is not present or endpoint is static
+  // ── OpenRouter Secondary Fallback Engine ────────────────────────────────
+  const OPENROUTER_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || "";
+  if (OPENROUTER_KEY) {
+    const openRouterModels = [
+      "google/gemini-2.0-flash-001",
+      "meta-llama/llama-3.3-70b-instruct",
+      "deepseek/deepseek-chat",
+    ];
+
+    for (const model of openRouterModels) {
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OPENROUTER_KEY}`,
+            "HTTP-Referer": "https://an-11-players.web.app",
+            "X-Title": "11Players",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: options.systemPrompt },
+              ...(options.history || []).map((h: any) => ({
+                role: h.role === "user" ? "user" : "assistant",
+                content: h.parts?.[0]?.text || "",
+              })),
+              { role: "user", content: options.message },
+            ],
+            temperature: options.temperature ?? 0.2,
+            max_tokens: options.maxTokens ?? 1024,
+          }),
+          cache: "no-store",
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          let candidateText = data.choices?.[0]?.message?.content;
+          if (candidateText) {
+            let suggestedPrompts: string[] = [];
+            const suggestionsMatch = candidateText.match(/\[SUGGESTIONS:\s*(.*?)\]/i);
+
+            if (suggestionsMatch) {
+              const rawSuggestions = suggestionsMatch[1];
+              suggestedPrompts = rawSuggestions.split("|").map((s: string) => s.trim()).filter(Boolean);
+              candidateText = candidateText.replace(/\[SUGGESTIONS:\s*.*?\]/gi, "").trim();
+            }
+
+            const result: AIServiceResult = {
+              reply: candidateText,
+              suggestedPrompts,
+              modelUsed: `OpenRouter (${model})`,
+            };
+
+            responseCache.set(cacheKey, { data: result, expiresAt: Date.now() + 10 * 60 * 1000 });
+            return result;
+          }
+        } else {
+          const errText = await response.text();
+          console.warn(`[11AI OpenRouter] Model ${model} failed (${response.status}):`, errText);
+        }
+      } catch (err: any) {
+        console.error(`[11AI OpenRouter] Exception on model ${model}:`, err);
+      }
+    }
+  }
+
+  // Smart offline fallback response
   const isAr = /[\u0600-\u06FF]/.test(options.message);
   const fallbackReply = generateSmartFallbackReply(options.message, options.systemPrompt, isAr);
   return {
