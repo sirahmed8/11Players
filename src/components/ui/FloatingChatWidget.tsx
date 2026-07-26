@@ -27,12 +27,12 @@ interface AIChatMsg {
   timestamp: number;
 }
 
-// Markdown formatting helper
+// Markdown formatting helper with Bidi RTL/LTR isolation
 function FormattedText({ content }: { content: string }) {
   if (!content || typeof content !== "string") return null;
   const lines = content.split("\n");
   return (
-    <div className="space-y-1 font-medium leading-relaxed">
+    <div className="space-y-1.5 font-medium leading-relaxed [unicode-bidi:isolate] text-start" dir="auto">
       {lines.map((line, idx) => {
         const trimmed = line.trim();
         if (!trimmed) return <div key={idx} className="h-1" />;
@@ -43,21 +43,29 @@ function FormattedText({ content }: { content: string }) {
         const parts = cleanText.split(/(\*\*.*?\*\*)/g);
         const formattedLine = parts.map((part, pIdx) => {
           if (part && part.startsWith("**") && part.endsWith("**")) {
-            return <strong key={pIdx} className="font-black text-emerald-300">{part.slice(2, -2)}</strong>;
+            return (
+              <strong key={pIdx} className="font-black text-emerald-300 inline-block [unicode-bidi:isolate]">
+                {part.slice(2, -2)}
+              </strong>
+            );
           }
           return part;
         });
 
         if (isBullet) {
           return (
-            <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1">
+            <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1 [unicode-bidi:isolate]" dir="auto">
               <span className="text-emerald-400 font-bold shrink-0">•</span>
-              <span>{formattedLine}</span>
+              <span className="[unicode-bidi:isolate]">{formattedLine}</span>
             </div>
           );
         }
 
-        return <p key={idx}>{formattedLine}</p>;
+        return (
+          <p key={idx} className="[unicode-bidi:isolate]" dir="auto">
+            {formattedLine}
+          </p>
+        );
       })}
     </div>
   );
@@ -262,14 +270,13 @@ export default function FloatingChatWidget() {
 
   const [aiWelcomeLoading, setAiWelcomeLoading] = useState(false);
 
+  // Trigger AI welcome generator ONLY when user opens the chatbot (isOpen === true)
   useEffect(() => {
-    if (!user) {
-      setAiMessages([]);
-      setAiWelcomeLoading(false);
+    if (!user || !isOpen) {
       return;
     }
 
-    const cacheKey = `11ai_welcome_v3_${user.uid}_${isAr ? "ar" : "en"}`;
+    const cacheKey = `11ai_welcome_v4_${user.uid}_${isAr ? "ar" : "en"}`;
     const cached = typeof window !== "undefined" ? sessionStorage.getItem(cacheKey) : null;
     if (cached) {
       try {
@@ -299,8 +306,11 @@ export default function FloatingChatWidget() {
 - التقييم الإجمالي (OVR): ${playerOvr}
 - إحصائياته: ${goals} أهداف | ${assists} صناعة
 
-اكتب الترحيب بتنسيق Markdown جذاب ومقسّم بأسلوب:
-⚽ **مرحباً بك يا كابتن ${playerName}!**
+تعليمات هامة لاتاه النص العربي:
+اكتب باللغة العربية الفصحى الأنيقة وتجنب وضع كلمات إنجليزية في منتصف الجمل العربية حتى لا يتلخبط اتجاه النص. استخدم عبارة "منصة 11Players" في نهاية السطر.
+
+اكتب الترحيب بتنسيق Markdown جذاب:
+⚽ **أهلاً بك يا كابتن ${playerName}!**
 أنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.
 
 📊 **ملخص حالتك الحالية:**
@@ -344,7 +354,7 @@ Add a 2-line custom tactical motivation tailored to their position and rating.`;
         if (!isMounted) return;
 
         const liveText = aiRes?.reply || (isAr
-          ? `⚽ **مرحباً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${goals} أهداف | ${profile?.stats?.assists || 0} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
+          ? `⚽ **أهلاً بك يا كابتن ${playerName}!**\n\nأنا **11AI** — محللك التكتيكي ومدربك الشخصي في منصة **11Players**.\n\n📊 **ملخص حالتك الحالية:**\n- **المركز:** ${playerPos}\n- **التقييم:** ${playerOvr}\n- **الأهداف والتمريرات:** ${goals} أهداف | ${assists} صناعة\n\nكيف يمكنني مساعدتك اليوم؟ اسألني عن رفع تقييمك، تحسين تمركزك، أو الاستعداد للمباراة القادمة!`
           : `⚽ **Welcome back, Captain ${playerName}!**\n\nI am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Players**.\n\n📊 **Your Live Status:**\n- **Position:** ${playerPos}\n- **Rating (OVR):** ${playerOvr}\n- **Stats:** ${goals} Goals | ${assists} Assists\n\nHow can I help you dominate today? Ask me about upgrading your OVR, positioning tips, or match strategies!`);
 
         const msgs: AIChatMsg[] = [
@@ -374,7 +384,7 @@ Add a 2-line custom tactical motivation tailored to their position and rating.`;
     return () => {
       isMounted = false;
     };
-  }, [profile, user, isAr]);
+  }, [profile, user, isOpen, isAr]);
 
   // Full Chat Shared State (Community & Support)
   const [commInput, setCommInput] = useState("");
