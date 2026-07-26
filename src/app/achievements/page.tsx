@@ -279,24 +279,42 @@ function AchievementCard({ achievement, isAr, player }: { achievement: any; isAr
                     if (!blob) return;
                     const file = new File([blob], `${title.replace(/\s+/g, "_")}_achievement.png`, { type: "image/png" });
                     
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    const isMobile = typeof window !== "undefined" && (
+                      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+                      (navigator.maxTouchPoints && navigator.maxTouchPoints > 1 && !window.matchMedia('(pointer: fine)').matches)
+                    );
+
+                    let sharedViaNative = false;
+
+                    if (isMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                       try {
                         await navigator.share({
                           files: [file],
                           title: `🏆 11Players Achievement: ${title}`,
-                          text: `I just unlocked ${title} on 11Players! ⚽`
+                          text: `I just unlocked "${title}" on 11Players! ⚽`
                         });
+                        sharedViaNative = true;
                         toast.success(isAr ? "تم مشاركة صورة الإنجاز بنجاح! 🏆" : "Achievement card shared! 🏆");
-                        return;
-                      } catch (e) {}
+                      } catch (e: any) {
+                        if (e?.name === 'AbortError') return;
+                      }
                     }
 
-                    // Fallback: Download Image
-                    const link = document.createElement("a");
-                    link.download = `${title.replace(/\s+/g, "_")}_achievement.png`;
-                    link.href = canvas.toDataURL("image/png");
-                    link.click();
-                    toast.success(isAr ? "تم تحميل صورة الإنجاز! 📸" : "Achievement card image downloaded! 📸");
+                    if (!sharedViaNative) {
+                      // Desktop PC Fallback: Download image card + copy text to clipboard
+                      const link = document.createElement("a");
+                      link.download = `${title.replace(/\s+/g, "_")}_achievement.png`;
+                      link.href = canvas.toDataURL("image/png");
+                      link.click();
+
+                      try {
+                        const shareText = `🏆 I just unlocked "${title}" on 11Players! ⚽\nhttps://an-11-players.web.app`;
+                        await navigator.clipboard.writeText(shareText);
+                        toast.success(isAr ? "تم تحميل صورة الإنجاز ونسخ النص للحافظة! 📸📋" : "Achievement card downloaded & text copied to clipboard! 📸📋");
+                      } catch (clipErr) {
+                        toast.success(isAr ? "تم تحميل صورة الإنجاز! 📸" : "Achievement card image downloaded! 📸");
+                      }
+                    }
                   }, "image/png");
                 } catch (err) {
                   console.error("Share error:", err);
