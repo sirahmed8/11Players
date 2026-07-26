@@ -46,17 +46,40 @@ export default function TacticalSuggestionsCard({
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   }, []);
 
-  const storageKey = `11players_ai_advice_${todayKey}_${playerProfile?.uid || 'guest'}`;
-  const [remainingUses, setRemainingUses] = React.useState<number>(3);
+  const cooldownKey = `11players_ai_advice_last_time_${playerProfile?.uid || 'guest'}`;
+  const [cooldownRemainingMs, setCooldownRemainingMs] = React.useState<number>(0);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
-    const used = parseInt(localStorage.getItem(storageKey) || "0", 10);
-    setRemainingUses(Math.max(0, 3 - used));
-  }, [storageKey]);
+    const lastTime = parseInt(localStorage.getItem(cooldownKey) || "0", 10);
+    const elapsed = Date.now() - lastTime;
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (elapsed < ONE_HOUR) {
+      setCooldownRemainingMs(ONE_HOUR - elapsed);
+    } else {
+      setCooldownRemainingMs(0);
+    }
+  }, [cooldownKey]);
 
   const handleFetchAiAdvice = async () => {
-    if (!playerProfile || remainingUses <= 0 || aiLoading) return;
+    if (!playerProfile || aiLoading) return;
+
+    const lastTime = parseInt(localStorage.getItem(cooldownKey) || "0", 10);
+    const elapsed = Date.now() - lastTime;
+    const ONE_HOUR = 60 * 60 * 1000;
+
+    if (elapsed < ONE_HOUR) {
+      const minutesLeft = Math.ceil((ONE_HOUR - elapsed) / (60 * 1000));
+      import("react-hot-toast").then(({ default: toast }) => {
+        toast.error(
+          isAr
+            ? `🔒 المستشار التكتيكي يحلل بياناتك حالياً. يمكنك طلب نصيحة جديدة بعد ${minutesLeft} دقيقة`
+            : `🔒 AI Advisor is analyzing your data. New advice available in ${minutesLeft} mins`
+        );
+      });
+      return;
+    }
+
     setAiLoading(true);
 
     try {
@@ -81,9 +104,8 @@ export default function TacticalSuggestionsCard({
 
       if (data && data.reply) {
         setRealAiAdvice(data.reply);
-        const used = parseInt(localStorage.getItem(storageKey) || "0", 10) + 1;
-        localStorage.setItem(storageKey, used.toString());
-        setRemainingUses(Math.max(0, 3 - used));
+        localStorage.setItem(cooldownKey, Date.now().toString());
+        setCooldownRemainingMs(ONE_HOUR);
       }
     } catch (err) {
       console.warn("AI Tactical Advisor fetch error:", err);
@@ -251,31 +273,21 @@ export default function TacticalSuggestionsCard({
             </div>
           </div>
 
-          {/* Explicit 11AI Advice Button + 3 Daily Uses Limit */}
+          {/* 11AI Advice Button */}
           <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 border-t border-slate-800/80">
             <button
               type="button"
               onClick={handleFetchAiAdvice}
-              disabled={remainingUses <= 0 || aiLoading}
-              className={`px-4 py-2.5 rounded-2xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 ${
-                remainingUses > 0
-                  ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30"
-                  : "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700"
-              }`}
+              disabled={aiLoading}
+              className="px-5 py-2.5 rounded-2xl font-black text-xs transition-all shadow-md flex items-center justify-center gap-2 active:scale-95 bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/30 cursor-pointer"
             >
-              <Brain className={`w-4 h-4 ${aiLoading ? "animate-spin" : ""}`} />
-              <span>
+              <Brain className={`w-4 h-4 text-white ${aiLoading ? "animate-spin" : ""}`} />
+              <span className="text-white font-black text-xs">
                 {aiLoading
-                  ? (isAr ? "جاري استخراج النصيحة..." : "Fetching 11AI Advice...")
-                  : remainingUses > 0
-                  ? (isAr ? `💡 احصل على نصيحة 11AI التكتيكية (متبقي ${remainingUses}/3 اليوم)` : `💡 Get 11AI Tactical Advice (${remainingUses}/3 left today)`)
-                  : (isAr ? "🔒 استنفذت محاولاتك اليومية الثلاث (عد غداً)" : "🔒 Daily 3/3 Limit Reached (Return Tomorrow)")}
+                  ? (isAr ? "جاري جلب النصيحة التكتيكية..." : "Fetching Tactical Advice...")
+                  : (isAr ? "المستشار التكتيكي بالذكاء الاصطناعي" : "AI Tactical Advisor")}
               </span>
             </button>
-
-            <span className="text-[10px] text-slate-400 font-bold self-center">
-              {isAr ? `المتبقي لك اليوم: ${remainingUses} من 3` : `Daily Uses Left: ${remainingUses} of 3`}
-            </span>
           </div>
 
           {/* Real 11AI Live Gemini Coaching Advice */}
