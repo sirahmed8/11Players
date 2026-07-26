@@ -8,6 +8,7 @@ import { getTacticalSuggestions } from '@/lib/suggestionEngine';
 import { useLocale } from '@/components/ui/ThemeProvider';
 import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import { call11AIChat } from '@/lib/aiService';
 
 interface TacticalSuggestionsCardProps {
   attributes?: Partial<PlayerAttributes> | null;
@@ -67,21 +68,18 @@ export default function TacticalSuggestionsCard({
         ? `أنا كابتن ${playerName} لمركز ${playerPos} بتقييم ${playerOvr}. أعطني نصيحة تكتيكية مخصصة وموجزة جداً من 11AI في جملتين لرفع التقييم وتطوير الأداء.`
         : `I am Captain ${playerName}, playing ${playerPos} with ${playerOvr} OVR. Give me a concise 2-sentence 11AI tactical coaching tip to boost my performance.`;
 
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: prompt,
-          playerContext: {
-            fullName: playerName,
-            overall: playerOvr,
-            primaryPosition: playerPos,
-          },
-        }),
+      const data = await call11AIChat({
+        message: prompt,
+        playerContext: {
+          fullName: playerName,
+          overall: playerOvr,
+          primaryPosition: playerPos,
+        },
+        communityRoster: [],
+        history: [],
       });
 
-      const data = await res.json();
-      if (data.reply) {
+      if (data && data.reply) {
         setRealAiAdvice(data.reply);
         const used = parseInt(localStorage.getItem(storageKey) || "0", 10) + 1;
         localStorage.setItem(storageKey, used.toString());

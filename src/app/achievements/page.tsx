@@ -57,9 +57,9 @@ function StatTile({ icon, label, value, sub }: { icon: React.ReactNode; label: s
   );
 }
 
-function ProgressRing({ earned, total, size = 96 }: { earned: number; total: number; size?: number }) {
+function ProgressRing({ earned, total, size = 80 }: { earned: number; total: number; size?: number }) {
   const pct = total > 0 ? earned / total : 0;
-  const strokeWidth = 8;
+  const strokeWidth = 7;
   const r = (size - strokeWidth * 2) / 2;
   const circ = 2 * Math.PI * r;
   const dash = circ * pct;
@@ -67,7 +67,7 @@ function ProgressRing({ earned, total, size = 96 }: { earned: number; total: num
   return (
     <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="-rotate-90">
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-slate-800" />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-slate-800/80" />
         <motion.circle
           cx={size / 2} cy={size / 2} r={r}
           fill="none" stroke="#10b981" strokeWidth={strokeWidth}
@@ -78,9 +78,9 @@ function ProgressRing({ earned, total, size = 96 }: { earned: number; total: num
           transition={{ duration: 1.2, ease: "easeOut" }}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-black text-white leading-none">{earned}</span>
-        <span className="text-[11px] font-bold text-slate-400 leading-none mt-0.5">/{total}</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-base font-black text-white leading-none">{earned}</span>
+        <span className="text-[10px] font-bold text-slate-400 leading-none mt-0.5">/{total}</span>
       </div>
     </div>
   );
@@ -323,27 +323,27 @@ export default function AchievementsPage() {
               </div>
 
               {/* Collector XP & Radial Progress */}
-              <div className="flex items-center gap-6 bg-slate-950/80 border border-slate-800 rounded-3xl p-5 w-full lg:w-auto shrink-0 justify-around">
-                <div className="space-y-2">
+              <div className="flex flex-row items-center gap-6 bg-slate-950/90 border border-slate-800 rounded-3xl p-5 w-full lg:w-auto shrink-0 justify-between shadow-xl">
+                <div className="space-y-2 flex-1 sm:flex-initial">
                   <div className="flex items-center justify-between text-xs font-black text-slate-300 gap-4">
                     <span>{isAr ? "نقاط الإنجاز XP" : "Achievement XP"}</span>
-                    <span className="text-emerald-400">{xpEarned} XP</span>
+                    <span className="text-emerald-400 font-extrabold">{xpEarned} XP</span>
                   </div>
-                  <div className="w-44 h-2.5 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
-                    <div className="h-full bg-emerald-500 rounded-full transition-all duration-500" style={{ width: `${xpLevelPct}%` }} />
+                  <div className="w-full sm:w-44 h-2.5 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style={{ width: `${xpLevelPct}%` }} />
                   </div>
                   <p className="text-[10px] text-slate-500 font-bold">
                     {isAr ? `${300 - xpInCurrentLevel} XP للمستوى التالي` : `${300 - xpInCurrentLevel} XP to Level ${userLevel + 1}`}
                   </p>
                 </div>
 
-                <div className="h-10 w-[1px] bg-slate-800" />
+                <div className="h-10 w-[1px] bg-slate-800/80 shrink-0" />
 
-                <div className="flex flex-col items-center gap-1">
-                  <ProgressRing earned={earned.length} total={allAchievements.length} size={84} />
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                <div className="flex flex-col items-center justify-center gap-1 shrink-0">
+                  <ProgressRing earned={earned.length} total={allAchievements.length} size={76} />
+                  <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider mt-0.5">
                     {isAr ? "الإنجازات" : "Unlocked"}
-                  </p>
+                  </span>
                 </div>
               </div>
 

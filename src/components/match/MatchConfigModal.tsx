@@ -9,6 +9,7 @@ import { generateTurfMatch, FORMATIONS, assignPlayersToFormation, selectBestForm
 import { balanceTeams } from '@/lib/engine';
 import { getTacticalSuggestions, getBestPlayStyleNameForPosition } from '@/lib/suggestionEngine';
 import { PESPosition } from '@/types';
+import { call11AIChat } from '@/lib/aiService';
 
 export interface MatchConfig {
   date: string;
@@ -875,14 +876,14 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
 
 قدم تحليلاً تكتيكياً كروياً ممتعاً وموجزاً (في 3 نقاط فقط) ينقل نقاط القوة والتوقع النهائي للمباراة.`;
 
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: prompt }),
+      const data = await call11AIChat({
+        message: prompt,
+        playerContext: {},
+        communityRoster: [],
+        history: [],
       });
 
-      const data = await res.json();
-      if (data.reply) {
+      if (data && data.reply) {
         setAiTacticalReport(data.reply);
       }
     } catch (err) {

@@ -65,14 +65,15 @@ export default function AdviceNotification() {
               exit={{ opacity: 0, y: -50, scale: 0.85 }}
               transition={{ type: "spring", stiffness: 400, damping: 28 }}
               drag="y"
+              dragElastic={0}
               dragConstraints={{ top: -120, bottom: 0 }}
               onDragEnd={(_, info) => {
-                if (info.offset.y < -30 || info.velocity.y < -200) {
+                if (info.offset.y < -20 || info.velocity.y < -150) {
                   toast.dismiss(t.id);
                 }
               }}
               onClick={() => toast.dismiss(t.id)}
-              className="max-w-md w-full bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl pointer-events-auto flex p-4 gap-3.5 items-center cursor-pointer border border-slate-800 hover:border-emerald-500/50 transition-all select-none"
+              className="max-w-md w-full bg-slate-950/95 backdrop-blur-xl shadow-2xl rounded-2xl pointer-events-auto flex p-4 gap-3.5 items-center cursor-pointer border border-slate-800 hover:border-emerald-500/50 transition-all select-none touch-none"
               dir={isAr ? "rtl" : "ltr"}
             >
               <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-xl shrink-0 shadow-md">

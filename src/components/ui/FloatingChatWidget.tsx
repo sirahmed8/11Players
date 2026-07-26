@@ -17,6 +17,7 @@ import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { usePlayers } from "@/contexts/PlayersContext";
+import { call11AIChat } from "@/lib/aiService";
 
 interface AIChatMsg {
   id: string;
@@ -426,35 +427,16 @@ export default function FloatingChatWidget() {
         playStyle: p.playStyle || "Standard",
       }));
 
-      const res = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: queryText,
-          playerContext,
-          communityRoster,
-          history: aiMessages.map((m) => ({ sender: m.sender, text: m.text })),
-          imageInlineData: imagePayload,
-        }),
+      const data = await call11AIChat({
+        message: queryText,
+        playerContext,
+        communityRoster,
+        history: aiMessages.map((m) => ({ sender: m.sender, text: m.text })),
+        imageInlineData: imagePayload,
       });
 
-      const data = await res.json();
-
-      if (res.status === 429 || data.error === "rate_limit") {
-        setAiMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            sender: "ai",
-            text: isAr ? data.message || "وصلت إلى الحد اليومي المؤقت لطلبات الذكاء الاصطناعي. انتظر لحظات والمحاولة مجدداً! ⚡" : data.messageEn || "Rate limit reached. Please wait a moment! ⚡",
-            timestamp: Date.now(),
-          },
-        ]);
-        return;
-      }
-
-      if (!res.ok || !data.reply) {
-        throw new Error(data.message || "Failed to fetch response");
+      if (!data || !data.reply) {
+        throw new Error("Failed to fetch response");
       }
 
       setAiMessages((prev) => [

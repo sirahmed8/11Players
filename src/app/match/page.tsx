@@ -557,16 +557,6 @@ function MatchContent() {
                   <p className="text-xs text-slate-400 max-w-md font-medium">
                     {isAr ? "يرجى الانتظار حتى تقوم الإدارة بتشكيل الفرق." : "Please wait for admins to generate the next match."}
                   </p>
-                  {isOwner && (
-                    <button
-                      type="button"
-                      onClick={() => setIsConfigModalOpen(true)}
-                      className="mt-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center gap-2"
-                    >
-                      <span>⚽</span>
-                      <span>{isAr ? "إنشاء مباراة أو فتح حجز جديد" : "Create Match / Open Booking"}</span>
-                    </button>
-                  )}
                 </div>
               ) : (
                 <div className="space-y-8" dir={isAr ? 'rtl' : 'ltr'}>
