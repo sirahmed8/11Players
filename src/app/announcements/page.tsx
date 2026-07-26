@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, MessageSquare } from "lucide-react";
+import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -53,11 +53,21 @@ export default function AnnouncementsPage() {
   // Chat banner body expanded
   const [chatBodyExpanded, setChatBodyExpanded] = useState(false);
 
+  // History Collapse & Pagination State
+  const [historyCollapsed, setHistoryCollapsed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // History Search & Filter State
   const [recentAnnouncements, setRecentAnnouncements] = useState<Announcement[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const [historySearch, setHistorySearch] = useState("");
   const [historyFilter, setHistoryFilter] = useState<'all' | 'urgent' | 'normal'>("all");
+
+  // Reset pagination when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [historySearch, historyFilter]);
 
   useEffect(() => {
     try {
@@ -638,11 +648,23 @@ export default function AnnouncementsPage() {
           {/* Past Broadcast History */}
           <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-              <h3 className="text-base font-black text-white flex items-center gap-2">
-                <span>📜</span>
-                <span>{isAr ? "سجل البث والإعلانات السابقة" : "Recent Broadcast History"}</span>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800 font-bold">{filteredHistory.length}</span>
-              </h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-base font-black text-white flex items-center gap-2">
+                  <span>📜</span>
+                  <span>{isAr ? "سجل البث والإعلانات السابقة" : "Recent Broadcast History"}</span>
+                  <span className="text-xs font-mono text-emerald-400 bg-emerald-950 px-2.5 py-0.5 rounded-full border border-emerald-800 font-bold">{filteredHistory.length}</span>
+                </h3>
+                {/* Collapse / Expand Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setHistoryCollapsed(p => !p)}
+                  className="p-1.5 px-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold shrink-0"
+                  title={historyCollapsed ? (isAr ? "توسيع السجل" : "Expand History") : (isAr ? "طي السجل" : "Collapse History")}
+                >
+                  <span className="text-[11px] font-medium hidden sm:inline">{historyCollapsed ? (isAr ? "توسيع" : "Expand") : (isAr ? "طي" : "Collapse")}</span>
+                  {historyCollapsed ? <ChevronDown className="w-4 h-4 text-emerald-400" /> : <ChevronUp className="w-4 h-4 text-slate-400" />}
+                </button>
+              </div>
 
               {/* Search & Filter Inputs */}
               <div className="flex items-center gap-3">
@@ -674,67 +696,121 @@ export default function AnnouncementsPage() {
               </div>
             </div>
 
-            {loadingHistory ? (
-              <div className="py-12 flex justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
-              </div>
-            ) : filteredHistory.length === 0 ? (
-              <div className="py-12 text-center text-slate-400 border border-slate-800 rounded-2xl font-medium text-xs">
-                {isAr ? "لم يتم العثور على أي إعلانات تطابق البحث." : "No broadcasts match your search."}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredHistory.map(ann => (
-                  <motion.div
-                    key={ann.id}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors"
-                  >
-                    {/* Top row: badges + title + actions */}
-                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                            ann.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
-                          }`}>
-                            {ann.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
-                          </span>
-                          <span className="text-xs font-bold text-slate-400">
-                            {ann.targetScope === 'global_all_users' ? (isAr ? '🌍 عام للكل' : '🌍 Global All') : (isAr ? '👥 للمجتمع' : '👥 Community')}
-                          </span>
-                          <span className="text-xs text-slate-500 font-medium font-mono">
-                            {new Date(ann.createdAt).toLocaleString()}
-                          </span>
-                        </div>
-                        <h4 className="font-black text-sm text-white">{isAr ? ann.titleAr : ann.titleEn}</h4>
+            <AnimatePresence>
+              {!historyCollapsed && (
+                <motion.div
+                  key="history-list-content"
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  className="overflow-hidden space-y-4"
+                >
+                  {loadingHistory ? (
+                    <div className="py-12 flex justify-center">
+                      <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                    </div>
+                  ) : filteredHistory.length === 0 ? (
+                    <div className="py-12 text-center text-slate-400 border border-slate-800 rounded-2xl font-medium text-xs">
+                      {isAr ? "لم يتم العثور على أي إعلانات تطابق البحث." : "No broadcasts match your search."}
+                    </div>
+                  ) : (
+                    <>
+                      <div className="space-y-3">
+                        {filteredHistory
+                          .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                          .map(ann => (
+                            <motion.div
+                              key={ann.id}
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="p-5 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-700 transition-colors"
+                            >
+                              {/* Top row: badges + title + actions */}
+                              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                <div className="space-y-1.5 flex-1 min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
+                                      ann.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
+                                    }`}>
+                                      {ann.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-400">
+                                      {ann.targetScope === 'global_all_users' ? (isAr ? '🌍 عام للكل' : '🌍 Global All') : (isAr ? '👥 للمجتمع' : '👥 Community')}
+                                    </span>
+                                    <span className="text-xs text-slate-500 font-medium font-mono">
+                                      {new Date(ann.createdAt).toLocaleString()}
+                                    </span>
+                                  </div>
+                                  <h4 className="font-black text-sm text-white">{isAr ? ann.titleAr : ann.titleEn}</h4>
+                                </div>
+
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {/* Read More button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => setReadMoreAnn(ann)}
+                                    className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500/50 text-emerald-400 hover:text-emerald-300 text-[11px] font-bold transition-colors flex items-center gap-1.5"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                    {isAr ? "اقرأ المزيد" : "Read More"}
+                                  </button>
+                                  {/* Delete button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleDeleteAnnouncement(ann.id)}
+                                    className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 text-rose-400 hover:bg-rose-950/40 transition-colors"
+                                    title={isAr ? "حذف الإعلان" : "Delete Announcement"}
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </motion.div>
+                          ))}
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
-                        {/* Read More button */}
-                        <button
-                          type="button"
-                          onClick={() => setReadMoreAnn(ann)}
-                          className="px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-emerald-500/50 text-emerald-400 hover:text-emerald-300 text-[11px] font-bold transition-colors flex items-center gap-1.5"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          {isAr ? "اقرأ المزيد" : "Read More"}
-                        </button>
-                        {/* Delete button */}
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteAnnouncement(ann.id)}
-                          className="p-2 rounded-xl bg-slate-900 border border-slate-800 hover:border-rose-500/50 text-rose-400 hover:bg-rose-950/40 transition-colors"
-                          title={isAr ? "حذف الإعلان" : "Delete Announcement"}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+                      {/* Pagination Bar (If items > 10) */}
+                      {Math.ceil(filteredHistory.length / itemsPerPage) > 1 && (
+                        <div className="pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+                          <span className="text-slate-400 font-medium">
+                            {isAr
+                              ? `عرض ${((currentPage - 1) * itemsPerPage) + 1} - ${Math.min(currentPage * itemsPerPage, filteredHistory.length)} من أصل ${filteredHistory.length} إشعار`
+                              : `Showing ${((currentPage - 1) * itemsPerPage) + 1} - ${Math.min(currentPage * itemsPerPage, filteredHistory.length)} of ${filteredHistory.length} broadcasts`}
+                          </span>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={currentPage === 1}
+                              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                              className="px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-white disabled:opacity-40 disabled:hover:border-slate-800 transition-all font-bold flex items-center gap-1.5"
+                            >
+                              <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                              <span>{isAr ? "السابق" : "Prev"}</span>
+                            </button>
+
+                            <span className="px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 font-mono font-bold text-emerald-400 text-xs">
+                              {currentPage} / {Math.ceil(filteredHistory.length / itemsPerPage)}
+                            </span>
+
+                            <button
+                              type="button"
+                              disabled={currentPage === Math.ceil(filteredHistory.length / itemsPerPage)}
+                              onClick={() => setCurrentPage(p => Math.min(Math.ceil(filteredHistory.length / itemsPerPage), p + 1))}
+                              className="px-3.5 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/40 text-slate-300 hover:text-white disabled:opacity-40 disabled:hover:border-slate-800 transition-all font-bold flex items-center gap-1.5"
+                            >
+                              <span>{isAr ? "التالي" : "Next"}</span>
+                              <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

@@ -34,6 +34,7 @@ export default function Sidebar() {
   const lastNotifToastTimeRef = useRef<number>(Date.now());
   const lastEditToastTimeRef = useRef<number>(Date.now());
   const activeLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Synchronously check if Firebase auth credentials exist in localStorage
   const [hasCachedUser] = useState<boolean>(() => {
@@ -45,15 +46,18 @@ export default function Sidebar() {
     }
   });
 
-  // Auto-scroll active tab into view when mobile sidebar opens
+  // Auto-scroll active tab into view on page load / refresh, route change & mobile sidebar toggle
   useEffect(() => {
-    if (isOpen && activeLinkRef.current) {
-      const timer = setTimeout(() => {
-        activeLinkRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-      }, 150);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen]);
+    const scrollActiveIntoView = () => {
+      if (activeLinkRef.current) {
+        activeLinkRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
+      }
+    };
+
+    scrollActiveIntoView();
+    const timer = setTimeout(scrollActiveIntoView, 200);
+    return () => clearTimeout(timer);
+  }, [pathname, isOpen, authLoading]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -467,7 +471,7 @@ export default function Sidebar() {
           </div>
 
           {/* Categorized Links */}
-          <div className="py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
+          <div ref={scrollContainerRef} className="py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
             {linkGroups.map((group, gIdx) => {
               if (group.items.length === 0) return null;
               return (
