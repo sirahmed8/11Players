@@ -1,6 +1,32 @@
 import { NextResponse } from "next/server";
 import { generate11AIResponse } from "@/lib/aiService";
 
+function cleanPlayStyleName(style?: string): string {
+  if (!style) return "Standard";
+  const map: Record<string, string> = {
+    extra_frontman: "Extra Frontman (المهاجم الإضافي)",
+    the_destroyer: "The Destroyer (المحطم)",
+    defensive_gk: "Defensive Goalkeeper (الحارس الدفاعي)",
+    offensive_gk: "Offensive Goalkeeper (الحارس الهجومي)",
+    classic_no_10: "Classic No. 10 (صانع الألعاب الكلاسيكي)",
+    defensive_fullback: "Defensive Fullback (الظهير الدفاعي)",
+    attacking_fullback: "Attacking Fullback (الظهير الهجومي)",
+    fullback_finisher: "Fullback Finisher (الظهير المنفذ)",
+    cross_specialist: "Cross Specialist (مختص العرضيات)",
+    build_up: "Build Up (بناء اللعب)",
+    box_to_box: "Box-to-Box (من الصندوق إلى الصندوق)",
+    hole_player: "Hole Player (اللاعب المتسلل)",
+    fox_in_the_box: "Fox in the Box (ثعلب المنطقة)",
+    creative_playmaker: "Creative Playmaker (صانع الألعاب المبدع)",
+    anchor_man: "Anchor Man (رجل الارتكاز)",
+    orchestrator: "Orchestrator (المايسترو)",
+    target_man: "Target Man (المهاجم المحطة)",
+    goal_poacher: "Goal Poacher (القناص)",
+  };
+  const key = style.toLowerCase().trim().replace(/[\s-]+/g, "_");
+  return map[key] || style.replace(/_/g, " ");
+}
+
 export async function POST(req: Request) {
   try {
     const { message, playerContext, communityRoster, history, imageInlineData } = await req.json();
@@ -22,7 +48,8 @@ export async function POST(req: Request) {
           const fullName = p.name || p.fullName || cardName;
           const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
           const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
-          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${p.playStyle || "Standard"} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
+          const playStyle = cleanPlayStyleName(p.playStyle);
+          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${playStyle} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
         })
         .join("\n");
     }
@@ -36,21 +63,22 @@ Current Player Live Context:
 - OVR Rating: ${playerContext?.overall || 72}
 - Position: ${playerContext?.primaryPosition || "Midfielder"}
 - Stats: ${playerContext?.goals || 0} Goals, ${playerContext?.assists || 0} Assists, ${playerContext?.matchesCount || 0} Matches Played
-- PlayStyle: ${playerContext?.playStyle || "Standard"}
+- PlayStyle: ${cleanPlayStyleName(playerContext?.playStyle)}
 - Community: ${playerContext?.communityName || "11Players Global"}
 
 Full Registered Live Roster & Players Database (ALL PLAYERS IN COMMUNITY):
 ${rosterSummary}
 
 Strict Behavioral & Data Access Guidelines:
-1. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g., "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
-2. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
-3. ALWAYS highlight key player names, card names in parentheses, OVR ratings, positions, stats, and "11Players" using Markdown bold syntax **text** (e.g. **11Players**, **يوسف راضوان (RADWAN)**, **81 OVR**, **عماد عادل (OMDA)**, **79**). This ensures key details render in bright emerald green text!
-4. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
-5. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
-6. DO NOT use awkward filler words at the beginning of sentences (e.g. NEVER start with "صح،" or "تمام،"). Start directly and professionally.
-7. Match response length to user prompt length. If the user sends a short phrase or greeting, respond concisely in 1-2 natural sentences without unsolicited long lectures.
-8. At the very end of your response, ALWAYS add a line formatted exactly as:
+1. NEVER output raw database strings containing underscores! (NEVER write "extra_frontman", "the_destroyer", "defensive_gk", "classic_no_10"). ALWAYS translate them to natural human language: write "المهاجم الإضافي" or "Extra Frontman", write "المحطم" or "The Destroyer", write "الحارس الدفاعي" or "Defensive Goalkeeper", write "صانع الألعاب الكلاسيكي" or "Classic No. 10".
+2. DO NOT repeat the player's full profile script ("بصفتك أحمد علاء...") on every turn! Only mention profile details when directly relevant to the question.
+3. When the user says casual remarks or farewells like "سلام", "خلاص", "ماشي", "شكراً", respond naturally and warmly in 1 short sentence without repeating their profile intro script!
+4. You have COMPLETE access to the live roster above! When a user asks about ANY player by nickname/cardName (e.g., "OMDA", "OMAR", "RADWAN", "HAMO", "JIMMY", "عماد", "عماد عادل", "يوسف راضوان") or position, ALWAYS check the roster list above first! Every player in this list is a real active registered player on 11Players.
+5. If asked about player attributes or best players (e.g., "مين احسن لاعب من ناحية القدرات"), compare OVR, physical attributes (height, weight, age), playStyle, and stats from the roster context above intelligently and accurately.
+6. ALWAYS highlight key player names, card names in parentheses, OVR ratings, positions, stats, and "11Players" using Markdown bold syntax **text** (e.g. **11Players**, **يوسف راضوان (RADWAN)**, **81 OVR**, **عماد عادل (OMDA)**, **79**). This ensures key details render in bright emerald green text!
+7. ALWAYS write the platform name in Arabic as "منصة 11Players" or "11Players". NEVER transliterate or write awkward phonetic spellings like "إيفليرز" or "إليفن".
+8. Write immaculate, natural Arabic. Always write "بتقييم" (NOT "برتقييم" or "برتققيم").
+9. At the very end of your response, ALWAYS add a line formatted exactly as:
 [SUGGESTIONS: Question 1 | Question 2 | Question 3]
 Provide 2-3 short, highly relevant follow-up questions tailored to the conversation (in the same language as user prompt).`;
 
