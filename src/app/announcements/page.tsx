@@ -122,7 +122,7 @@ export default function AnnouncementsPage() {
     }
   };
 
-  const handleBroadcast = async (e: React.FormEvent) => {
+  const handleBroadcast = async (e: React.FormEvent, mode: 'push' | 'chat' | 'both' = 'both') => {
     e.preventDefault();
     if (!titleEn.trim() || !titleAr.trim() || !bodyEn.trim() || !bodyAr.trim()) {
       toast.error(isAr ? "يرجى تعبئة جميع الحقول باللغتين العربية والإنجليزية" : "Please fill in all title and body fields in both languages");
@@ -144,6 +144,7 @@ export default function AnnouncementsPage() {
         bodyAr: bodyAr.trim(),
         priority,
         targetScope,
+        broadcastMode: mode,
         link: link.trim() || null,
         senderUid: user?.uid || "",
         senderName: user?.displayName || (isAr ? "المسؤول" : "Admin"),
@@ -154,8 +155,8 @@ export default function AnnouncementsPage() {
       // 1. Save to global announcements collection
       await setDoc(doc(db, "announcements", annId), announcementData);
 
-      // 2. Broadcast to community live chat
-      if (targetScope === 'active_community' && activeCommunityId) {
+      // 2. Broadcast to community live chat (if mode is 'chat' or 'both')
+      if ((mode === 'chat' || mode === 'both') && targetScope === 'active_community' && activeCommunityId) {
         try {
           await addDoc(collection(db, "communities", activeCommunityId, "chat"), {
             senderId: "system",
@@ -172,43 +173,51 @@ export default function AnnouncementsPage() {
         }
       }
 
-      // 3. Deliver to users/{uid}/notifications in safe 400 chunks
+      // 3. Deliver to users/{uid}/notifications in safe 400 chunks (if mode is 'push' or 'both')
       let targetUids: string[] = [];
-      if (targetScope === 'active_community' && activeCommunityId) {
-        const snap = await getDocs(collection(db, "communities", activeCommunityId, "players"));
-        snap.forEach(d => targetUids.push(d.id));
-      } else if (targetScope === 'global_all_users' && isOwner) {
-        const snap = await getDocs(collection(db, "users"));
-        snap.forEach(d => targetUids.push(d.id));
+      if (mode === 'push' || mode === 'both') {
+        if (targetScope === 'active_community' && activeCommunityId) {
+          const snap = await getDocs(collection(db, "communities", activeCommunityId, "players"));
+          snap.forEach(d => targetUids.push(d.id));
+        } else if (targetScope === 'global_all_users' && isOwner) {
+          const snap = await getDocs(collection(db, "users"));
+          snap.forEach(d => targetUids.push(d.id));
+        }
+
+        const chunkSize = 400;
+        for (let i = 0; i < targetUids.length; i += chunkSize) {
+          const chunk = targetUids.slice(i, i + chunkSize);
+          await Promise.all(chunk.map(async (recipientUid) => {
+            try {
+              const notifId = `broadcast_${annId}`;
+              const notifPayload: any = {
+                id: notifId,
+                type: priority === 'urgent' ? 'admin' : 'updates',
+                title: titleEn.trim(),
+                titleAr: titleAr.trim(),
+                titleEn: titleEn.trim(),
+                body: bodyEn.trim(),
+                bodyAr: bodyAr.trim(),
+                bodyEn: bodyEn.trim(),
+                read: false,
+                createdAt: serverTimestamp(),
+                link: link.trim() || null
+              };
+              await setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
+            } catch (notifErr) {
+              console.warn(`Failed notification for ${recipientUid}:`, notifErr);
+            }
+          }));
+        }
       }
 
-      const chunkSize = 400;
-      for (let i = 0; i < targetUids.length; i += chunkSize) {
-        const chunk = targetUids.slice(i, i + chunkSize);
-        await Promise.all(chunk.map(async (recipientUid) => {
-          try {
-            const notifId = `broadcast_${annId}`;
-            const notifPayload: any = {
-              id: notifId,
-              type: priority === 'urgent' ? 'admin' : 'updates',
-              title: titleEn.trim(),
-              titleAr: titleAr.trim(),
-              titleEn: titleEn.trim(),
-              body: bodyEn.trim(),
-              bodyAr: bodyAr.trim(),
-              bodyEn: bodyEn.trim(),
-              read: false,
-              createdAt: serverTimestamp(),
-              link: link.trim() || null
-            };
-            await setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
-          } catch (notifErr) {
-            console.warn(`Failed notification for ${recipientUid}:`, notifErr);
-          }
-        }));
-      }
+      const modeMsg = mode === 'both' 
+        ? (isAr ? "بالإشعار الفوري ومحادثة المجتمع" : "Push Notif & Chat Banner")
+        : mode === 'push'
+          ? (isAr ? "بالإشعار الفوري" : "Push Notification")
+          : (isAr ? "بمحادثة المجتمع" : "Chat Banner");
 
-      toast.success(isAr ? `تم بث الإعلان بنجاح إلى ${targetUids.length} مستخدم!` : `Successfully broadcasted to ${targetUids.length} users!`);
+      toast.success(isAr ? `تم البث بنجاح (${modeMsg})!` : `Broadcasted successfully via ${modeMsg}!`);
       setTitleEn("");
       setTitleAr("");
       setBodyEn("");
@@ -461,31 +470,44 @@ export default function AnnouncementsPage() {
                   <span>{aiEnhancing ? (isAr ? "جاري التحسين..." : "Enhancing...") : (isAr ? "تحسين بالنص" : "AI Polish")}</span>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {/* Push Notif Button */}
                   <motion.button
-                    type="submit"
+                    type="button"
                     disabled={broadcasting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => setActivePreviewTab('push')}
-                    className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-amber-600 hover:bg-amber-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-amber-600/30 shrink-0"
+                    onClick={(e) => { setActivePreviewTab('push'); handleBroadcast(e, 'push'); }}
+                    className="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-500/40 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 shrink-0"
                   >
-                    {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Bell className="w-4 h-4" />}
-                    <span>{isAr ? "بث إشعار" : "Push Notif"}</span>
+                    {broadcasting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
+                    <span>{isAr ? "إشعار فقط" : "Push Notif"}</span>
                   </motion.button>
 
                   {/* Chat Banner Button */}
                   <motion.button
-                    type="submit"
+                    type="button"
                     disabled={broadcasting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={() => setActivePreviewTab('chat')}
-                    className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-emerald-600/30 shrink-0"
+                    onClick={(e) => { setActivePreviewTab('chat'); handleBroadcast(e, 'chat'); }}
+                    className="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 border border-teal-500/40 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 shrink-0"
                   >
-                    {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
-                    <span>{isAr ? "بث المحادثة" : "Chat Banner"}</span>
+                    {broadcasting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
+                    <span>{isAr ? "محادثة فقط" : "Chat Banner"}</span>
+                  </motion.button>
+
+                  {/* BOTH BUTTON (Push & Chat at once!) */}
+                  <motion.button
+                    type="button"
+                    disabled={broadcasting}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={(e) => handleBroadcast(e, 'both')}
+                    className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-emerald-600/30 shrink-0"
+                  >
+                    {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 text-amber-300" />}
+                    <span>{broadcasting ? (isAr ? "جاري البث..." : "Broadcasting...") : (isAr ? "🚀 بث الكلية (إشعار + محادثة)" : "📢 Broadcast Both (Push & Chat)")}</span>
                   </motion.button>
                 </div>
               </div>
