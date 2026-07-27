@@ -125,7 +125,7 @@ export function generateShareableBillSummary(
     text += `${icon} ${p.name}: ${p.amount} ${sym} (${p.status})\n`;
   });
 
-  text += `\nPay via STC Pay / Cash to Captain. Powered by 11Players.`;
+  text += `\nPay via InstaPay / Vodafone Cash / Cash to Captain. Powered by 11Players.`;
   return text;
 }
 
@@ -133,20 +133,19 @@ export default function PitchSplitBillCalculator() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const [matchName, setMatchName] = useState("Al-Malaz Pitch Match (7v7)");
-  const [totalCost, setTotalCost] = useState(350);
-  const [currency, setCurrency] = useState<CurrencyCode>("SAR");
+  const [matchName, setMatchName] = useState(isAr ? "مباراة حجز النادي (7v7)" : "Hagoozat Pitch Match (7v7)");
+  const [totalCost, setTotalCost] = useState(1200);
+  const [currency, setCurrency] = useState<CurrencyCode>("EGP");
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [copiedShareLink, setCopiedShareLink] = useState(false);
 
   const [players, setPlayers] = useState<SplitBillPlayer[]>([
-    { id: "1", name: "Capt. Ahmed", amount: 50, status: "Paid" },
-    { id: "2", name: "Sami Al-Jabir", amount: 50, status: "Paid" },
-    { id: "3", name: "Omar Homsi", amount: 50, status: "Pending" },
-    { id: "4", name: "Tariq Aziz", amount: 50, status: "Pending" },
-    { id: "5", name: "Youssef Zaid", amount: 50, status: "Overdue" },
-    { id: "6", name: "Fahad Al-Harbi", amount: 50, status: "Paid" },
-    { id: "7", name: "Ziyad Qassim", amount: 50, status: "Pending" },
+    { id: "1", name: "كابتن أحمد", amount: 200, status: "Paid" },
+    { id: "2", name: "محمد صلاح", amount: 200, status: "Paid" },
+    { id: "3", name: "عمر شريف", amount: 200, status: "Pending" },
+    { id: "4", name: "طارق عزيز", amount: 200, status: "Pending" },
+    { id: "5", name: "يوسف زيد", amount: 200, status: "Overdue" },
+    { id: "6", name: "زياد قاسم", amount: 200, status: "Paid" },
   ]);
 
   // Recalculate amounts if equal mode is active
