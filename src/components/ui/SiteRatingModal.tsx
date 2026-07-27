@@ -155,7 +155,7 @@ export default function SiteRatingModal() {
                     ? 'أخبرنا بملاحظاتك أو مقترحاتك التطويرية (اختياري)...'
                     : 'Any feedback or feature requests? (Optional)...'
                 }
-                className="w-full rounded-2xl bg-slate-800/80 border border-slate-700 p-4 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none resize-none"
+                className="w-full rounded-2xl bg-slate-800/80 border border-slate-700 p-4 text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none resize-none"
               />
             </div>
 

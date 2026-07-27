@@ -136,3 +136,19 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Glassmorphism Depth & Aesthetics**:
   - Translucent surfaces (`rgba(15, 23, 42, 0.85)`), multi-layered shadow offsets, and sleek dark pitch emerald accents across all pages.
 
+---
+
+## 7. Milestone M2.1 — 1000x UI/UX Visual Polish & Standardizations
+- **Input Focus Ring Glow Standard**:
+  - Standardized across all `<input>`, `<textarea>`, search bars, and editable controls in `src/app` and `src/components` with the signature emerald glow ring:
+    `focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300`
+- **Animated Custom Dropdowns & Accordions**:
+  - Replaced native HTML `<select>` elements and static lists with `CustomDropdown` component and Framer Motion (`AnimatePresence` with `motion.div` / `motion.ul`) scale, opacity, and smooth height auto transitions across `PitchSplitBillCalculator`, `KitBadgeBuilder`, `CommunityChallengeModal`, `CaptainDraftRoom`, `MatchPitchDisplay`, `DynamicPitchHeatmap`, `SuggestPeerRatingModal`, `EditMatchModal`, `MatchConfigModal`, `PendingEdits`, and `announcements`.
+- **Currency Standardization to EGP / ج.م**:
+  - Standardized default currency baseline to Egyptian Pound (`EGP` / `ج.م`) across financial modules, match headers, cost per player inputs, and rent split calculations.
+- **Authentic Hagoozat Elite Empty States**:
+  - Replaced legacy synthetic mock data and hardcoded fallback concepts in `DerbyRivalryEngine.tsx` and `match/newspaper/page.tsx` with dynamic Hagoozat Elite empty states and authentic team representations.
+- **Strict Backward Compatibility Safeguards**:
+  - Maintained 100% backward compatibility for all data models and function signatures in `src/lib/engine.ts`, `src/lib/firestorePaths.ts`, and core context providers (`AuthContext`, `CommunityContext`, `PlayersContext`).
+
+

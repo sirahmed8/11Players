@@ -837,7 +837,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                       type="text"
                       value={reviewFormData.fullName || ""}
                       onChange={e => handleBasicFieldChange('fullName', e.target.value)}
-                      className="w-full p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all"
+                      className="w-full p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
                     />
                   </div>
 
@@ -850,7 +850,7 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                       type="text"
                       value={reviewFormData.cardName !== undefined ? reviewFormData.cardName : ""}
                       onChange={e => handleBasicFieldChange('cardName', e.target.value)}
-                      className="w-full p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all"
+                      className="w-full p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
                       placeholder={isAr ? "الاسم المعروف" : "Nickname"}
                     />
                   </div>
@@ -938,14 +938,14 @@ export default function PendingEdits({ filterPlayerId, inlineMode }: PendingEdit
                         placeholder="Height"
                         value={reviewFormData.height || 175}
                         onChange={e => handleBasicFieldChange('height', Number(e.target.value))}
-                        className="w-1/2 p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all"
+                        className="w-1/2 p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
                       />
                       <input
                         type="number"
                         placeholder="Weight"
                         value={reviewFormData.weight || 70}
                         onChange={e => handleBasicFieldChange('weight', Number(e.target.value))}
-                        className="w-1/2 p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 transition-all"
+                        className="w-1/2 p-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
                       />
                     </div>
                   </div>

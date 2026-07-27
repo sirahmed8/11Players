@@ -910,7 +910,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                             value={supportSearch}
                             onChange={(e) => setSupportSearch(e.target.value)}
                             placeholder={isAr ? "بحث عن مستخدم..." : "Search user..."}
-                            className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-xl pl-8 rtl:pl-2 rtl:pr-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-500/30"
+                            className="w-full bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-xl pl-8 rtl:pl-2 rtl:pr-8 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all duration-300"
                           />
                         </div>
                         <div className="p-1 bg-slate-900 border border-slate-800 rounded-xl flex items-center gap-1 relative shadow-inner">
@@ -1185,7 +1185,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                           ? (isAr ? "جاري الاستماع... تحدث الآن 🎙️" : "Listening... Speak now 🎙️")
                           : (isAr ? "اسأل أو ارفع صورة لتحليلها..." : "Ask or attach an image to analyze...")
                       }
-                      className="flex-1 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-500/30"
+                      className="flex-1 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-2xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all duration-300"
                     />
 
                     <motion.button
@@ -1243,7 +1243,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                         : (isAr ? "اكتب رسالة للدعم الفني..." : "Message support...")
                     }
                     disabled={!user || uploadingImage}
-                    className="flex-1 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none transition-all focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-50"
+                    className="flex-1 bg-slate-900 border border-slate-800 focus:border-emerald-500 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all duration-300 disabled:opacity-50"
                   />
 
                   <motion.button

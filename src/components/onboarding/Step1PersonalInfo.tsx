@@ -112,7 +112,7 @@ export default function Step1PersonalInfo({
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.firstName} *</label>
-            <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.firstName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
+            <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.firstName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500'}`}>
               <input
                 type="text" value={state.firstName} onChange={(e) => handleFieldChange('firstName', e.target.value)} placeholder={txt.firstNamePlaceholder}
                 className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
@@ -122,7 +122,7 @@ export default function Step1PersonalInfo({
           </div>
           <div className="space-y-1.5">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.lastName} *</label>
-            <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.lastName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
+            <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.lastName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500'}`}>
               <input
                 type="text" value={state.lastName} onChange={(e) => handleFieldChange('lastName', e.target.value)} placeholder={txt.lastNamePlaceholder}
                 className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none"
@@ -133,7 +133,7 @@ export default function Step1PersonalInfo({
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.cardName} *</label>
-          <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-500'}`}>
+          <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.cardName ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500'}`}>
             <input
               type="text" value={state.cardName} onChange={(e) => handleFieldChange('cardName', e.target.value)} placeholder={txt.cardNamePlaceholder}
               className="w-full bg-transparent px-4 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none uppercase"

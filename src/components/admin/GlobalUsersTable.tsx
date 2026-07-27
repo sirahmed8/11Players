@@ -306,7 +306,7 @@ export default function GlobalUsersTable() {
               placeholder={isAr ? "البحث بالاسم أو الإيميل..." : "Search name or email..."}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold placeholder-slate-500"
+              className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold placeholder-slate-500"
             />
           </div>
 

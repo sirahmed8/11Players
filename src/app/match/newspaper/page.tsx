@@ -108,7 +108,7 @@ export default function NewspaperPage() {
                 type="text"
                 value={matchData.teamAName}
                 onChange={(e) => setMatchData({ ...matchData, teamAName: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
             <div>
@@ -117,7 +117,7 @@ export default function NewspaperPage() {
                 type="number"
                 value={matchData.scoreA}
                 onChange={(e) => setMatchData({ ...matchData, scoreA: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
             <div>
@@ -126,7 +126,7 @@ export default function NewspaperPage() {
                 type="number"
                 value={matchData.scoreB}
                 onChange={(e) => setMatchData({ ...matchData, scoreB: parseInt(e.target.value) || 0 })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
             <div>
@@ -135,7 +135,7 @@ export default function NewspaperPage() {
                 type="text"
                 value={matchData.teamBName}
                 onChange={(e) => setMatchData({ ...matchData, teamBName: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:border-amber-500"
+                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
           </div>

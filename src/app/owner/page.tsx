@@ -270,7 +270,7 @@ export default function OwnerPage() {
                     <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "اسم المجتمع" : "Community Name"}</label>
                     <div className="relative">
                       <Users className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
-                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Elite Champions..." />
+                      <input required value={newCommName} onChange={e => setNewCommName(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Elite Champions..." />
                     </div>
                   </div>
 
@@ -278,7 +278,7 @@ export default function OwnerPage() {
                     <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "الوصف" : "Description"}</label>
                     <div className="relative">
                       <FileText className="w-4 h-4 absolute left-3 top-3 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
-                      <textarea rows={2} value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500 resize-none" placeholder={isAr ? "وصف المجتمع والأقسام..." : "Community description..."} />
+                      <textarea rows={2} value={newCommDesc} onChange={e => setNewCommDesc(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold text-white placeholder-slate-500 resize-none" placeholder={isAr ? "وصف المجتمع والأقسام..." : "Community description..."} />
                     </div>
                   </div>
 
@@ -286,7 +286,7 @@ export default function OwnerPage() {
                     <label className="block text-xs font-bold text-slate-300 mb-1.5">{isAr ? "معرف المشرف المسؤول (Admin UID)" : "Admin UID"}</label>
                     <div className="relative">
                       <UserCheck className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
-                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold font-mono text-white placeholder-slate-500" placeholder="e.g. 8xJ9..." />
+                      <input required value={newCommAdmin} onChange={e => setNewCommAdmin(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold font-mono text-white placeholder-slate-500" placeholder="e.g. 8xJ9..." />
                     </div>
                   </div>
 
@@ -310,7 +310,7 @@ export default function OwnerPage() {
                       <label className="block text-xs font-bold text-slate-300">{isAr ? "كلمة المرور" : "Password"}</label>
                       <div className="relative">
                         <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
-                        <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Secret..." />
+                        <input required={isPrivate} value={password} onChange={e => setPassword(e.target.value)} className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold text-white placeholder-slate-500" placeholder="Secret..." />
                       </div>
                     </div>
                   )}
@@ -477,15 +477,15 @@ export default function OwnerPage() {
               <div className="p-6 overflow-y-auto space-y-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "الاسم" : "Name"}</label>
-                  <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Name" />
+                  <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300" placeholder="Name" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "الوصف" : "Description"}</label>
-                  <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Description" />
+                  <input value={editDesc} onChange={e => setEditDesc(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300" placeholder="Description" />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "معرف المسؤول (Admin UID)" : "Admin UID"}</label>
-                  <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-mono font-bold text-white outline-none focus:border-emerald-500" placeholder="Admin UID" />
+                  <input value={editAdminUid} onChange={e => setEditAdminUid(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-mono font-bold text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300" placeholder="Admin UID" />
                 </div>
                 
                 <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
@@ -505,7 +505,7 @@ export default function OwnerPage() {
                 {isEditPrivate && (
                   <div>
                     <label className="block text-xs font-bold text-slate-300 mb-1">{isAr ? "كلمة المرور" : "Password"}</label>
-                    <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:border-emerald-500" placeholder="Password" />
+                    <input value={editPassword} onChange={e => setEditPassword(e.target.value)} className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs font-bold text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300" placeholder="Password" />
                   </div>
                 )}
               </div>

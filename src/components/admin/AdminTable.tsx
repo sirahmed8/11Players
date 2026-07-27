@@ -1456,7 +1456,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
                     onChange={(e) => setModerationMessage(e.target.value)}
                     placeholder={t(locale, 'e.g. Violation of community fair play guidelines...', 'مثال: مخالفة تعليمات وقوانين المجتمع...')}
                     rows={3}
-                    className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-4 py-3 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
                   />
                 </div>
 

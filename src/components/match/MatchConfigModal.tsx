@@ -1948,7 +1948,7 @@ ${teamsInfo}
                             setShowDatePicker(!showDatePicker);
                             setShowTimePicker(false);
                           }}
-                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 flex items-center justify-between group shadow-inner"
+                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 flex items-center justify-between group shadow-inner"
                         >
                           <span className={config.date ? "font-bold text-white" : "text-slate-500 font-medium"}>
                             {config.date || (isAr ? 'يوم/شهر/سنة' : 'YYYY-MM-DD')}
@@ -2033,7 +2033,7 @@ ${teamsInfo}
                             setShowTimePicker(!showTimePicker);
                             setShowDatePicker(false);
                           }}
-                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 flex items-center justify-between group shadow-inner"
+                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 flex items-center justify-between group shadow-inner"
                         >
                           <span className={config.time ? "font-bold text-white" : "text-slate-500 font-medium"}>
                             {config.time || "--:-- --"}
@@ -2113,7 +2113,7 @@ ${teamsInfo}
                         placeholder={isAr ? 'مثال: ملعب الأهلي بالشيخ زايد' : 'e.g. Cairo Stadium Pitch 3'}
                         value={config.location}
                         onChange={(e) => setConfig({ ...config, location: e.target.value })}
-                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder:text-slate-500 font-bold text-sm shadow-inner"
                       />
                     </div>
 
@@ -2121,10 +2121,10 @@ ${teamsInfo}
                       <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'التكلفة لكل لاعب' : 'Cost per Player'}</label>
                       <input
                         type="text"
-                        placeholder={isAr ? 'مثال: 50 جنيه' : 'e.g. 50 EGP'}
+                        placeholder={isAr ? 'مثال: 50 جنيه (EGP)' : 'e.g. 50 EGP'}
                         value={config.cost}
                         onChange={(e) => setConfig({ ...config, cost: e.target.value })}
-                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder:text-slate-500 font-bold text-sm shadow-inner"
                       />
                     </div>
 
@@ -2134,7 +2134,7 @@ ${teamsInfo}
                         placeholder={isAr ? 'تعليمات المباراة، الزي المطلوبة، أو أي ملاحظات أخرى...' : 'Match instructions, uniform color, or extra details...'}
                         value={config.notes}
                         onChange={(e) => setConfig({ ...config, notes: e.target.value })}
-                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:border-emerald-500 min-h-[85px] transition-all duration-200 placeholder:text-slate-500 font-bold text-sm shadow-inner"
+                        className="w-full rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 min-h-[85px] transition-all duration-300 placeholder:text-slate-500 font-bold text-sm shadow-inner"
                       />
                     </div>
                   </div>

@@ -208,7 +208,7 @@ export default function CommunityPage() {
                   placeholder={isAr ? "ابحث بالاسم أو المركز..." : "Search name or position..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-slate-900/80 border border-slate-800 focus:border-emerald-500/50 rounded-xl focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all text-sm font-bold text-white placeholder-slate-500 shadow-sm"
+                  className="w-full pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2.5 bg-slate-900/80 border border-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-xl outline-none transition-all duration-300 text-sm font-bold text-white placeholder-slate-500 shadow-sm"
                 />
               </div>
 
