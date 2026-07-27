@@ -498,7 +498,7 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
           variants={staggerContainerVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto pr-1"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 max-h-[440px] overflow-y-auto p-2 scrollbar-thin"
         >
           <AnimatePresence>
             {filteredAvailable.map((player) => {
@@ -508,12 +508,12 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
                   key={player.uid}
                   layout
                   variants={staggerItemVariants}
-                  whileHover={microSpringProps.whileHover}
-                  whileTap={microSpringProps.whileTap}
-                  transition={microSpringProps.transition}
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
                   onMouseEnter={() => setHoveredPlayer(player)}
                   onMouseLeave={() => setHoveredPlayer(null)}
-                  className="glass-card backdrop-blur-xl p-3 rounded-xl border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-slate-900/80 hover:bg-slate-900 transition-all flex items-center justify-between group cursor-pointer"
+                  className="glass-card backdrop-blur-xl p-3.5 rounded-xl border border-slate-800/80 hover:border-emerald-500/60 hover:shadow-[0_4px_20px_rgba(16,185,129,0.2)] bg-slate-900/90 hover:bg-slate-900 transition-all flex items-center justify-between group cursor-pointer relative z-0 hover:z-10"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-black text-sm text-amber-400 border border-amber-500/30">
