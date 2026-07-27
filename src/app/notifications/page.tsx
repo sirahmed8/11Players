@@ -28,6 +28,11 @@ export default function NotificationsPage() {
   const [confirmDeleteAll, setConfirmDeleteAll] = useState(false);
   const [selectedNotif, setSelectedNotif] = useState<UserNotification | null>(null);
 
+  // Pagination & Older Collapse State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isOlderExpanded, setIsOlderExpanded] = useState(true);
+  const PAGE_SIZE = 10;
+
   // 11AI Tactical Alert State
   const [aiAlert, setAiAlert] = useState<{ title: string; message: string } | null>(null);
   const [aiAlertLoading, setAiAlertLoading] = useState(false);
@@ -383,23 +388,70 @@ export default function NotificationsPage() {
                 {/* Section 3: Older */}
                 {olderNotifs.length > 0 && (
                   <div>
-                    <div className="px-6 py-2.5 bg-slate-950/80 border-b border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                      <Bell className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{isAr ? "سابقاً" : "Older"}</span>
-                      <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full text-[10px]">
-                        {olderNotifs.length}
-                      </span>
-                    </div>
-                    <ul className="divide-y divide-slate-800/60">
-                      <AnimatePresence>
-                        {olderNotifs.map(notif => renderNotifItem(notif))}
-                      </AnimatePresence>
-                    </ul>
+                    <button
+                      type="button"
+                      onClick={() => setIsOlderExpanded(!isOlderExpanded)}
+                      className="w-full px-6 py-2.5 bg-slate-950/80 hover:bg-slate-900 border-b border-slate-800 text-[11px] font-black text-slate-400 uppercase tracking-wider flex items-center justify-between transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Bell className="w-3.5 h-3.5 text-slate-400" />
+                        <span>{isAr ? "إشعارات أقوم / قديمة" : "Older Notifications"}</span>
+                        <span className="bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full text-[10px]">
+                          {olderNotifs.length}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
+                        <span>{isOlderExpanded ? (isAr ? "طي الإشعارات" : "Collapse") : (isAr ? "توسيع الإشعارات" : "Expand")}</span>
+                        <motion.div animate={{ rotate: isOlderExpanded ? 180 : 0 }}>
+                          <ChevronDown className="w-4 h-4" />
+                        </motion.div>
+                      </div>
+                    </button>
+
+                    <AnimatePresence>
+                      {isOlderExpanded && (
+                        <motion.ul
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="divide-y divide-slate-800/60 overflow-hidden"
+                        >
+                          {olderNotifs.map(notif => renderNotifItem(notif))}
+                        </motion.ul>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
               </div>
             )}
           </div>
+
+          {/* 10-Item Pagination Controls Bar */}
+          {filteredNotifs.length > PAGE_SIZE && (
+            <div className="flex items-center justify-between p-4 bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl shadow-xl">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-white transition-all cursor-pointer"
+              >
+                {isAr ? "← السابقة" : "← Previous"}
+              </button>
+
+              <span className="text-xs font-black text-slate-400">
+                {isAr ? `صفحة ${currentPage} من ${Math.ceil(filteredNotifs.length / PAGE_SIZE)}` : `Page ${currentPage} of ${Math.ceil(filteredNotifs.length / PAGE_SIZE)}`}
+              </span>
+
+              <button
+                type="button"
+                disabled={currentPage >= Math.ceil(filteredNotifs.length / PAGE_SIZE)}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-bold text-white transition-all cursor-pointer"
+              >
+                {isAr ? "التالية →" : "Next →"}
+              </button>
+            </div>
+          )}
 
           {/* Confirm Delete All Modal */}
           <ConfirmModal

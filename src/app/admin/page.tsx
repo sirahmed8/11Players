@@ -28,7 +28,7 @@ export default function AdminPage() {
   const isAr = locale === "ar";
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<"overview" | "players" | "ai" | "pending">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "players" | "ai" | "pending">("ai");
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
 
   // Auto-run daily peer rating aggregation on first admin visit each day

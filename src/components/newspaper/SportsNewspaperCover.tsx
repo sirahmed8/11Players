@@ -128,25 +128,25 @@ export interface SportsNewspaperCoverProps {
 // ── Default Match Data ─────────────────────────────────────────────────────
 
 export const DEFAULT_MATCH_DATA: MatchResultData = {
-  teamAName: 'Red Lions FC',
-  teamBName: 'Blue Eagles FC',
+  teamAName: 'Team Alpha',
+  teamBName: 'Team Bravo',
   scoreA: 3,
   scoreB: 2,
   matchType: 'Derby',
   isComeback: true,
-  venue: 'Hagoozat Stadium',
+  venue: 'Hagoozat Turf Pitch',
   date: 'JULY 27, 2026',
   motm: {
-    name: 'Karim Al-Masri',
+    name: 'Captain MOTM',
     photoUrl: '',
-    rating: 9.4,
+    rating: 9.2,
     goals: 2,
     assists: 1,
-    keyPasses: 4,
+    keyPasses: 3,
     tackles: 2
   },
-  lineupA: ['H. El-Shenawy (GK)', 'A. Hakimi (RB)', 'M. Abdelmonem (CB)', 'R. Saiss (CB)', 'Y. Attiat-Allah (LB)', 'S. Amrabat (DMF)', 'A. Ounahi (CMF)', 'B. Diaz (AMF)', 'H. Ziyech (RWF)', 'Y. En-Nesyri (CF)', 'K. Al-Masri (LWF)'],
-  lineupB: ['Y. Bounou (GK)', 'N. Mazraoui (RB)', 'K. Koulibaly (CB)', 'N. Aguerd (CB)', 'A. Davies (LB)', 'T. Partey (DMF)', 'F. Kessie (CMF)', 'M. Kudus (AMF)', 'M. Salah (RWF)', 'V. Osimhen (CF)', 'S. Mane (LWF)']
+  lineupA: ['Player 1 (GK)', 'Player 2 (RB)', 'Player 3 (CB)', 'Player 4 (CB)', 'Player 5 (LB)', 'Player 6 (DMF)', 'Player 7 (CMF)'],
+  lineupB: ['Player 8 (GK)', 'Player 9 (RB)', 'Player 10 (CB)', 'Player 11 (CB)', 'Player 12 (LB)', 'Player 13 (DMF)', 'Player 14 (CMF)']
 };
 
 export const SportsNewspaperCover: React.FC<SportsNewspaperCoverProps> = ({

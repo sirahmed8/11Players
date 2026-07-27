@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Award, Zap, Shield, Target, Activity, Flame, Lock, CheckCircle2, ChevronRight, Sparkles, Star } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
 import toast from "react-hot-toast";
 
 export type BadgeRank = "Bronze" | "Silver" | "Gold" | "Diamond" | "Locked";
@@ -213,23 +215,25 @@ export function getSkillTreeNodes(): SkillNodeDefinition[] {
 }
 
 export default function XpSkillTree() {
+  const { user } = useAuth();
+  const { userProfile: profile } = useAuthProfile(user);
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const [playerStats] = useState<PlayerStatsAndAttributes>({
-    matchesPlayed: 24,
-    goals: 18,
-    assists: 14,
-    mvp: 6,
+  const playerStats: PlayerStatsAndAttributes = {
+    matchesPlayed: profile?.stats?.matchesPlayed || profile?.stats?.matchesCount || 0,
+    goals: profile?.stats?.goals || 0,
+    assists: profile?.stats?.assists || 0,
+    mvp: profile?.stats?.mvps || profile?.stats?.manOfTheMatch || 0,
     attributes: {
-      finishing: 84,
-      stamina: 82,
-      defensiveAwareness: 76,
-      lowPass: 81,
-      speed: 86,
-      gkReflexes: 70,
+      finishing: profile?.attributes?.finishing || 70,
+      stamina: profile?.attributes?.stamina || 70,
+      defensiveAwareness: profile?.attributes?.defensiveAwareness || 70,
+      lowPass: profile?.attributes?.lowPass || 70,
+      speed: profile?.attributes?.speed || 70,
+      gkReflexes: profile?.attributes?.gkReflexes || 70,
     },
-  });
+  };
 
   const totalXp = calculateTotalPlayerXp(
     playerStats.matchesPlayed,

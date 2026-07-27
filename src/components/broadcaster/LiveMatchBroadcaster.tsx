@@ -133,8 +133,8 @@ export const INITIAL_MATCH_EVENTS: BroadcasterEvent[] = [
 ];
 
 export const LiveMatchBroadcaster: React.FC<LiveMatchBroadcasterProps> = ({
-  teamAName = 'Team Atlas Lions (A)',
-  teamBName = 'Team Pharaohs (B)',
+  teamAName = 'Team Alpha (A)',
+  teamBName = 'Team Bravo (B)',
   initialScoreA = 1,
   initialScoreB = 0,
   autoSimulate = true,

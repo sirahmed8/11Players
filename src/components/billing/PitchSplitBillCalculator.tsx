@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
 import CustomDropdown from "@/components/ui/CustomDropdown";
+import { usePlayers } from "@/contexts/PlayersContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
 
 export type PaymentStatus = "Paid" | "Pending" | "Overdue";
 export type CurrencyCode = "SAR" | "USD" | "EUR" | "EGP";
@@ -140,14 +143,22 @@ export default function PitchSplitBillCalculator() {
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [copiedShareLink, setCopiedShareLink] = useState(false);
 
-  const [players, setPlayers] = useState<SplitBillPlayer[]>([
-    { id: "1", name: "كابتن أحمد", amount: 200, status: "Paid" },
-    { id: "2", name: "محمد صلاح", amount: 200, status: "Paid" },
-    { id: "3", name: "عمر شريف", amount: 200, status: "Pending" },
-    { id: "4", name: "طارق عزيز", amount: 200, status: "Pending" },
-    { id: "5", name: "يوسف زيد", amount: 200, status: "Overdue" },
-    { id: "6", name: "زياد قاسم", amount: 200, status: "Paid" },
-  ]);
+  const { players: communityPlayers } = usePlayers();
+  const [players, setPlayers] = useState<SplitBillPlayer[]>([]);
+
+  useEffect(() => {
+    if (communityPlayers && communityPlayers.length > 0) {
+      const perPlayer = Math.round(1200 / communityPlayers.slice(0, 6).length);
+      setPlayers(
+        communityPlayers.slice(0, 6).map((p, idx) => ({
+          id: p.uid || `p_${idx}`,
+          name: p.fullName || p.cardName || `Player ${idx + 1}`,
+          amount: perPlayer,
+          status: idx === 0 ? "Paid" : "Pending",
+        }))
+      );
+    }
+  }, [communityPlayers]);
 
   // Recalculate amounts if equal mode is active
   const handleTotalCostChange = (newCost: number) => {

@@ -166,5 +166,21 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Central Reusable Animation System**:
   - Created `src/lib/animations.ts` exporting standard Framer Motion stagger container variants, item entrance variants, button micro-springs, icon micro-springs, and row micro-spring physics for project-wide consistency.
 
+---
+
+## 9. Milestone M2.2 — Real Data Integration & Universal Polish Pass
+- **Notifications Page Pagination & Older Collapse**:
+  - Added 10-item pagination with Previous/Next navigation controls (`src/app/notifications/page.tsx`).
+  - Added expand/collapse accordion toggle for older notifications.
+- **Admin Dashboard Default Active Tab**:
+  - Configured **"⚡ AI & Bulk Operations"** as the default main tab on page load (`src/app/admin/page.tsx`).
+- **Real Data Integration & Mock Data Cleanup**:
+  - Connected `XpSkillTree.tsx` directly to real player profile stats and attributes from Firestore.
+  - Connected `PitchSplitBillCalculator.tsx` dynamically to real community rosters.
+  - Cleared synthetic mock player and team defaults in `CaptainDraftRoom.tsx`, `SportsNewspaperCover.tsx`, and `LiveMatchBroadcaster.tsx` in favor of dynamic match representations.
+- **Universal Global CSS Input & Button Micro-Springs**:
+  - Integrated global focus ring glow animations (`input:focus, textarea:focus, select:focus`) and button micro-spring physics in `src/app/globals.css`.
+
+
 
 
