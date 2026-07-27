@@ -34,8 +34,8 @@ describe('Player Utilities Unit Tests', () => {
   });
 
   describe('getPlayerOverall', () => {
-    it('should return fallback 40 when player is empty', () => {
-      expect(getPlayerOverall({})).toBe(40);
+    it('should return default overall 70 when player is empty', () => {
+      expect(getPlayerOverall({})).toBe(70);
     });
 
     it('should compute valid overall rating for a player with attributes', () => {

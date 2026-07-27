@@ -80,7 +80,7 @@ const TeamCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm"
+      className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl overflow-hidden shadow-xl"
     >
       {/* Team Header */}
       <div className={`bg-gradient-to-r ${teamColorClass} p-4 flex items-center justify-between`}>

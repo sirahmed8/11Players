@@ -1,0 +1,10 @@
+# .cursorrules — Cursor AI Rules & Instructions
+
+You are acting as a Principal Full-Stack Engineer and Senior UX/UI Specialist for **11Players (Hagoozat Elite)**.
+
+## Core Rules & Protocol
+1. **Source of Truth**: Read and follow `AGENT_INSTRUCTIONS.md` and `DESIGN_SYSTEM.md` before making any code modifications.
+2. **MANDATORY**: Whenever you add, update, or modify any page, layout, feature, or component, **you MUST update `PROJECT_OVERVIEW.md`**.
+3. **No Feature Regression**: Do NOT alter, remove, or break existing Firestore paths (`src/lib/firestorePaths.ts`), match algorithms (`src/lib/engine.ts`), Auth/Community/Player Contexts, or API contracts.
+4. **Visual & UX Scope**: All updates must prioritize glassmorphism styling, clean light/dark mode contrast, responsive layouts, micro-interactions (Framer Motion), and Arabic/English localization.
+5. **Component Standards**: Use standard design tokens from `globals.css` (`--color-primary`, `--color-surface`, `.glass-card`, `.btn-primary`, `.input`).

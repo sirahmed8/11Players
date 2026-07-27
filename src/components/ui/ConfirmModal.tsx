@@ -63,10 +63,10 @@ export default function ConfirmModal({
           exit={{ opacity: 0, scale: 0.9, y: 20 }}
           transition={{ type: "spring", stiffness: 350, damping: 25 }}
           dir={isAr ? "rtl" : "ltr"}
-          className={`relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border ${
+          className={`relative w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl p-6 sm:p-8 shadow-2xl border ${
             isDestructive 
-              ? "border-red-500/30 dark:border-red-500/20 shadow-red-500/10" 
-              : "border-emerald-500/30 dark:border-emerald-500/20 shadow-emerald-500/10"
+              ? "border-red-500/30 dark:border-red-500/30 shadow-red-500/10" 
+              : "border-emerald-500/30 dark:border-emerald-500/30 shadow-emerald-500/10"
           } overflow-hidden z-10`}
         >
           {/* Subtle Glow Background Effect */}

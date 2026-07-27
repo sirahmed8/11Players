@@ -94,7 +94,7 @@ export default function PendingRequests() {
   if (requests.length === 0) return null;
 
   return (
-    <div className="mb-8 p-6 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700">
+    <div className="mb-8 p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800/80">
       <h3 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
         {isAr ? "طلبات الانضمام المعلقة" : "Pending Join Requests"}
       </h3>

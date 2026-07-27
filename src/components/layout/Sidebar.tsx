@@ -7,7 +7,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import SettingsMenu from "@/components/layout/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3 } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
@@ -328,9 +328,20 @@ export default function Sidebar() {
         { href: "/communities", labelEn: "Communities", labelAr: "المجتمعات", icon: <Globe className="w-5 h-5" /> },
         ...(activeCommunityId ? [
           { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
+          { href: `/community/kit-builder`, labelEn: "Kit & Crest Builder", labelAr: "مصمم الأطقم والشعار", icon: <Shirt className="w-5 h-5" /> },
           { href: `/match`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5" /> },
+          { href: `/match/draft`, labelEn: "Captain Draft Room", labelAr: "غرفة القرعة والمسودة", icon: <Users className="w-5 h-5" /> },
+          { href: `/match/live`, labelEn: "Live Controller", labelAr: "التحكم المباشر بالمباراة", icon: <Activity className="w-5 h-5" /> },
+          { href: `/match/newspaper`, labelEn: "Post-Match Newspaper", labelAr: "جريدة الهجوزات", icon: <Newspaper className="w-5 h-5" /> },
+          { href: `/match/split-bill`, labelEn: "Turf Split Bill", labelAr: "حاسبة تقاسم الحجز", icon: <Receipt className="w-5 h-5" /> },
           { href: `/stats`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5" /> },
-        ] : []),
+          { href: `/stats/derby`, labelEn: "Derby Rivalries H2H", labelAr: "الديربي والمواجهات", icon: <Flame className="w-5 h-5" /> },
+        ] : [
+          { href: `/community/kit-builder`, labelEn: "Kit & Crest Builder", labelAr: "مصمم الأطقم والشعار", icon: <Shirt className="w-5 h-5" /> },
+          { href: `/match/newspaper`, labelEn: "Post-Match Newspaper", labelAr: "جريدة الهجوزات", icon: <Newspaper className="w-5 h-5" /> },
+          { href: `/match/split-bill`, labelEn: "Turf Split Bill", labelAr: "حاسبة تقاسم الحجز", icon: <Receipt className="w-5 h-5" /> },
+          { href: `/stats/derby`, labelEn: "Derby Rivalries H2H", labelAr: "الديربي والمواجهات", icon: <Flame className="w-5 h-5" /> },
+        ]),
       ]
     },
     {
@@ -339,6 +350,7 @@ export default function Sidebar() {
       items: [
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
+          { href: "/profile/skill-tree", labelEn: "Playstyle Skill Tree", labelAr: "شجرة المهارات والتطوير", icon: <Zap className="w-5 h-5" /> },
           { href: "/achievements", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
           { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),
@@ -450,12 +462,12 @@ export default function Sidebar() {
         )}
       </AnimatePresence>
 
-      {/* Sidebar Container (Floats above mobile bottom navigation bar) */}
+      {/* Sidebar Container (Dynamic viewport height on mobile, sticky on desktop) */}
       <div
-        className={`fixed md:sticky top-0 md:top-4 h-[calc(100vh-4.5rem)] md:h-[calc(100vh-2rem)] max-h-[90vh] bottom-16 md:bottom-auto w-72 bg-slate-900/95 border border-slate-800 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl shadow-black/60 my-auto ${
+        className={`fixed md:sticky top-0 md:top-4 bottom-0 md:bottom-auto h-[100dvh] md:h-[calc(100vh-2rem)] md:max-h-[90vh] w-72 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 z-50 transform transition-transform duration-300 ease-in-out shadow-2xl shadow-emerald-500/5 ${
           isOpen ? "translate-x-0" : isAr ? "translate-x-full md:translate-x-0" : "-translate-x-full md:translate-x-0"
         } ${isAr ? "right-0 left-auto rounded-l-3xl md:rounded-3xl md:mx-4" : "left-0 right-auto rounded-r-3xl md:rounded-3xl md:mx-4"}`}
-        style={{ backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+        style={{ backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
       >
         <div className="w-full h-full flex flex-col relative">
           

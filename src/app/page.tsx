@@ -62,15 +62,15 @@ function StatCard({
       onViewportEnter={start}
       className="relative group"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800/80 p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
         {/* Solid color top accent line */}
-        <div className={`absolute top-0 left-0 right-0 h-0.5 ${color} opacity-90`} />
+        <div className={`absolute top-0 left-0 right-0 h-1 ${color} opacity-90`} />
         {/* Subtle glow on hover */}
         <div className={`absolute inset-0 ${color} opacity-[0.03] group-hover:opacity-[0.10] transition-opacity duration-500`} />
-        <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white shadow-lg`}>
+        <div className={`w-13 h-13 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg`}>
           {icon}
         </div>
-        <div className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+        <div className="stat-value text-3xl md:text-4xl text-slate-900 dark:text-white">
           {count > 0 ? `${count}${suffix}` : "—"}
         </div>
         <div className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400 text-center leading-snug">
@@ -107,12 +107,12 @@ function FeatureCard({
       viewport={{ once: true, margin: "-30px" }}
       transition={{ duration: 0.5, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+      className="group relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden"
     >
       {/* Solid accent top */}
-      <div className={`absolute top-0 left-0 right-0 h-0.5 ${gradient}`} />
+      <div className={`absolute top-0 left-0 right-0 h-1 ${gradient}`} />
 
-      <div className={`relative w-12 h-12 rounded-xl ${gradient} flex items-center justify-center mb-4 shadow-md`}>
+      <div className={`relative w-12 h-12 rounded-2xl ${gradient} flex items-center justify-center mb-4 shadow-md`}>
         <div className="text-white [&>svg]:w-6 [&>svg]:h-6">{icon}</div>
       </div>
       <h3 className="relative text-base font-bold text-slate-900 dark:text-white mb-2 leading-snug">{title}</h3>
@@ -404,14 +404,26 @@ export default function Home() {
             </p>
           </motion.div>
 
-          {/* CTA Button */}
+          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
             className="flex flex-col sm:flex-row items-center gap-4"
           >
-            <Link href="/guide" className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-semibold text-sm transition-colors group">
+            <motion.button
+              onClick={handleGoogleLogin}
+              disabled={loginInProgress}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="relative group inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 disabled:opacity-60 overflow-hidden cursor-pointer"
+            >
+              {loginInProgress ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
+              <span className="relative">{t("cta_login")}</span>
+              {!loginInProgress && <ArrowRight className="relative w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />}
+            </motion.button>
+
+            <Link href="/guide" className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-base transition-all hover:border-emerald-500/50 group">
               {isAr ? "تعرّف على المنصة" : "Learn more"}
               <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />
             </Link>

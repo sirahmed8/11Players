@@ -98,7 +98,7 @@ export default function CommunityPulseFeed() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900/90 dark:to-slate-800/90 border border-slate-700/60 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
+          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
@@ -119,7 +119,7 @@ export default function CommunityPulseFeed() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.05 }}
-          className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900/90 dark:to-slate-800/90 border border-slate-700/60 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
+          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
@@ -140,7 +140,7 @@ export default function CommunityPulseFeed() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900/90 dark:to-slate-800/90 border border-slate-700/60 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
+          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center justify-between mb-3">
@@ -161,7 +161,7 @@ export default function CommunityPulseFeed() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.15 }}
-          className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-900/90 dark:to-slate-800/90 border border-slate-700/60 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
+          className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 shadow-xl flex flex-col justify-between relative overflow-hidden"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 rounded-full blur-2xl -mr-6 -mt-6 pointer-events-none" />
           <div className="flex items-center justify-between mb-3">

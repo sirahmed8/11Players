@@ -320,3 +320,37 @@ Integrity mode: development
 - [ ] Vitest unit tests pass 100%.
 - [ ] Production build (`npm run build`) finishes with zero errors.
 
+
+## Follow-up — 2026-07-27T17:22:59Z
+
+Build the 11Players (Hagoozat Elite) Next-Gen Feature Ecosystem, introducing 20 advanced modules across match simulation, AI scouting, gamification skill trees, FUT 3D cards, turf split-bill tools, derby rivalries, and media generators while enforcing strict preservation rules.
+
+Working directory: d:/11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. Matchmaking & Pitch Innovations
+- Dynamic Pitch Heatmaps: PES-style canvas heatmaps rendering player positioning and coverage density.
+- Captain Live Draft Room: Interactive captain draft UI with live team OVR balance meters.
+- Live Match Broadcaster: Spectator view with text-to-speech commentary, momentum pressure gauge, and stoppage time tracker.
+
+### R2. AI & Media Generators
+- 11AI Opposition Scouting Reports: Pre-match tactical analysis highlighting opponent weak zones.
+- AI Sports Newspaper Cover: Shareable post-match retro sports newspaper generator with headlines and MOTM spotlight.
+- Voice Tactics Assistant: Voice-activated tactical re-roll and substitution recommendations widget.
+
+### R3. Competitive Ecosystem, FUT & Turf Tools
+- Holographic 3D FUT Cards: 3D tilt effects with Framer Motion, gold foil particle glow, and custom card borders.
+- Custom Kit & Badge Builder: Canvas jersey pattern and community crest designer.
+- Automatic Pitch Split-Bill Calculator: Rent-sharing breakdown with payment status tracking (Paid/Pending).
+- Gamification & XP Skill Tree: Unlockable playstyle badges ("Sniper", "The Engine", "Brick Wall") with XP progress bars.
+- Derby Rivalry Engine: Head-to-head stats tracker for captain rivalries and community derbies.
+
+## Acceptance Criteria
+
+### Verification & Quality Safeguards
+- npm run test (Vitest unit tests) passes 100% cleanly.
+- npm run build (Next.js 16 production build) compiles with zero TypeScript or lint errors.
+- src/lib/engine.ts, src/lib/firestorePaths.ts, AuthContext.tsx, CommunityContext.tsx, and PlayersContext.tsx maintain 100% backward compatibility.
+- PROJECT_OVERVIEW.md updated with all newly introduced features and routes.

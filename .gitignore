@@ -10,3 +10,10 @@ out/
 .zcode/
 scratch/
 tsconfig.tsbuildinfo
+
+# Firebase Admin SDK Private Service Account Keys & Services Config
+*-firebase-adminsdk-*.json
+an-11-players-*.json
+google-services.json
+GoogleService-Info.plist
+
