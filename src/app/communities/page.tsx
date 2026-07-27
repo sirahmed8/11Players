@@ -19,6 +19,7 @@ import CommunityChallengeModal, { CommunityChallenge } from "@/components/commun
 import CreateCommunityModal from "@/components/community/CreateCommunityModal";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import { staggerContainerVariants, staggerItemVariants } from "@/lib/animations";
 
 // ── Skeleton Grid ─────────────────────────────────────────────────────────────
 function SkeletonGrid() {
@@ -84,10 +85,10 @@ function CommunityCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      className={`relative rounded-2xl border transition-all duration-300 flex flex-col justify-between p-6 ${
+      className={`relative rounded-2xl border transition-all duration-300 flex flex-col justify-between p-6 backdrop-blur-xl ${
         isActive
           ? "bg-gradient-to-b from-emerald-950/40 via-slate-900/90 to-slate-900/90 border-emerald-500/50 shadow-xl shadow-emerald-950/30 ring-1 ring-emerald-500/30"
-          : "bg-slate-900/60 hover:bg-slate-900/90 border-slate-800/80 hover:border-slate-700/80 shadow-md"
+          : "bg-slate-900/80 hover:bg-slate-900/95 border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] shadow-md"
       }`}
     >
       {/* Hover bg shimmer */}
@@ -526,8 +527,11 @@ function CommunitiesContent() {
               { id: "public", labelAr: "عامة", labelEn: "Public" },
               { id: "private", labelAr: "خاصة", labelEn: "Private" },
             ].map((tab) => (
-              <button
+              <motion.button
                 key={tab.id}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 450, damping: 25 }}
                 onClick={() => setFilterTab(tab.id as any)}
                 className={`px-4 py-2 rounded-xl text-xs font-black transition-all shrink-0 cursor-pointer ${
                   filterTab === tab.id
@@ -536,7 +540,7 @@ function CommunitiesContent() {
                 }`}
               >
                 {isAr ? tab.labelAr : tab.labelEn}
-              </button>
+              </motion.button>
             ))}
           </div>
         </div>
@@ -559,8 +563,13 @@ function CommunitiesContent() {
             </p>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredCommunities.map((c, i) => {
+          <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          >
+            {filteredCommunities.map((c) => {
               const isActive = activeCommunityId === c.id;
               const isMember = isActive
                 || userProfile?.memberCommunities?.includes(c.id)
@@ -572,9 +581,7 @@ function CommunitiesContent() {
               return (
                 <motion.div
                   key={c.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  variants={staggerItemVariants}
                 >
                   <CommunityCard
                     c={c}
@@ -594,7 +601,7 @@ function CommunitiesContent() {
                 </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
         {/* Challenge Modal */}

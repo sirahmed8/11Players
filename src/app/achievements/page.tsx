@@ -19,6 +19,7 @@ import {
 import toast from "react-hot-toast";
 import confetti from "canvas-confetti";
 import { getPlayerOverall } from "@/lib/playerUtils";
+import { staggerContainerVariants, staggerItemVariants, microSpringProps } from "@/lib/animations";
 
 type FilterTab = "all" | "earned" | "inProgress" | "locked";
 
@@ -93,16 +94,17 @@ function AchievementCard({ achievement, isAr, player }: { achievement: any; isAr
 
   return (
     <motion.div
-      whileHover={{ y: -3 }}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`relative rounded-3xl border ${
+      variants={staggerItemVariants}
+      whileHover={microSpringProps.whileHover}
+      whileTap={microSpringProps.whileTap}
+      transition={microSpringProps.transition}
+      className={`relative rounded-3xl border backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] ${
         isAllCompleted
-          ? "border-amber-500/80 bg-gradient-to-b from-amber-950/20 via-slate-900 to-slate-950 shadow-amber-500/10"
+          ? "border-amber-500/80 bg-gradient-to-b from-amber-950/20 via-slate-900/90 to-slate-950/90 shadow-amber-500/10"
           : isEarned
-          ? "border-emerald-500/60 bg-slate-900 shadow-emerald-500/10"
-          : "border-slate-800 bg-slate-900/90"
-      } p-5 overflow-hidden shadow-xl transition-all duration-200 flex flex-col justify-between`}
+          ? "border-emerald-500/60 bg-slate-900/80 shadow-emerald-500/10"
+          : "border-slate-800/80 bg-slate-900/80"
+      } p-5 overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer`}
     >
       {/* Tier Badge & Status */}
       <div className="flex items-center justify-between gap-2 mb-4">
@@ -564,10 +566,10 @@ export default function AchievementsPage() {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={filter}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  variants={staggerContainerVariants}
+                  initial="hidden"
+                  animate="visible"
                   exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2 }}
                   className="grid gap-4 sm:grid-cols-2"
                 >
                   {filteredAchievements.length === 0 ? (

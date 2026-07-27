@@ -12,6 +12,7 @@ import { Trophy, Star, Activity, Award, Flame, Users, Calendar, ShieldCheck } fr
 import Link from "next/link";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import { getPlayerOverall } from "@/lib/playerUtils";
+import { staggerContainerVariants, staggerItemVariants, microSpringProps } from "@/lib/animations";
 
 export default function CommunityPulseFeed() {
   const { activeCommunityId } = useCommunity();
@@ -200,37 +201,43 @@ export default function CommunityPulseFeed() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          >
             {statsSummary.peerStars.map((star, idx) => (
-              <Link
-                key={star.uid}
-                href={`/profile?uid=${star.uid}`}
-                className="group p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 hover:border-amber-500/50 transition-all flex items-center gap-3"
-              >
-                <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
-                  {star.photo ? (
-                    <Image src={star.photo} alt={star.name} width={48} height={48} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-bold text-slate-500">
-                      {star.name.charAt(0)}
+              <motion.div key={star.uid} variants={staggerItemVariants}>
+                <Link
+                  href={`/profile?uid=${star.uid}`}
+                  className="group p-4 rounded-2xl backdrop-blur-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 hover:border-amber-500/50 hover:shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all flex items-center gap-3"
+                >
+                  <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
+                    {star.photo ? (
+                      <Image src={star.photo} alt={star.name} width={48} height={48} className="w-full h-full object-cover group-hover:scale-110 transition-transform" referrerPolicy="no-referrer" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center font-bold text-slate-500">
+                        {star.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[9px] font-black">
+                      #{idx + 1}
                     </div>
-                  )}
-                  <div className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 text-[9px] font-black">
-                    #{idx + 1}
                   </div>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors">
-                    {star.name}
-                  </h4>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <span className="text-xs font-black text-amber-500">⭐ {star.peerAvg.toFixed(1)}</span>
-                    <span className="text-[10px] text-slate-400">({star.peerCount} {isAr ? "أصوات" : "votes"})</span>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors">
+                      {star.name}
+                    </h4>
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="text-xs font-black text-amber-500">⭐ {star.peerAvg.toFixed(1)}</span>
+                      <span className="text-[10px] text-slate-400">({star.peerCount} {isAr ? "أصوات" : "votes"})</span>
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       )}
 
@@ -263,16 +270,25 @@ export default function CommunityPulseFeed() {
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <motion.div
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate="visible"
+            className="space-y-4"
+          >
             {recentMatches.map((m) => {
               const dateStr = m.date || m.finishedAt || m.createdAt;
               const formattedDate = dateStr ? new Date(dateStr).toLocaleDateString(isAr ? "ar-EG" : "en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "";
               const hasRecordedStats = !!m.recordedStats || m.status === "finished";
 
               return (
-                <div
+                <motion.div
                   key={m.id}
-                  className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-emerald-500/40 transition-colors"
+                  variants={staggerItemVariants}
+                  whileHover={microSpringProps.whileHover}
+                  whileTap={microSpringProps.whileTap}
+                  transition={microSpringProps.transition}
+                  className="p-5 rounded-2xl backdrop-blur-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all cursor-pointer"
                 >
                   <div className="flex items-start md:items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shrink-0 font-black text-lg">
@@ -312,10 +328,10 @@ export default function CommunityPulseFeed() {
                       return null;
                     })}
                   </div>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     </div>

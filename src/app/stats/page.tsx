@@ -14,6 +14,7 @@ import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import FormIcon from "@/components/ui/FormIcon";
 import { motion, AnimatePresence } from "framer-motion";
+import { staggerContainerVariants, staggerItemVariants, microSpringProps, microSpringRowProps } from "@/lib/animations";
 
 // ─── Avatar ─────────────────────────────────────────────────────────────────
 function PlayerAvatar({
@@ -203,15 +204,14 @@ function AwardCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9, y: 20 }}
-      whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ delay, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="relative bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl hover:border-emerald-500/50 transition-all duration-300 flex flex-col gap-3 overflow-hidden text-white"
+      variants={staggerItemVariants}
+      whileHover={microSpringProps.whileHover}
+      whileTap={microSpringProps.whileTap}
+      transition={microSpringProps.transition}
+      className="relative backdrop-blur-xl bg-slate-900/80 border border-slate-800/80 rounded-3xl p-5 shadow-xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 flex flex-col gap-3 overflow-hidden text-white cursor-pointer"
     >
       <div className="flex items-center justify-between relative z-10">
-        <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800">{icon}</div>
+        <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">{icon}</div>
         <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           {subtitle}
         </span>
@@ -266,8 +266,11 @@ function LeaderboardRow({
       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700";
 
   return (
-    <div
-      className={`flex items-center justify-between px-4 py-3 transition-colors duration-150 ${
+    <motion.div
+      whileHover={microSpringRowProps.whileHover}
+      whileTap={microSpringRowProps.whileTap}
+      transition={microSpringRowProps.transition}
+      className={`flex items-center justify-between px-4 py-3 transition-colors duration-150 rounded-xl cursor-pointer ${
         isCurrentUser
           ? "bg-emerald-950/40 border-s-2 border-emerald-500"
           : "hover:bg-slate-800/60"
@@ -329,7 +332,7 @@ function LeaderboardRow({
       >
         {value}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -792,7 +795,13 @@ export default function StatsPage() {
                     {isAr ? "جوائز الموسم" : "Season Awards"}
                   </h2>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                <motion.div
+                  variants={staggerContainerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"
+                >
                   <AwardCard
                     icon={<Target className="w-5 h-5 text-red-500" />}
                     title={isAr ? "الهداف" : "Top Scorer"}
@@ -851,7 +860,7 @@ export default function StatsPage() {
                     delay={0.4}
                     isAr={isAr}
                   />
-                </div>
+                </motion.div>
               </section>
 
               {/* ── Leaderboard Tables Grid ───────────────────────────────── */}
@@ -890,59 +899,75 @@ export default function StatsPage() {
                 </div>
 
                 {/* 3-col grid for remaining tables */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                  <LeaderboardTable
-                    tableId="goals"
-                    title={isAr ? "الهدافون" : "Top Scorers"}
-                    data={sorted.goals}
-                    statKey="goals"
-                    isAr={isAr}
-                    getOverall={getOverall}
-                    currentUserUid={user?.uid}
-                    icon={<Target className="w-4 h-4 text-red-500" />}
-                  />
-                  <LeaderboardTable
-                    tableId="assists"
-                    title={isAr ? "صنّاع الألعاب" : "Top Assisters"}
-                    data={sorted.assists}
-                    statKey="assists"
-                    isAr={isAr}
-                    getOverall={getOverall}
-                    currentUserUid={user?.uid}
-                    icon={<Zap className="w-4 h-4 text-blue-500" />}
-                  />
-                  <LeaderboardTable
-                    tableId="ga"
-                    title={isAr ? "المساهمات الهجومية (G/A)" : "G/A Combined"}
-                    data={sorted.ga}
-                    statKey="ga"
-                    isGA
-                    isAr={isAr}
-                    getOverall={getOverall}
-                    currentUserUid={user?.uid}
-                    icon={<Star className="w-4 h-4 text-purple-500" />}
-                  />
-                  <LeaderboardTable
-                    tableId="mvp"
-                    title={isAr ? "جوائز أفضل لاعب (MVP)" : "Most MVPs"}
-                    data={sorted.mvp}
-                    statKey="mvp"
-                    isAr={isAr}
-                    getOverall={getOverall}
-                    currentUserUid={user?.uid}
-                    icon={<Crown className="w-4 h-4 text-amber-500" />}
-                  />
-                  <LeaderboardTable
-                    tableId="matches"
-                    title={isAr ? "أكثر اللاعبين مشاركةً" : "Most Matches Played"}
-                    data={sorted.matches}
-                    statKey="matchesPlayed"
-                    isAr={isAr}
-                    getOverall={getOverall}
-                    currentUserUid={user?.uid}
-                    icon={<Flame className="w-4 h-4 text-orange-500" />}
-                  />
-                </div>
+                <motion.div
+                  variants={staggerContainerVariants}
+                  initial="hidden"
+                  whileInView="visible"
+                  viewport={{ once: true }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+                >
+                  <motion.div variants={staggerItemVariants}>
+                    <LeaderboardTable
+                      tableId="goals"
+                      title={isAr ? "الهدافون" : "Top Scorers"}
+                      data={sorted.goals}
+                      statKey="goals"
+                      isAr={isAr}
+                      getOverall={getOverall}
+                      currentUserUid={user?.uid}
+                      icon={<Target className="w-4 h-4 text-red-500" />}
+                    />
+                  </motion.div>
+                  <motion.div variants={staggerItemVariants}>
+                    <LeaderboardTable
+                      tableId="assists"
+                      title={isAr ? "صنّاع الألعاب" : "Top Assisters"}
+                      data={sorted.assists}
+                      statKey="assists"
+                      isAr={isAr}
+                      getOverall={getOverall}
+                      currentUserUid={user?.uid}
+                      icon={<Zap className="w-4 h-4 text-blue-500" />}
+                    />
+                  </motion.div>
+                  <motion.div variants={staggerItemVariants}>
+                    <LeaderboardTable
+                      tableId="ga"
+                      title={isAr ? "المساهمات الهجومية (G/A)" : "G/A Combined"}
+                      data={sorted.ga}
+                      statKey="ga"
+                      isGA
+                      isAr={isAr}
+                      getOverall={getOverall}
+                      currentUserUid={user?.uid}
+                      icon={<Star className="w-4 h-4 text-purple-500" />}
+                    />
+                  </motion.div>
+                  <motion.div variants={staggerItemVariants}>
+                    <LeaderboardTable
+                      tableId="mvp"
+                      title={isAr ? "جوائز أفضل لاعب (MVP)" : "Most MVPs"}
+                      data={sorted.mvp}
+                      statKey="mvp"
+                      isAr={isAr}
+                      getOverall={getOverall}
+                      currentUserUid={user?.uid}
+                      icon={<Crown className="w-4 h-4 text-amber-500" />}
+                    />
+                  </motion.div>
+                  <motion.div variants={staggerItemVariants}>
+                    <LeaderboardTable
+                      tableId="matches"
+                      title={isAr ? "أكثر اللاعبين مشاركةً" : "Most Matches Played"}
+                      data={sorted.matches}
+                      statKey="matchesPlayed"
+                      isAr={isAr}
+                      getOverall={getOverall}
+                      currentUserUid={user?.uid}
+                      icon={<Flame className="w-4 h-4 text-orange-500" />}
+                    />
+                  </motion.div>
+                </motion.div>
               </section>
             </>
           )}

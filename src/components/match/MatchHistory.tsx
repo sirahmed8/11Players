@@ -7,6 +7,7 @@ import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import { deleteDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
+import { staggerContainerVariants, staggerItemVariants, microSpringProps } from "@/lib/animations";
 
 interface MatchHistoryProps {
   historyLoading: boolean;
@@ -56,8 +57,9 @@ export default function MatchHistory({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
+      variants={staggerContainerVariants}
+      initial="hidden"
+      animate="visible"
       className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
     >
       {historyMatches.map((m) => {
@@ -67,13 +69,17 @@ export default function MatchHistory({
         const hasScore = typeof scoreA === 'number' && typeof scoreB === 'number';
 
         return (
-          <div
+          <motion.div
             key={m.id}
-            className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-2xl hover:border-slate-700 transition-all flex flex-col justify-between relative overflow-hidden"
+            variants={staggerItemVariants}
+            whileHover={microSpringProps.whileHover}
+            whileTap={microSpringProps.whileTap}
+            transition={microSpringProps.transition}
+            className="backdrop-blur-xl bg-slate-900/80 rounded-3xl p-6 border border-slate-800/80 shadow-2xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all flex flex-col justify-between relative overflow-hidden cursor-pointer"
           >
             <div>
               <div className="flex justify-between items-center mb-4">
-                <span className="text-xs font-black px-3 py-1 rounded-full bg-slate-950 text-slate-300 border border-slate-800 flex items-center gap-1.5">
+                <span className="text-xs font-black px-3 py-1 rounded-full bg-slate-950/80 text-slate-300 border border-slate-800 flex items-center gap-1.5">
                   <Calendar className="w-3.5 h-3.5 text-amber-400" />
                   <span>{m.config?.date || new Date(m.finishedAt || m.generatedAt || Date.now()).toLocaleDateString()}</span>
                 </span>
@@ -95,7 +101,7 @@ export default function MatchHistory({
               )}
 
               {/* Matchup Score Card */}
-              <div className="bg-slate-950 rounded-2xl p-4 my-4 flex items-center justify-between border border-slate-800">
+              <div className="bg-slate-950/80 rounded-2xl p-4 my-4 flex items-center justify-between border border-slate-800">
                 <div className="text-center flex-1">
                   <p className="text-xs font-black text-cyan-400 mb-1">Team A</p>
                   <span className="text-[10px] font-mono bg-slate-900 text-cyan-300 px-2 py-0.5 rounded border border-slate-800 font-bold">
@@ -127,26 +133,30 @@ export default function MatchHistory({
             </div>
 
             <div className="space-y-2">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
                 type="button"
                 onClick={() => onSelectHistoryMatch(m)}
-                className="w-full py-2.5 bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-2xl border border-slate-800 transition-all flex items-center justify-center gap-2 text-xs"
+                className="w-full py-2.5 bg-slate-950/90 hover:bg-slate-800 text-white font-bold rounded-2xl border border-slate-800 transition-all flex items-center justify-center gap-2 text-xs cursor-pointer"
               >
                 <Eye className="w-4 h-4 text-emerald-400" />
                 <span>{isAr ? "عرض تفاصيل المباراة" : "View Full Details"}</span>
-              </button>
+              </motion.button>
               {isAdmin && (
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="button"
                   onClick={(e) => handleDeleteHistoryMatch(m.id, e)}
-                  className="w-full py-2 bg-rose-950/60 hover:bg-rose-900 text-rose-400 text-xs font-bold rounded-2xl border border-rose-500/30 transition-all flex items-center justify-center gap-1.5"
+                  className="w-full py-2 bg-rose-950/60 hover:bg-rose-900 text-rose-400 text-xs font-bold rounded-2xl border border-rose-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   <span>{isAr ? 'حذف المباراة' : 'Delete Match'}</span>
-                </button>
+                </motion.button>
               )}
             </div>
-          </div>
+          </motion.div>
         );
       })}
     </motion.div>

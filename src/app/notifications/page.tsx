@@ -15,6 +15,7 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import { useNotifications, NotificationType, UserNotification } from "@/hooks/useNotifications";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
+import { microSpringRowProps } from "@/lib/animations";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -491,8 +492,10 @@ export default function NotificationsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, x: -30, height: 0 }}
-        transition={{ duration: 0.2 }}
-        className={`p-4 sm:p-5 transition-colors cursor-pointer ${!notif.read ? "bg-emerald-950/20" : "hover:bg-slate-800/40"}`}
+        whileHover={microSpringRowProps.whileHover}
+        whileTap={microSpringRowProps.whileTap}
+        transition={microSpringRowProps.transition}
+        className={`p-4 sm:p-5 transition-all duration-200 cursor-pointer backdrop-blur-md rounded-xl my-1 ${!notif.read ? "bg-emerald-950/20 border-s-2 border-emerald-500" : "hover:bg-slate-800/40"}`}
         onClick={() => {
           if (!notif.read) markAsRead(notif.id);
           setSelectedNotif(notif);
@@ -532,7 +535,10 @@ export default function NotificationsPage() {
           </div>
           {!notif.read && (
             <div className="flex-shrink-0 self-center">
-              <div className="w-2.5 h-2.5 bg-emerald-400 rounded-full shadow-sm shadow-emerald-400/50 animate-pulse" />
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
             </div>
           )}
           <div className="flex-shrink-0 self-center">

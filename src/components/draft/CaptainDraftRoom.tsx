@@ -7,6 +7,7 @@ import { calculateTeamMetrics, calculatePSI } from '@/lib/engine';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import { Shield, Trophy, Clock, UserCheck, Shuffle, Play, ChevronRight, Zap, AlertCircle } from 'lucide-react';
 import CustomDropdown from '@/components/ui/CustomDropdown';
+import { staggerContainerVariants, staggerItemVariants, microSpringProps } from '@/lib/animations';
 
 export interface DraftPickLogItem {
   pickNumber: number;
@@ -496,7 +497,12 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
         </div>
 
         {/* Players Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto pr-1">
+        <motion.div
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-[420px] overflow-y-auto pr-1"
+        >
           <AnimatePresence>
             {filteredAvailable.map((player) => {
               const ovr = getPlayerOverall(player);
@@ -504,12 +510,13 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
                 <motion.div
                   key={player.uid}
                   layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
+                  variants={staggerItemVariants}
+                  whileHover={microSpringProps.whileHover}
+                  whileTap={microSpringProps.whileTap}
+                  transition={microSpringProps.transition}
                   onMouseEnter={() => setHoveredPlayer(player)}
                   onMouseLeave={() => setHoveredPlayer(null)}
-                  className="glass-card p-3 rounded-xl border border-slate-800 hover:border-emerald-500/60 bg-slate-900/60 hover:bg-slate-900 transition-all flex items-center justify-between group"
+                  className="glass-card backdrop-blur-xl p-3 rounded-xl border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-slate-900/80 hover:bg-slate-900 transition-all flex items-center justify-between group cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center font-black text-sm text-amber-400 border border-amber-500/30">
@@ -528,22 +535,24 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
                     </div>
                   </div>
 
-                  <button
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     disabled={isCompleted}
                     onClick={() => executePick(player)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow cursor-pointer ${
                       currentTurn === 'teamA'
                         ? 'bg-rose-600 hover:bg-rose-500 text-white'
                         : 'bg-blue-600 hover:bg-blue-500 text-white'
                     }`}
                   >
                     Draft
-                  </button>
+                  </motion.button>
                 </motion.div>
               );
             })}
           </AnimatePresence>
-        </div>
+        </motion.div>
       </div>
 
       {/* Draft Timeline Log */}
