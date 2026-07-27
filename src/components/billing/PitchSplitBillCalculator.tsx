@@ -148,13 +148,14 @@ export default function PitchSplitBillCalculator() {
 
   useEffect(() => {
     if (communityPlayers && communityPlayers.length > 0) {
-      const perPlayer = Math.round(1200 / communityPlayers.slice(0, 6).length);
+      const activeList = communityPlayers.slice(0, 10);
+      const perPlayer = activeList.length > 0 ? Math.round(1200 / activeList.length) : 0;
       setPlayers(
-        communityPlayers.slice(0, 6).map((p, idx) => ({
+        activeList.map((p, idx) => ({
           id: p.uid || `p_${idx}`,
           name: p.fullName || p.cardName || `Player ${idx + 1}`,
           amount: perPlayer,
-          status: idx === 0 ? "Paid" : "Pending",
+          status: "Pending",
         }))
       );
     }

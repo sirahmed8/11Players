@@ -603,35 +603,113 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
   }
 
   // 10. Owner Control Skeleton
+  // 10. Owner Control Page Skeleton — mirrors /owner: header banner + model selector + community management grid
   if (variant === "owner") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-6xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-28 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex items-center justify-between relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-rose-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-56 h-8 bg-slate-800 rounded-xl" />
-          <div className="w-32 h-10 bg-rose-950/80 border border-rose-500/40 rounded-xl" />
+      <div className="min-h-screen bg-slate-950 p-4 sm:p-6 max-w-6xl mx-auto space-y-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header banner */}
+        <div className="relative bg-slate-900/90 border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-amber-500/20 border border-amber-500/30" />
+              <div className="w-56 h-7 bg-slate-800 rounded-lg" />
+            </div>
+            <div className="w-80 max-w-full h-4 bg-slate-800/60 rounded" />
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="w-44 h-10 bg-slate-950 border border-slate-800 rounded-xl" />
+            <div className="w-36 h-10 bg-gradient-to-r from-emerald-600/40 to-teal-600/40 border border-emerald-500/30 rounded-xl" />
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-32 bg-slate-900 border border-slate-800 rounded-3xl p-5 relative overflow-hidden" />
+
+        {/* Action Toolbar */}
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="w-40 h-5 bg-slate-800 rounded-md" />
+          <div className="flex gap-2">
+            <div className="w-32 h-9 bg-slate-800 rounded-xl" />
+            <div className="w-32 h-9 bg-rose-500/20 border border-rose-500/30 rounded-xl" />
+          </div>
+        </div>
+
+        {/* Communities Admin Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center justify-between">
+                <div className="space-y-1.5">
+                  <div className="w-40 h-5 bg-slate-800 rounded-md" />
+                  <div className="w-28 h-3.5 bg-slate-800/60 rounded" />
+                </div>
+                <div className="flex gap-1.5">
+                  <div className="w-8 h-8 rounded-xl bg-slate-800" />
+                  <div className="w-8 h-8 rounded-xl bg-rose-500/20 border border-rose-500/30" />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80">
+                <div className="h-12 bg-slate-950 rounded-xl border border-slate-800" />
+                <div className="h-12 bg-slate-950 rounded-xl border border-slate-800" />
+                <div className="h-12 bg-slate-950 rounded-xl border border-slate-800" />
+              </div>
+            </div>
           ))}
         </div>
       </div>
     );
   }
 
-  // 11. Guide Page Skeleton
+  // 11. Guide Page Skeleton — mirrors /guide: sidebar nav tabs + tab content cards
   if (variant === "guide") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-6xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-32 bg-slate-900 border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-64 h-8 bg-slate-800 rounded-xl" />
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-28 bg-slate-900 border border-slate-800 rounded-2xl p-4" />
-          ))}
+      <div className="min-h-screen bg-slate-950 p-4 sm:p-6 max-w-6xl mx-auto" dir={isAr ? "rtl" : "ltr"}>
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
+
+          {/* Guide Sidebar Navigation Menu */}
+          <div className="w-full lg:w-64 shrink-0 bg-slate-900 border border-slate-800 rounded-3xl p-4 space-y-3">
+            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-slate-800">
+              <div className="w-5 h-5 rounded bg-amber-500/30" />
+              <div className="w-32 h-5 bg-amber-500/20 rounded" />
+            </div>
+            <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-visible">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className={`h-10 rounded-2xl px-4 flex items-center gap-2.5 shrink-0 ${
+                  i === 0 ? 'w-full bg-emerald-600/40 border border-emerald-500/30' : 'w-36 lg:w-full bg-slate-950 border border-slate-800'
+                }`}>
+                  <div className="w-4 h-4 rounded bg-slate-700 shrink-0" />
+                  <div className="w-24 h-3.5 bg-slate-700 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Main Guide Content Panel */}
+          <div className="flex-1 w-full space-y-5">
+            {/* Guide Hero Card */}
+            <div className="relative bg-slate-900/90 border border-slate-800 rounded-3xl p-6 space-y-3 overflow-hidden shadow-2xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/8 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="w-48 h-7 bg-slate-800 rounded-lg" />
+              <div className="w-full max-w-lg h-4 bg-slate-800/60 rounded" />
+              <div className="w-3/4 h-4 bg-slate-800/40 rounded" />
+            </div>
+
+            {/* Guide Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 space-y-3 relative overflow-hidden shadow-md">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/20 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-500/15 border border-emerald-500/25 shrink-0" />
+                    <div className="w-36 h-5 bg-slate-800 rounded-md" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="w-full h-3.5 bg-slate-800/80 rounded" />
+                    <div className="w-4/5 h-3 bg-slate-800/60 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

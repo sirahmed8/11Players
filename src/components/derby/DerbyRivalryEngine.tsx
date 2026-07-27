@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Swords, Trophy, Flame, TrendingUp, Calendar, Zap, Shield, Users, Award } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { motion } from "framer-motion";
@@ -257,33 +257,53 @@ export function calculateRivalryIntensityScore(stats: HeadToHeadStats): {
 }
 
 export interface DerbyRivalryEngineProps {
+  matches?: MatchRecord[];
   initialMatches?: MatchRecord[];
+  captainAUid?: string;
+  captainBUid?: string;
+  captainAName?: string;
+  captainBName?: string;
+  onExportPNG?: () => void;
 }
 
-export default function DerbyRivalryEngine({ initialMatches }: DerbyRivalryEngineProps = {}) {
+export default function DerbyRivalryEngine({
+  matches: propMatches,
+  initialMatches,
+  captainAUid = "capt_1",
+  captainBUid = "capt_2",
+  captainAName = "Captain 1",
+  captainBName = "Captain 2",
+  onExportPNG,
+}: DerbyRivalryEngineProps = {}) {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const [matches] = useState<MatchRecord[]>(initialMatches !== undefined ? initialMatches : SAMPLE_DERBY_MATCHES);
+  // propMatches takes priority, then initialMatches, then empty
+  const sourceMatches = propMatches ?? initialMatches ?? [];
+  const [matches, setMatches] = useState<MatchRecord[]>(sourceMatches);
+
+  useEffect(() => {
+    setMatches(propMatches ?? initialMatches ?? []);
+  }, [propMatches, initialMatches]);
 
   if (matches.length === 0) {
     return (
       <div className="w-full max-w-4xl mx-auto p-12 text-center bg-slate-900/80 rounded-3xl border border-slate-800 space-y-4 backdrop-blur-md">
         <Swords className="w-12 h-12 text-amber-400 mx-auto animate-bounce" />
         <h3 className="text-xl font-black text-white">
-          {isAr ? "لا توجد مواجهات ديربي مسجلة حالياً" : "No Active Derby Rivalries Found"}
+          {isAr ? "لا توجد مواجهات ديربي مسجلة حالياً" : "No Derby H2H History Yet"}
         </h3>
         <p className="text-slate-400 text-xs max-w-md mx-auto font-medium">
           {isAr
             ? "قم بإكمال المباريات بين الفرق وتعيين الكباتن لبدء تتبع المواجهات المباشرة ومؤشر التنافس."
-            : "Complete community matches and assign team captains to track head-to-head stats and rivalry intensity."}
+            : "Complete community matches between these captains to start tracking head-to-head stats and rivalry intensity."}
         </p>
       </div>
     );
   }
 
-  const stats = aggregateHeadToHeadStats(matches);
-  const streak = calculateCurrentStreak(matches);
+  const stats = aggregateHeadToHeadStats(matches, captainAUid, captainBUid);
+  const streak = calculateCurrentStreak(matches, captainAUid);
   const intensity = calculateRivalryIntensityScore(stats);
 
   const getIntensityColor = (level: string) => {
