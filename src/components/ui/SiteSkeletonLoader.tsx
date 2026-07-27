@@ -4,30 +4,66 @@ import React from "react";
 import { motion } from "framer-motion";
 import { useLocale } from "@/components/ui/ThemeProvider";
 
+export type SkeletonVariant =
+  | "page"
+  | "cards"
+  | "profile"
+  | "table"
+  | "list"
+  | "match"
+  | "stats"
+  | "pulse"
+  | "chat"
+  | "admin"
+  | "onboarding"
+  | "communities"
+  | "community"
+  | "global"
+  | "notifications"
+  | "ceremony"
+  | "achievements"
+  | "owner"
+  | "announcements"
+  | "users"
+  | "guide"
+  | "inbox"
+  | "draft-room"
+  | "live-broadcaster"
+  | "newspaper"
+  | "split-bill"
+  | "skill-tree"
+  | "derby";
+
+export function getSkeletonVariantForPath(pathname: string): SkeletonVariant {
+  if (pathname.startsWith("/match/draft")) return "draft-room";
+  if (pathname.startsWith("/match/live")) return "live-broadcaster";
+  if (pathname.startsWith("/match/newspaper")) return "newspaper";
+  if (pathname.startsWith("/match/split-bill")) return "split-bill";
+  if (pathname.startsWith("/profile/skill-tree")) return "skill-tree";
+  if (pathname.startsWith("/stats/derby")) return "derby";
+  if (pathname.startsWith("/achievements")) return "achievements";
+  if (pathname.startsWith("/admin")) return "admin";
+  if (pathname.startsWith("/announcements")) return "announcements";
+  if (pathname.startsWith("/communities")) return "communities";
+  if (pathname.startsWith("/community-chat")) return "inbox";
+  if (pathname.startsWith("/community-settings")) return "community";
+  if (pathname.startsWith("/community")) return "community";
+  if (pathname.startsWith("/global")) return "global";
+  if (pathname.startsWith("/guide")) return "guide";
+  if (pathname.startsWith("/inbox")) return "inbox";
+  if (pathname.startsWith("/match")) return "match";
+  if (pathname.startsWith("/notifications")) return "notifications";
+  if (pathname.startsWith("/onboarding")) return "onboarding";
+  if (pathname.startsWith("/owner")) return "owner";
+  if (pathname.startsWith("/profile")) return "profile";
+  if (pathname.startsWith("/season-ceremony")) return "ceremony";
+  if (pathname.startsWith("/stats")) return "stats";
+  if (pathname.startsWith("/users")) return "users";
+  return "page";
+}
+
 interface Props {
-  variant?:
-    | "page"
-    | "cards"
-    | "profile"
-    | "table"
-    | "list"
-    | "match"
-    | "stats"
-    | "pulse"
-    | "chat"
-    | "admin"
-    | "onboarding"
-    | "communities"
-    | "community"
-    | "global"
-    | "notifications"
-    | "ceremony"
-    | "achievements"
-    | "owner"
-    | "announcements"
-    | "users"
-    | "guide"
-    | "inbox";
+  variant?: SkeletonVariant;
 }
 
 export default function SiteSkeletonLoader({ variant = "page" }: Props) {
@@ -394,19 +430,85 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 9. Achievements Skeleton
+  // 9. Achievements Skeleton — mirrors actual layout: header banner + stat tiles + filter tabs + achievement cards
   if (variant === "achievements") {
     return (
-      <div className="min-h-screen bg-slate-950 p-6 max-w-6xl mx-auto space-y-8" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-32 bg-slate-900 border border-slate-800 rounded-3xl p-6 flex justify-between items-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="w-48 h-8 bg-slate-800 rounded-xl" />
-          <div className="w-20 h-20 rounded-full bg-slate-800" />
+      <div className="min-h-screen bg-slate-950 p-4 sm:p-6 max-w-6xl mx-auto space-y-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header Banner with progress ring */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/8 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="space-y-2">
+            <div className="w-48 h-8 bg-slate-800 rounded-xl" />
+            <div className="w-64 h-4 bg-slate-800/60 rounded-md" />
+            <div className="flex items-center gap-2 mt-1">
+              <div className="w-24 h-3 bg-slate-800 rounded" />
+              <div className="w-16 h-3 bg-amber-500/30 rounded" />
+            </div>
+          </div>
+          {/* Progress ring placeholder */}
+          <div className="w-20 h-20 rounded-full border-8 border-amber-500/30 border-t-amber-500/60 relative shrink-0">
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-5 bg-slate-800 rounded" />
+            </div>
+          </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-36 bg-slate-900 border border-slate-800 rounded-3xl p-5 relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+
+        {/* Stat tiles row: 4 tiles */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {["amber", "emerald", "blue", "rose"].map((color, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl relative overflow-hidden space-y-3">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center justify-between">
+                <div className={`w-9 h-9 rounded-2xl bg-${color}-500/20 border border-${color}-500/30`} />
+                <div className="w-12 h-8 bg-slate-800 rounded-lg" />
+              </div>
+              <div className="w-20 h-3 bg-slate-800/60 rounded" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filter tab bar */}
+        <div className="bg-slate-900/60 p-2 rounded-2xl border border-slate-800 flex gap-2 flex-wrap">
+          {["All", "Earned", "In Progress", "Locked"].map((_, i) => (
+            <div key={i} className={`h-8 rounded-xl flex-1 min-w-[60px] ${i === 0 ? 'bg-emerald-600/30 border border-emerald-500/30' : 'bg-slate-800/50'}`} />
+          ))}
+        </div>
+
+        {/* Achievement cards grid — faithful: icon, name, progress bar, status badge */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className={`bg-slate-900 border rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl ${
+              i % 3 === 0 ? 'border-amber-500/30' : i % 3 === 1 ? 'border-slate-700/60' : 'border-orange-500/30'
+            }`}>
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-11 h-11 rounded-2xl border flex-shrink-0 ${
+                    i % 3 === 0 ? 'bg-amber-500/20 border-amber-500/40' :
+                    i % 3 === 1 ? 'bg-slate-800 border-slate-700' :
+                    'bg-orange-500/20 border-orange-500/40'
+                  }`} />
+                  <div className="space-y-1.5">
+                    <div className="w-28 h-4 bg-slate-800 rounded" />
+                    <div className="w-20 h-3 bg-slate-800/60 rounded" />
+                  </div>
+                </div>
+                <div className={`w-14 h-5 rounded-full flex-shrink-0 ${
+                  i % 3 === 0 ? 'bg-amber-500/30' : i % 3 === 1 ? 'bg-slate-700' : 'bg-orange-500/20'
+                }`} />
+              </div>
+              {/* Progress bar */}
+              <div className="space-y-1">
+                <div className="flex justify-between">
+                  <div className="w-16 h-2.5 bg-slate-800/60 rounded" />
+                  <div className="w-10 h-2.5 bg-slate-800/60 rounded" />
+                </div>
+                <div className="h-2 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div className={`h-full rounded-full ${
+                    i % 3 === 0 ? 'bg-amber-500/60' : i % 3 === 1 ? 'bg-slate-600' : 'bg-orange-500/50'
+                  }`} style={{ width: `${90 - i * 8}%` }} />
+                </div>
+              </div>
             </div>
           ))}
         </div>
@@ -470,21 +572,117 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 13. Match Page Skeleton
+  // 13. Match Page Skeleton — faithful layout with header, tabs, pitch preview, sign-up list
   if (variant === "match") {
     return (
-      <div className="space-y-6 w-full max-w-6xl mx-auto p-4" dir="ltr">
-        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-6 md:p-8 overflow-hidden shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/20 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="flex justify-between items-center mb-6">
+      <div className="space-y-5 w-full max-w-6xl mx-auto p-4" dir={isAr ? "rtl" : "ltr"}>
+        {/* Match Header Card */}
+        <div className="relative rounded-3xl bg-slate-900 border border-slate-800 p-5 md:p-7 overflow-hidden shadow-2xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/8 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
             <div className="space-y-2">
-              <div className="w-36 h-5 bg-slate-800 rounded-xl" />
-              <div className="w-56 h-7 bg-slate-800 rounded-xl" />
+              <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="w-32 h-4 bg-slate-800 rounded-lg" />
+              </div>
+              <div className="w-52 h-7 bg-slate-800 rounded-xl" />
+              <div className="w-40 h-3.5 bg-slate-800/60 rounded-md" />
             </div>
-            <div className="w-36 h-12 bg-emerald-500/20 rounded-2xl" />
+            <div className="flex gap-2">
+              <div className="w-28 h-10 bg-emerald-600/20 border border-emerald-500/30 rounded-2xl" />
+              <div className="w-10 h-10 bg-slate-800 rounded-2xl" />
+            </div>
           </div>
-          <div className="h-3 w-full bg-slate-800 rounded-full mb-6">
-            <div className="h-full w-1/3 bg-emerald-500/30 rounded-full" />
+          {/* Match info pills row */}
+          <div className="flex flex-wrap gap-2">
+            {["w-24", "w-32", "w-20", "w-28"].map((w, i) => (
+              <div key={i} className={`${w} h-7 bg-slate-800/70 rounded-full`} />
+            ))}
+          </div>
+        </div>
+
+        {/* Tabs bar */}
+        <div className="bg-slate-900/60 p-2 rounded-2xl border border-slate-800 flex gap-2">
+          <div className="flex-1 h-10 bg-gradient-to-r from-emerald-600/30 to-teal-600/20 border border-emerald-500/30 rounded-xl" />
+          <div className="flex-1 h-10 bg-slate-800/50 rounded-xl" />
+        </div>
+
+        {/* Main 2-col content */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5">
+          {/* Pitch + Teams column */}
+          <div className="space-y-5">
+            {/* Pitch display */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="w-40 h-5 bg-slate-800 rounded-md mb-4" />
+              <div className="w-full aspect-[4/3] bg-emerald-950/40 border-2 border-emerald-500/20 rounded-2xl relative overflow-hidden">
+                {/* pitch lines */}
+                <div className="absolute inset-y-0 left-1/2 w-px bg-emerald-500/20" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full border border-emerald-500/20" />
+                {/* player dots grid Team A */}
+                <div className="absolute inset-0 grid grid-cols-3 grid-rows-4 gap-2 p-6">
+                  {[...Array(11)].map((_, i) => (
+                    <div key={i} className="w-7 h-7 rounded-full bg-emerald-500/40 border-2 border-emerald-400/60 shadow-md shadow-emerald-500/30 mx-auto" />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Team A vs B cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {["emerald", "blue"].map((color, t) => (
+                <div key={t} className={`bg-slate-900 border border-${color}-500/20 rounded-3xl p-4 shadow-xl relative overflow-hidden space-y-3`}>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                  <div className="flex items-center justify-between">
+                    <div className={`w-8 h-8 rounded-xl bg-${color}-500/20 border border-${color}-500/30`} />
+                    <div className="w-24 h-5 bg-slate-800 rounded-md" />
+                    <div className={`w-12 h-7 bg-${color}-500/20 rounded-xl`} />
+                  </div>
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-slate-800 shrink-0" />
+                      <div className="w-24 h-4 bg-slate-800 rounded" />
+                      <div className="ml-auto w-8 h-4 bg-slate-800/60 rounded" />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right sidebar: sign-up list */}
+          <div className="space-y-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden space-y-3">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center justify-between">
+                <div className="w-36 h-5 bg-slate-800 rounded-md" />
+                <div className="w-12 h-6 bg-emerald-500/20 rounded-full" />
+              </div>
+              {[...Array(7)].map((_, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-full bg-slate-800 shrink-0" />
+                  <div className="space-y-1 flex-1">
+                    <div className="w-28 h-3.5 bg-slate-800 rounded" />
+                    <div className="w-16 h-3 bg-slate-800/60 rounded" />
+                  </div>
+                  <div className="w-10 h-5 bg-emerald-500/20 rounded-full shrink-0" />
+                </div>
+              ))}
+            </div>
+            {/* Prediction widget skeleton */}
+            <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl relative overflow-hidden space-y-3">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="w-32 h-4 bg-slate-800 rounded-md" />
+              <div className="flex gap-2">
+                <div className="flex-1 h-10 bg-emerald-500/20 rounded-xl" />
+                <div className="flex-1 h-10 bg-slate-800 rounded-xl" />
+                <div className="flex-1 h-10 bg-blue-500/20 rounded-xl" />
+              </div>
+              <div className="h-2.5 w-full bg-slate-950 rounded-full overflow-hidden flex gap-0.5">
+                <div className="h-full bg-emerald-500/50 rounded-full" style={{width:'55%'}} />
+                <div className="h-full bg-blue-500/50 rounded-full flex-1" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -548,30 +746,619 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // Default Luxury Page Skeleton
-  return (
-    <div className="min-h-[60vh] w-full flex flex-col items-center justify-center p-8 bg-slate-950 transition-colors" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
-      <motion.div
-        initial={{ scale: 0.9, opacity: 0.8 }}
-        animate={{ scale: [0.95, 1.05, 0.95], opacity: [0.8, 1, 0.8] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        className="relative flex flex-col items-center gap-5"
-      >
-        <div className="relative w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-600/20 via-amber-500/20 to-emerald-500/20 border border-amber-500/40 flex items-center justify-center shadow-xl shadow-emerald-500/10">
-          <div className="w-10 h-10 rounded-full border-2 border-amber-500/60 flex items-center justify-center">
-            <span className="text-2xl">⚽</span>
+  // 15. Captain Draft Room Skeleton
+  if (variant === "draft-room") {
+    return (
+      <div className="space-y-8 w-full max-w-7xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Header & Controls Bar */}
+        <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="space-y-3 min-w-0 w-full md:w-auto">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="w-56 h-8 bg-slate-800 rounded-xl" />
+              <div className="w-28 h-6 bg-emerald-500/20 border border-emerald-500/30 rounded-full" />
+            </div>
+            <div className="w-80 max-w-full h-4 bg-slate-800/60 rounded-md" />
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-2.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse" />
+                <div className="w-28 h-4 bg-emerald-500/20 rounded" />
+              </div>
+              <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <div className="w-6 h-6 rounded-full bg-amber-500/20" />
+              </div>
+            </div>
+            <div className="w-36 h-10 bg-slate-800 rounded-xl" />
           </div>
         </div>
 
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <div className="h-4 w-48 bg-slate-800 rounded-full overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/40 to-transparent animate-[shimmer_1.5s_infinite]" />
+        {/* Team A vs Team B OVR Gauges Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Team A Gauge Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/40" />
+                <div>
+                  <div className="w-32 h-5 bg-slate-800 rounded-md" />
+                  <div className="w-20 h-3 bg-slate-800/60 rounded mt-1" />
+                </div>
+              </div>
+              <div className="w-16 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex flex-col items-center justify-center">
+                <div className="w-10 h-6 bg-emerald-500/30 rounded" />
+              </div>
+            </div>
+            {/* OVR & PSI Progress Bars */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center text-xs">
+                <div className="w-24 h-3 bg-slate-800 rounded" />
+                <div className="w-12 h-3 bg-slate-800 rounded" />
+              </div>
+              <div className="h-3 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+                <div className="h-full w-4/5 bg-emerald-500/40 rounded-full" />
+              </div>
+            </div>
+            {/* Positional Coverage Badges */}
+            <div className="grid grid-cols-4 gap-2 pt-2">
+              {['GK', 'DEF', 'MID', 'ATT'].map((pos) => (
+                <div key={pos} className="h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center gap-1.5">
+                  <div className="w-6 h-3 bg-slate-800 rounded" />
+                  <div className="w-4 h-4 rounded-full bg-emerald-500/20" />
+                </div>
+              ))}
+            </div>
           </div>
-          <p className="text-xs font-black tracking-widest uppercase text-slate-400">
-            {mounted && isAr ? "جارٍ تحميل المنصة وأحدث البيانات..." : "LOADING 11PLAYERS ENGINE..."}
-          </p>
+
+          {/* Team B Gauge Card */}
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/40" />
+                <div>
+                  <div className="w-32 h-5 bg-slate-800 rounded-md" />
+                  <div className="w-20 h-3 bg-slate-800/60 rounded mt-1" />
+                </div>
+              </div>
+              <div className="w-16 h-12 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex flex-col items-center justify-center">
+                <div className="w-10 h-6 bg-blue-500/30 rounded" />
+              </div>
+            </div>
+            {/* OVR & PSI Progress Bars */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center text-xs">
+                <div className="w-24 h-3 bg-slate-800 rounded" />
+                <div className="w-12 h-3 bg-slate-800 rounded" />
+              </div>
+              <div className="h-3 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+                <div className="h-full w-3/4 bg-blue-500/40 rounded-full" />
+              </div>
+            </div>
+            {/* Positional Coverage Badges */}
+            <div className="grid grid-cols-4 gap-2 pt-2">
+              {['GK', 'DEF', 'MID', 'ATT'].map((pos) => (
+                <div key={pos} className="h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center gap-1.5">
+                  <div className="w-6 h-3 bg-slate-800 rounded" />
+                  <div className="w-4 h-4 rounded-full bg-blue-500/20" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-      </motion.div>
+
+        {/* Draft Pool Filter & Player Cards Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-4 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+            <div className="flex items-center gap-2">
+              {['ALL', 'GK', 'DEF', 'MID', 'ATT'].map((filter, i) => (
+                <div key={i} className={`w-16 h-8 rounded-xl ${i === 0 ? 'bg-emerald-600/30 border border-emerald-500/40' : 'bg-slate-800'}`} />
+              ))}
+            </div>
+            <div className="w-44 h-8 bg-slate-800 rounded-xl" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3 relative overflow-hidden shadow-lg">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-slate-800 shrink-0" />
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <div className="w-24 h-4 bg-slate-800 rounded" />
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-8 h-3.5 bg-emerald-500/20 rounded" />
+                      <div className="w-10 h-3.5 bg-slate-800/60 rounded" />
+                    </div>
+                  </div>
+                </div>
+                <div className="h-9 w-full bg-emerald-600/20 border border-emerald-500/30 rounded-xl flex items-center justify-center">
+                  <div className="w-20 h-4 bg-emerald-500/30 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 16. Live Spectator Broadcaster Skeleton
+  if (variant === "live-broadcaster") {
+    return (
+      <div className="space-y-6 w-full max-w-7xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Scoreboard Header */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-rose-500 animate-ping" />
+              <div className="w-24 h-4 bg-rose-500/20 rounded" />
+            </div>
+            <div className="w-32 h-6 bg-slate-800 rounded-xl" />
+          </div>
+
+          <div className="grid grid-cols-3 items-center text-center gap-4 py-4">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 border border-emerald-500/40" />
+              <div className="w-28 h-5 bg-slate-800 rounded-md" />
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-24 h-12 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center">
+                <div className="w-16 h-7 bg-emerald-500/30 rounded-lg" />
+              </div>
+              <div className="w-16 h-4 bg-amber-500/20 rounded" />
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-500/40" />
+              <div className="w-28 h-5 bg-slate-800 rounded-md" />
+            </div>
+          </div>
+        </div>
+
+        {/* Pressure Momentum Gauge */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden space-y-3">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="flex justify-between items-center text-xs">
+            <div className="w-36 h-4 bg-emerald-500/20 rounded" />
+            <div className="w-24 h-4 bg-slate-800 rounded" />
+            <div className="w-36 h-4 bg-blue-500/20 rounded text-right" />
+          </div>
+          <div className="h-4 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden relative flex">
+            <div className="h-full bg-emerald-500/50" style={{ width: '58%' }} />
+            <div className="w-1 h-full bg-amber-400 z-10 shadow-[0_0_10px_#f59e0b]" />
+            <div className="h-full bg-blue-500/50 flex-1" />
+          </div>
+        </div>
+
+        {/* Main Content Grid: 2D Radar Pitch + Live Commentary Feed */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* 2D Radar Pitch */}
+          <div className="lg:col-span-7 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden space-y-4">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex justify-between items-center">
+              <div className="w-40 h-5 bg-slate-800 rounded-md" />
+              <div className="w-20 h-7 bg-emerald-500/20 rounded-lg" />
+            </div>
+            {/* Tactical Pitch Box */}
+            <div className="w-full aspect-[16/10] bg-emerald-950/40 border-2 border-emerald-500/30 rounded-2xl relative p-4 flex flex-col justify-between overflow-hidden">
+              <div className="absolute inset-y-0 left-1/2 w-0.5 bg-emerald-500/20" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full border border-emerald-500/20" />
+              {/* Pitch Player Dot Markers */}
+              <div className="grid grid-cols-4 gap-8 h-full items-center relative z-10 p-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-emerald-500/30 border-2 border-emerald-400 flex items-center justify-center shadow-lg">
+                    <div className="w-3 h-3 rounded-full bg-emerald-300 animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Live Commentary Feed */}
+          <div className="lg:col-span-5 bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl relative overflow-hidden space-y-4 flex flex-col justify-between">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex items-center justify-between">
+              <div className="w-44 h-5 bg-slate-800 rounded-md" />
+              <div className="w-8 h-8 rounded-full bg-slate-800" />
+            </div>
+
+            <div className="space-y-3 flex-1">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-slate-950 border border-slate-800/80 rounded-2xl p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-5 bg-amber-500/20 border border-amber-500/30 rounded-md" />
+                      <div className="w-20 h-4 bg-emerald-500/20 rounded" />
+                    </div>
+                    <div className="w-12 h-3 bg-slate-800 rounded" />
+                  </div>
+                  <div className="w-full h-4 bg-slate-800/70 rounded" />
+                  <div className="w-3/4 h-3 bg-slate-800/40 rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 17. Retro Sports Newspaper Skeleton
+  if (variant === "newspaper") {
+    return (
+      <div className="space-y-8 w-full max-w-5xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Vintage Header Controls Card */}
+        <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden space-y-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="text-center space-y-2">
+            <div className="w-36 h-6 bg-amber-500/20 rounded-full mx-auto" />
+            <div className="w-64 h-8 bg-slate-800 rounded-xl mx-auto" />
+            <div className="w-96 max-w-full h-4 bg-slate-800/60 rounded mx-auto" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-10 bg-slate-950 border border-slate-800 rounded-xl" />
+            ))}
+          </div>
+        </div>
+
+        {/* Newspaper Cover Frame */}
+        <div className="bg-slate-900 border-2 border-amber-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          {/* Newspaper Masthead */}
+          <div className="border-b-4 border-slate-800 pb-4 text-center space-y-3">
+            <div className="w-80 max-w-full h-12 bg-amber-500/20 rounded-2xl mx-auto" />
+            <div className="flex justify-between items-center text-xs px-4">
+              <div className="w-24 h-3 bg-slate-800 rounded" />
+              <div className="w-32 h-3 bg-slate-800 rounded" />
+              <div className="w-20 h-3 bg-slate-800 rounded" />
+            </div>
+          </div>
+
+          {/* Headline & MOTM Spotlight Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+            {/* MOTM Spotlight Card */}
+            <div className="md:col-span-5 bg-slate-950 border border-amber-500/30 rounded-2xl p-5 space-y-4 shadow-xl">
+              <div className="w-32 h-6 bg-amber-500/20 rounded-lg mx-auto" />
+              <div className="w-32 h-32 rounded-2xl bg-slate-800 mx-auto border-2 border-slate-700" />
+              <div className="space-y-2 text-center">
+                <div className="w-36 h-5 bg-slate-800 rounded mx-auto" />
+                <div className="w-20 h-7 bg-amber-500/30 rounded-xl mx-auto" />
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-slate-900 p-2 rounded-lg text-center space-y-1">
+                    <div className="w-8 h-4 bg-slate-800 rounded mx-auto" />
+                    <div className="w-10 h-3 bg-slate-800/60 rounded mx-auto" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Match Analysis & Headline */}
+            <div className="md:col-span-7 space-y-4">
+              <div className="w-full h-10 bg-slate-800 rounded-xl" />
+              <div className="w-3/4 h-6 bg-amber-500/20 rounded-lg" />
+              <div className="space-y-2 pt-2">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="w-full h-3.5 bg-slate-800/60 rounded" />
+                ))}
+              </div>
+
+              {/* Tactical Lineup Highlights */}
+              <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-800">
+                <div className="space-y-2">
+                  <div className="w-24 h-4 bg-emerald-500/20 rounded" />
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-28 h-3 bg-slate-800/60 rounded" />
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <div className="w-24 h-4 bg-blue-500/20 rounded" />
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-28 h-3 bg-slate-800/60 rounded" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 18. Pitch Split Bill Calculator Skeleton
+  if (variant === "split-bill") {
+    return (
+      <div className="space-y-8 w-full max-w-4xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Total Rent Collection Meter Card */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden space-y-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="space-y-2">
+              <div className="w-48 h-7 bg-slate-800 rounded-xl" />
+              <div className="w-64 h-4 bg-slate-800/60 rounded-md" />
+            </div>
+            <div className="w-36 h-10 bg-emerald-500/20 border border-emerald-500/40 rounded-2xl shrink-0" />
+          </div>
+
+          {/* Collection Gauge Meter */}
+          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 space-y-3">
+            <div className="flex justify-between items-center">
+              <div className="w-32 h-4 bg-slate-800 rounded" />
+              <div className="w-24 h-6 bg-emerald-500/20 rounded-lg" />
+            </div>
+            <div className="h-4 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+              <div className="h-full w-3/4 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" />
+            </div>
+            <div className="flex justify-between text-xs">
+              <div className="w-28 h-3 bg-slate-800/60 rounded" />
+              <div className="w-28 h-3 bg-slate-800/60 rounded" />
+            </div>
+          </div>
+        </div>
+
+        {/* Per-Player Payment Status Rows */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+            <div className="w-40 h-5 bg-slate-800 rounded-md" />
+            <div className="w-28 h-8 bg-slate-800 rounded-xl" />
+          </div>
+
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 flex items-center justify-between gap-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
+                <div className="space-y-1.5 min-w-0">
+                  <div className="w-32 h-4 bg-slate-800 rounded" />
+                  <div className="w-20 h-3 bg-slate-800/60 rounded" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <div className="w-16 h-6 bg-slate-800 rounded-lg" />
+                <div className={`w-24 h-9 rounded-xl ${i % 2 === 0 ? 'bg-emerald-500/20 border border-emerald-500/40' : 'bg-amber-500/20 border border-amber-500/40'}`} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // 19. Playstyle Skill Tree Skeleton
+  if (variant === "skill-tree") {
+    return (
+      <div className="space-y-8 w-full max-w-5xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* XP Level Badge Banner */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          <div className="flex items-center gap-4">
+            <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border-2 border-amber-500/40 flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 rounded-full bg-amber-500/30" />
+            </div>
+            <div className="space-y-2">
+              <div className="w-48 h-7 bg-slate-800 rounded-xl" />
+              <div className="w-64 h-4 bg-slate-800/60 rounded-md" />
+            </div>
+          </div>
+
+          {/* XP Progress Bar */}
+          <div className="w-full md:w-64 space-y-2">
+            <div className="flex justify-between text-xs">
+              <div className="w-16 h-3 bg-slate-800 rounded" />
+              <div className="w-12 h-3 bg-amber-500/30 rounded" />
+            </div>
+            <div className="h-3 w-full bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+              <div className="h-full w-2/3 bg-amber-500/50 rounded-full" />
+            </div>
+          </div>
+        </div>
+
+        {/* 6 Skill Node Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4 shadow-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center justify-between">
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/20 border border-amber-500/30" />
+                <div className="w-16 h-6 bg-slate-800 rounded-full" />
+              </div>
+              <div className="space-y-2">
+                <div className="w-36 h-5 bg-slate-800 rounded" />
+                <div className="w-full h-3.5 bg-slate-800/60 rounded" />
+                <div className="w-4/5 h-3 bg-slate-800/40 rounded" />
+              </div>
+              <div className="h-10 w-full bg-amber-500/20 border border-amber-500/30 rounded-xl flex items-center justify-center">
+                <div className="w-24 h-4 bg-amber-500/30 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Attribute Progress Meters Panel */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="w-48 h-5 bg-slate-800 rounded-md" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="flex justify-between items-center text-xs">
+                  <div className="w-20 h-3 bg-slate-800 rounded" />
+                  <div className="w-10 h-3 bg-slate-800 rounded" />
+                </div>
+                <div className="h-2.5 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+                  <div className="h-full bg-emerald-500/40 rounded-full" style={{ width: `${85 - i * 12}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 20. Derby Rivalries H2H Skeleton
+  if (variant === "derby") {
+    return (
+      <div className="space-y-8 w-full max-w-6xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Derby Header & Rival Badges */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-center space-y-6">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-rose-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          <div className="w-48 h-6 bg-rose-500/20 rounded-full mx-auto" />
+          <div className="w-72 max-w-full h-8 bg-slate-800 rounded-xl mx-auto" />
+
+          {/* Captain H2H Badges */}
+          <div className="flex items-center justify-center gap-8 py-2">
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-20 h-20 rounded-full bg-rose-500/20 border-2 border-rose-500/40" />
+              <div className="w-24 h-4 bg-slate-800 rounded" />
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center font-black text-rose-500">
+              VS
+            </div>
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-20 h-20 rounded-full bg-blue-500/20 border-2 border-blue-500/40" />
+              <div className="w-24 h-4 bg-slate-800 rounded" />
+            </div>
+          </div>
+        </div>
+
+        {/* Head-to-Head Comparison Gauge */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-5">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          
+          <div className="w-44 h-5 bg-slate-800 rounded-md" />
+
+          <div className="space-y-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <div className="w-10 h-3 bg-rose-500/30 rounded" />
+                  <div className="w-24 h-3 bg-slate-800 rounded" />
+                  <div className="w-10 h-3 bg-blue-500/30 rounded" />
+                </div>
+                <div className="h-3 w-full bg-slate-950 rounded-full border border-slate-800 overflow-hidden flex">
+                  <div className="h-full bg-rose-500/50" style={{ width: `${55 - i * 5}%` }} />
+                  <div className="h-full bg-blue-500/50 flex-1" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Historic Derby Match Log Cards */}
+        <div className="space-y-4">
+          <div className="w-44 h-5 bg-slate-800 rounded-md" />
+          <div className="space-y-3">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between gap-4 relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-slate-800" />
+                  <div className="space-y-1">
+                    <div className="w-36 h-4 bg-slate-800 rounded" />
+                    <div className="w-24 h-3 bg-slate-800/60 rounded" />
+                  </div>
+                </div>
+                <div className="w-20 h-7 bg-emerald-500/20 rounded-lg" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default / Home Page Skeleton — faithful layout: hero stat cards + community cards + feature CTAs
+  return (
+    <div className="min-h-screen bg-slate-950 p-4 sm:p-6 max-w-7xl mx-auto space-y-6" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
+      {/* Hero header */}
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-2xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/8 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-amber-500/5" />
+        <div className="max-w-xl space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-emerald-400/30 animate-pulse" />
+            <div className="w-28 h-4 bg-slate-800 rounded-full" />
+          </div>
+          <div className="w-72 h-10 bg-slate-800 rounded-2xl" />
+          <div className="w-56 h-10 bg-slate-800/70 rounded-2xl" />
+          <div className="space-y-2">
+            <div className="w-full max-w-sm h-3.5 bg-slate-800/60 rounded" />
+            <div className="w-4/5 max-w-xs h-3 bg-slate-800/40 rounded" />
+          </div>
+          <div className="flex gap-3 mt-2">
+            <div className="w-36 h-11 bg-emerald-600/30 border border-emerald-500/30 rounded-2xl" />
+            <div className="w-28 h-11 bg-slate-800 rounded-2xl" />
+          </div>
+        </div>
+      </div>
+
+      {/* Stat counter cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {["emerald", "amber", "blue", "rose"].map((color, i) => (
+          <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-4 shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className={`w-9 h-9 rounded-2xl bg-${color}-500/20 border border-${color}-500/30 mb-3`} />
+            <div className="w-14 h-7 bg-slate-800 rounded-xl mb-1" />
+            <div className="w-20 h-3 bg-slate-800/60 rounded" />
+          </div>
+        ))}
+      </div>
+
+      {/* Community cards grid */}
+      <div className="space-y-3">
+        <div className="w-40 h-5 bg-slate-800 rounded-lg" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              <div className="flex items-center gap-3">
+                <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 shrink-0" />
+                <div className="space-y-2">
+                  <div className="w-32 h-5 bg-slate-800 rounded-md" />
+                  <div className="flex gap-1">
+                    <div className="w-10 h-4 bg-emerald-500/20 rounded-md" />
+                    <div className="w-10 h-4 bg-slate-800 rounded-md" />
+                  </div>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <div className="w-36 h-3 bg-slate-800/70 rounded" />
+                <div className="w-24 h-3 bg-slate-800/50 rounded" />
+              </div>
+              <div className="flex gap-2">
+                <div className="flex-1 h-9 bg-emerald-600/20 border border-emerald-500/30 rounded-xl" />
+                <div className="flex-1 h-9 bg-slate-800 rounded-xl" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Feature CTA banners */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {[["emerald", "amber"], ["blue", "rose"]].map(([c1, c2], i) => (
+          <div key={i} className={`bg-gradient-to-br from-${c1}-950/60 to-slate-900 border border-${c1}-500/20 rounded-3xl p-5 space-y-3 relative overflow-hidden`}>
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/20 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className={`w-10 h-10 rounded-2xl bg-${c1}-500/20 border border-${c1}-500/30`} />
+            <div className="w-36 h-5 bg-slate-800 rounded-lg" />
+            <div className="w-full h-3.5 bg-slate-800/60 rounded" />
+            <div className="w-4/5 h-3 bg-slate-800/40 rounded" />
+            <div className={`w-28 h-9 bg-${c1}-600/20 border border-${c1}-500/30 rounded-xl`} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
