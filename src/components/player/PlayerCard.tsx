@@ -124,12 +124,13 @@ const PlayerCard = React.memo(function PlayerCard({
     return (
       <Link href={`/profile?uid=${player.uid}`} className="block w-full">
         <motion.div
-          whileHover={{ scale: 1.01, y: -2 }}
-          whileTap={{ scale: 0.99 }}
-          className={`relative bg-slate-900 rounded-3xl shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border ${
+          whileHover={{ scale: 1.025, y: -2 }}
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: "spring", stiffness: 400, damping: 25 }}
+          className={`relative backdrop-blur-xl bg-slate-900/80 rounded-3xl shadow-xl transition-all duration-300 cursor-pointer overflow-hidden border ${
             isCurrentUser
               ? 'border-emerald-500/80 shadow-lg shadow-emerald-500/20'
-              : 'border-slate-800 hover:border-slate-700'
+              : 'border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]'
           }`}
         >
           {/* OVR Badge - Top Corner */}
@@ -271,12 +272,10 @@ const PlayerCard = React.memo(function PlayerCard({
   return (
     <CardWrapper {...wrapperProps as any} className="block w-fit">
       <motion.div
-        whileHover={{
-          scale: 1.03,
-          y: -4,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        className={`w-72 sm:w-80 rounded-3xl ${theme.cardBg} ${theme.border} overflow-hidden cursor-pointer relative shadow-2xl flex flex-col justify-between`}
+        whileHover={{ scale: 1.025, y: -2 }}
+        whileTap={{ scale: 0.96 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+        className={`w-72 sm:w-80 rounded-3xl backdrop-blur-xl ${theme.cardBg} ${theme.border} hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] overflow-hidden cursor-pointer relative shadow-2xl flex flex-col justify-between transition-all duration-300`}
       >
         {/* Holographic Glossy Top Shine Effect */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent z-10" />

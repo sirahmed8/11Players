@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Swords, Trophy, Flame, TrendingUp, Calendar, Zap, Shield, Users, Award } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { motion } from "framer-motion";
+import { staggerContainerVariants, staggerItemVariants, microSpringProps } from "@/lib/animations";
 
 export interface MatchRecord {
   id: string;
@@ -415,16 +417,34 @@ export default function DerbyRivalryEngine({ initialMatches }: DerbyRivalryEngin
         </div>
 
         {/* Streak Tracker & Info Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+        <motion.div
+          variants={staggerContainerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2"
+        >
+          <motion.div
+            variants={staggerItemVariants}
+            whileHover={microSpringProps.whileHover}
+            whileTap={microSpringProps.whileTap}
+            transition={microSpringProps.transition}
+            className="backdrop-blur-xl bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center gap-3 transition-all cursor-pointer"
+          >
             <TrendingUp className="w-6 h-6 text-amber-400" />
             <div>
               <span className="text-xs text-slate-400 font-medium block">{isAr ? "سلسلة الانتصارات الحالية" : "Current Active Streak"}</span>
               <span className="text-sm font-black text-white font-mono">{streak.streakText}</span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+          <motion.div
+            variants={staggerItemVariants}
+            whileHover={microSpringProps.whileHover}
+            whileTap={microSpringProps.whileTap}
+            transition={microSpringProps.transition}
+            className="backdrop-blur-xl bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center gap-3 transition-all cursor-pointer"
+          >
             <Trophy className="w-6 h-6 text-emerald-400" />
             <div>
               <span className="text-xs text-slate-400 font-medium block">{isAr ? "فارق الأهداف الإجمالي" : "Goal Difference"}</span>
@@ -432,16 +452,22 @@ export default function DerbyRivalryEngine({ initialMatches }: DerbyRivalryEngin
                 +{stats.goalDiffA} (A) / {stats.goalDiffB} (B)
               </span>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center gap-3">
+          <motion.div
+            variants={staggerItemVariants}
+            whileHover={microSpringProps.whileHover}
+            whileTap={microSpringProps.whileTap}
+            transition={microSpringProps.transition}
+            className="backdrop-blur-xl bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center gap-3 transition-all cursor-pointer"
+          >
             <Zap className="w-6 h-6 text-rose-400" />
             <div>
               <span className="text-xs text-slate-400 font-medium block">{isAr ? "البطاقات الملونة بالمواجهات" : "Total Match Cards"}</span>
               <span className="text-sm font-black text-rose-400 font-mono">{stats.totalCards} Cards</span>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Match History Timeline */}

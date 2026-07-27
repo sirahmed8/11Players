@@ -151,4 +151,20 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Strict Backward Compatibility Safeguards**:
   - Maintained 100% backward compatibility for all data models and function signatures in `src/lib/engine.ts`, `src/lib/firestorePaths.ts`, and core context providers (`AuthContext`, `CommunityContext`, `PlayersContext`).
 
+---
+
+## 8. Milestone M2.1 — Premium Micro-Polish & Micro-Animations Upgrade
+- **Staggered List Entrance Animations**:
+  - Framer Motion staggered entrance animations (`staggerContainerVariants`, `staggerItemVariants` with `staggerChildren: 0.05`, `delayChildren: 0.08`, and smooth cubic-bezier easing `[0.22, 1, 0.36, 1]`) implemented across community cards (`src/app/communities/page.tsx`), season awards & leaderboards (`src/app/stats/page.tsx`), achievement cards (`src/app/achievements/page.tsx`), notification feed (`src/app/notifications/page.tsx`), draft player pool (`CaptainDraftRoom.tsx`), community pulse feed (`CommunityPulseFeed.tsx`), match history feed (`MatchHistory.tsx`), admin player roster (`AdminTable.tsx`, `AdminTableRow.tsx`, `GlobalUsersTable.tsx`, `GlobalUserRow.tsx`), derby rivalries (`DerbyRivalryEngine.tsx`), and homepage feature grids (`src/app/page.tsx`).
+- **Interactive Button & Card Micro-Spring Physics**:
+  - Micro-spring physics (`whileHover={{ scale: 1.025, y: -2 }}`, `whileTap={{ scale: 0.96 }}`, `transition={{ type: "spring", stiffness: 400, damping: 25 }}`) applied to all primary submit buttons, CTA controls, modal action triggers (`CreateCommunityModal.tsx`, `ConfirmModal.tsx`, `MatchConfigModal.tsx`), filter tabs, stat cards, badge pills, and interactive table rows.
+- **Glassmorphic Hover Sheen & Emerald Glow Rings**:
+  - Dual-theme backdrop glassmorphism (`backdrop-blur-xl bg-slate-900/80 border-slate-800/80` and `backdrop-blur-xl bg-white/80 dark:bg-slate-900/80`) and emerald glowing hover borders (`hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]`) added to info cards, stat chips, OVR badges (`PlayerBadge.tsx`), dropdown overlays, tactical advice widgets, floating chat box, and mini-modals.
+- **Smooth Tooltips & Badge Pulse Animations**:
+  - Live pulse tags (`animate-ping` ping ring + `animate-pulse` core dot) on broadcast status badges (`LiveMatchBroadcaster.tsx`), active notification tags (`notifications/page.tsx`), and top nav / sidebar active items.
+  - Holographic shimmer beam animation (`animate-[shimmer_2.5s_infinite]`) added across FUT card faces (`Holographic3DFutCard.tsx`, `HoloPlayerCard.tsx`).
+- **Central Reusable Animation System**:
+  - Created `src/lib/animations.ts` exporting standard Framer Motion stagger container variants, item entrance variants, button micro-springs, icon micro-springs, and row micro-spring physics for project-wide consistency.
+
+
 

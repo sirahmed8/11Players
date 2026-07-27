@@ -246,6 +246,8 @@ export default function Holographic3DFutCard({
 
         {/* Shimmer Sheen Light Bar */}
         <div className={`absolute inset-0 bg-gradient-to-tr ${tierConfig.foilClass} opacity-40 pointer-events-none z-10`} />
+        {/* Holographic Shimmer Effect */}
+        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-10" />
 
         {/* Floating Particles Animation */}
         {showParticles && (

@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Eye, Trash2, Users, Crown, Shield, Activity, Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
 import { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
@@ -126,31 +127,37 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
 
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "spring", stiffness: 450, damping: 25 }}
             type="button"
             onClick={() => onManageCommunities(u)}
-            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
             title={isAr ? "إدارة المجتمعات" : "Manage Communities"}
           >
             <Users className="w-3.5 h-3.5 text-cyan-400" />
             <span>{isAr ? "المجتمعات" : "Communities"}</span>
-          </button>
+          </motion.button>
           <Link
             href={`/profile?uid=${u.uid}`}
-            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             title={isAr ? "عرض الملف الشخصي" : "View Profile"}
           >
             <Eye className="w-3.5 h-3.5" />
             <span>{isAr ? "الملف الشخصي" : "Profile"}</span>
           </Link>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 450, damping: 25 }}
             type="button"
             onClick={() => onBanUser(u)}
-            className="p-1.5 text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-500/40 rounded-xl transition-colors"
+            className="p-1.5 text-rose-400 hover:bg-rose-950/40 border border-transparent hover:border-rose-500/40 rounded-xl transition-colors cursor-pointer"
             title={isAr ? "حظر / حذف" : "Ban / Delete User"}
           >
             <Trash2 className="w-4 h-4" />
-          </button>
+          </motion.button>
         </div>
       </td>
     </>

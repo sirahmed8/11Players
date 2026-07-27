@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Globe, Lock, Sparkles, Loader2, Check } from "lucide-react";
+import { X, Globe, Lock, Sparkles, Loader2, Check, Plus } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -84,33 +84,33 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-          className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl z-10 p-6 md:p-8"
+          className="relative w-full max-w-lg overflow-hidden rounded-3xl backdrop-blur-2xl bg-slate-900/90 border border-slate-800/80 shadow-[0_0_30px_rgba(0,0,0,0.5)] z-10 p-6 md:p-8"
           dir={isAr ? "rtl" : "ltr"}
         >
           {/* Top glow accent */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500" />
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="absolute top-5 right-5 rtl:left-5 rtl:right-auto p-2 text-slate-400 hover:text-white rounded-xl bg-slate-800/50 hover:bg-slate-800 transition-all"
-          >
-            <X className="w-5 h-5" />
-          </button>
-
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shadow-sm">
-              <Sparkles className="w-6 h-6" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <Plus className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-white">
+                  {isAr ? "إنشاء مجتمع كروي جديد" : "Create New Community"}
+                </h2>
+                <p className="text-xs text-slate-400">
+                  {isAr ? "احصل على رابط ورقم سري خاص بمجموعتك الكروية" : "Get a unique URL & code for your football group"}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-black text-white">
-                {isAr ? "إنشاء مجتمع كروي جديد" : "Create New Football Community"}
-              </h2>
-              <p className="text-xs text-slate-400 font-medium mt-0.5">
-                {isAr ? "أضف مجتمعاً مخصصاً لإدارة المباريات والإحصائيات" : "Add a custom community to host matches and player stats"}
-              </p>
-            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -127,7 +127,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
                 placeholder={isAr ? "مثال: رابطة أبطال القاهرة" : "e.g. Cairo Champions League"}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                className="w-full px-4, py-3 bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
               />
             </div>
 
@@ -147,7 +147,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               />
             </div>
 
-            {/* Privacy toggle with animated switch */}
+            {/* Privacy toggle */}
             <motion.div
               whileHover={{ scale: 1.01 }}
               className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4 shadow-inner"
@@ -158,18 +158,20 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
                   initial={{ scale: 0.8, rotate: -15 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`p-2.5 rounded-xl border ${isPrivate ? "bg-amber-500/15 border-amber-500/30 text-amber-400" : "bg-emerald-500/15 border-emerald-500/30 text-emerald-400"}`}
+                  className={`p-2.5 rounded-xl border ${isPrivate ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"}`}
                 >
-                  {isPrivate ? <Lock className="w-5 h-5" /> : <Globe className="w-5 h-5" />}
+                  {isPrivate ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                 </motion.div>
                 <div>
-                  <p className="text-sm font-black text-white">
-                    {isPrivate ? (isAr ? "مجتمع خاص" : "Private Community") : (isAr ? "مجتمع عام" : "Public Community")}
-                  </p>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs font-bold text-white">
                     {isPrivate
-                      ? (isAr ? "يتطلب كلمة مرور للانضمام" : "Requires a password to join")
-                      : (isAr ? "مفتوح لجميع لاعبي المنصة" : "Open for all platform players")}
+                      ? (isAr ? "مجتمع خاص (كلمة مرور)" : "Private Community (Password)")
+                      : (isAr ? "مجتمع عام (مفتوح للجميع)" : "Public Community (Open)")}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    {isPrivate
+                      ? (isAr ? "يتطلب كلمة سر للانضمام" : "Requires password to join")
+                      : (isAr ? "يمكن لأي لاعب الانضمام مباشرة" : "Anyone can join immediately")}
                   </p>
                 </div>
               </div>
@@ -177,26 +179,25 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               <button
                 type="button"
                 onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative w-14 h-8 rounded-full p-1 transition-colors duration-300 flex items-center cursor-pointer ${isPrivate ? "bg-amber-500" : "bg-slate-800 border border-slate-700"}`}
+                className={`relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer ${isPrivate ? "bg-amber-500" : "bg-slate-700"}`}
               >
-                <motion.span
-                  layout
+                <motion.div
+                  animate={{ x: isPrivate ? (isAr ? -24 : 24) : 0 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  className={`w-6 h-6 rounded-full bg-white shadow-md flex items-center justify-center text-[10px] ${isPrivate ? "ml-auto" : "mr-auto"}`}
-                >
-                  {isPrivate ? "🔒" : "🌐"}
-                </motion.span>
+                  className="absolute top-1 left-1 rtl:right-1 rtl:left-auto w-4 h-4 rounded-full bg-white shadow-md"
+                />
               </button>
             </motion.div>
 
-            {/* Password input if private */}
+            {/* Password input */}
             <AnimatePresence>
               {isPrivate && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, y: -10 }}
-                  animate={{ opacity: 1, height: "auto", y: 0 }}
-                  exit={{ opacity: 0, height: 0, y: -10 }}
-                  transition={{ duration: 0.25 }}
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  className="overflow-hidden"
                 >
                   <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
                     {isAr ? "كلمة مرور المجتمع *" : "Community Password *"}
@@ -217,7 +218,10 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
 
             {/* Submit button */}
             <div className="pt-4">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.025, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 type="submit"
                 disabled={loading}
                 className="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
@@ -230,7 +234,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
                     <span>{isAr ? "تأكيد وإنشاء المجتمع" : "Confirm & Create Community"}</span>
                   </>
                 )}
-              </button>
+              </motion.button>
             </div>
           </form>
         </motion.div>

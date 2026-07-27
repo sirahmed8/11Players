@@ -59,10 +59,12 @@ function StatCard({
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.45, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ scale: 1.025, y: -2 }}
+      whileTap={{ scale: 0.96 }}
       onViewportEnter={start}
-      className="relative group"
+      className="relative group cursor-pointer"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-3 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
+      <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] p-6 flex flex-col items-center gap-3 shadow-sm transition-all duration-300">
         {/* Solid color top accent line */}
         <div className={`absolute top-0 left-0 right-0 h-1 ${color} opacity-90`} />
         {/* Subtle glow on hover */}
@@ -106,8 +108,9 @@ function FeatureCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-30px" }}
       transition={{ duration: 0.5, delay: (index % 3) * 0.08, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
-      className="group relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm hover:shadow-2xl transition-all duration-300 overflow-hidden"
+      whileHover={{ scale: 1.025, y: -2 }}
+      whileTap={{ scale: 0.96 }}
+      className="group relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 shadow-sm hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:border-emerald-500/50 transition-all duration-300 overflow-hidden cursor-pointer"
     >
       {/* Solid accent top */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${gradient}`} />

@@ -105,29 +105,36 @@ export default function ConfirmModal({
 
             {/* Action Buttons */}
             <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 w-full">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.025, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="w-full sm:w-1/2 px-5 py-3 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all active:scale-95 disabled:opacity-50"
+                className="w-full sm:w-1/2 px-5 py-3 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-all disabled:opacity-50 cursor-pointer"
               >
                 {cancelText || (isAr ? "إلغاء" : "Cancel")}
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.025, y: -2 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 type="button"
                 onClick={handleConfirmClick}
                 disabled={loading}
-                className={`w-full sm:w-1/2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50 ${
+                className={`w-full sm:w-1/2 px-5 py-3 rounded-xl font-bold text-sm text-white shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer ${
                   isDestructive
-                    ? "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 shadow-red-600/30"
-                    : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-600/30"
+                    ? "bg-red-600 hover:bg-red-500 shadow-red-600/30"
+                    : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30"
                 }`}
               >
-                {loading && (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                {loading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span>{confirmText || (isDestructive ? (isAr ? "حذف" : "Delete") : (isAr ? "تأكيد" : "Confirm"))}</span>
                 )}
-                <span>{confirmText || (isAr ? "تأكيد" : "Confirm")}</span>
-              </button>
+              </motion.button>
             </div>
           </div>
         </motion.div>
