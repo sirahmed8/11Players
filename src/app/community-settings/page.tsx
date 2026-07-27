@@ -77,7 +77,7 @@ export default function CommunitySettingsPage() {
                     max="3600"
                     value={slowMode}
                     onChange={(e) => setSlowMode(Number(e.target.value))}
-                    className="w-32 px-4 py-3 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 outline-none"
+                    className="w-32 px-4 py-3 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                   />
                   <span className="text-slate-500 font-semibold">{isAr ? "ثانية" : "seconds"}</span>
                 </div>

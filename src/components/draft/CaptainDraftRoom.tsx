@@ -6,6 +6,7 @@ import { PESPosition, PlayerProfile } from '@/types';
 import { calculateTeamMetrics, calculatePSI } from '@/lib/engine';
 import { getPlayerOverall } from '@/lib/playerUtils';
 import { Shield, Trophy, Clock, UserCheck, Shuffle, Play, ChevronRight, Zap, AlertCircle } from 'lucide-react';
+import CustomDropdown from '@/components/ui/CustomDropdown';
 
 export interface DraftPickLogItem {
   pickNumber: number;
@@ -282,16 +283,15 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
           <div className="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
             <Shuffle className="w-4 h-4 text-emerald-400" />
             <label htmlFor={modeSelectId} className="text-xs font-semibold text-slate-400">Strategy:</label>
-            <select
-              id={modeSelectId}
-              disabled={pickIndex > 0}
+            <CustomDropdown
               value={draftMode}
-              onChange={(e) => setDraftMode(e.target.value as 'snake' | 'classic')}
-              className="bg-slate-900 text-xs font-bold text-emerald-400 border border-slate-700 rounded-lg px-2.5 py-1 outline-none focus:ring-1 focus:ring-emerald-500"
-            >
-              <option value="snake">Snake Draft (1-2-2-2...)</option>
-              <option value="classic">Classic Alternate (1-1-1-1...)</option>
-            </select>
+              onChange={(val) => setDraftMode(val as 'snake' | 'classic')}
+              options={[
+                { value: 'snake', label: 'Snake Draft (1-2-2-2...)' },
+                { value: 'classic', label: 'Classic Alternate (1-1-1-1...)' },
+              ]}
+              className="w-48"
+            />
           </div>
 
           {/* Turn Timer Badge */}
@@ -480,18 +480,18 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
           {/* Category Filter Tabs */}
           <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800">
             <label htmlFor={positionFilterId} className="sr-only">Filter Position Group</label>
-            <select
-              id={positionFilterId}
+            <CustomDropdown
               value={filterPosition}
-              onChange={(e) => setFilterPosition(e.target.value)}
-              className="bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 rounded-lg px-2.5 py-1 outline-none"
-            >
-              <option value="ALL">All Positions</option>
-              <option value="GK">Goalkeepers (GK)</option>
-              <option value="DEF">Defenders (DEF)</option>
-              <option value="MID">Midfielders (MID)</option>
-              <option value="ATT">Attackers (ATT)</option>
-            </select>
+              onChange={(val) => setFilterPosition(val)}
+              options={[
+                { value: 'ALL', label: 'All Positions' },
+                { value: 'GK', label: 'Goalkeepers (GK)' },
+                { value: 'DEF', label: 'Defenders (DEF)' },
+                { value: 'MID', label: 'Midfielders (MID)' },
+                { value: 'ATT', label: 'Attackers (ATT)' },
+              ]}
+              className="w-44"
+            />
           </div>
         </div>
 

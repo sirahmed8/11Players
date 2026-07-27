@@ -9,6 +9,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
 import { PlayerProfile, Community } from "@/types";
 import { Loader2, Send, CheckCircle2, Users, Shield, Calendar, MapPin, Clock } from "lucide-react";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export interface CommunityChallenge {
   id: string;
@@ -298,7 +299,7 @@ export default function CommunityChallengeModal({
                     type="date"
                     value={dateInput}
                     onChange={e => setDateInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-amber-500/50 outline-none"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                   />
                 </div>
                 <div>
@@ -307,7 +308,7 @@ export default function CommunityChallengeModal({
                     type="time"
                     value={timeInput}
                     onChange={e => setTimeInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-amber-500/50 outline-none"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                   />
                 </div>
               </div>
@@ -318,21 +319,22 @@ export default function CommunityChallengeModal({
                   placeholder={isAr ? "مثال: ملاعب المملكة، الملعب 1" : "e.g. Al-Mamlaka Turf, Pitch 1"}
                   value={locationInput}
                   onChange={e => setLocationInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-amber-500/50 outline-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                 />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1">{isAr ? "نظام المباراة" : "Match Format"}</label>
-                <select
+                <CustomDropdown
                   value={formatInput}
-                  onChange={e => setFormatInput(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-amber-500/50 outline-none"
-                >
-                  <option value="5v5 Turf">{isAr ? "خماسي عشب صناعي (5v5)" : "5v5 Turf"}</option>
-                  <option value="6v6 Turf">{isAr ? "سداسي عشب صناعي (6v6)" : "6v6 Turf"}</option>
-                  <option value="7v7 Turf">{isAr ? "سباعي عشب صناعي (7v7)" : "7v7 Turf"}</option>
-                  <option value="11v11 Standard">{isAr ? "مباراة 11v11 قياسية" : "11v11 Standard Match"}</option>
-                </select>
+                  onChange={(val) => setFormatInput(val)}
+                  isAr={isAr}
+                  options={[
+                    { value: "5v5 Turf", label: isAr ? "خماسي عشب صناعي (5v5)" : "5v5 Turf" },
+                    { value: "6v6 Turf", label: isAr ? "سداسي عشب صناعي (6v6)" : "6v6 Turf" },
+                    { value: "7v7 Turf", label: isAr ? "سباعي عشب صناعي (7v7)" : "7v7 Turf" },
+                    { value: "11v11 Standard", label: isAr ? "مباراة 11v11 قياسية" : "11v11 Standard Match" },
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-xs font-bold text-slate-400 mb-1">{isAr ? "ملاحظات إضافية للتفاوض" : "Additional Negotiation Notes"}</label>
@@ -341,7 +343,7 @@ export default function CommunityChallengeModal({
                   value={notesInput}
                   onChange={e => setNotesInput(e.target.value)}
                   placeholder={isAr ? "اكتب شروط التحدي، تكلفة الملعب، وما إلى ذلك..." : "Write challenge terms, pitch split costs, etc..."}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-amber-500/50 outline-none"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                 />
               </div>
             </div>

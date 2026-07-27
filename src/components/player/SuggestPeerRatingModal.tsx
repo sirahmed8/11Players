@@ -14,6 +14,7 @@ import AttributeSliders from "@/components/player/AttributeSliders";
 import SkillsChecklist from "@/components/player/SkillsChecklist";
 import { calculateRealisticOverall } from "@/lib/overallCalculator";
 import { getPlayerOverall, getEffectiveHomeCommunityId } from "@/lib/playerUtils";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 interface SuggestPeerRatingModalProps {
   player: PlayerProfile;
@@ -309,31 +310,28 @@ export default function SuggestPeerRatingModal({ player, isOpen, onClose }: Sugg
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                   {isAr ? "المركز الأساسي المقترح" : "Suggested Primary Position"}
                 </label>
-                <select
+                <CustomDropdown
                   value={primaryPosition}
-                  onChange={(e) => setPrimaryPosition(e.target.value as PESPosition)}
-                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all [-webkit-tap-highlight-color:transparent]"
-                >
-                  {POSITIONS.map((pos) => (
-                    <option key={pos} value={pos}>{pos}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setPrimaryPosition(val as PESPosition)}
+                  isAr={isAr}
+                  options={POSITIONS.map((pos) => ({ value: pos, label: pos }))}
+                />
               </div>
 
               <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 transition-all duration-200">
                 <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">
                   {isAr ? "أسلوب اللعب المقترح" : "Suggested Play Style"}
                 </label>
-                <select
+                <CustomDropdown
                   value={playStyle}
-                  onChange={(e) => setPlayStyle(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3.5 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-all [-webkit-tap-highlight-color:transparent]"
-                >
-                  <option value="">{isAr ? "بدون (None)" : "None"}</option>
-                  {PLAY_STYLES.map((style) => (
-                    <option key={style} value={style}>{style}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setPlayStyle(val)}
+                  isAr={isAr}
+                  placeholder={isAr ? "بدون (None)" : "None"}
+                  options={[
+                    { value: "", label: isAr ? "بدون (None)" : "None" },
+                    ...PLAY_STYLES.map((style) => ({ value: style, label: style })),
+                  ]}
+                />
               </div>
             </div>
 

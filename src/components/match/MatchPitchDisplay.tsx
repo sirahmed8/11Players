@@ -6,6 +6,7 @@ import { PESPosition } from '@/types';
 import { calculatePositionRating } from '@/lib/overallCalculator';
 import { FORMATIONS, assignPlayersToFormation } from '@/lib/engine';
 import { Crown, RefreshCw, Layers, Check } from 'lucide-react';
+import CustomDropdown from '@/components/ui/CustomDropdown';
 
 interface AssignedPlayer {
   uid: string;
@@ -328,16 +329,14 @@ const MatchPitchDisplay = React.memo(function MatchPitchDisplay({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
+            <CustomDropdown
               value={selectedFormation}
-              onChange={(e) => handleFormationSelect(e.target.value)}
-              className="bg-slate-800 text-amber-400 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-bold outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="" disabled>{isAr ? 'اختر التشكيلة' : 'Select Formation'}</option>
-              {availableFormations.map(f => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
+              onChange={(val) => handleFormationSelect(val)}
+              placeholder={isAr ? 'اختر التشكيلة' : 'Select Formation'}
+              isAr={isAr}
+              options={availableFormations.map(f => ({ value: f, label: f }))}
+              className="w-44"
+            />
             {selectedForSwap && (
               <button
                 type="button"

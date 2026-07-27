@@ -401,7 +401,7 @@ export default function AnnouncementsPage() {
                     placeholder="e.g. Next Match Sign-Up Open!"
                     value={titleEn}
                     onChange={e => setTitleEn(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
 
@@ -415,7 +415,7 @@ export default function AnnouncementsPage() {
                     placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                     value={titleAr}
                     onChange={e => setTitleAr(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
               </div>
@@ -432,7 +432,7 @@ export default function AnnouncementsPage() {
                     placeholder="Type your message description here in English..."
                     value={bodyEn}
                     onChange={e => setBodyEn(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm leading-relaxed"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>
 
@@ -446,7 +446,7 @@ export default function AnnouncementsPage() {
                     placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                     value={bodyAr}
                     onChange={e => setBodyAr(e.target.value)}
-                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm leading-relaxed"
+                    className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>
               </div>
@@ -462,7 +462,7 @@ export default function AnnouncementsPage() {
                   placeholder={isAr ? "مثال: /match" : "e.g. /match"}
                   value={link}
                   onChange={e => setLink(e.target.value)}
-                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder-slate-500 shadow-sm"
+                  className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-mono text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                 />
               </div>
 
@@ -675,7 +675,7 @@ export default function AnnouncementsPage() {
                     value={historySearch}
                     onChange={e => setHistorySearch(e.target.value)}
                     placeholder={isAr ? "بحث في الإعلانات..." : "Search broadcasts..."}
-                    className="w-full bg-slate-950 border border-slate-800 focus:border-emerald-500 rounded-xl pl-9 rtl:pl-3 rtl:pr-9 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all"
+                    className="w-full bg-slate-950 border border-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-xl pl-9 rtl:pl-3 rtl:pr-9 py-2 text-xs text-white placeholder-slate-500 outline-none transition-all duration-300"
                   />
                 </div>
 

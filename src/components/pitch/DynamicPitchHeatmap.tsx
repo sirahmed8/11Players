@@ -4,6 +4,7 @@ import React, { useRef, useEffect, useState, useId } from 'react';
 import { motion } from 'framer-motion';
 import { PESPosition, PlayerProfile } from '@/types';
 import { Download, Sliders, Layers, User, Users, Flame } from 'lucide-react';
+import CustomDropdown from '@/components/ui/CustomDropdown';
 
 export type HeatmapMode = 'single' | 'group' | 'team';
 export type PositionGroup = 'ALL' | 'GK' | 'DEF' | 'MID' | 'ATT';
@@ -448,36 +449,33 @@ export const DynamicPitchHeatmap: React.FC<DynamicPitchHeatmapProps> = ({
             {mode === 'group' && (
               <div className="flex items-center gap-1">
                 <label htmlFor={modeSelectId} className="sr-only">Position Group</label>
-                <select
-                  id={modeSelectId}
+                <CustomDropdown
                   value={selectedGroup}
-                  onChange={(e) => setSelectedGroup(e.target.value as PositionGroup)}
-                  className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-semibold focus:ring-1 focus:ring-emerald-500 outline-none"
-                >
-                  <option value="ALL">All Groups</option>
-                  <option value="GK">Goalkeeper (GK)</option>
-                  <option value="DEF">Defenders (DEF)</option>
-                  <option value="MID">Midfielders (MID)</option>
-                  <option value="ATT">Attackers (ATT)</option>
-                </select>
+                  onChange={(val) => setSelectedGroup(val as PositionGroup)}
+                  options={[
+                    { value: "ALL", label: "All Groups" },
+                    { value: "GK", label: "Goalkeeper (GK)" },
+                    { value: "DEF", label: "Defenders (DEF)" },
+                    { value: "MID", label: "Midfielders (MID)" },
+                    { value: "ATT", label: "Attackers (ATT)" },
+                  ]}
+                  className="w-40"
+                />
               </div>
             )}
 
             {mode === 'single' && (
               <div className="flex items-center gap-1">
                 <label htmlFor={playerSelectId} className="sr-only">Select Player</label>
-                <select
-                  id={playerSelectId}
+                <CustomDropdown
                   value={selectedPlayerId}
-                  onChange={(e) => setSelectedPlayerId(e.target.value)}
-                  className="bg-slate-800 border border-slate-700 text-slate-200 text-xs rounded-lg px-2.5 py-1.5 font-semibold focus:ring-1 focus:ring-emerald-500 outline-none max-w-[160px] truncate"
-                >
-                  {players.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name} ({p.position})
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedPlayerId(val)}
+                  options={players.map((p) => ({
+                    value: p.id,
+                    label: `${p.name} (${p.position})`,
+                  }))}
+                  className="w-48"
+                />
               </div>
             )}
 

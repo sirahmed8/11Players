@@ -47,7 +47,7 @@ export default function CustomDropdown({
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm flex items-center justify-between gap-2 outline-none focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/50 focus:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300 shadow-sm select-none [-webkit-tap-highlight-color:transparent]"
+        className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-bold text-sm flex items-center justify-between gap-2 outline-none focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 shadow-sm select-none [-webkit-tap-highlight-color:transparent]"
       >
         <div className="flex items-center gap-2 truncate">
           {selectedOption?.icon}

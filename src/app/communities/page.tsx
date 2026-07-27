@@ -153,7 +153,7 @@ function CommunityCard({
               <input
                 type="password"
                 placeholder={isAr ? "كلمة المرور للدخول" : "Enter password to join"}
-                className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-amber-500/30 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all"
+                className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-300"
                 value={passwordInput[c.id] || ""}
                 onChange={(e) => setPasswordInput(prev => ({ ...prev, [c.id]: e.target.value }))}
               />
@@ -514,7 +514,7 @@ function CommunitiesContent() {
               placeholder={isAr ? "بحث عن مجتمع..." : "Search community..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 rtl:pl-4 rtl:pr-11 pr-4 py-3 bg-slate-900/80 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all"
+              className="w-full pl-11 rtl:pl-4 rtl:pr-11 pr-4 py-3 bg-slate-900/80 border border-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-300"
             />
           </div>
 

@@ -78,12 +78,16 @@ export default function MatchHeader({
 
         {config.cost && (
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-cyan-400 text-sm">
-              <DollarSign className="w-4 h-4 text-cyan-400" />
+            <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-emerald-400 font-black text-xs">
+              {isAr ? "ج.م" : "EGP"}
             </div>
             <div className="text-start">
               <p className="text-[10px] text-slate-400 font-bold uppercase">{isAr ? "التكلفة" : "Cost"}</p>
-              <p className="text-white font-black text-xs">{config.cost}</p>
+              <p className="text-white font-black text-xs">
+                {config.cost.includes("EGP") || config.cost.includes("ج.م")
+                  ? config.cost
+                  : `${config.cost} ${isAr ? "ج.م" : "EGP"}`}
+              </p>
             </div>
           </div>
         )}

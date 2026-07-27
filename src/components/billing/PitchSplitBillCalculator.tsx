@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export type PaymentStatus = "Paid" | "Pending" | "Overdue";
 export type CurrencyCode = "SAR" | "USD" | "EUR" | "EGP";
@@ -339,7 +340,7 @@ export default function PitchSplitBillCalculator() {
               type="text"
               value={matchName}
               onChange={(e) => setMatchName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
             />
           </div>
 
@@ -351,7 +352,7 @@ export default function PitchSplitBillCalculator() {
               type="number"
               value={totalCost}
               onChange={(e) => handleTotalCostChange(parseFloat(e.target.value) || 0)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400 font-mono"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 font-mono"
             />
           </div>
 
@@ -359,17 +360,15 @@ export default function PitchSplitBillCalculator() {
             <label className="block text-xs font-semibold text-slate-300 mb-1.5">
               {isAr ? "اختر العملة" : "Select Currency"}
             </label>
-            <select
+            <CustomDropdown
               value={currency}
-              onChange={(e) => handleCurrencyChange(e.target.value as CurrencyCode)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400"
-            >
-              {Object.entries(CURRENCY_RATES).map(([code, config]) => (
-                <option key={code} value={code}>
-                  {config.label}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => handleCurrencyChange(val as CurrencyCode)}
+              isAr={isAr}
+              options={Object.entries(CURRENCY_RATES).map(([code, config]) => ({
+                value: code,
+                label: config.label,
+              }))}
+            />
           </div>
         </div>
 
@@ -437,7 +436,7 @@ export default function PitchSplitBillCalculator() {
                         const newName = e.target.value;
                         setPlayers((prev) => prev.map((pl) => (pl.id === p.id ? { ...pl, name: newName } : pl)));
                       }}
-                      className="bg-transparent border-b border-transparent hover:border-slate-700 focus:border-emerald-400 focus:outline-none text-white font-medium"
+                      className="bg-transparent border-b border-transparent hover:border-slate-700 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 text-white font-medium outline-none rounded px-1"
                     />
                   </td>
                   <td className="px-4 py-3 font-mono font-bold">
@@ -449,7 +448,7 @@ export default function PitchSplitBillCalculator() {
                           const val = parseFloat(e.target.value) || 0;
                           setPlayers((prev) => prev.map((pl) => (pl.id === p.id ? { ...pl, amount: val } : pl)));
                         }}
-                        className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-sm text-amber-400 w-24 focus:outline-none"
+                        className="bg-slate-950 border border-slate-800 rounded px-2 py-1 text-sm text-amber-400 w-24 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none"
                       />
                     ) : (
                       <span className="text-amber-400">

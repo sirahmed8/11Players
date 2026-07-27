@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Download, Palette, Shield, Shirt, Sparkles, RefreshCw, Copy, Check } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
+import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export type PatternType = "Stripes" | "Hoops" | "Gradient" | "Diagonal" | "Camouflage";
 export type ShieldShape = "Classic Shield" | "Modern Circle" | "Diamond Badge" | "Heater Shield" | "French Crest";
@@ -430,7 +431,7 @@ export default function KitBadgeBuilder() {
                 type="text"
                 value={config.kitName}
                 onChange={(e) => setConfig({ ...config, kitName: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
             <div>
@@ -441,7 +442,7 @@ export default function KitBadgeBuilder() {
                 type="text"
                 value={config.sponsorText}
                 onChange={(e) => setConfig({ ...config, sponsorText: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
           </div>
@@ -505,17 +506,18 @@ export default function KitBadgeBuilder() {
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                 {isAr ? "نمط القميص" : "Jersey Pattern"}
               </label>
-              <select
+              <CustomDropdown
                 value={config.pattern}
-                onChange={(e) => setConfig({ ...config, pattern: e.target.value as PatternType })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400"
-              >
-                <option value="Stripes">Stripes (خطوط طولية)</option>
-                <option value="Hoops">Hoops (خطوط عرضية)</option>
-                <option value="Gradient">Gradient (تدرج لوني)</option>
-                <option value="Diagonal">Diagonal (خط قطري)</option>
-                <option value="Camouflage">Camouflage (تمويه مقتضب)</option>
-              </select>
+                onChange={(val) => setConfig({ ...config, pattern: val as PatternType })}
+                isAr={isAr}
+                options={[
+                  { value: "Stripes", label: isAr ? "Stripes (خطوط طولية)" : "Stripes" },
+                  { value: "Hoops", label: isAr ? "Hoops (خطوط عرضية)" : "Hoops" },
+                  { value: "Gradient", label: isAr ? "Gradient (تدرج لوني)" : "Gradient" },
+                  { value: "Diagonal", label: isAr ? "Diagonal (خط قطري)" : "Diagonal" },
+                  { value: "Camouflage", label: isAr ? "Camouflage (تمويه مقتضب)" : "Camouflage" },
+                ]}
+              />
             </div>
 
             <div>
@@ -528,7 +530,7 @@ export default function KitBadgeBuilder() {
                 max={99}
                 value={config.squadNumber}
                 onChange={(e) => setConfig({ ...config, squadNumber: parseInt(e.target.value) || 10 })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400 font-mono"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 font-mono"
               />
             </div>
           </div>
@@ -545,34 +547,36 @@ export default function KitBadgeBuilder() {
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   {isAr ? "شكل الدرع" : "Shield Shape"}
                 </label>
-                <select
+                <CustomDropdown
                   value={config.shieldShape}
-                  onChange={(e) => setConfig({ ...config, shieldShape: e.target.value as ShieldShape })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400"
-                >
-                  <option value="Classic Shield">Classic Shield</option>
-                  <option value="Modern Circle">Modern Circle</option>
-                  <option value="Diamond Badge">Diamond Badge</option>
-                  <option value="Heater Shield">Heater Shield</option>
-                  <option value="French Crest">French Crest</option>
-                </select>
+                  onChange={(val) => setConfig({ ...config, shieldShape: val as ShieldShape })}
+                  isAr={isAr}
+                  options={[
+                    { value: "Classic Shield", label: "Classic Shield" },
+                    { value: "Modern Circle", label: "Modern Circle" },
+                    { value: "Diamond Badge", label: "Diamond Badge" },
+                    { value: "Heater Shield", label: "Heater Shield" },
+                    { value: "French Crest", label: "French Crest" },
+                  ]}
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   {isAr ? "رمز الشعار" : "Emblem Icon"}
                 </label>
-                <select
+                <CustomDropdown
                   value={config.emblemIcon}
-                  onChange={(e) => setConfig({ ...config, emblemIcon: e.target.value as EmblemIcon })}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400"
-                >
-                  <option value="Crown">Crown (تاج الملك)</option>
-                  <option value="Falcon">Falcon (الصقر السريع)</option>
-                  <option value="Lion">Lion (الأسد الشجاع)</option>
-                  <option value="Lightning">Lightning (الصاعقة)</option>
-                  <option value="Football">Football (كرة القدم)</option>
-                </select>
+                  onChange={(val) => setConfig({ ...config, emblemIcon: val as EmblemIcon })}
+                  isAr={isAr}
+                  options={[
+                    { value: "Crown", label: isAr ? "Crown (تاج الملك)" : "Crown" },
+                    { value: "Falcon", label: isAr ? "Falcon (الصقر السريع)" : "Falcon" },
+                    { value: "Lion", label: isAr ? "Lion (الأسد الشجاع)" : "Lion" },
+                    { value: "Lightning", label: isAr ? "Lightning (الصاعقة)" : "Lightning" },
+                    { value: "Football", label: isAr ? "Football (كرة القدم)" : "Football" },
+                  ]}
+                />
               </div>
             </div>
 
@@ -584,7 +588,7 @@ export default function KitBadgeBuilder() {
                 type="text"
                 value={config.communityText}
                 onChange={(e) => setConfig({ ...config, communityText: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-400"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300"
               />
             </div>
           </div>
