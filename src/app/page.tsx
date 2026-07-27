@@ -224,14 +224,14 @@ export default function Home() {
     try {
       const playerDoc = await getDoc(doc(db, "players", uid));
       if (playerDoc.exists()) {
-        router.push(playerDoc.data().defaultPage || "/communities");
+        router.push(playerDoc.data().defaultPage || "/community");
       } else if (user?.email) {
         const q = query(collection(db, "players"), where("email", "==", user.email));
         const qs = await getDocs(q);
         if (!qs.empty) {
           const existing = qs.docs[0].data();
           await setDoc(doc(db, "players", uid), { ...existing, uid, email: user.email, googlePic: user.photoURL || existing.googlePic || "", googleName: user.displayName || existing.googleName || "" }, { merge: true });
-          router.push(existing.defaultPage || "/communities");
+          router.push(existing.defaultPage || "/community");
         } else { router.push("/onboarding"); }
       } else { router.push("/onboarding"); }
     } catch { router.push("/onboarding"); }

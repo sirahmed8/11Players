@@ -25,35 +25,35 @@ export default function NewspaperPage() {
         venue: 'Cairo International Stadium',
         date: 'JULY 27, 2026',
         motm: {
-          name: 'Omar Farouk',
+          name: 'Match MVP',
           rating: 9.8,
           goals: 3,
           assists: 2,
           keyPasses: 6
         },
-        lineupA: ['H. El-Shenawy', 'A. Hakimi', 'M. Abdelmonem', 'R. Saiss', 'Y. Attiat-Allah', 'S. Amrabat', 'A. Ounahi', 'O. Farouk', 'H. Ziyech', 'Y. En-Nesyri', 'K. Al-Masri'],
-        lineupB: ['Y. Bounou', 'N. Mazraoui', 'K. Koulibaly', 'N. Aguerd', 'A. Davies', 'T. Partey', 'F. Kessie', 'M. Kudus', 'M. Salah', 'V. Osimhen', 'S. Mane']
+        lineupA: ['GK (1)', 'RB (2)', 'CB (3)', 'CB (4)', 'LB (5)', 'DMF (6)', 'CMF (7)', 'AMF (8)', 'RWF (9)', 'CF (10)', 'LWF (11)'],
+        lineupB: ['GK (1)', 'RB (2)', 'CB (3)', 'CB (4)', 'LB (5)', 'DMF (6)', 'CMF (7)', 'AMF (8)', 'RWF (9)', 'CF (10)', 'LWF (11)']
       }
     },
     {
       label: '🤝 2-2 Epic Draw',
       data: {
-        teamAName: 'Red Devils FC',
-        teamBName: 'White Knights FC',
+        teamAName: 'Red Team',
+        teamBName: 'Blue Team',
         scoreA: 2,
         scoreB: 2,
         matchType: 'Classic',
-        venue: 'Air Defense Stadium',
+        venue: 'Main Turf',
         date: 'JULY 27, 2026',
         motm: {
-          name: 'Youssef Nabil',
+          name: 'Match MVP',
           rating: 8.9,
           goals: 1,
           assists: 1,
           keyPasses: 3
         },
-        lineupA: ['H. El-Shenawy', 'A. Hakimi', 'M. Abdelmonem', 'R. Saiss', 'Y. Attiat-Allah', 'S. Amrabat', 'A. Ounahi', 'B. Diaz', 'H. Ziyech', 'Y. En-Nesyri', 'K. Al-Masri'],
-        lineupB: ['Y. Bounou', 'N. Mazraoui', 'K. Koulibaly', 'N. Aguerd', 'A. Davies', 'T. Partey', 'F. Kessie', 'M. Kudus', 'M. Salah', 'V. Osimhen', 'S. Mane']
+        lineupA: ['GK (1)', 'RB (2)', 'CB (3)', 'CB (4)', 'LB (5)', 'DMF (6)', 'CMF (7)', 'AMF (8)', 'RWF (9)', 'CF (10)', 'LWF (11)'],
+        lineupB: ['GK (1)', 'RB (2)', 'CB (3)', 'CB (4)', 'LB (5)', 'DMF (6)', 'CMF (7)', 'AMF (8)', 'RWF (9)', 'CF (10)', 'LWF (11)']
       }
     }
   ];

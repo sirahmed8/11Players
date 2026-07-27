@@ -5,12 +5,12 @@ import {
   POSITION_GROUP_MAP,
   POSITION_PITCH_COORDINATES,
 } from '../../src/components/pitch/DynamicPitchHeatmap';
+import { TEST_DRAFT_POOL_22 as DEFAULT_DRAFT_POOL_22 } from '../fixtures/mockPlayers';
 import {
   calculatePositionalCoverage,
   calculateDraftBalance,
   getNextDraftTurn,
   autoDraftPick,
-  DEFAULT_DRAFT_POOL_22,
 } from '../../src/components/draft/CaptainDraftRoom';
 import {
   updateMomentumState,

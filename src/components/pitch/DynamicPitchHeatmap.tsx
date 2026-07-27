@@ -109,17 +109,17 @@ export function generateHeatmapClusterPoints(
  * Default sample 11v11 squad for heatmap demo.
  */
 export const DEFAULT_HEATMAP_PLAYERS: HeatmapPlayer[] = [
-  { id: '1', name: 'Yassine Bounou', position: 'GK' },
-  { id: '2', name: 'Achraf Hakimi', position: 'RB' },
-  { id: '3', name: 'Nayef Aguerd', position: 'CB' },
-  { id: '4', name: 'Romain Saïss', position: 'CB' },
-  { id: '5', name: 'Noussair Mazraoui', position: 'LB' },
-  { id: '6', name: 'Sofyan Amrabat', position: 'DMF' },
-  { id: '7', name: 'Azzedine Ounahi', position: 'CMF' },
-  { id: '8', name: 'Hakim Ziyech', position: 'RWF' },
-  { id: '9', name: 'Youssef En-Nesyri', position: 'CF' },
-  { id: '10', name: 'Brahim Díaz', position: 'AMF' },
-  { id: '11', name: 'Sofiane Boufal', position: 'LWF' },
+  { id: '1', name: 'GK (Goalkeeper)', position: 'GK' },
+  { id: '2', name: 'RB (Right Back)', position: 'RB' },
+  { id: '3', name: 'CB (Center Back 1)', position: 'CB' },
+  { id: '4', name: 'CB (Center Back 2)', position: 'CB' },
+  { id: '5', name: 'LB (Left Back)', position: 'LB' },
+  { id: '6', name: 'DMF (Defensive Mid)', position: 'DMF' },
+  { id: '7', name: 'CMF (Central Mid)', position: 'CMF' },
+  { id: '8', name: 'RWF (Right Winger)', position: 'RWF' },
+  { id: '9', name: 'CF (Center Forward)', position: 'CF' },
+  { id: '10', name: 'AMF (Attacking Mid)', position: 'AMF' },
+  { id: '11', name: 'LWF (Left Winger)', position: 'LWF' },
 ];
 
 export const DynamicPitchHeatmap: React.FC<DynamicPitchHeatmapProps> = ({

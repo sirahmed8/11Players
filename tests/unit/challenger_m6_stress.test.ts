@@ -9,12 +9,12 @@ import {
 } from '../../src/components/pitch/DynamicPitchHeatmap';
 
 // 2. Draft Balance Imports
+import { TEST_DRAFT_POOL_22 as DEFAULT_DRAFT_POOL_22 } from '../fixtures/mockPlayers';
 import {
   calculatePositionalCoverage,
   calculateDraftBalance,
   getNextDraftTurn,
   autoDraftPick,
-  DEFAULT_DRAFT_POOL_22,
 } from '../../src/components/draft/CaptainDraftRoom';
 
 // 3. Broadcaster Imports
