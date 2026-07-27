@@ -46,12 +46,12 @@ export default function ProtectedRoute({
     if (!isFullyLoaded) return;
     
     if (ownerOnly && !isOwner) {
-      router.replace("/communities");
+      router.replace("/community");
       return;
     }
     if (adminOnly && !isAdmin) {
       toast.error(t("adminOnly") || "You do not have admin access for this community.");
-      router.replace("/communities");
+      router.replace("/community");
       return;
     }
     if (requireCommunity && !activeCommunityId) {

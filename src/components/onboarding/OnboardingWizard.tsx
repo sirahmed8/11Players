@@ -338,7 +338,7 @@ export default function OnboardingWizard() {
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success
       setSubmitMessage({ type: 'success', text: txt.submitSuccess });
       setTimeout(() => {
-        window.location.href = '/communities';
+        window.location.href = '/community';
       }, 1500);
     } catch (err: any) {
       console.error('Submit error:', err);
