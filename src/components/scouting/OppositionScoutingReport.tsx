@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { PlayerProfile, PESPosition } from '@/types';
 import { getPlayerOverall } from '@/lib/playerUtils';
+import { microSpringProps, microSpringButtonProps, staggerContainerVariants, staggerItemVariants } from '@/lib/animations';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -554,41 +555,50 @@ export const OppositionScoutingReport: React.FC<OppositionScoutingReportProps> =
 
       {/* ── Navigation Tabs ── */}
       <div className="flex items-center gap-2 my-6 p-1 rounded-xl bg-slate-900/80 border border-slate-800">
-        <button
+        <motion.button
+          whileHover={microSpringButtonProps.whileHover}
+          whileTap={microSpringButtonProps.whileTap}
+          transition={microSpringButtonProps.transition}
           onClick={() => setActiveTab('WEAKNESS')}
           className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
             activeTab === 'WEAKNESS' 
-              ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg' 
+              ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-lg shadow-red-500/20' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
           <Target className="w-4 h-4" />
           <span>{lang === 'ar' ? 'مناطق الضعف' : 'Weakness Zones'}</span>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          whileHover={microSpringButtonProps.whileHover}
+          whileTap={microSpringButtonProps.whileTap}
+          transition={microSpringButtonProps.transition}
           onClick={() => setActiveTab('THREATS')}
           className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
             activeTab === 'THREATS' 
-              ? 'bg-gradient-to-r from-amber-600 to-emerald-600 text-white shadow-lg' 
+              ? 'bg-gradient-to-r from-amber-600 to-emerald-600 text-white shadow-lg shadow-amber-500/20' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
           <Flame className="w-4 h-4" />
           <span>{lang === 'ar' ? 'أبرز التهديدات' : 'Key Threats'}</span>
-        </button>
+        </motion.button>
 
-        <button
+        <motion.button
+          whileHover={microSpringButtonProps.whileHover}
+          whileTap={microSpringButtonProps.whileTap}
+          transition={microSpringButtonProps.transition}
           onClick={() => setActiveTab('COUNTER')}
           className={`flex-1 py-2.5 px-4 rounded-lg font-bold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 ${
             activeTab === 'COUNTER' 
-              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg' 
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20' 
               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
           }`}
         >
           <Swords className="w-4 h-4" />
           <span>{lang === 'ar' ? 'الخطة المضادة' : 'Counter Strategy'}</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* ── Tab Contents ── */}

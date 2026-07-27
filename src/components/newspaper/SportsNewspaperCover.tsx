@@ -3,6 +3,7 @@
 import React, { useRef, useState, useMemo } from 'react';
 import html2canvas from 'html2canvas';
 import { motion } from 'framer-motion';
+import { microSpringButtonProps } from '@/lib/animations';
 import { 
   Download, 
   Trophy, 
@@ -202,27 +203,36 @@ export const SportsNewspaperCover: React.FC<SportsNewspaperCoverProps> = ({
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Theme Selector */}
-          <button
+          <motion.button
+            whileHover={microSpringButtonProps.whileHover}
+            whileTap={microSpringButtonProps.whileTap}
+            transition={microSpringButtonProps.transition}
             onClick={() => setTheme(prev => (prev === 'retro' ? 'modern' : 'retro'))}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <Layers className="w-3.5 h-3.5 text-amber-400" />
             <span>{theme === 'retro' ? 'Vintage Newsprint 📜' : 'Dark Cyber Edition ⚡'}</span>
-          </button>
+          </motion.button>
 
           {/* Language Switch */}
-          <button
+          <motion.button
+            whileHover={microSpringButtonProps.whileHover}
+            whileTap={microSpringButtonProps.whileTap}
+            transition={microSpringButtonProps.transition}
             onClick={() => setLang(prev => (prev === 'en' ? 'ar' : 'en'))}
-            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition-colors"
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 border border-slate-700 transition-colors cursor-pointer"
           >
             {lang === 'en' ? 'العربية 🇪🇬' : 'English 🇬🇧'}
-          </button>
+          </motion.button>
 
           {/* Export PNG Button */}
-          <button
+          <motion.button
+            whileHover={microSpringButtonProps.whileHover}
+            whileTap={microSpringButtonProps.whileTap}
+            transition={microSpringButtonProps.transition}
             onClick={handleDownloadPNG}
             disabled={isExporting}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 font-extrabold text-xs text-slate-950 shadow-lg flex items-center gap-2 transition-all disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 font-extrabold text-xs text-slate-950 shadow-lg flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
           >
             {exportSuccess ? (
               <>
@@ -235,7 +245,7 @@ export const SportsNewspaperCover: React.FC<SportsNewspaperCoverProps> = ({
                 <span>{isExporting ? (lang === 'ar' ? 'جاري التصدير...' : 'Exporting...') : (lang === 'ar' ? 'تحميل صورة PNG' : 'Download PNG Cover')}</span>
               </>
             )}
-          </button>
+          </motion.button>
         </div>
       </div>
 

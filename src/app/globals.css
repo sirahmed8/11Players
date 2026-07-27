@@ -825,3 +825,28 @@ ul.epr-emoji-list,
 .epr-body::-webkit-scrollbar-thumb:hover {
   background: #10b981;
 }
+
+/* ============================================================
+   GLOBAL INPUT FOCUS GLOW & MICRO-INTERACTION ANIMATIONS
+   ============================================================ */
+
+/* Global Outline & Focus Ring Glow for all Type Boxes & Inputs */
+input, textarea, select {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none !important;
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 15px rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Glassmorphic Hover Sheen Utilities */
+.glass-card-hover {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.glass-card-hover:hover {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15) !important;
+}
+
