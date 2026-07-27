@@ -35,29 +35,30 @@ export type SkeletonVariant =
   | "derby";
 
 export function getSkeletonVariantForPath(pathname: string): SkeletonVariant {
-  if (pathname.startsWith("/match/draft")) return "draft-room";
-  if (pathname.startsWith("/match/live")) return "live-broadcaster";
-  if (pathname.startsWith("/match/newspaper")) return "newspaper";
-  if (pathname.startsWith("/match/split-bill")) return "split-bill";
-  if (pathname.startsWith("/profile/skill-tree")) return "skill-tree";
-  if (pathname.startsWith("/stats/derby")) return "derby";
+  if (pathname.startsWith("/draft") || pathname.startsWith("/match/draft")) return "draft-room";
+  if (pathname.startsWith("/live") || pathname.startsWith("/match/live")) return "live-broadcaster";
+  if (pathname.startsWith("/newspaper") || pathname.startsWith("/match/newspaper")) return "newspaper";
+  if (pathname.startsWith("/split-bill") || pathname.startsWith("/match/split-bill")) return "split-bill";
+  if (pathname.startsWith("/skill-tree") || pathname.startsWith("/profile/skill-tree")) return "skill-tree";
+  if (pathname.startsWith("/derby") || pathname.startsWith("/stats/derby")) return "derby";
+  if (pathname.startsWith("/leaderboard") || pathname.startsWith("/stats")) return "stats";
   if (pathname.startsWith("/achievements")) return "achievements";
   if (pathname.startsWith("/admin")) return "admin";
   if (pathname.startsWith("/announcements")) return "announcements";
   if (pathname.startsWith("/communities")) return "communities";
-  if (pathname.startsWith("/community-chat")) return "inbox";
-  if (pathname.startsWith("/community-settings")) return "community";
+  if (pathname.startsWith("/chat") || pathname.startsWith("/community-chat")) return "inbox";
+  if (pathname.startsWith("/settings") || pathname.startsWith("/community-settings")) return "community";
+  if (pathname.startsWith("/kit-builder") || pathname.startsWith("/community/kit-builder")) return "community";
   if (pathname.startsWith("/community")) return "community";
   if (pathname.startsWith("/global")) return "global";
   if (pathname.startsWith("/guide")) return "guide";
   if (pathname.startsWith("/inbox")) return "inbox";
-  if (pathname.startsWith("/match")) return "match";
+  if (pathname.startsWith("/matches") || pathname.startsWith("/match")) return "match";
   if (pathname.startsWith("/notifications")) return "notifications";
   if (pathname.startsWith("/onboarding")) return "onboarding";
   if (pathname.startsWith("/owner")) return "owner";
   if (pathname.startsWith("/profile")) return "profile";
   if (pathname.startsWith("/season-ceremony")) return "ceremony";
-  if (pathname.startsWith("/stats")) return "stats";
   if (pathname.startsWith("/users")) return "users";
   return "page";
 }
