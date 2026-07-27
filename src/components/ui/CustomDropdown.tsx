@@ -76,15 +76,17 @@ export default function CustomDropdown({
             {options.map((option) => {
               const isSelected = option.value === value;
               return (
-                <div
+                <motion.div
                   key={option.value}
+                  whileHover={{ scale: 1.015, x: 2 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     onChange(option.value);
                     setIsOpen(false);
                   }}
                   className={`py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-between gap-2 cursor-pointer outline-none select-none [-webkit-tap-highlight-color:transparent] transition-all duration-150 ${
                     isSelected
-                      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black shadow-sm"
+                      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 font-black shadow-sm border border-amber-500/20"
                       : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/80"
                   }`}
                 >
@@ -93,7 +95,7 @@ export default function CustomDropdown({
                     <span className="truncate">{option.label}</span>
                   </div>
                   {isSelected && <Check className="w-4 h-4 shrink-0 text-amber-500" />}
-                </div>
+                </motion.div>
               );
             })}
           </motion.div>

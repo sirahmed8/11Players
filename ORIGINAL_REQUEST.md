@@ -354,3 +354,32 @@ Integrity mode: development
 - npm run build (Next.js 16 production build) compiles with zero TypeScript or lint errors.
 - src/lib/engine.ts, src/lib/firestorePaths.ts, AuthContext.tsx, CommunityContext.tsx, and PlayersContext.tsx maintain 100% backward compatibility.
 - PROJECT_OVERVIEW.md updated with all newly introduced features and routes.
+
+## Follow-up — 2026-07-27T21:25:54Z
+
+Execute a comprehensive Premium Micro-Polish & Micro-Animations upgrade across all pages and components of 11Players (Hagoozat Elite):
+1. Staggered List Animations: Add Framer Motion staggered list item entrance animations (variants, staggerChildren: 0.05) to all player lists, community cards, match feeds, and leaderboards.
+2. Interactive Button & Card Micro-Springs: Add whileHover={{ scale: 1.025, y: -2 }} and whileTap={{ scale: 0.96 }} micro-spring interactions to all action buttons, stat cards, badge pills, and table rows.
+3. Glassmorphic Hover Sheen & Glow Rings: Add subtle CSS/Tailwind backdrop glassmorphism (backdrop-blur-xl bg-slate-900/80 border-slate-800/80) and glowing hover borders (hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]) to small info boxes, stat chips, and mini-modals.
+4. Smooth Tooltip & Badge Pulse Animations: Add animated pulse indicators (animate-pulse), shimmer badges, and smooth tooltip popups for active states, live indicators, and player OVR tags.
+
+Working directory: d:/11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. Micro-Interactions & Motion Polish
+- Staggered Entrance Motion: Wrap card lists and table rows in motion.ul / motion.div with staggered children transitions.
+- Button & Card Feedback: Enforce springy hover and tap feedback across all interactive UI controls, buttons, and pill tags.
+
+### R2. Visual Depth & Small Component Polish
+- Glassmorphic Card Sheens: Apply consistent dark/light glassmorphic depth (backdrop-blur-xl border border-white/10) to all mini-cards, stat boxes, position chips, and modal wrappers.
+- Glowing Status Indicators: Upgrade active live badges, online indicators, and rating tags with animated ambient glows.
+
+## Acceptance Criteria
+
+### Verification & Quality Safeguards
+- npm run test (Vitest unit tests) passes 100% cleanly.
+- npm run build (Next.js 16 production build) compiles with zero TypeScript or lint errors.
+- src/lib/engine.ts, src/lib/firestorePaths.ts, AuthContext.tsx, CommunityContext.tsx, and PlayersContext.tsx maintain 100% backward compatibility.
+- PROJECT_OVERVIEW.md updated with micro-polish specifications.

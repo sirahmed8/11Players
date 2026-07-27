@@ -76,22 +76,24 @@ export default function CustomSelect({
                 options.map((option) => {
                   const isSelected = option.value === value;
                   return (
-                    <button
+                    <motion.button
                       key={option.value}
                       type="button"
+                      whileHover={{ scale: 1.015, x: 2 }}
+                      whileTap={{ scale: 0.98 }}
                       onClick={() => {
                         onChange(option.value);
                         setIsOpen(false);
                       }}
                       className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg outline-none focus:outline-none select-none [-webkit-tap-highlight-color:transparent] transition-colors ${
                         isSelected
-                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold"
+                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/20"
                           : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <span className="truncate">{option.label}</span>
                       {isSelected && <Check className="w-4 h-4" />}
-                    </button>
+                    </motion.button>
                   );
                 })
               )}
