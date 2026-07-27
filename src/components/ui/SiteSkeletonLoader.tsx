@@ -160,46 +160,131 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
     );
   }
 
-  // 3. Communities & Global Page Skeleton
-  if (variant === "communities" || variant === "global" || variant === "cards") {
+  // 3. Communities Directory Page Skeleton — mirrors /communities: hero + CTA + search + community cards
+  if (variant === "communities" || variant === "cards") {
     return (
-      <div className="w-full max-w-full overflow-x-hidden space-y-6" dir={isAr ? "rtl" : "ltr"}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
-          {[...Array(6)].map((_, i) => (
-            <div key={i} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 space-y-4 relative overflow-hidden shadow-xl">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-              
-              {/* Avatar left + Name & Rating right */}
-              <div className="flex items-start gap-3 justify-between">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 shrink-0" />
-                  <div className="space-y-2 min-w-0">
-                    <div className="w-28 h-5 bg-slate-800 rounded-md" />
-                    <div className="flex gap-1">
-                      <div className="w-8 h-4 bg-emerald-500/20 rounded-md" />
-                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
-                      <div className="w-8 h-4 bg-slate-800 rounded-md" />
-                    </div>
-                  </div>
-                </div>
-                <div className="w-14 h-7 bg-emerald-500/20 border border-emerald-500/30 rounded-xl shrink-0" />
-              </div>
+      <div className="min-h-screen bg-slate-950 p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        <div className="max-w-5xl mx-auto space-y-6">
 
-              <div className="space-y-1.5 pt-1">
-                <div className="w-36 h-3.5 bg-slate-800/80 rounded" />
-                <div className="w-28 h-3 bg-slate-800/50 rounded" />
-              </div>
+          {/* Hero: Choose Your Community */}
+          <div className="text-center space-y-3 pb-2">
+            <div className="inline-flex items-center gap-2 px-4 h-7 bg-emerald-500/10 border border-emerald-500/20 rounded-full mx-auto">
+              <div className="w-2 h-2 rounded-full bg-emerald-400/60 animate-pulse" />
+              <div className="w-32 h-3 bg-emerald-500/20 rounded" />
+            </div>
+            <div className="w-64 h-10 bg-slate-800 rounded-2xl mx-auto" />
+            <div className="w-80 max-w-full h-4 bg-slate-800/50 rounded-lg mx-auto" />
+          </div>
 
-              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
-                <div className="h-10 bg-emerald-600/30 border border-emerald-500/30 rounded-xl" />
-                <div className="h-10 bg-slate-800 rounded-xl" />
+          {/* Create & Manage CTA card */}
+          <div className="relative bg-slate-900/80 border border-slate-800 rounded-3xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 overflow-hidden shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-7 bg-emerald-500/20 border border-emerald-500/30 rounded-lg shrink-0" />
+              <div className="space-y-2">
+                <div className="w-52 h-5 bg-slate-800 rounded-lg" />
+                <div className="w-72 max-w-full h-3.5 bg-slate-800/60 rounded" />
+                <div className="w-56 h-3 bg-slate-800/40 rounded" />
               </div>
             </div>
-          ))}
+            <div className="w-44 h-11 bg-gradient-to-r from-emerald-600/40 to-teal-600/30 border border-emerald-500/40 rounded-2xl shrink-0" />
+          </div>
+
+          {/* Search + Filter Toolbar */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+            <div className="relative w-full md:w-80">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 bg-slate-700 rounded" />
+              <div className="w-full h-11 bg-slate-900 border border-slate-800 rounded-2xl" />
+            </div>
+            <div className="flex items-center gap-1.5 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl">
+              {["All", "My Communities", "Public", "Private"].map((_, i) => (
+                <div key={i} className={`h-8 rounded-xl px-4 ${
+                  i === 0 ? 'w-10 bg-emerald-600/40 border border-emerald-500/30' : 'w-24 bg-slate-800/50'
+                }`} />
+              ))}
+            </div>
+          </div>
+
+          {/* Community Cards — compact layout matching actual cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 flex flex-col gap-3.5 relative overflow-hidden shadow-md">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.03] to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+
+                {/* Header: name + share + player count badge */}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="w-32 h-5 bg-slate-800 rounded-lg" />
+                    <div className="flex items-center gap-1.5">
+                      <div className={`w-14 h-5 rounded-full ${
+                        i % 2 === 0
+                          ? 'bg-emerald-500/15 border border-emerald-500/25'
+                          : 'bg-amber-500/15 border border-amber-500/25'
+                      }`} />
+                      {i % 3 === 0 && <div className="w-20 h-5 bg-emerald-500/10 border border-emerald-500/20 rounded-full" />}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-800/80 border border-slate-700/50 rounded-xl shrink-0">
+                    <div className="w-3.5 h-3.5 bg-emerald-400/40 rounded" />
+                    <div className="w-5 h-3.5 bg-slate-700 rounded" />
+                  </div>
+                </div>
+
+                {/* Description lines */}
+                <div className="space-y-1.5">
+                  <div className="w-full h-3 bg-slate-800/80 rounded" />
+                  <div className="w-5/6 h-3 bg-slate-800/60 rounded" />
+                  <div className="w-3/4 h-3 bg-slate-800/40 rounded" />
+                </div>
+
+                {/* Action button */}
+                <div className="h-11 w-full bg-emerald-500/10 border border-emerald-500/20 rounded-xl mt-auto" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
+
+  // 3b. Global Feed Page Skeleton
+  if (variant === "global") {
+    return (
+      <div className="w-full max-w-3xl mx-auto p-4 space-y-4" dir={isAr ? "rtl" : "ltr"}>
+        {/* Feed header */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-4 flex items-center justify-between relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/30 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+          <div className="w-36 h-6 bg-slate-800 rounded-xl" />
+          <div className="w-24 h-8 bg-emerald-500/20 border border-emerald-500/30 rounded-xl" />
+        </div>
+        {/* Feed posts */}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3 relative overflow-hidden shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/20 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-slate-800 shrink-0" />
+              <div className="space-y-1.5 flex-1">
+                <div className="w-32 h-4 bg-slate-800 rounded" />
+                <div className="w-20 h-3 bg-slate-800/60 rounded" />
+              </div>
+              <div className="w-16 h-6 bg-emerald-500/15 rounded-full" />
+            </div>
+            <div className="space-y-2">
+              <div className="w-full h-3.5 bg-slate-800/80 rounded" />
+              <div className="w-4/5 h-3.5 bg-slate-800/60 rounded" />
+              <div className="w-2/3 h-3 bg-slate-800/40 rounded" />
+            </div>
+            {i % 2 === 0 && <div className="w-full h-32 bg-slate-800/40 rounded-2xl" />}
+            <div className="flex gap-3 pt-1">
+              <div className="w-16 h-8 bg-slate-800/60 rounded-xl" />
+              <div className="w-16 h-8 bg-slate-800/60 rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
 
   // 4. Community Page Skeleton (Home / Players) — Mirrors Real Page 1-to-1
   if (variant === "community") {

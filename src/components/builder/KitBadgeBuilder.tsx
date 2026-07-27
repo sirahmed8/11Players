@@ -1,10 +1,127 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Download, Palette, Shield, Shirt, Sparkles, RefreshCw, Copy, Check } from "lucide-react";
+import { Download, Palette, Shield, Shirt, Sparkles, RefreshCw, Copy, Check, ChevronDown } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import CustomDropdown from "@/components/ui/CustomDropdown";
+
+// ── Premium Color Swatch Picker ───────────────────────────────────────────────
+const PRESET_PALETTES = [
+  "#0f172a", "#1e293b", "#0d1117", "#111827",
+  "#064e3b", "#065f46", "#10b981", "#34d399",
+  "#f59e0b", "#d97706", "#fbbf24", "#fde68a",
+  "#1d4ed8", "#2563eb", "#3b82f6", "#60a5fa",
+  "#7c3aed", "#8b5cf6", "#a78bfa", "#c4b5fd",
+  "#be123c", "#dc2626", "#ef4444", "#f87171",
+  "#0e7490", "#0891b2", "#06b6d4", "#22d3ee",
+  "#ffffff", "#e2e8f0", "#94a3b8", "#475569",
+];
+
+function ColorSwatchPicker({
+  label, value, onChange
+}: { label: string; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [hex, setHex] = useState(value);
+  const nativeRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => { setHex(value); }, [value]);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const applyHex = (v: string) => {
+    const clean = v.startsWith("#") ? v : `#${v}`;
+    if (/^#[0-9a-fA-F]{6}$/.test(clean)) { onChange(clean); setHex(clean); }
+  };
+
+  return (
+    <div className="relative" ref={panelRef}>
+      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">{label}</label>
+      <button
+        type="button"
+        onClick={() => setOpen(p => !p)}
+        className="w-full flex items-center gap-2.5 bg-slate-900 hover:bg-slate-800/80 border border-slate-700 hover:border-slate-600 rounded-xl px-3 py-2.5 transition-all duration-200 group cursor-pointer"
+      >
+        <span
+          className="w-6 h-6 rounded-lg border-2 border-white/20 shrink-0 shadow-inner shadow-black/40"
+          style={{ background: value }}
+        />
+        <span className="text-xs font-mono font-bold text-slate-200 flex-1 text-left uppercase tracking-wide">{value}</span>
+        <ChevronDown className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -8, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute z-50 mt-2 w-full min-w-[220px] bg-slate-900/95 backdrop-blur-xl border border-slate-700 rounded-2xl p-3 shadow-2xl shadow-black/60"
+          >
+            {/* Preset swatches grid */}
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 px-0.5">Preset Colors</p>
+            <div className="grid grid-cols-8 gap-1.5 mb-3">
+              {PRESET_PALETTES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => { onChange(c); setHex(c); setOpen(false); }}
+                  className={`w-6 h-6 rounded-lg border-2 transition-all duration-150 hover:scale-110 hover:shadow-lg cursor-pointer ${
+                    value === c ? 'border-emerald-400 scale-110 shadow-emerald-500/40 shadow-md' : 'border-transparent hover:border-white/30'
+                  }`}
+                  style={{ background: c }}
+                  title={c}
+                />
+              ))}
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-slate-800 mb-2.5" />
+
+            {/* Custom hex input + native picker trigger */}
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 px-0.5">Custom HEX</p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => nativeRef.current?.click()}
+                className="w-8 h-8 rounded-lg border-2 border-white/20 shrink-0 cursor-pointer hover:scale-105 transition-transform shadow-inner"
+                style={{ background: value }}
+              />
+              <input
+                ref={nativeRef}
+                type="color"
+                value={value}
+                onChange={(e) => { onChange(e.target.value); setHex(e.target.value); }}
+                className="sr-only"
+              />
+              <input
+                type="text"
+                value={hex}
+                onChange={(e) => setHex(e.target.value)}
+                onBlur={() => applyHex(hex)}
+                onKeyDown={(e) => e.key === 'Enter' && applyHex(hex)}
+                placeholder="#0f172a"
+                maxLength={7}
+                className="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs font-mono font-bold text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/30 transition-all uppercase"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export type PatternType = "Stripes" | "Hoops" | "Gradient" | "Diagonal" | "Camouflage";
 export type ShieldShape = "Classic Shield" | "Modern Circle" | "Diamond Badge" | "Heater Shield" | "French Crest";
@@ -449,54 +566,26 @@ export default function KitBadgeBuilder() {
 
           {/* 2. Color Selection */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+              <Palette className="w-3.5 h-3.5" />
               {isAr ? "لوحة الألوان" : "Color Palette"}
             </h3>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
-                  {isAr ? "اللون الأساسي" : "Primary"}
-                </label>
-                <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
-                  <input
-                    type="color"
-                    value={config.primaryColor}
-                    onChange={(e) => setConfig({ ...config, primaryColor: e.target.value })}
-                    className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
-                  />
-                  <span className="text-xs text-white uppercase font-mono">{config.primaryColor}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
-                  {isAr ? "اللون الثانوي" : "Secondary"}
-                </label>
-                <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
-                  <input
-                    type="color"
-                    value={config.secondaryColor}
-                    onChange={(e) => setConfig({ ...config, secondaryColor: e.target.value })}
-                    className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
-                  />
-                  <span className="text-xs text-white uppercase font-mono">{config.secondaryColor}</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
-                  {isAr ? "لون التفاصيل" : "Accent"}
-                </label>
-                <div className="flex items-center gap-2 bg-slate-950 p-2 rounded-xl border border-slate-800">
-                  <input
-                    type="color"
-                    value={config.accentColor}
-                    onChange={(e) => setConfig({ ...config, accentColor: e.target.value })}
-                    className="w-8 h-8 rounded border-0 cursor-pointer bg-transparent"
-                  />
-                  <span className="text-xs text-white uppercase font-mono">{config.accentColor}</span>
-                </div>
-              </div>
+            <div className="grid grid-cols-1 gap-3">
+              <ColorSwatchPicker
+                label={isAr ? "اللون الأساسي" : "Primary"}
+                value={config.primaryColor}
+                onChange={(v) => setConfig({ ...config, primaryColor: v })}
+              />
+              <ColorSwatchPicker
+                label={isAr ? "اللون الثانوي" : "Secondary"}
+                value={config.secondaryColor}
+                onChange={(v) => setConfig({ ...config, secondaryColor: v })}
+              />
+              <ColorSwatchPicker
+                label={isAr ? "لون التفاصيل" : "Accent"}
+                value={config.accentColor}
+                onChange={(v) => setConfig({ ...config, accentColor: v })}
+              />
             </div>
           </div>
 
