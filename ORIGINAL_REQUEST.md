@@ -383,3 +383,33 @@ Integrity mode: development
 - npm run build (Next.js 16 production build) compiles with zero TypeScript or lint errors.
 - src/lib/engine.ts, src/lib/firestorePaths.ts, AuthContext.tsx, CommunityContext.tsx, and PlayersContext.tsx maintain 100% backward compatibility.
 - PROJECT_OVERVIEW.md updated with micro-polish specifications.
+
+## Follow-up — 2026-07-27T18:50:58Z
+
+Execute a comprehensive Global CSS Animation & Micro-Polish expansion across all pages and components of 11Players (Hagoozat Elite):
+1. Global CSS Button Micro-Springs: Add global CSS rules targeting all <button> and .btn elements so every button automatically inherits micro-spring hover scaling (transform: translateY(-2px)) and press feedback (transform: scale(0.96)).
+2. Global CSS List Item Stagger & Hover Elevation: Add global CSS rules targeting ul > li, ol > li, and list containers so list items automatically receive smooth hover elevation and emerald border highlights.
+3. Global CSS Card Glass Sheens: Add global CSS rules targeting .glass-card, .rounded-2xl, and .rounded-3xl cards so all card containers automatically acquire subtle ambient emerald glow rings on hover (box-shadow: 0 0 25px rgba(16, 185, 129, 0.15)).
+4. Global Input Focus Glow Rings: Maintain global CSS rules targeting all <input>, <textarea>, and <select> elements for signature emerald focus glow rings.
+
+Working directory: d:/11Players
+Integrity mode: development
+
+## Requirements
+
+### R1. Global CSS Animation System
+- Global Button Physics: Enforce global CSS button hover elevation and tap scaling across all existing and future buttons.
+- Global List & Card Sheens: Enforce global CSS list item hover borders and glassmorphic card sheens across all cards and containers.
+
+### R2. Quality & Compatibility Standard
+- Zero Breaking Changes: Preserve 100% backward compatibility in src/lib/engine.ts, src/lib/firestorePaths.ts, and core React Contexts.
+- Full Test & Build Verification: Ensure all 97 Vitest unit tests pass and Next.js production build compiles cleanly.
+
+## Acceptance Criteria
+
+### Verification & Quality Safeguards
+- npm run test (Vitest unit tests) passes 100% cleanly.
+- npm run build (Next.js 16 production build) compiles with zero TypeScript or lint errors.
+- src/lib/engine.ts, src/lib/firestorePaths.ts, AuthContext.tsx, CommunityContext.tsx, and PlayersContext.tsx maintain 100% backward compatibility.
+- PROJECT_OVERVIEW.md updated with global CSS animation specifications.
+

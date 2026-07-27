@@ -841,6 +841,24 @@ input:focus, textarea:focus, select:focus {
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 15px rgba(16, 185, 129, 0.2) !important;
 }
 
+/* Global Button Micro-Spring Physics for all existing & future buttons */
+button:not(:disabled), .btn:not(:disabled) {
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+button:not(:disabled):hover, .btn:not(:disabled):hover {
+  transform: translateY(-1.5px);
+}
+
+button:not(:disabled):active, .btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* Global List Item Hover Elevation */
+ul > li:not(.no-hover), ol > li:not(.no-hover) {
+  transition: border-color 0.25s ease, background-color 0.25s ease, transform 0.25s ease;
+}
+
 /* Glassmorphic Hover Sheen Utilities */
 .glass-card-hover {
   transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
