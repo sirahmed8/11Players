@@ -113,7 +113,8 @@ export function generateNewspaperHeadline(data: MatchResultData): NewspaperHeadl
     subHeader: { en: subEn, ar: subAr },
     tagline: { en: tagEn, ar: tagAr },
     articleSummary: { en: articleEn, ar: articleAr },
-    editionNumber: `#${Math.floor(1000 + Math.random() * 9000)}`,
+    editionNumber: `#${(Math.abs([...(`${data.teamAName}${data.teamBName}${data.date || ''}`)]
+      .reduce((h, c) => (h * 31 + c.charCodeAt(0)) | 0, 0)) % 9000) + 1000}`,
     dateString: data.date || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
   };
 }

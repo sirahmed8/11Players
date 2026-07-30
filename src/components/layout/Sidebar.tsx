@@ -14,9 +14,11 @@ import { collection, query, orderBy, limit, onSnapshot, doc, where } from "fireb
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
+import { Suspense } from "react";
+
 const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie"];
 
-export default function Sidebar() {
+function SidebarContent() {
   const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const { locale } = useLocale();
@@ -61,6 +63,11 @@ export default function Sidebar() {
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
   // Listen for Personal Notifications (updates unread count badge; AdviceNotification.tsx handles the live toast popups)
   useEffect(() => {
     if (!user) return;
@@ -95,13 +102,13 @@ export default function Sidebar() {
       if (latestUnreadThread && latestUnreadThread.lastUpdatedAt) {
         const msgTime = latestUnreadThread.lastUpdatedAt.toDate ? latestUnreadThread.lastUpdatedAt.toDate().getTime() : new Date(latestUnreadThread.lastUpdatedAt).getTime();
         const now = Date.now();
-        if (now - msgTime < 20000 && msgTime > lastNotifiedTimeRef.current && pathname !== "/inbox") {
+        if (now - msgTime < 20000 && msgTime > lastNotifiedTimeRef.current && pathnameRef.current !== "/inbox") {
           lastNotifiedTimeRef.current = msgTime;
           toast.custom((t) => (
             <div
               onClick={() => {
                 toast.dismiss(t.id);
-                window.location.href = "/inbox";
+                router.push("/inbox");
               }}
               className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/40 hover:scale-[1.02] transition-all"
             >
@@ -126,7 +133,7 @@ export default function Sidebar() {
     });
 
     return () => unsub();
-  }, [user, isOwner, isGlobalModerator, pathname, isAr]);
+  }, [user, isOwner, isGlobalModerator]);
 
   // Listen for Admin Edit Requests & System Feed (Self-edits / Peer Proposals)
   useEffect(() => {
@@ -144,13 +151,13 @@ export default function Sidebar() {
           const data = change.doc.data();
           const reqTime = data.requestedAt ? new Date(data.requestedAt).getTime() : Date.now();
           const now = Date.now();
-          if (now - reqTime < 30000 && reqTime > lastEditToastTimeRef.current && pathname !== "/admin") {
+          if (now - reqTime < 30000 && reqTime > lastEditToastTimeRef.current && pathnameRef.current !== "/admin") {
             lastEditToastTimeRef.current = reqTime;
             toast.custom((t) => (
               <div
                 onClick={() => {
                   toast.dismiss(t.id);
-                  window.location.href = "/admin?tab=edits";
+                  router.push("/admin?tab=edits");
                 }}
                 className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/50 hover:scale-[1.02] transition-all"
               >
@@ -176,7 +183,7 @@ export default function Sidebar() {
     });
 
     return () => unsubEdits();
-  }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId, pathname, isAr]);
+  }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId]);
 
   // Listen for Global Chat Notifications (Regular User Support Desk)
   useEffect(() => {
@@ -190,13 +197,13 @@ export default function Sidebar() {
           if (data.lastUpdatedAt) {
             const msgTime = data.lastUpdatedAt.toDate ? data.lastUpdatedAt.toDate().getTime() : new Date(data.lastUpdatedAt).getTime();
             const now = Date.now();
-            if (now - msgTime < 20000 && msgTime > lastNotifiedTimeRef.current && pathname !== "/support") {
+            if (now - msgTime < 20000 && msgTime > lastNotifiedTimeRef.current && pathnameRef.current !== "/support") {
               lastNotifiedTimeRef.current = msgTime;
               toast.custom((t) => (
                 <div
                   onClick={() => {
                     toast.dismiss(t.id);
-                    window.location.href = "/support";
+                    router.push("/support");
                   }}
                   className="max-w-md w-full bg-white dark:bg-slate-800 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black ring-opacity-5 p-4 gap-3.5 items-center cursor-pointer border border-emerald-500/40 hover:scale-[1.02] transition-all"
                 >
@@ -241,7 +248,7 @@ export default function Sidebar() {
     });
 
     return () => unsub();
-  }, [user, isOwner, isGlobalModerator, pathname, isAr]);
+  }, [user, isOwner, isGlobalModerator]);
 
   // Listen for Unrated Recent Matches
   useEffect(() => {
@@ -431,16 +438,16 @@ export default function Sidebar() {
       {/* Mobile Top Bar (Always Fixed at Top While Scrolling) */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-[100] h-16 px-4 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 flex items-center justify-between shadow-lg">
         <div className="flex items-center gap-3">
-          <button onClick={toggleSidebar} className="p-2 rounded-xl bg-slate-800 text-slate-200 relative border border-slate-700">
+          <button onClick={toggleSidebar} className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 relative">
             <Menu className="w-5 h-5" />
             {(unreadInboxCount > 0 || unreadSupportCount > 0 || unreadNotifsCount > 0 || pendingEditsCount > 0) && (
               <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-slate-900" />
             )}
           </button>
-          <a href="/communities" className="flex items-center gap-2">
+          <Link href="/communities" className="flex items-center gap-2">
             <Image src="/logo.jpg" alt="11Players" width={32} height={32} className="rounded-lg object-cover shadow-sm" priority />
             <span className="font-black text-emerald-400 text-xl tracking-tight">11Players</span>
-          </a>
+          </Link>
         </div>
         <SettingsMenu direction="down" />
       </div>
@@ -473,10 +480,10 @@ export default function Sidebar() {
           
           {/* Logo Area (Fixed Header) */}
           <div className={`flex-shrink-0 flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 ${isAr ? "rounded-tl-3xl md:rounded-t-3xl" : "rounded-tr-3xl md:rounded-t-3xl"}`} style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
-            <a href="/communities" className="flex items-center gap-3">
+            <Link href="/communities" className="flex items-center gap-3">
               <Image src="/logo.jpg" alt="11Players Logo" width={40} height={40} className="rounded-xl object-cover shadow-sm" priority />
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-2xl tracking-tight">11Players</span>
-            </a>
+            </Link>
             <button onClick={toggleSidebar} className="md:hidden p-2 text-slate-500 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg">
               <X className="w-6 h-6" />
             </button>
@@ -504,22 +511,12 @@ export default function Sidebar() {
                       }
 
                       return (
-                        <a
+                        <Link
                           ref={isActive ? activeLinkRef : null}
                           key={link.href}
                           href={link.href}
-                          onClick={(e) => {
+                          onClick={() => {
                             setIsOpen(false);
-                            if (cleanPathname === baseHref) {
-                              e.preventDefault();
-                              return;
-                            }
-                            e.preventDefault();
-                            try {
-                              router.push(link.href);
-                            } catch (err) {
-                              window.location.href = link.href;
-                            }
                           }}
                           className={`flex items-center justify-between px-3.5 py-2.5 rounded-2xl transition-all duration-150 font-bold text-sm group ${
                               isActive
@@ -549,7 +546,7 @@ export default function Sidebar() {
                               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />
                             </span>
                           ) : null}
-                        </a>
+                        </Link>
                       );
                     })}
                   </div>
@@ -570,5 +567,15 @@ export default function Sidebar() {
         </div>
       </div>
     </aside>
+  );
+}
+
+export default function Sidebar() {
+  return (
+    <Suspense fallback={
+      <div className="hidden md:block w-72 h-[90vh] bg-slate-900/40 rounded-3xl border border-slate-800/80 animate-pulse mx-4" />
+    }>
+      <SidebarContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
@@ -145,9 +145,11 @@ export default function PitchSplitBillCalculator() {
 
   const { players: communityPlayers } = usePlayers();
   const [players, setPlayers] = useState<SplitBillPlayer[]>([]);
+  const hasInitializedRef = useRef(false);
 
   useEffect(() => {
-    if (communityPlayers && communityPlayers.length > 0) {
+    if (!hasInitializedRef.current && communityPlayers && communityPlayers.length > 0) {
+      hasInitializedRef.current = true;
       const activeList = communityPlayers.slice(0, 10);
       const perPlayer = activeList.length > 0 ? Math.round(1200 / activeList.length) : 0;
       setPlayers(
@@ -236,10 +238,9 @@ export default function PitchSplitBillCalculator() {
   };
 
   const removePlayerRow = (id: string) => {
-    if (players.length <= 1) return;
     const updated = players.filter((p) => p.id !== id);
     setPlayers(updated);
-    if (splitMode === "equal") {
+    if (splitMode === "equal" && updated.length > 0) {
       const allocation = calculateSplitBillAllocation(totalCost, updated.length, "equal");
       setPlayers(
         updated.map((p, idx) => ({
@@ -437,7 +438,14 @@ export default function PitchSplitBillCalculator() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
-              {players.map((p, idx) => (
+              {players.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                    {isAr ? "لا يوجد لاعبون في القائمة — اضغط + إضافة لاعب لإضافة الأول" : "No players in payment roster — click + Add Player to start"}
+                  </td>
+                </tr>
+              ) : (
+                players.map((p, idx) => (
                 <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
                   <td className="px-4 py-3 font-mono text-slate-500">{idx + 1}</td>
                   <td className="px-4 py-3 font-semibold text-white">
@@ -488,14 +496,14 @@ export default function PitchSplitBillCalculator() {
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => removePlayerRow(p.id)}
-                      disabled={players.length <= 1}
-                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition-colors disabled:opacity-30"
+                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+            )}
             </tbody>
           </table>
         </div>
