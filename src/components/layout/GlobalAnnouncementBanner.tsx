@@ -9,6 +9,9 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import Link from "next/link";
 import { X, ArrowRight, Bell } from "lucide-react";
 
+import { stripMarkdownAsterisks } from "@/lib/aiService";
+import { ChevronDown, ChevronUp } from "lucide-react";
+
 export default function GlobalAnnouncementBanner() {
   const { locale } = useLocale();
   const { activeCommunityId } = useCommunity();
@@ -16,6 +19,7 @@ export default function GlobalAnnouncementBanner() {
   const [announcement, setAnnouncement] = useState<any>(null);
   const [dismissed, setDismissed] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [showSecondaryLang, setShowSecondaryLang] = useState(false);
 
   useEffect(() => {
     const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(5));
@@ -58,6 +62,9 @@ export default function GlobalAnnouncementBanner() {
   };
 
   const isUrgent = announcement?.priority === 'urgent';
+  const displayTitle = stripMarkdownAsterisks(isAr ? announcement?.titleAr : announcement?.titleEn);
+  const displayBody = stripMarkdownAsterisks(isAr ? announcement?.bodyAr : announcement?.bodyEn);
+  const secondaryBody = stripMarkdownAsterisks(isAr ? announcement?.bodyEn : announcement?.bodyAr);
 
   return (
     <>
@@ -91,15 +98,15 @@ export default function GlobalAnnouncementBanner() {
                     }`}>
                       {isAr ? "إعلان هام" : "ANNOUNCEMENT"}
                     </span>
-                    <span className="font-bold text-sm text-slate-100 truncate group-hover:text-emerald-400 transition-colors">
-                      {isAr ? announcement.titleAr : announcement.titleEn}
+                    <span className="font-bold text-sm text-slate-100 truncate group-hover:text-emerald-400 transition-colors" dir="auto">
+                      {displayTitle}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity hidden sm:inline">
                       {isAr ? "(انقر لقراءة الإعلان كاملاً 📖)" : "(Click for full announcement 📖)"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-300 mt-1 font-medium line-clamp-2 sm:line-clamp-1">
-                    {isAr ? announcement.bodyAr : announcement.bodyEn}
+                  <p className="text-xs text-slate-300 mt-1 font-medium line-clamp-2 sm:line-clamp-1" dir="auto">
+                    {displayBody}
                   </p>
                 </div>
               </div>
@@ -134,10 +141,11 @@ export default function GlobalAnnouncementBanner() {
         {showModal && announcement && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md" dir={isAr ? 'rtl' : 'ltr'}>
             <motion.div
+              layout
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
               className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl space-y-6 relative overflow-hidden text-white"
             >
               {/* Header */}
@@ -154,8 +162,8 @@ export default function GlobalAnnouncementBanner() {
                     }`}>
                       {isUrgent ? (isAr ? "إشعار عاجل ومهم" : "Urgent Priority Alert") : (isAr ? "إعلان رسمي" : "Official Announcement")}
                     </span>
-                    <h3 className="text-lg font-black text-white leading-tight">
-                      {isAr ? announcement.titleAr : announcement.titleEn}
+                    <h3 className="text-lg font-black text-white leading-tight" dir="auto">
+                      {displayTitle}
                     </h3>
                   </div>
                 </div>
@@ -171,21 +179,39 @@ export default function GlobalAnnouncementBanner() {
               {/* Full Untruncated Body */}
               <div className="space-y-4">
                 <div className="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 sm:p-5 max-h-80 overflow-y-auto custom-scrollbar">
-                  <p className="text-sm text-slate-200 font-medium leading-relaxed whitespace-pre-line">
-                    {isAr ? announcement.bodyAr : announcement.bodyEn}
+                  <p className="text-sm text-slate-200 font-medium leading-relaxed whitespace-pre-line" dir="auto">
+                    {displayBody}
                   </p>
                 </div>
 
-                {/* Secondary translation if available */}
-                {((isAr && announcement.bodyEn) || (!isAr && announcement.bodyAr)) && (
-                  <details className="group text-xs">
-                    <summary className="cursor-pointer text-slate-400 hover:text-emerald-400 font-bold flex items-center gap-1.5 transition-colors select-none">
+                {/* Secondary translation if available — Smooth Spring Expand */}
+                {secondaryBody && (
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowSecondaryLang(p => !p)}
+                      className="text-xs font-bold text-slate-400 hover:text-emerald-400 flex items-center gap-1.5 transition-colors select-none cursor-pointer"
+                    >
                       <span>{isAr ? "عرض النص باللغة الإنجليزية (English Version)" : "View Arabic Version (النص بالعربية)"}</span>
-                    </summary>
-                    <div className="mt-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60 text-slate-400 whitespace-pre-line leading-relaxed font-sans">
-                      {isAr ? announcement.bodyEn : announcement.bodyAr}
-                    </div>
-                  </details>
+                      {showSecondaryLang ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                    <AnimatePresence initial={false}>
+                      {showSecondaryLang && (
+                        <motion.div
+                          key="secondary-lang"
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 whitespace-pre-line leading-relaxed" dir="auto">
+                            {secondaryBody}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 )}
               </div>
 

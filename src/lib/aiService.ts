@@ -348,6 +348,17 @@ function generateSmartFallbackReply(message: string, systemPrompt: string, isAr:
 /**
  * 11AI One-Click Bilingual Announcement Copywriter & Enhancer
  */
+export function stripMarkdownAsterisks(str: string): string {
+  if (!str) return "";
+  return str
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/_([^_]+)_/g, "$1")
+    .replace(/[\*\_]/g, "")
+    .trim();
+}
+
 export async function enhanceAnnouncementWithAI(payload: {
   titleEn?: string;
   titleAr?: string;
@@ -375,7 +386,9 @@ Draft Context:
 Instructions:
 1. Make both titles catchy, concise (under 8 words), with relevant sports emojis (e.g. ⚽, 📢, 🏆, 🚨).
 2. Make both body descriptions professional, clear, exciting, and well-structured.
-3. Return ONLY a valid JSON object matching this structure with no code blocks or markdown wrapper:
+3. CRITICAL: NEVER use markdown formatting like **bold** or *italic*. Do NOT output any asterisks (*). Return clean plain text only.
+4. For Arabic text, write smooth, natural Arabic phrasing so words read cleanly without awkward text distortion.
+5. Return ONLY a valid JSON object matching this structure with no code blocks or markdown wrapper:
 {
   "titleEn": "...",
   "titleAr": "...",
@@ -392,7 +405,7 @@ Instructions:
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         message: prompt,
-        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements. Output JSON only.",
+        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements. Output JSON only without asterisks or markdown formatting.",
       }),
     });
     if (apiRes.ok) {
@@ -410,7 +423,7 @@ Instructions:
     try {
       const res = await generate11AIResponse({
         message: prompt,
-        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements.",
+        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements. Do not use asterisks or markdown formatting.",
         temperature: 0.3,
       });
       replyText = res.reply;
@@ -428,10 +441,10 @@ Instructions:
         const parsed = JSON.parse(jsonMatch[0]);
         if (parsed.titleEn || parsed.titleAr || parsed.bodyEn || parsed.bodyAr) {
           return {
-            titleEn: (parsed.titleEn || payload.titleEn || "📢 Official Community Announcement").trim(),
-            titleAr: (parsed.titleAr || payload.titleAr || "📢 إعلان رسمي من إدارة المجتمع").trim(),
-            bodyEn: (parsed.bodyEn || payload.bodyEn || "Important update for all registered players in our community.").trim(),
-            bodyAr: (parsed.bodyAr || payload.bodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا.").trim(),
+            titleEn: stripMarkdownAsterisks(parsed.titleEn || payload.titleEn || "📢 Official Community Announcement"),
+            titleAr: stripMarkdownAsterisks(parsed.titleAr || payload.titleAr || "📢 إعلان رسمي من إدارة المجتمع"),
+            bodyEn: stripMarkdownAsterisks(parsed.bodyEn || payload.bodyEn || "Important update for all registered players in our community."),
+            bodyAr: stripMarkdownAsterisks(parsed.bodyAr || payload.bodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا."),
           };
         }
       } catch (e) {

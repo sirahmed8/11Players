@@ -8,11 +8,11 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, RotateCcw } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
-import { enhanceAnnouncementWithAI } from "@/lib/aiService";
+import { enhanceAnnouncementWithAI, stripMarkdownAsterisks } from "@/lib/aiService";
 
 export interface Announcement {
   id: string;
@@ -44,8 +44,9 @@ export default function AnnouncementsPage() {
   const [link, setLink] = useState("");
   const [broadcasting, setBroadcasting] = useState(false);
 
-  // AI Enhancer State
+  // AI Enhancer & Undo State
   const [aiEnhancing, setAiEnhancing] = useState(false);
+  const [previousDraft, setPreviousDraft] = useState<{ titleEn: string; titleAr: string; bodyEn: string; bodyAr: string } | null>(null);
   const [activePreviewTab, setActivePreviewTab] = useState<'push' | 'chat'>('push');
 
   // Read-More Modal State
@@ -74,10 +75,10 @@ export default function AnnouncementsPage() {
       const saved = localStorage.getItem("announcement_draft");
       if (saved) {
         const draft = JSON.parse(saved);
-        if (draft.titleEn) setTitleEn(draft.titleEn);
-        if (draft.titleAr) setTitleAr(draft.titleAr);
-        if (draft.bodyEn) setBodyEn(draft.bodyEn);
-        if (draft.bodyAr) setBodyAr(draft.bodyAr);
+        if (draft.titleEn) setTitleEn(stripMarkdownAsterisks(draft.titleEn));
+        if (draft.titleAr) setTitleAr(stripMarkdownAsterisks(draft.titleAr));
+        if (draft.bodyEn) setBodyEn(stripMarkdownAsterisks(draft.bodyEn));
+        if (draft.bodyAr) setBodyAr(stripMarkdownAsterisks(draft.bodyAr));
         if (draft.link) setLink(draft.link);
       }
     } catch (e) {}
@@ -110,6 +111,9 @@ export default function AnnouncementsPage() {
   const handleAiEnhance = async (presetKey?: string) => {
     setAiEnhancing(true);
     try {
+      // Save current draft before AI polish for Undo
+      setPreviousDraft({ titleEn, titleAr, bodyEn, bodyAr });
+
       const enhanced = await enhanceAnnouncementWithAI({
         titleEn,
         titleAr,
@@ -119,16 +123,27 @@ export default function AnnouncementsPage() {
         communityName: activeCommunity?.name || "11Players",
       });
 
-      setTitleEn(enhanced.titleEn);
-      setTitleAr(enhanced.titleAr);
-      setBodyEn(enhanced.bodyEn);
-      setBodyAr(enhanced.bodyAr);
+      setTitleEn(stripMarkdownAsterisks(enhanced.titleEn));
+      setTitleAr(stripMarkdownAsterisks(enhanced.titleAr));
+      setBodyEn(stripMarkdownAsterisks(enhanced.bodyEn));
+      setBodyAr(stripMarkdownAsterisks(enhanced.bodyAr));
 
       toast.success(isAr ? "✨ 11AI قام بصياغة وترجمة الإعلان باحترافية!" : "✨ 11AI professionally enhanced & translated your announcement!");
     } catch (err) {
       toast.error(isAr ? "فشل توليد الذكاء الاصطناعي" : "AI generation failed");
     } finally {
       setAiEnhancing(false);
+    }
+  };
+
+  const handleUndoAi = () => {
+    if (previousDraft) {
+      setTitleEn(previousDraft.titleEn);
+      setTitleAr(previousDraft.titleAr);
+      setBodyEn(previousDraft.bodyEn);
+      setBodyAr(previousDraft.bodyAr);
+      setPreviousDraft(null);
+      toast.success(isAr ? "تم التراجع عن تحسين الذكاء الاصطناعي ↩️" : "Restored previous draft ↩️");
     }
   };
 
@@ -398,9 +413,10 @@ export default function AnnouncementsPage() {
                   <input
                     type="text"
                     required
+                    dir="auto"
                     placeholder="e.g. Next Match Sign-Up Open!"
                     value={titleEn}
-                    onChange={e => setTitleEn(e.target.value)}
+                    onChange={e => setTitleEn(stripMarkdownAsterisks(e.target.value))}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
@@ -412,9 +428,10 @@ export default function AnnouncementsPage() {
                   <input
                     type="text"
                     required
+                    dir="auto"
                     placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                     value={titleAr}
-                    onChange={e => setTitleAr(e.target.value)}
+                    onChange={e => setTitleAr(stripMarkdownAsterisks(e.target.value))}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
@@ -429,9 +446,10 @@ export default function AnnouncementsPage() {
                   <textarea
                     rows={4}
                     required
+                    dir="auto"
                     placeholder="Type your message description here in English..."
                     value={bodyEn}
-                    onChange={e => setBodyEn(e.target.value)}
+                    onChange={e => setBodyEn(stripMarkdownAsterisks(e.target.value))}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>
@@ -443,9 +461,10 @@ export default function AnnouncementsPage() {
                   <textarea
                     rows={4}
                     required
+                    dir="auto"
                     placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                     value={bodyAr}
-                    onChange={e => setBodyAr(e.target.value)}
+                    onChange={e => setBodyAr(stripMarkdownAsterisks(e.target.value))}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>
@@ -468,16 +487,31 @@ export default function AnnouncementsPage() {
 
               {/* Action Buttons Row */}
               <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                {/* AI Polish */}
-                <button
-                  type="button"
-                  onClick={() => handleAiEnhance()}
-                  disabled={aiEnhancing}
-                  className="px-4 py-3 rounded-2xl font-bold text-xs bg-slate-950 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/30 transition-all flex items-center gap-2 shrink-0 disabled:opacity-50"
-                >
-                  {aiEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
-                  <span>{aiEnhancing ? (isAr ? "جاري التحسين..." : "Enhancing...") : (isAr ? "تحسين بالنص" : "AI Polish")}</span>
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* AI Polish */}
+                  <button
+                    type="button"
+                    onClick={() => handleAiEnhance()}
+                    disabled={aiEnhancing}
+                    className="px-4 py-3 rounded-2xl font-bold text-xs bg-slate-950 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-950/30 transition-all flex items-center gap-2 shrink-0 disabled:opacity-50 active:scale-95"
+                  >
+                    {aiEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-emerald-400" />}
+                    <span>{aiEnhancing ? (isAr ? "جاري التحسين..." : "Enhancing...") : (isAr ? "تحسين بالنص" : "AI Polish")}</span>
+                  </button>
+
+                  {/* Undo AI Polish Button */}
+                  {previousDraft && (
+                    <button
+                      type="button"
+                      onClick={handleUndoAi}
+                      className="px-3.5 py-3 rounded-2xl font-bold text-xs bg-slate-950 border border-amber-500/40 text-amber-300 hover:bg-amber-950/30 transition-all flex items-center gap-1.5 shrink-0 active:scale-95 shadow-sm"
+                      title={isAr ? "التراجع عن التعديل الأخير بالذكاء الاصطناعي" : "Restore draft before AI polish"}
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{isAr ? "تراجع عن التحسين" : "Undo AI"}</span>
+                    </button>
+                  )}
+                </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                   {/* Push Notif Button */}
@@ -574,12 +608,12 @@ export default function AnnouncementsPage() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5">
                           {priority === 'urgent' && <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />}
-                          <h4 className="font-black text-xs text-white">
-                            {(isAr ? titleAr : titleEn) || (isAr ? "عنوان الإشعار يظهر هنا..." : "Notification title preview...")}
+                          <h4 className="font-black text-xs text-white" dir="auto">
+                            {stripMarkdownAsterisks(isAr ? titleAr : titleEn) || (isAr ? "عنوان الإشعار يظهر هنا..." : "Notification title preview...")}
                           </h4>
                         </div>
-                        <p className="text-[11px] text-slate-300 leading-relaxed font-medium line-clamp-2">
-                          {(isAr ? bodyAr : bodyEn) || (isAr ? "تفاصيل ومحتوى الرسالة يظهر هنا على شاشة قفل الهاتف..." : "Message body content preview as displayed on player's device...")}
+                        <p className="text-[11px] text-slate-300 leading-relaxed font-medium line-clamp-2" dir="auto">
+                          {stripMarkdownAsterisks(isAr ? bodyAr : bodyEn) || (isAr ? "تفاصيل ومحتوى الرسالة يظهر هنا على شاشة قفل الهاتف..." : "Message body content preview as displayed on player's device...")}
                         </p>
                       </div>
 
@@ -591,38 +625,43 @@ export default function AnnouncementsPage() {
                       )}
                     </motion.div>
                   ) : (
-                    /* Community Live Chat Announcement Banner — Title + Read More */
+                    /* Community Live Chat Announcement Banner — Title + Smooth Spring Read More */
                     <motion.div
                       key="chat"
+                      layout
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
-                      transition={{ duration: 0.18 }}
-                      className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner space-y-2"
+                      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                      className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner space-y-2 overflow-hidden"
                     >
                       <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-black">
                         <ShieldCheck className="w-4 h-4 text-emerald-400" />
                         <span>{isAr ? "📢 [إعلان رسمي جديد في القناة العامة]" : "📢 [Official Community Broadcast]"}</span>
                       </div>
-                      <h4 className="font-black text-xs text-white">
-                        {(isAr ? titleAr : titleEn) || "Title preview..."}
+                      <h4 className="font-black text-xs text-white" dir="auto">
+                        {stripMarkdownAsterisks(isAr ? titleAr : titleEn) || "Title preview..."}
                       </h4>
-                      <AnimatePresence>
+                      <AnimatePresence initial={false}>
                         {chatBodyExpanded && (
-                          <motion.p
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="text-[11px] text-slate-300 leading-relaxed font-medium overflow-hidden"
+                          <motion.div
+                            key="chat-body"
+                            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                            animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                            transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                            className="overflow-hidden"
                           >
-                            {(isAr ? bodyAr : bodyEn) || "Body text preview..."}
-                          </motion.p>
+                            <p className="text-[11px] text-slate-300 leading-relaxed font-medium whitespace-pre-line" dir="auto">
+                              {stripMarkdownAsterisks(isAr ? bodyAr : bodyEn) || "Body text preview..."}
+                            </p>
+                          </motion.div>
                         )}
                       </AnimatePresence>
                       <button
                         type="button"
                         onClick={() => setChatBodyExpanded(p => !p)}
-                        className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-1"
+                        className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
                       >
                         {chatBodyExpanded
                           ? (isAr ? "طي" : "Show less")
@@ -742,7 +781,7 @@ export default function AnnouncementsPage() {
                                       {new Date(ann.createdAt).toLocaleString()}
                                     </span>
                                   </div>
-                                  <h4 className="font-black text-sm text-white">{isAr ? ann.titleAr : ann.titleEn}</h4>
+                                  <h4 className="font-black text-sm text-white" dir="auto">{stripMarkdownAsterisks(isAr ? ann.titleAr : ann.titleEn)}</h4>
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0">
@@ -833,7 +872,7 @@ export default function AnnouncementsPage() {
               initial={{ opacity: 0, scale: 0.92, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92, y: 20 }}
-              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
               onClick={e => e.stopPropagation()}
               className="relative w-full max-w-lg bg-slate-900 rounded-3xl border border-slate-700 shadow-2xl overflow-hidden"
               dir={isAr ? 'rtl' : 'ltr'}
@@ -855,8 +894,8 @@ export default function AnnouncementsPage() {
                       {new Date(readMoreAnn.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <h2 className="text-base font-black text-white leading-snug">
-                    {isAr ? readMoreAnn.titleAr : readMoreAnn.titleEn}
+                  <h2 className="text-base font-black text-white leading-snug" dir="auto">
+                    {stripMarkdownAsterisks(isAr ? readMoreAnn.titleAr : readMoreAnn.titleEn)}
                   </h2>
                 </div>
                 <button
@@ -870,8 +909,8 @@ export default function AnnouncementsPage() {
 
               {/* Modal Body */}
               <div className="p-5 space-y-4 max-h-[60vh] overflow-y-auto">
-                <p className="text-sm text-slate-200 leading-relaxed font-medium whitespace-pre-wrap">
-                  {isAr ? readMoreAnn.bodyAr : readMoreAnn.bodyEn}
+                <p className="text-sm text-slate-200 leading-relaxed font-medium whitespace-pre-wrap" dir="auto">
+                  {stripMarkdownAsterisks(isAr ? readMoreAnn.bodyAr : readMoreAnn.bodyEn)}
                 </p>
 
                 {/* Show both languages */}

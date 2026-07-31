@@ -197,8 +197,17 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Clicking anywhere on the global announcement banner opens a Framer Motion glassmorphic modal window displaying the full untruncated title (Arabic & English), full message body with preserved line breaks, priority badge, and target link action button ("Open Target Link 🔗").
 - **AI Polish Engine Overhaul (`aiService.ts`)**:
   - Fixed "AI Polish" button by introducing multi-tier execution: server `/api/ai/chat` POST request first, direct Gemini client engine fallback, markdown codeblock JSON cleaning, and intelligent client-side draft auto-translator & copy polisher.
+
+## 12. Milestone M2.5 — Markdown Asterisk Stripping, Undo AI & BiDi Readability Pass
+- **Markdown Asterisk Stripping Engine (`stripMarkdownAsterisks`)**:
+  - Created a robust `stripMarkdownAsterisks` helper in `src/lib/aiService.ts` that strips all `**bold**`, `*italic*`, `__bold__`, and loose `*` characters from generated titles, bodies, and input drafts so raw asterisks never appear literal in text boxes, preview cards, or banner modals.
+- **Undo AI Polish Button (`src/app/announcements/page.tsx`)**:
+  - Added `previousDraft` backup state and rendered an interactive **"Undo AI"** / **"تراجع عن التحسين ↩️"** button next to "AI Polish", enabling administrators to revert AI copy modifications with one click.
+- **Smooth Spring Height Expand & Collapse Animations (`Framer Motion`)**:
+  - Upgraded live chat banner preview expand/collapse and banner modal secondary translation toggles to use `<motion.div layout transition={{ type: "spring", stiffness: 350, damping: 28 }}>` and `AnimatePresence`, matching the Private Community toggle card animation.
+- **Arabic & English BiDi Text Readability (`dir="auto"`)**:
+  - Applied `dir="auto"` attributes and `unicode-bidi` isolation across all announcement title and body input fields, textareas, preview paragraphs, history cards, and banner detail modals to prevent mixed English/Arabic character misalignment or sentence distortion.
 - **Quality & Verification**:
-  - All 97 Vitest unit tests passing cleanly.
-  - Next.js production build (`npm run build`) compiled 49 static routes with 0 errors.
-  - Changes committed (`0ca8ed1c`) and pushed to GitHub `main`.
-  - Deployed live to Firebase Hosting (`https://an-11-players.web.app`).
+  - All 97 Vitest unit tests passing cleanly (`npm run test -- --run`).
+  - Next.js 16 production build (`npm run build`) compiled 49 static routes with 0 errors.
+
