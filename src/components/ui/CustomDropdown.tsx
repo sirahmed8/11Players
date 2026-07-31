@@ -71,7 +71,7 @@ export default function CustomDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute left-0 right-0 mt-2 z-50 max-h-60 overflow-y-auto rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-slate-200 dark:border-slate-800 shadow-2xl p-1.5 space-y-1 backdrop-blur-2xl"
+            className="absolute left-0 right-0 mt-2 z-[100] max-h-60 overflow-y-auto rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl p-1.5 space-y-1"
           >
             {options.map((option) => {
               const isSelected = option.value === value;

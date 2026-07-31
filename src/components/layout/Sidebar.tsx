@@ -559,7 +559,7 @@ function SidebarContent() {
           <div className="mt-auto flex-shrink-0 p-4 border-t border-slate-200/40 dark:border-slate-800/40 bg-white/80 dark:bg-slate-900/80 hidden md:block md:rounded-b-3xl" style={{ backdropFilter: "blur(24px)", WebkitBackdropFilter: "blur(24px)" }}>
             <div className="flex items-center justify-between">
               <span className="text-xs text-slate-400 dark:text-slate-600 font-semibold select-none">
-                © 2025 11Players
+                © 2026 11Players
               </span>
               <SettingsMenu direction="up" />
             </div>

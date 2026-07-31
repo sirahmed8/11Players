@@ -17,12 +17,23 @@ function DerbyContent() {
   const [captainA, setCaptainA] = useState<string>('');
   const [captainB, setCaptainB] = useState<string>('');
 
+  // Helper to calculate exact votes count across Array, Map, or Number representations
+  const getVotesCount = (p: any): number => {
+    if (!p) return 0;
+    if (Array.isArray(p.captainVotes)) return p.captainVotes.length;
+    if (typeof p.captainVotes === 'number') return p.captainVotes;
+    if (p.captainVotes && typeof p.captainVotes === 'object') return Object.keys(p.captainVotes).length;
+    if (typeof p.votesCount === 'number') return p.votesCount;
+    if (typeof p.votes === 'number') return p.votes;
+    return 0;
+  };
+
   // Sort players by captain votes & overall rating so top voted captains appear first
   const sortedCaptains = useMemo(() => {
     if (!players) return [];
     return [...players].sort((a, b) => {
-      const votesA = (a.captainVotes || (a as any).votesCount || (a as any).votes || 0);
-      const votesB = (b.captainVotes || (b as any).votesCount || (b as any).votes || 0);
+      const votesA = getVotesCount(a);
+      const votesB = getVotesCount(b);
       if (votesB !== votesA) return votesB - votesA;
       return (b.overallRating || 80) - (a.overallRating || 80);
     });
@@ -31,8 +42,8 @@ function DerbyContent() {
   // Set default captains to top 2 most voted captains when players load
   React.useEffect(() => {
     if (sortedCaptains && sortedCaptains.length >= 2) {
-      if (!captainA) setCaptainA(sortedCaptains[0].uid);
-      if (!captainB) setCaptainB(sortedCaptains[1].uid);
+      setCaptainA(sortedCaptains[0].uid);
+      setCaptainB(sortedCaptains[1].uid);
     }
   }, [sortedCaptains]);
 
@@ -65,7 +76,7 @@ function DerbyContent() {
 
   const playerOptions = useMemo(() => {
     return sortedCaptains.map((p) => {
-      const votes = (p.captainVotes || (p as any).votesCount || (p as any).votes || 0);
+      const votes = getVotesCount(p);
       const voteBadge = votes > 0 ? ` (${votes} 🗳️)` : '';
       return {
         value: p.uid,
