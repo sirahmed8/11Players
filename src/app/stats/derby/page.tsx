@@ -17,13 +17,24 @@ function DerbyContent() {
   const [captainA, setCaptainA] = useState<string>('');
   const [captainB, setCaptainB] = useState<string>('');
 
-  // Set default captains when players load
-  React.useEffect(() => {
-    if (players && players.length >= 2) {
-      if (!captainA) setCaptainA(players[0].uid);
-      if (!captainB) setCaptainB(players[1].uid);
-    }
+  // Sort players by captain votes & overall rating so top voted captains appear first
+  const sortedCaptains = useMemo(() => {
+    if (!players) return [];
+    return [...players].sort((a, b) => {
+      const votesA = (a.captainVotes || (a as any).votesCount || (a as any).votes || 0);
+      const votesB = (b.captainVotes || (b as any).votesCount || (b as any).votes || 0);
+      if (votesB !== votesA) return votesB - votesA;
+      return (b.overallRating || 80) - (a.overallRating || 80);
+    });
   }, [players]);
+
+  // Set default captains to top 2 most voted captains when players load
+  React.useEffect(() => {
+    if (sortedCaptains && sortedCaptains.length >= 2) {
+      if (!captainA) setCaptainA(sortedCaptains[0].uid);
+      if (!captainB) setCaptainB(sortedCaptains[1].uid);
+    }
+  }, [sortedCaptains]);
 
   // Transform real community history matches into MatchRecord[]
   const realMatchRecords: MatchRecord[] = useMemo(() => {
@@ -53,11 +64,15 @@ function DerbyContent() {
   const captBPlayer = players.find((p) => p.uid === captainB);
 
   const playerOptions = useMemo(() => {
-    return players.map((p) => ({
-      value: p.uid,
-      label: `${p.cardName || p.fullName} (${p.primaryPosition}) — OVR ${p.overallRating || 80}`,
-    }));
-  }, [players]);
+    return sortedCaptains.map((p) => {
+      const votes = (p.captainVotes || (p as any).votesCount || (p as any).votes || 0);
+      const voteBadge = votes > 0 ? ` (${votes} 🗳️)` : '';
+      return {
+        value: p.uid,
+        label: `${p.cardName || p.fullName} (${p.primaryPosition})${voteBadge} — OVR ${p.overallRating || 80}`,
+      };
+    });
+  }, [sortedCaptains]);
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">

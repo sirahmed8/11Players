@@ -290,66 +290,92 @@ export default function OwnerPage() {
                     </div>
                   </div>
 
-                  <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800">
-                    <div className="flex items-center justify-between cursor-pointer" onClick={() => setIsPrivate(!isPrivate)}>
+                  {/* 100x Better Smooth Private Community Card */}
+                  <motion.div
+                    layout
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    className={`p-4 bg-slate-950 rounded-2xl border transition-colors duration-300 ${
+                      isPrivate ? "border-emerald-500/40 bg-emerald-950/10 shadow-lg shadow-emerald-500/5" : "border-slate-800"
+                    }`}
+                  >
+                    <div
+                      className="flex items-center justify-between cursor-pointer select-none"
+                      onClick={() => setIsPrivate(!isPrivate)}
+                    >
                       <div className="flex items-center gap-3">
                         <motion.div
-                          key={isPrivate ? 'private' : 'public'}
-                          initial={{ scale: 0.8 }}
-                          animate={{ scale: 1 }}
-                          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                          className={`p-2 rounded-xl ${isPrivate ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-slate-900 text-slate-500 border border-slate-800'}`}
+                          layout
+                          key={isPrivate ? "private" : "public"}
+                          initial={{ scale: 0.7, rotate: -20 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                          className={`p-2.5 rounded-xl border ${
+                            isPrivate
+                              ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40 shadow-inner"
+                              : "bg-slate-900 text-slate-500 border-slate-800"
+                          }`}
                         >
                           <ShieldCheck className="w-4 h-4" />
                         </motion.div>
                         <div>
-                          <span className="block text-xs font-black text-white">{isAr ? "مجتمع خاص (مغلق)" : "Private Community"}</span>
-                          <span className="text-[10px] text-slate-400 font-medium">{isAr ? "يتطلب كلمة مرور للانضمام" : "Requires password to join"}</span>
+                          <span className="block text-xs font-black text-white">
+                            {isAr ? "مجتمع خاص (مغلق)" : "Private Community"}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {isAr ? "يتطلب كلمة مرور للانضمام" : "Requires password to join"}
+                          </span>
                         </div>
                       </div>
 
-                      {/* Smooth Framer Motion Toggle Switch */}
+                      {/* Smooth iOS Spring Toggle */}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           setIsPrivate(!isPrivate);
                         }}
-                        className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer ${isPrivate ? "bg-emerald-500" : "bg-slate-800"}`}
+                        className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer ${
+                          isPrivate ? "bg-emerald-500 shadow-md shadow-emerald-500/30" : "bg-slate-800"
+                        }`}
                       >
                         <motion.div
-                          animate={{ x: isPrivate ? (isAr ? -20 : 20) : 0 }}
+                          animate={{ x: isPrivate ? (isAr ? -24 : 24) : 0 }}
                           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                          className="absolute top-1 left-1 rtl:right-1 rtl:left-auto w-4 h-4 rounded-full bg-white shadow-md"
+                          className="absolute top-1 left-1 rtl:right-1 rtl:left-auto w-4 h-4 rounded-full bg-white shadow-md flex items-center justify-center"
                         />
                       </button>
                     </div>
-                  </div>
 
-                  {/* Smooth Extend & Collapse Password Input */}
-                  <AnimatePresence initial={false}>
-                    {isPrivate && (
-                      <motion.div
-                        initial={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
-                        animate={{ opacity: 1, maxHeight: 120, marginTop: 12 }}
-                        exit={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
-                        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                        className="space-y-1.5 overflow-hidden"
-                      >
-                        <label className="block text-xs font-bold text-slate-300">{isAr ? "كلمة المرور *" : "Password *"}</label>
-                        <div className="relative">
-                          <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
-                          <input
-                            required={isPrivate}
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none text-xs font-bold text-white placeholder-slate-500"
-                            placeholder="Secret..."
-                          />
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                    {/* Smooth Password Field Slide & Expand */}
+                    <AnimatePresence initial={false}>
+                      {isPrivate && (
+                        <motion.div
+                          key="password-field"
+                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                          animate={{ opacity: 1, height: "auto", marginTop: 14 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                          transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
+                            <label className="block text-xs font-bold text-emerald-400">
+                              {isAr ? "كلمة المرور *" : "Password *"}
+                            </label>
+                            <div className="relative">
+                              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 rtl:left-auto rtl:right-3 text-slate-500 pointer-events-none" />
+                              <input
+                                required={isPrivate}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full pl-9 rtl:pl-4 rtl:pr-9 pr-4 py-2.5 bg-slate-900 border border-emerald-500/30 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl transition-all duration-300 outline-none text-xs font-bold text-white placeholder-slate-500"
+                                placeholder="Secret..."
+                              />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
 
                   <button disabled={creating} className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-2xl text-xs shadow transition-all flex justify-center items-center gap-2">
                     {creating ? (isAr ? "جاري الإنشاء..." : "Creating...") : (isAr ? "إنشاء مجتمع جديد" : "Create New Community")}

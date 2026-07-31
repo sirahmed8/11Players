@@ -349,7 +349,7 @@ export default function KitBadgeBuilder() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => exportCanvasAsPng(jerseyCanvasRef, `${config.kitName.replace(/\s+/g, "_")}_Kit.png`)}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg transition-all"
+            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm flex items-center gap-2 shadow-lg transition-all"
           >
             <Download className="w-4 h-4" />
             {isAr ? "تحميل الطقم PNG" : "Export Kit PNG"}

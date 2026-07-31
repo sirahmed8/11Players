@@ -147,74 +147,97 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
               />
             </div>
 
-            {/* Privacy toggle */}
+            {/* Privacy toggle card */}
             <motion.div
-              whileHover={{ scale: 1.01 }}
-              className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-4 shadow-inner"
+              layout
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
+              className={`p-4 rounded-2xl border backdrop-blur-md transition-colors duration-300 ${
+                isPrivate
+                  ? "bg-amber-950/20 border-amber-500/40 shadow-lg shadow-amber-500/10"
+                  : "bg-slate-950/80 border-slate-800"
+              }`}
             >
-              <div className="flex items-center gap-3">
-                <motion.div
-                  key={isPrivate ? "private" : "public"}
-                  initial={{ scale: 0.8, rotate: -15 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={`p-2.5 rounded-xl border ${isPrivate ? "bg-amber-500/10 border-amber-500/30 text-amber-400" : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"}`}
-                >
-                  {isPrivate ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                </motion.div>
-                <div>
-                  <p className="text-xs font-bold text-white">
-                    {isPrivate
-                      ? (isAr ? "مجتمع خاص (كلمة مرور)" : "Private Community (Password)")
-                      : (isAr ? "مجتمع عام (مفتوح للجميع)" : "Public Community (Open)")}
-                  </p>
-                  <p className="text-[11px] text-slate-400">
-                    {isPrivate
-                      ? (isAr ? "يتطلب كلمة سر للانضمام" : "Requires password to join")
-                      : (isAr ? "يمكن لأي لاعب الانضمام مباشرة" : "Anyone can join immediately")}
-                  </p>
+              <div
+                className="flex items-center justify-between gap-4 cursor-pointer select-none"
+                onClick={() => setIsPrivate(!isPrivate)}
+              >
+                <div className="flex items-center gap-3">
+                  <motion.div
+                    layout
+                    key={isPrivate ? "private" : "public"}
+                    initial={{ scale: 0.7, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 22 }}
+                    className={`p-2.5 rounded-xl border ${
+                      isPrivate
+                        ? "bg-amber-500/20 border-amber-500/40 text-amber-400 shadow-inner"
+                        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400"
+                    }`}
+                  >
+                    {isPrivate ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                  </motion.div>
+                  <div>
+                    <p className="text-xs font-bold text-white">
+                      {isPrivate
+                        ? (isAr ? "مجتمع خاص (كلمة مرور)" : "Private Community (Password)")
+                        : (isAr ? "مجتمع عام (مفتوح للجميع)" : "Public Community (Open)")}
+                    </p>
+                    <p className="text-[11px] text-slate-400">
+                      {isPrivate
+                        ? (isAr ? "يتطلب كلمة سر للانضمام" : "Requires password to join")
+                        : (isAr ? "يمكن لأي لاعب الانضمام مباشرة" : "Anyone can join immediately")}
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsPrivate(!isPrivate);
+                  }}
+                  className={`relative w-12 h-6 rounded-full transition-colors duration-300 cursor-pointer ${
+                    isPrivate ? "bg-amber-500 shadow-md shadow-amber-500/30" : "bg-slate-700"
+                  }`}
+                >
+                  <motion.div
+                    animate={{ x: isPrivate ? (isAr ? -24 : 24) : 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    className="absolute top-1 left-1 rtl:right-1 rtl:left-auto w-4 h-4 rounded-full bg-white shadow-md flex items-center justify-center"
+                  />
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsPrivate(!isPrivate)}
-                className={`relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer ${isPrivate ? "bg-amber-500" : "bg-slate-700"}`}
-              >
-                <motion.div
-                  animate={{ x: isPrivate ? (isAr ? -24 : 24) : 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  className="absolute top-1 left-1 rtl:right-1 rtl:left-auto w-4 h-4 rounded-full bg-white shadow-md"
-                />
-              </button>
+              {/* Password input */}
+              <AnimatePresence initial={false}>
+                {isPrivate && (
+                  <motion.div
+                    key="modal-password-field"
+                    initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                    animate={{ opacity: 1, height: "auto", marginTop: 14 }}
+                    exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                    className="overflow-hidden"
+                  >
+                    <div className="pt-3 border-t border-slate-800/80">
+                      <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
+                        {isAr ? "كلمة مرور المجتمع *" : "Community Password *"}
+                      </label>
+                      <motion.input
+                        whileFocus={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.8)" }}
+                        transition={{ duration: 0.2 }}
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full px-4 py-3 bg-slate-950 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
-
-            {/* Password input */}
-            <AnimatePresence initial={false}>
-              {isPrivate && (
-                <motion.div
-                  initial={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, maxHeight: 120, marginTop: 16 }}
-                  exit={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
-                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                  className="overflow-hidden"
-                >
-                  <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
-                    {isAr ? "كلمة مرور المجتمع *" : "Community Password *"}
-                  </label>
-                  <motion.input
-                    whileFocus={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.8)" }}
-                    transition={{ duration: 0.2 }}
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-950 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Submit button */}
             <div className="pt-4">
