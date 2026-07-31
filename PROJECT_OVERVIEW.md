@@ -210,4 +210,5 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Quality & Verification**:
   - All 97 Vitest unit tests passing cleanly (`npm run test -- --run`).
   - Next.js 16 production build (`npm run build`) compiled 49 static routes with 0 errors.
+  - Reverted accidental cross-project prompt modifications (`1d51c7b7`) and deployed clean build live to Firebase Hosting (`https://an-11-players.web.app`).
 
