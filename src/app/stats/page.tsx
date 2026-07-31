@@ -57,12 +57,11 @@ const PODIUM_CONFIG = [
     rank: 1,
     label: "🥇",
     height: "h-32",
-    gradient: "from-amber-400 via-yellow-300 to-amber-500",
-    border: "border-amber-400",
-    shadow: "shadow-amber-400/50",
-    glow: "from-amber-400/30 to-yellow-300/10",
-    text: "text-amber-600 dark:text-amber-400",
-    bg: "bg-amber-50 dark:bg-amber-950/30",
+    gradient: "bg-amber-500 border-amber-400",
+    border: "border-amber-500",
+    shadow: "shadow-amber-500/20",
+    text: "text-amber-400",
+    bg: "bg-slate-900 border-amber-500/40",
     ring: "ring-amber-400",
     order: "order-2",
     avatarRing: "ring-4 ring-amber-400",
@@ -71,27 +70,25 @@ const PODIUM_CONFIG = [
     rank: 2,
     label: "🥈",
     height: "h-24",
-    gradient: "from-slate-300 via-slate-200 to-slate-400",
-    border: "border-slate-300",
-    shadow: "shadow-slate-400/40",
-    glow: "from-slate-300/20 to-slate-200/10",
-    text: "text-slate-500 dark:text-slate-300",
-    bg: "bg-slate-50 dark:bg-slate-800/30",
-    ring: "ring-slate-300",
+    gradient: "bg-slate-700 border-slate-600",
+    border: "border-slate-600",
+    shadow: "shadow-slate-700/20",
+    text: "text-slate-300",
+    bg: "bg-slate-900 border-slate-700",
+    ring: "ring-slate-400",
     order: "order-1",
-    avatarRing: "ring-4 ring-slate-300",
+    avatarRing: "ring-4 ring-slate-400",
   },
   {
     rank: 3,
     label: "🥉",
     height: "h-20",
-    gradient: "from-amber-700 via-orange-600 to-amber-800",
+    gradient: "bg-amber-800 border-amber-700",
     border: "border-amber-700",
-    shadow: "shadow-amber-700/40",
-    glow: "from-amber-700/20 to-orange-600/10",
-    text: "text-amber-700 dark:text-amber-600",
-    bg: "bg-orange-50 dark:bg-orange-950/20",
-    ring: "ring-amber-700",
+    shadow: "shadow-amber-800/20",
+    text: "text-amber-500",
+    bg: "bg-slate-900 border-amber-700/40",
+    ring: "ring-amber-600",
     order: "order-3",
     avatarRing: "ring-4 ring-amber-600",
   },
@@ -170,9 +167,9 @@ function PodiumCard({
         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</div>
       </div>
 
-      {/* Podium bar */}
+      {/* Podium bar — Solid color! */}
       <div
-        className={`w-full ${cfg.height} rounded-t-xl bg-gradient-to-b ${cfg.gradient} flex items-start justify-center pt-2 shadow-lg font-black text-white text-xl opacity-90`}
+        className={`w-full ${cfg.height} rounded-t-xl ${cfg.gradient} flex items-start justify-center pt-2 shadow-lg font-black text-white text-xl border-t`}
       >
         {rank}
       </div>
