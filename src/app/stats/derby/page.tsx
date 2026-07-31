@@ -6,7 +6,8 @@ import { useMatchData } from '@/hooks/useMatchData';
 import { useCommunity } from '@/contexts/CommunityContext';
 import { usePlayers } from '@/contexts/PlayersContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import { Flame, Users, Swords, ChevronDown, Shield } from 'lucide-react';
+import CustomDropdown from '@/components/ui/CustomDropdown';
+import { Flame, Swords, Shield } from 'lucide-react';
 
 function DerbyContent() {
   const { activeCommunityId, activeCommunity } = useCommunity();
@@ -51,6 +52,13 @@ function DerbyContent() {
   const captAPlayer = players.find((p) => p.uid === captainA);
   const captBPlayer = players.find((p) => p.uid === captainB);
 
+  const playerOptions = useMemo(() => {
+    return players.map((p) => ({
+      value: p.uid,
+      label: `${p.cardName || p.fullName} (${p.primaryPosition}) — OVR ${p.overallRating || 80}`,
+    }));
+  }, [players]);
+
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-6">
@@ -70,45 +78,29 @@ function DerbyContent() {
             </div>
 
             {/* Custom Styled Captain Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full md:w-auto">
-              <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full md:w-auto min-w-[280px] sm:min-w-[480px]">
+              <div>
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 block mb-1">
                   Captain 1
                 </label>
-                <div className="relative">
-                  <select
-                    value={captainA}
-                    onChange={(e) => setCaptainA(e.target.value)}
-                    className="w-full sm:w-56 px-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-700/80 text-xs font-bold text-white outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 transition-all appearance-none cursor-pointer pr-9 shadow-inner"
-                  >
-                    {players.map((p) => (
-                      <option key={p.uid} value={p.uid} className="bg-slate-900 text-white font-medium">
-                        {p.cardName || p.fullName} ({p.primaryPosition}) — OVR {p.overallRating || 80}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-400 pointer-events-none" />
-                </div>
+                <CustomDropdown
+                  value={captainA}
+                  onChange={setCaptainA}
+                  options={playerOptions}
+                  placeholder="Select Captain 1"
+                />
               </div>
 
-              <div className="relative">
+              <div>
                 <label className="text-[10px] font-extrabold uppercase tracking-widest text-blue-400 block mb-1">
                   Captain 2
                 </label>
-                <div className="relative">
-                  <select
-                    value={captainB}
-                    onChange={(e) => setCaptainB(e.target.value)}
-                    className="w-full sm:w-56 px-4 py-2.5 rounded-2xl bg-slate-950/90 border border-slate-700/80 text-xs font-bold text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all appearance-none cursor-pointer pr-9 shadow-inner"
-                  >
-                    {players.map((p) => (
-                      <option key={p.uid} value={p.uid} className="bg-slate-900 text-white font-medium">
-                        {p.cardName || p.fullName} ({p.primaryPosition}) — OVR {p.overallRating || 80}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
-                </div>
+                <CustomDropdown
+                  value={captainB}
+                  onChange={setCaptainB}
+                  options={playerOptions}
+                  placeholder="Select Captain 2"
+                />
               </div>
             </div>
           </div>

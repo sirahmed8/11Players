@@ -145,23 +145,7 @@ export default function PitchSplitBillCalculator() {
 
   const { players: communityPlayers } = usePlayers();
   const [players, setPlayers] = useState<SplitBillPlayer[]>([]);
-  const hasInitializedRef = useRef(false);
-
-  useEffect(() => {
-    if (!hasInitializedRef.current && communityPlayers && communityPlayers.length > 0) {
-      hasInitializedRef.current = true;
-      const activeList = communityPlayers.slice(0, 10);
-      const perPlayer = activeList.length > 0 ? Math.round(1200 / activeList.length) : 0;
-      setPlayers(
-        activeList.map((p, idx) => ({
-          id: p.uid || `p_${idx}`,
-          name: p.fullName || p.cardName || `Player ${idx + 1}`,
-          amount: perPlayer,
-          status: "Pending",
-        }))
-      );
-    }
-  }, [communityPlayers]);
+  const [selectedCommunityPlayerUid, setSelectedCommunityPlayerUid] = useState<string>('');
 
   // Recalculate amounts if equal mode is active
   const handleTotalCostChange = (newCost: number) => {
@@ -215,11 +199,11 @@ export default function PitchSplitBillCalculator() {
     );
   };
 
-  const addPlayerRow = () => {
-    const newId = (players.length + 1).toString();
+  const addPlayerRow = (customName?: string) => {
+    const newId = `p_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
     const newPlayer: SplitBillPlayer = {
       id: newId,
-      name: `Player ${players.length + 1}`,
+      name: customName || `Player ${players.length + 1}`,
       amount: splitMode === "equal" ? Number((totalCost / (players.length + 1)).toFixed(2)) : 0,
       status: "Pending",
     };
@@ -411,19 +395,44 @@ export default function PitchSplitBillCalculator() {
 
       {/* Interactive Players Roster Table */}
       <div className="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 space-y-4">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-emerald-400" />
             {isAr ? "قائمة اللاعبين وتتبع الدفع" : "Players Payment Roster"} ({players.length})
           </h2>
 
-          <button
-            onClick={addPlayerRow}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 font-semibold text-xs flex items-center gap-1.5 border border-slate-700 transition-all"
-          >
-            <Plus className="w-4 h-4" />
-            {isAr ? "إضافة لاعب" : "Add Player"}
-          </button>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            {communityPlayers && communityPlayers.length > 0 && (
+              <select
+                value={selectedCommunityPlayerUid}
+                onChange={(e) => {
+                  const uid = e.target.value;
+                  if (!uid) return;
+                  const found = communityPlayers.find((p) => p.uid === uid);
+                  if (found) {
+                    addPlayerRow(found.fullName || found.cardName || 'Player');
+                  }
+                  setSelectedCommunityPlayerUid('');
+                }}
+                className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-slate-300 focus:border-emerald-500 outline-none"
+              >
+                <option value="">{isAr ? "+ إضافة لاعب من المجتمع..." : "+ Select Community Player..."}</option>
+                {communityPlayers.map((p) => (
+                  <option key={p.uid} value={p.uid}>
+                    {p.fullName || p.cardName} ({p.primaryPosition})
+                  </option>
+                ))}
+              </select>
+            )}
+
+            <button
+              onClick={() => addPlayerRow()}
+              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 border border-emerald-500 transition-all shadow-md"
+            >
+              <Plus className="w-4 h-4" />
+              {isAr ? "إضافة لاعب جديد" : "Add Custom Player"}
+            </button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

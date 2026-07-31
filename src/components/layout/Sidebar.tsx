@@ -337,8 +337,7 @@ function SidebarContent() {
           { href: `/community`, labelEn: "Home / Players", labelAr: "الرئيسية / اللاعبين", icon: <Home className="w-5 h-5" /> },
           { href: `/kit-builder`, labelEn: "Kit & Crest Builder", labelAr: "مصمم الأطقم والشعار", icon: <Shirt className="w-5 h-5" /> },
           { href: `/matches`, labelEn: "Matches & Hagaz", labelAr: "المباريات والحجز", icon: <Swords className="w-5 h-5" /> },
-          { href: `/draft`, labelEn: "Captain Draft Room", labelAr: "غرفة القرعة والمسودة", icon: <Users className="w-5 h-5" /> },
-          { href: `/live`, labelEn: "Live Controller", labelAr: "التحكم المباشر بالمباراة", icon: <Activity className="w-5 h-5" /> },
+          { href: `/live`, labelEn: "Live Broadcaster", labelAr: "البث والتحكم المباشر", icon: <Activity className="w-5 h-5" /> },
           { href: `/newspaper`, labelEn: "Post-Match Newspaper", labelAr: "جريدة الهجوزات", icon: <Newspaper className="w-5 h-5" /> },
           { href: `/split-bill`, labelEn: "Turf Split Bill", labelAr: "حاسبة تقاسم الحجز", icon: <Receipt className="w-5 h-5" /> },
           { href: `/leaderboard`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5" /> },
@@ -357,8 +356,7 @@ function SidebarContent() {
       items: [
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
-          { href: "/skill-tree", labelEn: "Playstyle Skill Tree", labelAr: "شجرة المهارات والتطوير", icon: <Zap className="w-5 h-5" /> },
-          { href: "/achievements", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
+          { href: "/skill-tree", labelEn: "Progression & Achievements", labelAr: "شجرة التطوير والإنجازات", icon: <Trophy className="w-5 h-5" /> },
           { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),
       ]
