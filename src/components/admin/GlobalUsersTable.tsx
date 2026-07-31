@@ -7,7 +7,8 @@ import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
-import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles, Shield, UserCheck, Activity, CheckSquare, Square, Filter } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles, Shield, UserCheck, Activity, CheckSquare, Square, Filter, Check } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -271,10 +272,6 @@ export default function GlobalUsersTable() {
     return filteredUsers.slice(start, start + itemsPerPage);
   }, [filteredUsers, currentPage, itemsPerPage]);
 
-  if (loading) {
-    return <SiteSkeletonLoader variant="table" />;
-  }
-
   return (
     <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden flex flex-col h-full text-white" dir={isAr ? 'rtl' : 'ltr'}>
       
@@ -327,45 +324,74 @@ export default function GlobalUsersTable() {
         </div>
       </div>
 
-      {/* Bulk Action Panel (When users selected) */}
-      {selectedUids.length > 0 && (
-        <div className="bg-slate-950 border-b border-slate-800 p-4 px-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
-            <CheckSquare className="w-4 h-4 text-amber-400" />
-            <span>{isAr ? `تم تحديد ${selectedUids.length} لاعب` : `${selectedUids.length} players selected`}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleApplyAIToSelectedUsers(users.filter(u => selectedUids.includes(u.uid)))}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-1.5 shadow"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-              <span>{isAr ? "تطبيق الذكاء الاصطناعي للمحددين ⚡" : "Apply AI Choice to Selected ⚡"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedUids([])}
-              className="px-3 py-2 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white rounded-xl text-xs font-bold"
-            >
-              {isAr ? "إلغاء التحديد" : "Deselect"}
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Floating Bulk Action Panel (When users selected) */}
+      <AnimatePresence>
+        {selectedUids.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            className="bg-emerald-950/40 border-b border-emerald-500/40 p-4 px-6 flex flex-wrap items-center justify-between gap-4 backdrop-blur-xl"
+          >
+            <div className="flex items-center gap-3">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/30">
+                {selectedUids.length}
+              </span>
+              <div>
+                <span className="block text-xs font-black text-white">
+                  {isAr ? `تم تحديد ${selectedUids.length} لاعب من المنصة` : `${selectedUids.length} platform players selected`}
+                </span>
+                <span className="text-[10px] text-emerald-400 font-bold">
+                  {isAr ? "جاهز لإجراءات التحكم المجمعة بالذكاء الاصطناعي" : "Ready for bulk AI optimization & actions"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleApplyAIToSelectedUsers(users.filter(u => selectedUids.includes(u.uid)))}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+              >
+                <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+                <span>{isAr ? "تطبيق تكتيكات الذكاء الاصطناعي للمحددين ⚡" : "Apply AI Choice to Selected ⚡"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedUids([])}
+                className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+              >
+                {isAr ? "إلغاء التحديد" : "Clear Selection"}
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Table View */}
       <div className="w-full overflow-x-auto rounded-none border-t border-slate-800 bg-slate-900 shadow-xl">
         <table className="w-full min-w-[950px] text-left rtl:text-right border-collapse">
           <thead>
-            <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-xs font-black">
-              <th className="px-4 py-4 w-12 text-center">
-                <button type="button" onClick={toggleSelectAll} className="text-slate-400 hover:text-emerald-400">
-                  {selectedUids.length > 0 && selectedUids.length === paginatedUsers.length ? (
-                    <CheckSquare className="w-4 h-4 text-emerald-400" />
-                  ) : (
-                    <Square className="w-4 h-4 text-slate-500" />
-                  )}
+            <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 text-xs font-black select-none">
+              <th className="px-4 py-4 w-14 text-center">
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="p-1 rounded-lg hover:bg-slate-900 transition-colors inline-flex items-center justify-center"
+                  title={isAr ? "تحديد الكل" : "Select All"}
+                >
+                  <div
+                    className={`w-5 h-5 rounded-lg border transition-all flex items-center justify-center ${
+                      selectedUids.length > 0 && selectedUids.length === paginatedUsers.length
+                        ? "bg-emerald-500 border-emerald-400 text-slate-950 font-black shadow-md shadow-emerald-500/30"
+                        : "bg-slate-950 border-slate-700 hover:border-slate-500"
+                    }`}
+                  >
+                    {selectedUids.length > 0 && (
+                      <Check className="w-3.5 h-3.5 stroke-[3] text-slate-950" />
+                    )}
+                  </div>
                 </button>
               </th>
               <th 
@@ -382,14 +408,68 @@ export default function GlobalUsersTable() {
               <th className="px-6 py-4 text-right rtl:text-left min-w-[190px]">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800">
-            {paginatedUsers.map(u => {
+          <tbody className="divide-y divide-slate-800/80">
+            {loading ? (
+              [...Array(6)].map((_, i) => (
+                <tr key={i} className="animate-pulse bg-slate-900/40">
+                  <td className="px-4 py-4 text-center">
+                    <div className="w-5 h-5 rounded-lg bg-slate-800 mx-auto" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-800 shrink-0" />
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="w-32 h-4 bg-slate-800 rounded" />
+                        <div className="w-24 h-3 bg-slate-800/60 rounded" />
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-1.5">
+                      <div className="w-28 h-4 bg-slate-800 rounded" />
+                      <div className="w-20 h-3 bg-slate-800/60 rounded" />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="space-y-1.5">
+                      <div className="w-24 h-4 bg-slate-800 rounded" />
+                      <div className="w-16 h-3 bg-slate-800/60 rounded" />
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-right rtl:text-left">
+                    <div className="flex items-center justify-end gap-2">
+                      <div className="w-20 h-8 bg-slate-800 rounded-xl" />
+                      <div className="w-8 h-8 bg-slate-800 rounded-xl" />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : paginatedUsers.map(u => {
               const isSelected = selectedUids.includes(u.uid);
               return (
-                <tr key={u.uid} className={`transition-colors ${isSelected ? 'bg-slate-950/90' : 'hover:bg-slate-950/50'}`}>
+                <tr
+                  key={u.uid}
+                  className={`transition-all duration-200 ${
+                    isSelected
+                      ? 'bg-emerald-950/20 border-l-4 border-emerald-500 shadow-inner'
+                      : 'hover:bg-slate-950/60'
+                  }`}
+                >
                   <td className="px-4 py-4 text-center">
-                    <button type="button" onClick={() => toggleSelectUser(u.uid)} className="text-slate-400 hover:text-emerald-400">
-                      {isSelected ? <CheckSquare className="w-4 h-4 text-emerald-400" /> : <Square className="w-4 h-4 text-slate-600" />}
+                    <button
+                      type="button"
+                      onClick={() => toggleSelectUser(u.uid)}
+                      className="p-1 rounded-lg hover:bg-slate-800 transition-colors inline-flex items-center justify-center"
+                    >
+                      <div
+                        className={`w-5 h-5 rounded-lg border transition-all flex items-center justify-center ${
+                          isSelected
+                            ? "bg-emerald-500 border-emerald-400 text-slate-950 font-black shadow-md shadow-emerald-500/30"
+                            : "bg-slate-950 border-slate-700 hover:border-slate-500"
+                        }`}
+                      >
+                        {isSelected && <Check className="w-3.5 h-3.5 stroke-[3] text-slate-950" />}
+                      </div>
                     </button>
                   </td>
                   <GlobalUserRow
@@ -403,10 +483,10 @@ export default function GlobalUsersTable() {
                 </tr>
               );
             })}
-            {filteredUsers.length === 0 && (
+            {!loading && filteredUsers.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-6 py-12 text-center text-slate-400 font-medium text-xs">
-                  {isAr ? "لا يوجد مستخدمين مطقين للفلاتر" : "No matching users found"}
+                  {isAr ? "لا يوجد مستخدمين مطابقين للفلاتر" : "No matching users found"}
                 </td>
               </tr>
             )}

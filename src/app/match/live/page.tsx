@@ -17,7 +17,7 @@ function LiveContent() {
   const isAr = locale === 'ar';
 
   if (loading) {
-    return <SiteSkeletonLoader variant="live-broadcaster" />;
+    return null;
   }
 
   // Real Match active

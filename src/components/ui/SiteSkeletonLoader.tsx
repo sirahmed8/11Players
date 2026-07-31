@@ -478,24 +478,106 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
   // 7. Users Directory & Table Skeleton
   if (variant === "users" || variant === "table") {
     return (
-      <div className="space-y-4 w-full max-w-7xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
-        <div className="h-14 w-full bg-slate-900 border border-slate-800 rounded-2xl relative overflow-hidden flex items-center px-6">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/10 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-          <div className="h-6 w-48 bg-slate-800 rounded-lg" />
-        </div>
-        {[...Array(6)].map((_, i) => (
-          <div key={i} className="h-16 rounded-2xl bg-slate-900 border border-slate-800 p-4 flex items-center justify-between shadow-sm relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/40 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-slate-800" />
-              <div className="w-40 h-5 bg-slate-800 rounded-lg" />
+      <div className="space-y-6 w-full max-w-7xl mx-auto p-4 sm:p-6" dir={isAr ? "rtl" : "ltr"}>
+        {/* Page Title Row */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1.5">
+            <div className="w-52 h-7 bg-slate-800 rounded-xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/60 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
             </div>
-            <div className="flex gap-4 items-center">
-              <div className="w-16 h-7 bg-emerald-500/20 rounded-xl" />
-              <div className="w-16 h-7 bg-slate-800 rounded-xl" />
+            <div className="w-80 h-4 bg-slate-800/60 rounded-lg" />
+          </div>
+          <div className="w-36 h-9 bg-emerald-600/20 border border-emerald-500/30 rounded-2xl" />
+        </div>
+
+        {/* Main Card — mirrors GlobalUsersTable outer container */}
+        <div className="bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
+          {/* Header & Controls */}
+          <div className="p-6 border-b border-slate-800 flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center bg-slate-950">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="w-10 h-10 rounded-2xl bg-slate-900 border border-slate-800" />
+              <div className="space-y-1.5">
+                <div className="w-56 h-5 bg-slate-800 rounded-lg relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-700/50 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+                </div>
+                <div className="w-72 h-3.5 bg-slate-800/60 rounded" />
+              </div>
+            </div>
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              <div className="flex-1 lg:w-72 h-10 bg-slate-950 border border-slate-800 rounded-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-slate-800/50 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+              </div>
+              <div className="w-24 h-10 bg-slate-800 rounded-2xl" />
+              <div className="w-24 h-10 bg-slate-800 rounded-2xl" />
             </div>
           </div>
-        ))}
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[950px] border-collapse">
+              {/* Table Header */}
+              <thead>
+                <tr className="bg-slate-950 border-b border-slate-800">
+                  <th className="px-4 py-4 w-14">
+                    <div className="w-5 h-5 rounded-lg bg-slate-800 mx-auto" />
+                  </th>
+                  {["220px", "200px", "180px", "190px"].map((w, i) => (
+                    <th key={i} className="px-6 py-4" style={{ minWidth: w }}>
+                      <div className="w-24 h-3.5 bg-slate-800 rounded" />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              {/* Shimmer Rows */}
+              <tbody className="divide-y divide-slate-800/80">
+                {[...Array(8)].map((_, i) => (
+                  <tr key={i} className="animate-pulse bg-slate-900/40">
+                    <td className="px-4 py-4 text-center">
+                      <div className="w-5 h-5 rounded-lg bg-slate-800 mx-auto" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-slate-800 shrink-0" />
+                        <div className="space-y-1.5 min-w-0">
+                          <div className={`h-4 bg-slate-800 rounded ${i % 3 === 0 ? 'w-32' : i % 3 === 1 ? 'w-40' : 'w-28'}`} />
+                          <div className="w-24 h-3 bg-slate-800/60 rounded" />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1.5">
+                        <div className="w-28 h-4 bg-slate-800 rounded" />
+                        <div className="w-20 h-3 bg-slate-800/60 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="space-y-1.5">
+                        <div className="w-24 h-4 bg-slate-800 rounded" />
+                        <div className="w-16 h-3 bg-slate-800/60 rounded" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="w-20 h-8 bg-slate-800 rounded-xl" />
+                        <div className="w-8 h-8 bg-slate-800 rounded-xl" />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination footer */}
+          <div className="p-4 border-t border-slate-800 flex items-center justify-between bg-slate-950">
+            <div className="w-32 h-4 bg-slate-800/60 rounded" />
+            <div className="flex items-center gap-2">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className={`w-8 h-8 rounded-xl ${i === 1 ? 'bg-emerald-600/30 border border-emerald-500/30' : 'bg-slate-800'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

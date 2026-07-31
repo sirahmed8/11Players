@@ -180,7 +180,19 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Cleared synthetic mock player and team defaults in `CaptainDraftRoom.tsx`, `SportsNewspaperCover.tsx`, and `LiveMatchBroadcaster.tsx` in favor of dynamic match representations.
 - **Universal Global CSS Input & Button Micro-Springs**:
   - Integrated global focus ring glow animations (`input:focus, textarea:focus, select:focus`) and button micro-spring physics in `src/app/globals.css`.
-
-
-
-
+## 10. Milestone M2.3 — User Directory Selection & Skeleton Alignment Pass
+- **User List Selection Overhaul (`GlobalUsersTable.tsx`)**:
+  - Replaced native HTML checkboxes with custom spring-animated Framer Motion selection checkboxes (`Check`).
+  - Added a floating glassmorphic batch action panel (`AnimatePresence`) for bulk operations ("Apply AI Choice to Selected").
+  - Applied glowing emerald border-left highlights (`bg-emerald-950/20 border-l-4 border-emerald-500`) to selected user rows.
+- **Double Skeleton Flicker & Layout Alignment (`SiteSkeletonLoader.tsx`)**:
+  - Redesigned `variant="users"` / `variant="table"` skeleton to match `GlobalUsersTable` container dimensions 1-to-1, eliminating layout jumps during client hydration.
+  - Replaced internal full-page skeleton early returns with inline table shimmer rows in `GlobalUsersTable` and `null` returns in `profile/page.tsx` and `match/live/page.tsx`.
+- **Sidebar & Navigation Fixes**:
+  - Shortened link text to 1 word ("Achievements" / "الإنجازات").
+  - Replaced `element.scrollIntoView()` with container-relative `scrollTop` math to eliminate auto-scrolling glitches on page navigation.
+  - Updated copyright year to **2026** throughout the app (`Sidebar.tsx`).
+- **Quality & Verification**:
+  - All 97 Vitest unit tests passing cleanly.
+  - Next.js production build (`npm run build`) compiled 49 static routes with 0 errors.
+  - Deployed live to Firebase Hosting (`https://an-11-players.web.app`).

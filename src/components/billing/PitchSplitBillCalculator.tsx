@@ -138,7 +138,7 @@ export default function PitchSplitBillCalculator() {
   const isAr = locale === "ar";
 
   const [matchName, setMatchName] = useState(isAr ? "مباراة حجز النادي (7v7)" : "Hagoozat Pitch Match (7v7)");
-  const [totalCost, setTotalCost] = useState(1200);
+  const [totalCost, setTotalCost] = useState(0);
   const [currency, setCurrency] = useState<CurrencyCode>("EGP");
   const [splitMode, setSplitMode] = useState<SplitMode>("equal");
   const [copiedShareLink, setCopiedShareLink] = useState(false);

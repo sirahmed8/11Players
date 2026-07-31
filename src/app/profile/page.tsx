@@ -148,7 +148,7 @@ function PlayerProfileContent() {
   ];
 
   if (loading) {
-    return <SiteSkeletonLoader variant="profile" />;
+    return null;
   }
 
   if (!player) {
