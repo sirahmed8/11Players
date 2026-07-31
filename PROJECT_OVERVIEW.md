@@ -192,7 +192,13 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Shortened link text to 1 word ("Achievements" / "الإنجازات").
   - Replaced `element.scrollIntoView()` with container-relative `scrollTop` math to eliminate auto-scrolling glitches on page navigation.
   - Updated copyright year to **2026** throughout the app (`Sidebar.tsx`).
+## 11. Milestone M2.4 — Global Announcement Modal & AI Polish Enhancement Pass
+- **Global Announcement Full Detail Modal Window (`GlobalAnnouncementBanner.tsx`)**:
+  - Clicking anywhere on the global announcement banner opens a Framer Motion glassmorphic modal window displaying the full untruncated title (Arabic & English), full message body with preserved line breaks, priority badge, and target link action button ("Open Target Link 🔗").
+- **AI Polish Engine Overhaul (`aiService.ts`)**:
+  - Fixed "AI Polish" button by introducing multi-tier execution: server `/api/ai/chat` POST request first, direct Gemini client engine fallback, markdown codeblock JSON cleaning, and intelligent client-side draft auto-translator & copy polisher.
 - **Quality & Verification**:
   - All 97 Vitest unit tests passing cleanly.
   - Next.js production build (`npm run build`) compiled 49 static routes with 0 errors.
+  - Changes committed (`0ca8ed1c`) and pushed to GitHub `main`.
   - Deployed live to Firebase Hosting (`https://an-11-players.web.app`).
