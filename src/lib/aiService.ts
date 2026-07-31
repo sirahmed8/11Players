@@ -383,30 +383,64 @@ Instructions:
   "bodyAr": "..."
 }`;
 
-  try {
-    const res = await generate11AIResponse({
-      message: prompt,
-      systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements.",
-      temperature: 0.3,
-    });
+  let replyText = "";
 
-    const jsonMatch = res.reply.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0]);
-      if (parsed.titleEn && parsed.titleAr && parsed.bodyEn && parsed.bodyAr) {
-        return {
-          titleEn: parsed.titleEn.trim(),
-          titleAr: parsed.titleAr.trim(),
-          bodyEn: parsed.bodyEn.trim(),
-          bodyAr: parsed.bodyAr.trim(),
-        };
+  // 1. Try server API route first (has access to server env API keys)
+  try {
+    const apiRes = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: prompt,
+        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements. Output JSON only.",
+      }),
+    });
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      if (data && data.reply) {
+        replyText = data.reply;
       }
     }
-  } catch (err) {
-    console.error("[11AI Announcement AI Error]:", err);
+  } catch (e) {
+    // API route un-reachable (e.g. static hosting without proxy)
   }
 
-  // High Quality Smart Fallback Presets if API offline
+  // 2. Direct client-side engine call fallback
+  if (!replyText) {
+    try {
+      const res = await generate11AIResponse({
+        message: prompt,
+        systemPrompt: "You are a specialized JSON-only bilingual copywriting engine for 11Players announcements.",
+        temperature: 0.3,
+      });
+      replyText = res.reply;
+    } catch (err) {
+      console.error("[11AI Announcement AI Error]:", err);
+    }
+  }
+
+  // 3. Parse JSON response from LLM
+  if (replyText) {
+    const cleanText = replyText.replace(/```json/gi, "").replace(/```/g, "").trim();
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.titleEn || parsed.titleAr || parsed.bodyEn || parsed.bodyAr) {
+          return {
+            titleEn: (parsed.titleEn || payload.titleEn || "📢 Official Community Announcement").trim(),
+            titleAr: (parsed.titleAr || payload.titleAr || "📢 إعلان رسمي من إدارة المجتمع").trim(),
+            bodyEn: (parsed.bodyEn || payload.bodyEn || "Important update for all registered players in our community.").trim(),
+            bodyAr: (parsed.bodyAr || payload.bodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا.").trim(),
+          };
+        }
+      } catch (e) {
+        console.warn("Failed parsing 11AI announcement JSON response:", e);
+      }
+    }
+  }
+
+  // 4. High Quality Smart Fallback Presets if API offline
   if (payload.presetTopic === "next_match") {
     return {
       titleEn: "⚽ Next Match Sign-Up Open!",
@@ -432,10 +466,35 @@ Instructions:
     };
   }
 
+  // 5. Intelligent Draft Copy Polisher Fallback (for user typed text)
+  const hasEnTitle = Boolean(payload.titleEn?.trim());
+  const hasArTitle = Boolean(payload.titleAr?.trim());
+  const hasEnBody = Boolean(payload.bodyEn?.trim());
+  const hasArBody = Boolean(payload.bodyAr?.trim());
+
+  let polishedTitleEn = payload.titleEn?.trim() || "";
+  let polishedTitleAr = payload.titleAr?.trim() || "";
+  let polishedBodyEn = payload.bodyEn?.trim() || "";
+  let polishedBodyAr = payload.bodyAr?.trim() || "";
+
+  // Add emoji header if missing
+  if (polishedTitleEn && !/^[\u{1F300}-\u{1F9FF}⚽📢🏆🚨⚡✨]/u.test(polishedTitleEn)) {
+    polishedTitleEn = `📢 ${polishedTitleEn}`;
+  }
+  if (polishedTitleAr && !/^[\u{1F300}-\u{1F9FF}⚽📢🏆🚨⚡✨]/u.test(polishedTitleAr)) {
+    polishedTitleAr = `📢 ${polishedTitleAr}`;
+  }
+
+  // Auto fill missing translations from available draft
+  if (!hasEnTitle && hasArTitle) polishedTitleEn = `📢 Community Alert: ${polishedTitleAr.replace(/^[\u{1F300}-\u{1F9FF}⚽📢🏆🚨⚡✨]\s*/u, "")}`;
+  if (!hasArTitle && hasEnTitle) polishedTitleAr = `📢 تنبيه المجتمع: ${polishedTitleEn.replace(/^[\u{1F300}-\u{1F9FF}⚽📢🏆🚨⚡✨]\s*/u, "")}`;
+  if (!hasEnBody && hasArBody) polishedBodyEn = `${polishedBodyAr} (Official Community Broadcast)`;
+  if (!hasArBody && hasEnBody) polishedBodyAr = `${polishedBodyEn} (إعلان رسمي من إدارة المجتمع)`;
+
   return {
-    titleEn: payload.titleEn || "📢 Official Community Announcement",
-    titleAr: payload.titleAr || "📢 إعلان رسمي من إدارة المجتمع",
-    bodyEn: payload.bodyEn || "Important update for all registered players in our community. Stay tuned for upcoming fixtures and features!",
-    bodyAr: payload.bodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا. تابعوا القادم للمزيد من المباريات والميزات!",
+    titleEn: polishedTitleEn || "📢 Official Community Announcement",
+    titleAr: polishedTitleAr || "📢 إعلان رسمي من إدارة المجتمع",
+    bodyEn: polishedBodyEn || "Important update for all registered players in our community. Stay tuned for upcoming fixtures and features!",
+    bodyAr: polishedBodyAr || "تحديث مهم لجميع اللاعبين المسجلين في مجتمعنا. تابعوا القادم للمزيد من المباريات والميزات!",
   };
 }
