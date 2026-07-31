@@ -10,8 +10,6 @@ import { toast } from "react-hot-toast";
 import AdviceNotification from "@/components/match/AdviceNotification";
 import GlobalAnnouncementBanner from "@/components/layout/GlobalAnnouncementBanner";
 
-import { useAuthProfile } from "@/hooks/useAuthProfile";
-
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
@@ -26,7 +24,6 @@ export default function ProtectedRoute({
   requireCommunity = false,
 }: ProtectedRouteProps) {
   const { user, loading, isAdmin, isOwner } = useAuth();
-  const { userProfile } = useAuthProfile(user);
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const router = useRouter();
   const { t, locale } = useLocale();
@@ -47,15 +44,6 @@ export default function ProtectedRoute({
     }
 
     if (!isFullyLoaded) return;
-
-    // Check if player profile is incomplete or missing registration details
-    if (userProfile && (userProfile.onboardingCompleted === false || !userProfile.cardName || !userProfile.position)) {
-      if (typeof window !== "undefined" && !window.location.pathname.startsWith("/onboarding")) {
-        toast(isAr ? "يرجى استكمال بيانات تسجيل حسابك أولاً ⚽" : "Please complete your player profile onboarding first ⚽", { icon: "📝" });
-        router.replace("/onboarding");
-        return;
-      }
-    }
     
     if (ownerOnly && !isOwner) {
       router.replace("/community");
@@ -71,7 +59,7 @@ export default function ProtectedRoute({
       router.replace("/communities");
       return;
     }
-  }, [user, userProfile, loading, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router, t, isAr]);
+  }, [user, loading, isFullyLoaded, isAdmin, isOwner, adminOnly, ownerOnly, requireCommunity, activeCommunityId, router, t]);
 
   // Not authenticated — redirect is handled in useEffect, render nothing while redirecting
   if (!loading && !user) {

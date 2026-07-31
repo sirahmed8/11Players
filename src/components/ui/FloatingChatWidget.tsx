@@ -185,7 +185,7 @@ export default function FloatingChatWidget() {
     }
   };
 
-  const toggleMicListening = async () => {
+  const toggleMicListening = () => {
     if (typeof window === "undefined") return;
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -200,12 +200,8 @@ export default function FloatingChatWidget() {
     }
 
     try {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-      }
-
       const recognition = new SpeechRecognition();
-      recognition.lang = isAr ? "ar-EG" : "en-US";
+      recognition.lang = isAr ? "ar-SA" : "en-US";
       recognition.continuous = false;
       recognition.interimResults = false;
 
@@ -221,11 +217,8 @@ export default function FloatingChatWidget() {
         }
       };
 
-      recognition.onerror = (e: any) => {
+      recognition.onerror = () => {
         setIsListening(false);
-        if (e.error === 'not-allowed' || e.error === 'permission-denied') {
-          toast.error(isAr ? "تم رفض الإذن لاستخدام المايكروفون في المتصفح 🎙️" : "Microphone permission was denied in your browser 🎙️");
-        }
       };
 
       recognition.onend = () => {

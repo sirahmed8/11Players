@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, ArrowLeft, Share2, Zap, Shirt, Crown, Receipt, Settings2 } from "lucide-react";
+import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, ArrowLeft, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/player/OvrExplanationModal";
@@ -274,77 +274,6 @@ function PlayerProfileContent() {
               </div>
             </motion.div>
           )}
-
-          {/* All Player Features & Tools Quick Hub */}
-          <motion.section
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-2xl space-y-3 relative z-10"
-          >
-            <h3 className="text-xs font-black uppercase text-emerald-400 tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-emerald-400" />
-              <span>{isAr ? "جميع أدوات وحسابات اللاعب" : "All Career Features & Tools"}</span>
-            </h3>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5">
-              <Link
-                href="/skill-tree"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Zap className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "شجرة المهارات" : "Skill Tree"}</span>
-              </Link>
-
-              <Link
-                href="/achievements"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-amber-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Trophy className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "الإنجازات" : "Achievements"}</span>
-              </Link>
-
-              <Link
-                href="/kit-builder"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-teal-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Shirt className="w-5 h-5 text-teal-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "مصمم الأطقم" : "Kit Builder"}</span>
-              </Link>
-
-              <Link
-                href="/leaderboard"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Crown className="w-5 h-5 text-purple-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "المتصدرين والجوائز" : "Leaderboard"}</span>
-              </Link>
-
-              <Link
-                href="/stats/derby"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Swords className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "تحديات الديربي" : "Derby H2H"}</span>
-              </Link>
-
-              <Link
-                href="/split-bill"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Receipt className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "حاسبة الإيجار" : "Split Bill"}</span>
-              </Link>
-
-              <Link
-                href="/settings"
-                className="p-3 rounded-2xl bg-slate-950 border border-slate-800 hover:border-slate-600 hover:bg-slate-900 transition-all flex flex-col items-center text-center gap-1.5 group shadow-sm"
-              >
-                <Settings2 className="w-5 h-5 text-slate-400 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold text-white leading-tight">{isAr ? "الإعدادات" : "Settings"}</span>
-              </Link>
-            </div>
-          </motion.section>
 
           {/* Split Column: Card + Match Form + Pitch */}
           <div className="flex flex-col lg:flex-row gap-8 w-full justify-between items-center lg:items-start pt-2 relative z-10">
