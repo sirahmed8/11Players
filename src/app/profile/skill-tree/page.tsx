@@ -10,14 +10,16 @@ import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 function ProgressionHubContent() {
   const searchParams = useSearchParams();
-  const initialTab = searchParams.get('tab') === 'achievements' ? 'achievements' : 'skill-tree';
+  const initialTab = searchParams.get('tab') === 'skill-tree' ? 'skill-tree' : 'achievements';
   const [activeTab, setActiveTab] = useState<'skill-tree' | 'achievements'>(initialTab);
   const { locale } = useLocale();
   const isAr = locale === 'ar';
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam === 'achievements') {
+    if (tabParam === 'skill-tree') {
+      setActiveTab('skill-tree');
+    } else if (tabParam === 'achievements') {
       setActiveTab('achievements');
     }
   }, [searchParams]);

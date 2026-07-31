@@ -63,7 +63,7 @@ function DerbyContent() {
     <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Real Captain Selector Header */}
-        <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-5">
+        <div className="relative z-30 p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">

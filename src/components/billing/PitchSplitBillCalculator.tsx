@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
@@ -237,6 +237,15 @@ export default function PitchSplitBillCalculator() {
 
   const summary = calculateSplitBillSummary(players);
   const sym = CURRENCY_RATES[currency].symbol;
+  const displayTotalCost = players.length === 0 ? 0 : (splitMode === "equal" ? totalCost : summary.totalCost);
+
+  const communityPlayerOptions = useMemo(() => {
+    if (!communityPlayers) return [];
+    return communityPlayers.map((p) => ({
+      value: p.uid,
+      label: `${p.fullName || p.cardName} (${p.primaryPosition})`,
+    }));
+  }, [communityPlayers]);
 
   const copyShareLink = () => {
     const text = generateShareableBillSummary(matchName, totalCost, currency, players);
@@ -276,7 +285,7 @@ export default function PitchSplitBillCalculator() {
         <div className="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
           <span className="text-xs text-slate-400 font-medium">{isAr ? "إجمالي التكلفة" : "Total Cost"}</span>
           <div className="text-2xl font-black text-white mt-1 font-mono">
-            {totalCost} <span className="text-xs text-amber-400 font-sans">{sym}</span>
+            {displayTotalCost} <span className="text-xs text-amber-400 font-sans">{sym}</span>
           </div>
         </div>
 
@@ -403,26 +412,21 @@ export default function PitchSplitBillCalculator() {
 
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             {communityPlayers && communityPlayers.length > 0 && (
-              <select
-                value={selectedCommunityPlayerUid}
-                onChange={(e) => {
-                  const uid = e.target.value;
-                  if (!uid) return;
-                  const found = communityPlayers.find((p) => p.uid === uid);
-                  if (found) {
-                    addPlayerRow(found.fullName || found.cardName || 'Player');
-                  }
-                  setSelectedCommunityPlayerUid('');
-                }}
-                className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-slate-300 focus:border-emerald-500 outline-none"
-              >
-                <option value="">{isAr ? "+ إضافة لاعب من المجتمع..." : "+ Select Community Player..."}</option>
-                {communityPlayers.map((p) => (
-                  <option key={p.uid} value={p.uid}>
-                    {p.fullName || p.cardName} ({p.primaryPosition})
-                  </option>
-                ))}
-              </select>
+              <div className="w-56">
+                <CustomDropdown
+                  value=""
+                  onChange={(uid) => {
+                    if (!uid) return;
+                    const found = communityPlayers.find((p) => p.uid === uid);
+                    if (found) {
+                      addPlayerRow(found.fullName || found.cardName || 'Player');
+                    }
+                  }}
+                  options={communityPlayerOptions}
+                  placeholder={isAr ? "+ إضافة لاعب من المجتمع..." : "+ Select Community Player..."}
+                  isAr={isAr}
+                />
+              </div>
             )}
 
             <button

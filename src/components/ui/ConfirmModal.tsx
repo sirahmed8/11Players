@@ -25,7 +25,7 @@ export default function ConfirmModal({
   message,
   confirmText,
   cancelText,
-  isDestructive = true,
+  isDestructive = false,
   icon
 }: ConfirmModalProps) {
   const { locale } = useLocale();

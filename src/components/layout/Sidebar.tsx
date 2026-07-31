@@ -48,18 +48,20 @@ function SidebarContent() {
     }
   });
 
-  // Auto-scroll active tab into view on page load / refresh, route change & mobile sidebar toggle
+  // Auto-scroll active link inside sidebar container ONLY (does NOT scroll document window)
   useEffect(() => {
-    const scrollActiveIntoView = () => {
-      if (activeLinkRef.current) {
-        activeLinkRef.current.scrollIntoView({ block: "center", behavior: "smooth" });
-      }
-    };
+    if (activeLinkRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const element = activeLinkRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
 
-    scrollActiveIntoView();
-    const timer = setTimeout(scrollActiveIntoView, 200);
-    return () => clearTimeout(timer);
-  }, [pathname, isOpen, authLoading]);
+      if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
+        const offsetTop = element.offsetTop - container.offsetTop - (container.clientHeight / 2) + (element.clientHeight / 2);
+        container.scrollTo({ top: Math.max(0, offsetTop), behavior: "smooth" });
+      }
+    }
+  }, [pathname]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 
@@ -356,7 +358,7 @@ function SidebarContent() {
       items: [
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
-          { href: "/skill-tree", labelEn: "Progression & Achievements", labelAr: "شجرة التطوير والإنجازات", icon: <Trophy className="w-5 h-5" /> },
+          { href: "/skill-tree", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
           { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),
       ]

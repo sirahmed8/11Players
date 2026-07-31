@@ -190,13 +190,13 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
             </motion.div>
 
             {/* Password input */}
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {isPrivate && (
                 <motion.div
-                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginTop: 16 }}
-                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, maxHeight: 120, marginTop: 16 }}
+                  exit={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
+                  transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                   className="overflow-hidden"
                 >
                   <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">

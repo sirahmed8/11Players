@@ -431,6 +431,8 @@ export default function CommunityPage() {
           onConfirm={handleLeaveCommunity}
           title={isAr ? "مغادرة المجتمع" : "Leave Community"}
           message={isAr ? "هل أنت متأكد من رغبتك في مغادرة هذا المجتمع؟ سيتم إزالتك من قائمة لاعبي هذا المجتمع." : "Are you sure you want to leave this community? You will be removed from this community roster."}
+          confirmText={isAr ? "مغادرة" : "Leave Community"}
+          isDestructive={true}
         />
 
         <OvrExplanationModal

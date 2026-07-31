@@ -327,13 +327,13 @@ export default function OwnerPage() {
                   </div>
 
                   {/* Smooth Extend & Collapse Password Input */}
-                  <AnimatePresence>
+                  <AnimatePresence initial={false}>
                     {isPrivate && (
                       <motion.div
-                        initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                        animate={{ opacity: 1, height: "auto", marginTop: 12 }}
-                        exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                        initial={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
+                        animate={{ opacity: 1, maxHeight: 120, marginTop: 12 }}
+                        exit={{ opacity: 0, maxHeight: 0, marginTop: 0 }}
+                        transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
                         className="space-y-1.5 overflow-hidden"
                       >
                         <label className="block text-xs font-bold text-slate-300">{isAr ? "كلمة المرور *" : "Password *"}</label>
