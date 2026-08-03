@@ -8,7 +8,7 @@ import { db } from "@/lib/firebase";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
 import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles, Shield, UserCheck, Activity, CheckSquare, Square, Filter, Check } from "lucide-react";
+import { Loader2, Trash2, Search, ArrowUpDown, Eye, Users, Sparkles, Shield, UserCheck, Activity, CheckSquare, Square, Filter, Check, Crown } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -239,12 +239,13 @@ export default function GlobalUsersTable() {
     try {
       const { doc, updateDoc } = await import("firebase/firestore");
       const isCurrentlyPro = u.subscription?.status === 'active';
+      const displayName = (u as any).name || u.fullName || u.cardName || "Player";
       if (isCurrentlyPro && plan === 'free') {
         await updateDoc(doc(db, "players", u.uid), {
           "subscription.status": "inactive",
           "subscription.plan": "free"
         });
-        toast.success(isAr ? `تم إلغاء تفعيل اشتراك ${u.name}` : `Subscription revoked for ${u.name}`);
+        toast.success(isAr ? `تم إلغاء تفعيل اشتراك ${displayName}` : `Subscription revoked for ${displayName}`);
       } else {
         await updateDoc(doc(db, "players", u.uid), {
           subscription: {
@@ -255,7 +256,7 @@ export default function GlobalUsersTable() {
           }
         });
         const planName = plan === 'club_organizer' ? 'Club Organizer' : 'PRO Captain';
-        toast.success(isAr ? `تم منح اشتراك ${planName} إلى ${u.name} مجاناً! 👑` : `${planName} Pass Granted to ${u.name}! 👑`);
+        toast.success(isAr ? `تم منح اشتراك ${planName} إلى ${displayName} مجاناً! 👑` : `${planName} Pass Granted to ${displayName}! 👑`);
       }
       fetchUsers();
     } catch (err) {
