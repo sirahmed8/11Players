@@ -430,12 +430,14 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Added professional agreement prompt below Google Login CTA button on home page: *"By continuing, you agree to 11Players Platform Terms of Service and Privacy Policy."* with clickable links to `/tos` and `/privacy` in both English & Arabic.
 - **Clean Architecture & Sound System Removal**:
   - Removed audio synthesizer engine and sound controls to maintain clean, quiet, and ultra-fast UI rendering.
-- **11Players PRO Pass Monetization Hub (`src/app/pro-pass/page.tsx`)**:
-  - Premium membership subscription hub featuring Grassroots (Free), PRO Captain Pass ($4.99/mo or 149 EGP/mo), and Club Organizer Pass ($14.99/mo or 449 EGP/mo) tiers.
-  - Interactive monthly vs. annual billing toggle (25% annual discount), currency selector (EGP & USD), feature comparison matrix, and FAQ section.
-  - Payment gateway checkout modal supporting Credit/Debit Cards (Visa/Mastercard), Vodafone Cash, Fawry Pay codes, and PayPal Express.
-  - Sidebar navigation link with glowing Crown badge added for seamless access.
+- **11Players PRO Pass Monetization & Feature Gating System (`src/contexts/ProSubscriptionContext.tsx`, `src/components/ui/ProGate.tsx`)**:
+  - **Single Source of Truth Subscription Context**: `ProSubscriptionContext` reads real-time subscription status from Firestore (`/players/{uid}`). Unauthenticated & non-paying users default to `free` plan.
+  - **Strict Security Architecture**: Client-side code for non-owners is strictly read-only. Firestore subscription fields can only be set by the Platform Owner (`a7medorabe7@gmail.com`) or verified backend payment webhooks.
+  - **Reusable Feature Lock (`ProGate.tsx`)**: Glassmorphic lock overlay protecting paid features (3D Kit Builder, Post-Match Newspaper Generator, Live Match Broadcaster, Captain Draft Room, XP Skill Tree, Derby Engine). Displays blurred preview, feature highlights, and PRO upgrade CTA.
+  - **Owner Automatic Unrestricted Access**: Platform Owner automatically receives 100% unrestricted access to all PRO Captain and Club Organizer features across the entire platform.
+  - **Payment Gateway Coming Soon Modal**: Non-owners selecting paid plans see a professional "Payment Gateway Coming Soon 🚀" preview modal showcasing upcoming payment methods (Visa, Vodafone Cash, Fawry, PayPal) without unauthorized database mutations.
 - **Quality & Verification**:
-  - 100/100 Vitest unit tests passing cleanly across 9 test suites (`npm run test`).
-  - Next.js 16 production build (`npm run build`) compiled successfully across all 50 routes.
+  - 106/106 Vitest unit tests passing cleanly across 10 test suites (`npm run test`).
+  - Next.js 16 production build (`npm run build`) compiled successfully across all 50 static routes.
   - Full production push and deployment live on Firebase Hosting (`an-11-players.web.app`).
+

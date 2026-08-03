@@ -5,6 +5,7 @@ import CaptainDraftRoom from '@/components/draft/CaptainDraftRoom';
 import { usePlayers } from '@/contexts/PlayersContext';
 import { useAuth } from '@/contexts/AuthContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProGate from '@/components/ui/ProGate';
 import { Swords, Calendar, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
@@ -71,7 +72,13 @@ function DraftContent() {
 export default function DraftPage() {
   return (
     <ProtectedRoute requireCommunity>
-      <DraftContent />
+      <ProGate
+        requiredPlan="pro_captain"
+        featureNameEn="Captain Draft Room"
+        featureNameAr="غرفة اختيار الكبتن"
+      >
+        <DraftContent />
+      </ProGate>
     </ProtectedRoute>
   );
 }

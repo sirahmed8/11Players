@@ -156,4 +156,10 @@ export interface PlayerProfile {
   defaultPage?: string;
   isExcludedFromMatchmaking?: boolean;
   captainVotes?: string[]; // Array of UIDs who voted for this player as captain
+  subscription?: {
+    plan: 'free' | 'pro_captain' | 'club_organizer';
+    status: 'active' | 'inactive' | 'trial';
+    expiresAt?: string;
+    subscribedAt?: string;
+  };
 }

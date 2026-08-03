@@ -5,6 +5,7 @@ import { ThemeProvider, LocaleProvider } from "@/components/ui/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayersProvider } from "@/contexts/PlayersContext";
 import { CommunityProvider } from "@/contexts/CommunityContext";
+import { ProSubscriptionProvider } from "@/contexts/ProSubscriptionContext";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
 import { Suspense } from "react";
@@ -108,6 +109,7 @@ export default function RootLayout({
             <ErrorBoundary>
               <CommunityProvider>
                 <AuthProvider>
+                  <ProSubscriptionProvider>
                   <PlayersProvider>
                     <InstallPWA />
                     <RouteGuard>
@@ -125,6 +127,7 @@ export default function RootLayout({
                     <FloatingChatWidget />
                     <ToastProvider />
                   </PlayersProvider>
+                  </ProSubscriptionProvider>
                 </AuthProvider>
               </CommunityProvider>
             </ErrorBoundary>

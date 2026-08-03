@@ -156,8 +156,11 @@ export default function HoloPlayerCard({
 
       {/* Bottom Name & Stats */}
       <div className="relative z-10 text-center space-y-2">
-        <h3 className="text-lg font-black text-white tracking-tight truncate">
-          {player.cardName || player.fullName || "PLAYER"}
+        <h3 className="text-lg font-black text-white tracking-tight truncate flex items-center justify-center gap-1.5">
+          <span>{player.cardName || player.fullName || "PLAYER"}</span>
+          {(player.subscription?.status === 'active' || player.email?.toLowerCase() === 'a7medorabe7@gmail.com' || player.uid === 'G8vV7jTvd0VUeRlohrGFyARhiiw1') && (
+            <Crown className="w-4 h-4 text-amber-400 fill-amber-400/30 shrink-0" />
+          )}
         </h3>
 
         {/* Quick Stats Grid */}

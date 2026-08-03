@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import { useLocale } from '@/components/ui/ThemeProvider';
 import { Zap, Trophy, Award, Sparkles } from 'lucide-react';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProGate from '@/components/ui/ProGate';
 
 function ProgressionHubContent() {
   const searchParams = useSearchParams();
@@ -85,7 +86,13 @@ function ProgressionHubContent() {
 export default function SkillTreePage() {
   return (
     <ProtectedRoute>
-      <ProgressionHubContent />
+      <ProGate
+        requiredPlan="pro_captain"
+        featureNameEn="XP Playstyle Skill Tree"
+        featureNameAr="شجرة مهارات XP"
+      >
+        <ProgressionHubContent />
+      </ProGate>
     </ProtectedRoute>
   );
 }

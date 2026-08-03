@@ -7,6 +7,7 @@ import { useCommunity } from '@/contexts/CommunityContext';
 import { useLocale } from '@/components/ui/ThemeProvider';
 import SiteSkeletonLoader from '@/components/ui/SiteSkeletonLoader';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProGate from '@/components/ui/ProGate';
 import { Swords, Play, Activity } from 'lucide-react';
 import Link from 'next/link';
 
@@ -80,7 +81,13 @@ function LiveContent() {
 export default function LiveMatchPage() {
   return (
     <ProtectedRoute requireCommunity>
-      <LiveContent />
+      <ProGate
+        requiredPlan="pro_captain"
+        featureNameEn="Live Match Broadcaster"
+        featureNameAr="بث المباراة المباشر"
+      >
+        <LiveContent />
+      </ProGate>
     </ProtectedRoute>
   );
 }

@@ -164,8 +164,11 @@ const PlayerCard = React.memo(function PlayerCard({
 
             {/* Info */}
             <div className="flex-1 min-w-0">
-              <h3 className={`text-base sm:text-lg font-black truncate leading-tight ${isCurrentUser ? 'text-emerald-400' : 'text-white'}`}>
-                {player.cardName || player.fullName}
+              <h3 className={`text-base sm:text-lg font-black truncate leading-tight flex items-center gap-1.5 ${isCurrentUser ? 'text-emerald-400' : 'text-white'}`}>
+                <span>{player.cardName || player.fullName}</span>
+                {(player.subscription?.status === 'active' || player.email?.toLowerCase() === 'a7medorabe7@gmail.com' || player.uid === 'G8vV7jTvd0VUeRlohrGFyARhiiw1') && (
+                  <Crown className="w-4 h-4 text-amber-400 fill-amber-400/30 shrink-0" />
+                )}
               </h3>
 
               <div className="flex flex-wrap items-center gap-1 mt-1.5 mb-1.5">

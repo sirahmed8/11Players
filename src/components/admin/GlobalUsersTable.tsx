@@ -235,6 +235,34 @@ export default function GlobalUsersTable() {
     }
   };
 
+  const handleTogglePro = useCallback(async (u: PlayerProfile) => {
+    try {
+      const { doc, updateDoc } = await import("firebase/firestore");
+      const isCurrentlyPro = u.subscription?.status === 'active';
+      if (isCurrentlyPro) {
+        await updateDoc(doc(db, "players", u.uid), {
+          "subscription.status": "inactive",
+          "subscription.plan": "free"
+        });
+        toast.success(isAr ? "تم إلغاء تفعيل PRO" : "PRO status revoked");
+      } else {
+        await updateDoc(doc(db, "players", u.uid), {
+          subscription: {
+            plan: "pro_captain",
+            status: "active",
+            expiresAt: "2099-12-31T23:59:59Z",
+            subscribedAt: new Date().toISOString(),
+          }
+        });
+        toast.success(isAr ? "تم منح اشتراك PRO Captain بنجاح! 👑" : "PRO Captain Pass Granted! 👑");
+      }
+      fetchUsers();
+    } catch (err) {
+      console.error("Error toggling PRO status:", err);
+      toast.error(isAr ? "فشل تغيير الاشتراك" : "Failed to toggle PRO status");
+    }
+  }, [fetchUsers, isAr]);
+
   const filteredUsers = useMemo(() => {
     let result = [...users];
     if (searchQuery) {
@@ -479,6 +507,7 @@ export default function GlobalUsersTable() {
                     userCommMap={userCommMap}
                     onBanUser={handleBanUser}
                     onManageCommunities={(user) => setManageCommModal({ open: true, user })}
+                    onTogglePro={handleTogglePro}
                   />
                 </tr>
               );

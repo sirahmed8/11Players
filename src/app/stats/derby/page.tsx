@@ -7,6 +7,7 @@ import { useCommunity } from '@/contexts/CommunityContext';
 import { usePlayers } from '@/contexts/PlayersContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import CustomDropdown from '@/components/ui/CustomDropdown';
+import ProGate from '@/components/ui/ProGate';
 import { Flame, Swords, Shield } from 'lucide-react';
 
 function DerbyContent() {
@@ -148,7 +149,13 @@ function DerbyContent() {
 export default function DerbyPage() {
   return (
     <ProtectedRoute requireCommunity>
-      <DerbyContent />
+      <ProGate
+        requiredPlan="pro_captain"
+        featureNameEn="Derby & H2H Rivalry Engine"
+        featureNameAr="محرك الديربي ووجهاً لوجه"
+      >
+        <DerbyContent />
+      </ProGate>
     </ProtectedRoute>
   );
 }

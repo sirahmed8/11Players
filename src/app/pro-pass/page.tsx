@@ -27,6 +27,8 @@ import {
   Globe,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
 interface PlanTier {
@@ -52,7 +54,7 @@ interface PlanTier {
 }
 
 export default function ProPassPage() {
-  const { user } = useAuth();
+  const { user, isOwner } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
@@ -195,41 +197,56 @@ export default function ProPassPage() {
     },
   ];
 
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
   const handleSelectPlan = (plan: PlanTier) => {
     if (plan.id === "free") {
       toast.success(isAr ? "أنت حالياً على الخطة المجانية" : "You are currently on the Free plan");
       return;
     }
     setSelectedPlan(plan);
+    setShowComingSoon(false);
     setIsPaymentModalOpen(true);
   };
 
-  const handleConfirmPayment = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      setIsPaymentModalOpen(false);
-      toast.custom(
-        (t) => (
-          <div className="max-w-md w-full bg-slate-900 border border-amber-500/50 shadow-2xl rounded-2xl p-4 flex items-center gap-3 text-white">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-black shrink-0">
-              👑
-            </div>
-            <div>
-              <p className="font-black text-sm text-amber-300">
-                {isAr ? "تم تفعيل اشتراك PRO Pass بنجاح! 🎉" : "PRO Pass Activated Successfully! 🎉"}
-              </p>
-              <p className="text-xs text-slate-400 mt-0.5">
-                {isAr
-                  ? `أهلاً بك في فئة ${selectedPlan?.nameAr}. استمتع بجميع الميزات الممتازة!`
-                  : `Welcome to ${selectedPlan?.nameEn}. Enjoy all premium features!`}
-              </p>
-            </div>
-          </div>
-        ),
-        { duration: 6000 }
-      );
-    }, 1500);
+  const handleConfirmPayment = async () => {
+    if (!user || !selectedPlan) return;
+
+    // ─── OWNER ONLY: manually grant a subscription via Firestore ───────────
+    // SECURITY: Only the owner (verified by email + uid) can write subscription
+    // data. No regular user can ever reach this branch.
+    const ownerEmail = "a7medorabe7@gmail.com";
+    const ownerUid   = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+    const userIsOwner =
+      isOwner ||
+      user.email?.toLowerCase() === ownerEmail ||
+      user.uid === ownerUid;
+
+    if (userIsOwner) {
+      setIsProcessing(true);
+      try {
+        await setDoc(doc(db, "players", user.uid), {
+          subscription: {
+            plan: selectedPlan.id,
+            status: "active",
+            expiresAt: "2099-12-31T23:59:59Z",
+            subscribedAt: new Date().toISOString(),
+          }
+        }, { merge: true });
+        toast.success(isAr ? "تم تفعيل خطة المالك بنجاح 👑" : "Owner Plan Activated 👑");
+        setIsPaymentModalOpen(false);
+      } catch (err) {
+        console.error("Owner grant error:", err);
+        toast.error(isAr ? "حدث خطأ أثناء التفعيل" : "Failed to activate");
+      } finally {
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // ─── NON-OWNER: Payment gateway not yet live ───────────────────────────
+    // No Firestore write is made. Show the Coming Soon state.
+    setShowComingSoon(true);
   };
 
   return (
@@ -245,7 +262,26 @@ export default function ProPassPage() {
           <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-4 py-12 relative z-10 space-y-16">
+        <div className="max-w-7xl mx-auto px-4 py-12 relative z-10 space-y-12">
+          {/* Owner All-Access Banner */}
+          {isOwner && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 rounded-3xl p-5 text-center space-y-2 max-w-4xl mx-auto shadow-2xl backdrop-blur-md"
+            >
+              <div className="inline-flex items-center gap-2 text-amber-300 font-black text-sm uppercase tracking-wider">
+                <Crown className="w-5 h-5 text-amber-400" />
+                <span>{isAr ? "صلاحيات مالك المنصة التامة مفعلة تلقائياً 👑" : "Owner All-Access Active 👑"}</span>
+              </div>
+              <p className="text-xs md:text-sm text-slate-300 font-semibold leading-relaxed">
+                {isAr
+                  ? "بصفتك مالك منصة 11Players، فلديك وصول كامل ودائم لجميع ميزات PRO الكابتن ومنظم النادي عبر كامل الموقع بدون حاجة للاشتراك."
+                  : "As the 11Players Platform Owner, you automatically have 100% full, permanent access to all PRO Captain and Club Organizer features across the entire platform."}
+              </p>
+            </motion.div>
+          )}
+
           {/* ── Hero Header ───────────────────────────────────────────────────── */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <motion.div
@@ -573,69 +609,116 @@ export default function ProPassPage() {
                   </button>
                 </div>
 
-                {/* Amount summary */}
-                <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400">{isAr ? "المبلغ الإجمالي:" : "Total Amount:"}</span>
-                  <span className="text-2xl font-black font-mono text-amber-400">
-                    {currency === "USD"
-                      ? `$${isAnnual ? selectedPlan.priceAnnualUSD : selectedPlan.priceMonthlyUSD}`
-                      : `${isAnnual ? selectedPlan.priceAnnualEGP : selectedPlan.priceMonthlyEGP} EGP`}
-                  </span>
-                </div>
-
-                {/* Payment Method Selector */}
-                <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-400 block">
-                    {isAr ? "اختر طريقة الدفع:" : "Select Payment Method:"}
-                  </label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {[
-                      { id: "card", labelEn: "Credit / Debit Card", labelAr: "بطاقة ائتمان / فيزا", icon: <CreditCard className="w-4 h-4 text-emerald-400" /> },
-                      { id: "vodafone", labelEn: "Vodafone Cash / Wallet", labelAr: "فودافون كاش / محفظة", icon: <Zap className="w-4 h-4 text-red-400" /> },
-                      { id: "fawry", labelEn: "Fawry Pay Code", labelAr: "كود دَفع فوري", icon: <Award className="w-4 h-4 text-amber-400" /> },
-                      { id: "paypal", labelEn: "PayPal Express", labelAr: "حساب PayPal", icon: <Globe className="w-4 h-4 text-cyan-400" /> },
-                    ].map((pm) => (
-                      <button
-                        key={pm.id}
-                        onClick={() => setPaymentMethod(pm.id as any)}
-                        className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-bold ${
-                          paymentMethod === pm.id
-                            ? "bg-slate-800 border-amber-400 text-white shadow-md shadow-amber-500/10"
-                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
-                        }`}
-                      >
-                        {pm.icon}
-                        <span>{isAr ? pm.labelAr : pm.labelEn}</span>
-                      </button>
-                    ))}
+                {/* ── TWO STATES: Coming Soon (non-owner) vs Owner Confirm ──────── */}
+                {showComingSoon ? (
+                  /* ── COMING SOON STATE ─────────────────────────────────────── */
+                  <div className="space-y-5 text-center py-2">
+                    <div className="flex justify-center">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center justify-center text-3xl shadow-inner">
+                        🔐
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <h4 className="text-lg font-black text-amber-300">
+                        {isAr ? "بوابة الدفع قريباً 🚀" : "Payment Gateway Coming Soon 🚀"}
+                      </h4>
+                      <p className="text-xs text-slate-400 leading-relaxed font-medium max-w-xs mx-auto">
+                        {isAr
+                          ? "نعمل على ربط بوابة الدفع الآمنة. ستُطلق قريباً مع دعم كامل لفيزا، فوري، فودافون كاش، وباي بال."
+                          : "We're integrating a secure payment gateway. Launching soon with full support for Visa, Fawry, Vodafone Cash & PayPal."}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 opacity-60 pointer-events-none select-none">
+                      {["💳 Visa / Mastercard", "📱 Vodafone Cash", "🏪 Fawry Pay", "🌐 PayPal"].map((pm, i) => (
+                        <div key={i} className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 text-[11px] font-bold text-slate-500 flex items-center justify-between gap-1">
+                          <span>{pm}</span>
+                          <span className="text-[9px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-600">{isAr ? "قريباً" : "Soon"}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-slate-500 font-medium">
+                      {isAr ? "للوصول المبكر تواصل مع المالك 📩" : "For early access, contact the platform owner 📩"}
+                    </p>
+                    <button
+                      onClick={() => { setIsPaymentModalOpen(false); setShowComingSoon(false); }}
+                      className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
+                    >
+                      {isAr ? "حسناً، سأنتظر" : "Got it, I'll wait"}
+                    </button>
                   </div>
-                </div>
+                ) : (
+                  /* ── STANDARD CHECKOUT STATE ───────────────────────────────── */
+                  <>
+                    {/* Amount summary */}
+                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                      <span className="text-xs font-bold text-slate-400">{isAr ? "المبلغ الإجمالي:" : "Total Amount:"}</span>
+                      <span className="text-2xl font-black font-mono text-amber-400">
+                        {currency === "USD"
+                          ? `$${isAnnual ? selectedPlan.priceAnnualUSD : selectedPlan.priceMonthlyUSD}`
+                          : `${isAnnual ? selectedPlan.priceAnnualEGP : selectedPlan.priceMonthlyEGP} EGP`}
+                      </span>
+                    </div>
 
-                {/* API Sandbox note */}
-                <p className="text-[11px] text-slate-400 font-medium bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
-                  ℹ️ {isAr ? "بوابة الدفع جاهزة للربط فور إدخال المفاتيح الخاصة بك. انقر لتأكيد تفعيل الاشتراك التجريبي." : "Payment Gateway API Sandbox is ready. Click below to activate your PRO Pass subscription."}
-                </p>
+                    {/* Payment Method Selector */}
+                    <div className="space-y-3">
+                      <label className="text-xs font-bold text-slate-400 block">
+                        {isAr ? "اختر طريقة الدفع:" : "Select Payment Method:"}
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {[
+                          { id: "card", labelEn: "Credit / Debit Card", labelAr: "بطاقة ائتمان / فيزا", icon: <CreditCard className="w-4 h-4 text-emerald-400" /> },
+                          { id: "vodafone", labelEn: "Vodafone Cash", labelAr: "فودافون كاش", icon: <Zap className="w-4 h-4 text-red-400" /> },
+                          { id: "fawry", labelEn: "Fawry Pay Code", labelAr: "كود دَفع فوري", icon: <Award className="w-4 h-4 text-amber-400" /> },
+                          { id: "paypal", labelEn: "PayPal Express", labelAr: "حساب PayPal", icon: <Globe className="w-4 h-4 text-cyan-400" /> },
+                        ].map((pm) => (
+                          <button
+                            key={pm.id}
+                            onClick={() => setPaymentMethod(pm.id as any)}
+                            className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-bold ${
+                              paymentMethod === pm.id
+                                ? "bg-slate-800 border-amber-400 text-white shadow-md shadow-amber-500/10"
+                                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                            }`}
+                          >
+                            {pm.icon}
+                            <span>{isAr ? pm.labelAr : pm.labelEn}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
 
-                {/* Confirm button */}
-                <div className="flex items-center justify-end gap-3 pt-2">
-                  <button
-                    onClick={() => setIsPaymentModalOpen(false)}
-                    className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
-                  >
-                    {isAr ? "إلغاء" : "Cancel"}
-                  </button>
-                  <button
-                    onClick={handleConfirmPayment}
-                    disabled={isProcessing}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-2"
-                  >
-                    {isProcessing ? (
-                      <span>{isAr ? "جاري المعالجة..." : "Processing..."}</span>
-                    ) : (
-                      <span>{isAr ? "تأكيد الدفع والتفعيل" : "Confirm & Activate Pass"}</span>
-                    )}
-                  </button>
-                </div>
+                    {/* Security note */}
+                    <div className="flex items-start gap-2.5 bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
+                      <span className="text-base shrink-0 mt-0.5">🔒</span>
+                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
+                        {isAr
+                          ? "جميع المدفوعات مشفرة وآمنة. لن يتم تفعيل الاشتراك إلا بعد التحقق الكامل من الدفع."
+                          : "All payments are encrypted & secure. Subscription activates only after full payment verification."}
+                      </p>
+                    </div>
+
+                    {/* Confirm button */}
+                    <div className="flex items-center justify-end gap-3 pt-1">
+                      <button
+                        onClick={() => setIsPaymentModalOpen(false)}
+                        className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
+                      >
+                        {isAr ? "إلغاء" : "Cancel"}
+                      </button>
+                      <button
+                        onClick={handleConfirmPayment}
+                        disabled={isProcessing}
+                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-2 disabled:opacity-60"
+                      >
+                        {isProcessing ? (
+                          <span>{isAr ? "جاري المعالجة..." : "Processing..."}</span>
+                        ) : (
+                          <span>{isAr ? "تأكيد الدفع والتفعيل" : "Confirm & Activate Pass"}</span>
+                        )}
+                      </button>
+                    </div>
+                  </>
+                )}
               </motion.div>
             </div>
           )}

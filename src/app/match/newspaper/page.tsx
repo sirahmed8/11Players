@@ -6,6 +6,7 @@ import { Newspaper, Sparkles, RefreshCw, Trophy, Flame, ChevronDown, UserCheck, 
 import { useMatchData } from '@/hooks/useMatchData';
 import { useCommunity } from '@/contexts/CommunityContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import ProGate from '@/components/ui/ProGate';
 
 function NewspaperContent() {
   const { activeCommunityId, activeCommunity } = useCommunity();
@@ -254,7 +255,13 @@ function NewspaperContent() {
 export default function NewspaperPage() {
   return (
     <ProtectedRoute requireCommunity>
-      <NewspaperContent />
+      <ProGate
+        requiredPlan="pro_captain"
+        featureNameEn="Post-Match Newspaper Generator"
+        featureNameAr="مولد جريدة ما بعد المباراة"
+      >
+        <NewspaperContent />
+      </ProGate>
     </ProtectedRoute>
   );
 }

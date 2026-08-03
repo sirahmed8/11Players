@@ -15,6 +15,7 @@ interface GlobalUserRowProps {
   userCommMap: Record<string, string[]>;
   onBanUser: (user: PlayerProfile) => void;
   onManageCommunities: (user: PlayerProfile) => void;
+  onTogglePro?: (user: PlayerProfile) => void;
 }
 
 const GlobalUserRow = React.memo(function GlobalUserRow({
@@ -24,6 +25,7 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
   userCommMap,
   onBanUser,
   onManageCommunities,
+  onTogglePro,
 }: GlobalUserRowProps) {
   const photo = u.photoUrl || u.googlePic || (u as any).photoURL || (u as any).userPic || "";
   const ovr = getPlayerOverall(u);
@@ -127,6 +129,24 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
 
       <td className="px-6 py-4 text-right">
         <div className="flex items-center justify-end gap-2">
+          {onTogglePro && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 450, damping: 25 }}
+              type="button"
+              onClick={() => onTogglePro(u)}
+              className={`px-3 py-1.5 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                u.subscription?.status === 'active'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40 hover:bg-amber-500/30'
+                  : 'bg-slate-950 hover:bg-slate-800 text-slate-400 border-slate-800'
+              }`}
+              title={isAr ? "تغيير اشتراك PRO" : "Toggle PRO Subscription"}
+            >
+              <Crown className={`w-3.5 h-3.5 ${u.subscription?.status === 'active' ? 'text-amber-400 fill-amber-400/30' : 'text-slate-500'}`} />
+              <span>{u.subscription?.status === 'active' ? (isAr ? 'PRO مفعل' : 'PRO Active') : (isAr ? 'ترقية PRO' : 'Grant PRO')}</span>
+            </motion.button>
+          )}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
