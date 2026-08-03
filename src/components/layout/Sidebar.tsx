@@ -372,7 +372,7 @@ function SidebarContent() {
       titleEn: "Personal Hub",
       titleAr: "الحساب الشخصي",
       items: [
-        { href: "/pro-pass", labelEn: "11Players PRO Pass 👑", labelAr: "اشتراك PRO Pass 👑", icon: <Crown className="w-5 h-5 text-amber-400" /> },
+        { href: "/pro-pass", labelEn: "11Players PRO Pass", labelAr: "اشتراك PRO Pass", icon: <Crown className="w-5 h-5 text-amber-400" /> },
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
           { href: "/skill-tree", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
@@ -387,6 +387,9 @@ function SidebarContent() {
         ...(isAdmin ? [{ href: "/admin", labelEn: "Admin Dashboard", labelAr: "لوحة التحكم واقتراحات القدرات", icon: <ShieldAlert className="w-5 h-5" />, badge: pendingEditsCount > 0 ? pendingEditsCount : undefined }] : []),
         { href: "/season-ceremony", labelEn: "Season Ceremony", labelAr: "حفل ختام الموسم والتتويج", icon: <Trophy className="w-5 h-5" /> },
         { href: "/announcements", labelEn: "Announcements", labelAr: "بث الإعلانات", icon: <Sparkles className="w-5 h-5" /> },
+        ...(isOwner || isAdmin ? [
+          { href: "/analytics", labelEn: "Platform Analytics", labelAr: "تحليلات وإحصائيات المنصة", icon: <BarChart3 className="w-5 h-5 text-emerald-400" /> },
+        ] : []),
         ...(isOwner ? [
           { href: "/users", labelEn: "Users List", labelAr: "قائمة المستخدمين", icon: <Users className="w-5 h-5" /> },
           { href: "/owner", labelEn: "Owner Control", labelAr: "التحكم الشامل", icon: <ShieldAlert className="w-5 h-5" /> },

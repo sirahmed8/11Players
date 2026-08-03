@@ -430,14 +430,19 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Added professional agreement prompt below Google Login CTA button on home page: *"By continuing, you agree to 11Players Platform Terms of Service and Privacy Policy."* with clickable links to `/tos` and `/privacy` in both English & Arabic.
 - **Clean Architecture & Sound System Removal**:
   - Removed audio synthesizer engine and sound controls to maintain clean, quiet, and ultra-fast UI rendering.
-- **11Players PRO Pass Monetization & Feature Gating System (`src/contexts/ProSubscriptionContext.tsx`, `src/components/ui/ProGate.tsx`)**:
-  - **Single Source of Truth Subscription Context**: `ProSubscriptionContext` reads real-time subscription status from Firestore (`/players/{uid}`). Unauthenticated & non-paying users default to `free` plan.
-  - **Strict Security Architecture**: Client-side code for non-owners is strictly read-only. Firestore subscription fields can only be set by the Platform Owner (`a7medorabe7@gmail.com`) or verified backend payment webhooks.
-  - **Reusable Feature Lock (`ProGate.tsx`)**: Glassmorphic lock overlay protecting paid features (3D Kit Builder, Post-Match Newspaper Generator, Live Match Broadcaster, Captain Draft Room, XP Skill Tree, Derby Engine). Displays blurred preview, feature highlights, and PRO upgrade CTA.
-  - **Owner Automatic Unrestricted Access**: Platform Owner automatically receives 100% unrestricted access to all PRO Captain and Club Organizer features across the entire platform.
-  - **Payment Gateway Coming Soon Modal**: Non-owners selecting paid plans see a professional "Payment Gateway Coming Soon 🚀" preview modal showcasing upcoming payment methods (Visa, Vodafone Cash, Fawry, PayPal) without unauthorized database mutations.
+- **11Players PRO Pass Monetization & Platform Analytics System (`/pro-pass`, `/analytics`, `/owner/analytics`)**:
+  - **Clean PRO Pass UI**: Removed unnecessary owner banner and USD currency toggles. Prices strictly standardized to EGP (149 EGP/mo for PRO Captain, 449 EGP/mo for Club Organizer). Emoji removed from sidebar link.
+  - **Payment Gateway Coming Soon Modal**: Selecting paid plans displays a transparent, professional modal explaining that official payment gateways (Visa, Fawry, Vodafone Cash, PayPal) are under integration. Prevents any fake/unauthorized purchase simulation or Firestore writes for regular users.
+  - **1-Click Admin/Owner Free PRO Granting (`GlobalUsersTable.tsx`)**: Enables Platform Owner and Admins to grant `PRO Captain` or `Club Organizer` subscriptions for free to any friend or player with 1-click (individual or bulk selection).
+  - **Comprehensive Platform Analytics Dashboard (`/analytics`, `/owner/analytics`)**: Ultra-modern intelligence dashboard featuring:
+    - Executive KPI Cards (Total Players, Active Communities, Total Matches, PRO Subscriptions, Estimated Monthly Revenue in EGP).
+    - Player Position Distribution Bars (FW, MF, DF, GK).
+    - OVR Competitive Division Tiers (Champions League, Master, Premier, Challenge).
+    - Top 5 Rated Players Roster Showcase.
+    - Full User Subscription Management Table with search, status filters, and 1-click admin grant actions.
 - **Quality & Verification**:
   - 106/106 Vitest unit tests passing cleanly across 10 test suites (`npm run test`).
-  - Next.js 16 production build (`npm run build`) compiled successfully across all 50 static routes.
+  - Next.js 16 production build (`npm run build`) compiled successfully across all 52 static routes.
   - Full production push and deployment live on Firebase Hosting (`an-11-players.web.app`).
+
 

@@ -235,26 +235,27 @@ export default function GlobalUsersTable() {
     }
   };
 
-  const handleTogglePro = useCallback(async (u: PlayerProfile) => {
+  const handleTogglePro = useCallback(async (u: PlayerProfile, plan: 'pro_captain' | 'club_organizer' | 'free' = 'pro_captain') => {
     try {
       const { doc, updateDoc } = await import("firebase/firestore");
       const isCurrentlyPro = u.subscription?.status === 'active';
-      if (isCurrentlyPro) {
+      if (isCurrentlyPro && plan === 'free') {
         await updateDoc(doc(db, "players", u.uid), {
           "subscription.status": "inactive",
           "subscription.plan": "free"
         });
-        toast.success(isAr ? "تم إلغاء تفعيل PRO" : "PRO status revoked");
+        toast.success(isAr ? `تم إلغاء تفعيل اشتراك ${u.name}` : `Subscription revoked for ${u.name}`);
       } else {
         await updateDoc(doc(db, "players", u.uid), {
           subscription: {
-            plan: "pro_captain",
+            plan: plan,
             status: "active",
             expiresAt: "2099-12-31T23:59:59Z",
             subscribedAt: new Date().toISOString(),
           }
         });
-        toast.success(isAr ? "تم منح اشتراك PRO Captain بنجاح! 👑" : "PRO Captain Pass Granted! 👑");
+        const planName = plan === 'club_organizer' ? 'Club Organizer' : 'PRO Captain';
+        toast.success(isAr ? `تم منح اشتراك ${planName} إلى ${u.name} مجاناً! 👑` : `${planName} Pass Granted to ${u.name}! 👑`);
       }
       fetchUsers();
     } catch (err) {
@@ -262,6 +263,31 @@ export default function GlobalUsersTable() {
       toast.error(isAr ? "فشل تغيير الاشتراك" : "Failed to toggle PRO status");
     }
   }, [fetchUsers, isAr]);
+
+  const handleBulkGrantPro = useCallback(async () => {
+    if (selectedUids.length === 0) return;
+    try {
+      const { doc, writeBatch } = await import("firebase/firestore");
+      const batch = writeBatch(db);
+      selectedUids.forEach(uid => {
+        batch.set(doc(db, "players", uid), {
+          subscription: {
+            plan: "pro_captain",
+            status: "active",
+            expiresAt: "2099-12-31T23:59:59Z",
+            subscribedAt: new Date().toISOString(),
+          }
+        }, { merge: true });
+      });
+      await batch.commit();
+      toast.success(isAr ? `تم منح اشتراك PRO Captain لـ ${selectedUids.length} لاعب بنجاح! 👑` : `Granted PRO Captain Pass to ${selectedUids.length} players! 👑`);
+      setSelectedUids([]);
+      fetchUsers();
+    } catch (err) {
+      console.error("Bulk PRO grant error:", err);
+      toast.error(isAr ? "فشل المنح المجمع" : "Bulk PRO grant failed");
+    }
+  }, [selectedUids, fetchUsers, isAr]);
 
   const filteredUsers = useMemo(() => {
     let result = [...users];
@@ -379,11 +405,19 @@ export default function GlobalUsersTable() {
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
+                onClick={() => handleBulkGrantPro()}
+                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-500/30 transition-all cursor-pointer"
+              >
+                <Crown className="w-4 h-4 text-slate-950" />
+                <span>{isAr ? "منح PRO مجاناً للمحددين 👑" : "Grant PRO Pass to Selected 👑"}</span>
+              </button>
+              <button
+                type="button"
                 onClick={() => handleApplyAIToSelectedUsers(users.filter(u => selectedUids.includes(u.uid)))}
                 className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
               >
                 <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span>{isAr ? "تطبيق تكتيكات الذكاء الاصطناعي للمحددين ⚡" : "Apply AI Choice to Selected ⚡"}</span>
+                <span>{isAr ? "تطبيق الذكاء الاصطناعي ⚡" : "Apply AI Choice ⚡"}</span>
               </button>
               <button
                 type="button"

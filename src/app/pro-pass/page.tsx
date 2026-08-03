@@ -10,25 +10,20 @@ import {
   Sparkles,
   Zap,
   CheckCircle2,
-  Shield,
   Bot,
   Shirt,
-  BarChart3,
   Receipt,
-  Users,
   CreditCard,
   Building,
   HelpCircle,
   ChevronDown,
   ArrowRight,
-  Star,
-  Flame,
   Award,
   Globe,
+  Lock,
+  ShieldCheck,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 
 interface PlanTier {
@@ -38,8 +33,6 @@ interface PlanTier {
   badgeEn?: string;
   badgeAr?: string;
   popular?: boolean;
-  priceMonthlyUSD: number;
-  priceAnnualUSD: number;
   priceMonthlyEGP: number;
   priceAnnualEGP: number;
   descEn: string;
@@ -54,16 +47,13 @@ interface PlanTier {
 }
 
 export default function ProPassPage() {
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, isAdmin } = useAuth();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const [currency, setCurrency] = useState<"EGP" | "USD">("EGP");
   const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"card" | "fawry" | "vodafone" | "paypal">("card");
-  const [isProcessing, setIsProcessing] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const plans: PlanTier[] = [
@@ -71,8 +61,6 @@ export default function ProPassPage() {
       id: "free",
       nameEn: "Grassroots (Free)",
       nameAr: "الهواة (مجاني)",
-      priceMonthlyUSD: 0,
-      priceAnnualUSD: 0,
       priceMonthlyEGP: 0,
       priceAnnualEGP: 0,
       descEn: "Essential tools for casual local football matches and friendly squad games.",
@@ -104,8 +92,6 @@ export default function ProPassPage() {
       badgeEn: "MOST POPULAR ⭐",
       badgeAr: "الأكثر طلباً ⭐",
       popular: true,
-      priceMonthlyUSD: 4.99,
-      priceAnnualUSD: 3.99,
       priceMonthlyEGP: 149,
       priceAnnualEGP: 119,
       descEn: "Unlock AI Match Analytics, 3D Kit Builder, Unlimited Communities & Golden Card Badge.",
@@ -140,8 +126,6 @@ export default function ProPassPage() {
       nameAr: "منظم النادي وصاحب الملعب",
       badgeEn: "ENTERPRISE",
       badgeAr: "للمنظمين والملاعب",
-      priceMonthlyUSD: 14.99,
-      priceAnnualUSD: 11.99,
       priceMonthlyEGP: 449,
       priceAnnualEGP: 359,
       descEn: "Complete manager portal for turf field booking, automated split-bill & revenue reports.",
@@ -180,8 +164,8 @@ export default function ProPassPage() {
     {
       qEn: "Which payment methods are supported?",
       qAr: "ما هي وسائل الدفع المدعومة؟",
-      aEn: "We support Visa & Mastercard credit/debit cards, PayPal, Fawry pay codes, Vodafone Cash, and InstaPay wallet transfers. Payment API gateway keys can be configured seamlessly.",
-      aAr: "ندعم بطاقات الفيزا والماستركارد، PayPal، كود فوري، فودافون كاش، وتحويلات إنستاباي. يتم ربط بوابات الدفع الإلكتروني بشكل مباشر.",
+      aEn: "We support Visa & Mastercard credit/debit cards, Fawry pay codes, Vodafone Cash, and PayPal Express. Official electronic gateway integrations are launching soon.",
+      aAr: "ندعم بطاقات الفيزا والماستركارد، كود فوري، فودافون كاش، وحسابات PayPal. جاري ربط بوابات الدفع الإلكترونية الرسمية.",
     },
     {
       qEn: "Can I switch between monthly and annual billing?",
@@ -190,14 +174,12 @@ export default function ProPassPage() {
       aAr: "نعم! يمكنك الترقية إلى الاشتراك السنوي في أي وقت للاستفادة من خصم 25%، أو إدارة اشتراكك مباشرة من إعدادات حسابك.",
     },
     {
-      qEn: "What happens if I manage a turf field or organize multiple leagues?",
-      qAr: "ماذا لو كنت أدير ملعباً أو أنظم عدة دوريات؟",
-      aEn: "The Club & Turf Owner plan provides full access to pitch reservation slots, automatic split-bill calculators, and financial revenue dashboards tailored for organizers.",
-      aAr: "تمنحك خطة منظم النادي وصاحب الملعب تحكماً كاملاً في مواعيد حجز الملعب، حاسبة تقاسم الحجز، وتقارير الإيرادات المالية المخصصة للمنظمين.",
+      qEn: "Can admins or owners grant subscriptions to friends?",
+      qAr: "هل يمكن للآدمن أو المالك منح اشتراكات مجانية للأصدقاء؟",
+      aEn: "Yes! The platform owner and admins can grant free PRO access to any player or friend directly from the Admin Panel.",
+      aAr: "نعم! يمكن لمالك المنصة والآدمن منح اشتراك PRO مجاني لأي لاعب أو صديق مباشرة من لوحة التحكم.",
     },
   ];
-
-  const [showComingSoon, setShowComingSoon] = useState(false);
 
   const handleSelectPlan = (plan: PlanTier) => {
     if (plan.id === "free") {
@@ -205,48 +187,7 @@ export default function ProPassPage() {
       return;
     }
     setSelectedPlan(plan);
-    setShowComingSoon(false);
     setIsPaymentModalOpen(true);
-  };
-
-  const handleConfirmPayment = async () => {
-    if (!user || !selectedPlan) return;
-
-    // ─── OWNER ONLY: manually grant a subscription via Firestore ───────────
-    // SECURITY: Only the owner (verified by email + uid) can write subscription
-    // data. No regular user can ever reach this branch.
-    const ownerEmail = "a7medorabe7@gmail.com";
-    const ownerUid   = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
-    const userIsOwner =
-      isOwner ||
-      user.email?.toLowerCase() === ownerEmail ||
-      user.uid === ownerUid;
-
-    if (userIsOwner) {
-      setIsProcessing(true);
-      try {
-        await setDoc(doc(db, "players", user.uid), {
-          subscription: {
-            plan: selectedPlan.id,
-            status: "active",
-            expiresAt: "2099-12-31T23:59:59Z",
-            subscribedAt: new Date().toISOString(),
-          }
-        }, { merge: true });
-        toast.success(isAr ? "تم تفعيل خطة المالك بنجاح 👑" : "Owner Plan Activated 👑");
-        setIsPaymentModalOpen(false);
-      } catch (err) {
-        console.error("Owner grant error:", err);
-        toast.error(isAr ? "حدث خطأ أثناء التفعيل" : "Failed to activate");
-      } finally {
-        setIsProcessing(false);
-      }
-      return;
-    }
-
-    // ─── NON-OWNER: Payment gateway not yet live ───────────────────────────
-    // No Firestore write is made. Show the Coming Soon state.
-    setShowComingSoon(true);
   };
 
   return (
@@ -263,25 +204,6 @@ export default function ProPassPage() {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-12 relative z-10 space-y-12">
-          {/* Owner All-Access Banner */}
-          {isOwner && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 rounded-3xl p-5 text-center space-y-2 max-w-4xl mx-auto shadow-2xl backdrop-blur-md"
-            >
-              <div className="inline-flex items-center gap-2 text-amber-300 font-black text-sm uppercase tracking-wider">
-                <Crown className="w-5 h-5 text-amber-400" />
-                <span>{isAr ? "صلاحيات مالك المنصة التامة مفعلة تلقائياً 👑" : "Owner All-Access Active 👑"}</span>
-              </div>
-              <p className="text-xs md:text-sm text-slate-300 font-semibold leading-relaxed">
-                {isAr
-                  ? "بصفتك مالك منصة 11Players، فلديك وصول كامل ودائم لجميع ميزات PRO الكابتن ومنظم النادي عبر كامل الموقع بدون حاجة للاشتراك."
-                  : "As the 11Players Platform Owner, you automatically have 100% full, permanent access to all PRO Captain and Club Organizer features across the entire platform."}
-              </p>
-            </motion.div>
-          )}
-
           {/* ── Hero Header ───────────────────────────────────────────────────── */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <motion.div
@@ -303,14 +225,14 @@ export default function ProPassPage() {
                 <>
                   ارتقِ بتجربتك الكروية إلى{" "}
                   <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-                    مستوى المحترفين 👑
+                    مستوى المحترفين
                   </span>
                 </>
               ) : (
                 <>
                   Elevate Your Football Experience to{" "}
                   <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-                    Pro Level 👑
+                    Pro Level
                   </span>
                 </>
               )}
@@ -327,14 +249,13 @@ export default function ProPassPage() {
                 : "Unlock AI match scout reports, 3D kit builder customization, golden verified badge, and unlimited community access."}
             </motion.p>
 
-            {/* Billing Switcher & Currency Toggle */}
+            {/* Billing Switcher (EGP Currency) */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4"
+              className="pt-6 flex items-center justify-center gap-4"
             >
-              {/* Annual / Monthly Toggle */}
               <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1 shadow-inner">
                 <button
                   onClick={() => setIsAnnual(false)}
@@ -342,7 +263,7 @@ export default function ProPassPage() {
                     !isAnnual ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {isAr ? "اشتراك شهري" : "Monthly Billing"}
+                  {isAr ? "اشتراك شهري (EGP)" : "Monthly Billing (EGP)"}
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
@@ -358,39 +279,13 @@ export default function ProPassPage() {
                   </span>
                 </button>
               </div>
-
-              {/* Currency Toggle */}
-              <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1 text-xs font-black">
-                <button
-                  onClick={() => setCurrency("EGP")}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    currency === "EGP" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  EGP (جنيه)
-                </button>
-                <button
-                  onClick={() => setCurrency("USD")}
-                  className={`px-3 py-1.5 rounded-xl transition-all ${
-                    currency === "USD" ? "bg-emerald-600 text-white" : "text-slate-400 hover:text-white"
-                  }`}
-                >
-                  USD ($)
-                </button>
-              </div>
             </motion.div>
           </div>
 
           {/* ── Pricing Cards Grid ────────────────────────────────────────────── */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {plans.map((plan, idx) => {
-              const price = isAnnual
-                ? currency === "EGP"
-                  ? plan.priceAnnualEGP
-                  : plan.priceAnnualUSD
-                : currency === "EGP"
-                ? plan.priceMonthlyEGP
-                : plan.priceMonthlyUSD;
+              const price = isAnnual ? plan.priceAnnualEGP : plan.priceMonthlyEGP;
 
               return (
                 <motion.div
@@ -427,7 +322,7 @@ export default function ProPassPage() {
                       ) : (
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-4xl font-black font-mono text-white">
-                            {currency === "USD" ? `$${price}` : `${price} EGP`}
+                            {price} EGP
                           </span>
                           <span className="text-xs text-slate-400 font-bold">
                             / {isAr ? (isAnnual ? "شهر (يُدفع سنوياً)" : "شهر") : (isAnnual ? "mo (billed yearly)" : "month")}
@@ -481,7 +376,7 @@ export default function ProPassPage() {
               </h2>
               <p className="text-slate-400 text-xs md:text-sm font-medium">
                 {isAr
-                  ? "أقوى حزمة مميزات مصممة للاعبي كرة القدم التنافسية ومنظمي الملاقات"
+                  ? "أقوى حزمة مميزات مصممة للاعبي كرة القدم التنافسية ومنظمي اللقاءات"
                   : "Powerful features built specifically for competitive players and match managers"}
               </p>
             </div>
@@ -576,7 +471,7 @@ export default function ProPassPage() {
           </div>
         </div>
 
-        {/* ── Payment Gateway Modal ─────────────────────────────────────────── */}
+        {/* ── Payment Gateway Integration Coming Soon Modal ──────────────────── */}
         <AnimatePresence>
           {isPaymentModalOpen && selectedPlan && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
@@ -584,141 +479,82 @@ export default function ProPassPage() {
                 initial={{ opacity: 0, scale: 0.95, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="w-full max-w-lg glass-card p-6 md:p-8 rounded-3xl border border-slate-800 bg-slate-900 text-white shadow-2xl space-y-6"
+                className="w-full max-w-md glass-card p-6 md:p-8 rounded-3xl border border-amber-500/30 bg-slate-900 text-white shadow-2xl space-y-6 text-center"
               >
-                {/* Header */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-slate-950 font-black shadow-lg shadow-amber-500/20">
-                      👑
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-black text-white">
-                        {isAr ? `ترقية إلى ${selectedPlan.nameAr}` : `Upgrade to ${selectedPlan.nameEn}`}
-                      </h3>
-                      <p className="text-xs text-slate-400 font-semibold">
-                        {isAnnual ? (isAr ? "اشتراك سنوي (خصم 25%)" : "Annual Pass (25% OFF)") : (isAr ? "اشتراك شهري" : "Monthly Pass")}
-                      </p>
-                    </div>
+                {/* Lock Icon */}
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 flex items-center justify-center text-3xl shadow-inner">
+                    🚀
                   </div>
-                  <button
-                    onClick={() => setIsPaymentModalOpen(false)}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400"
-                  >
-                    ✕
-                  </button>
                 </div>
 
-                {/* ── TWO STATES: Coming Soon (non-owner) vs Owner Confirm ──────── */}
-                {showComingSoon ? (
-                  /* ── COMING SOON STATE ─────────────────────────────────────── */
-                  <div className="space-y-5 text-center py-2">
-                    <div className="flex justify-center">
-                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/30 flex items-center justify-center text-3xl shadow-inner">
-                        🔐
+                {/* Title & Plan Info */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-amber-300">
+                    {isAr ? "بوابة الدفع الإلكتروني قريباً 🚀" : "Payment Gateway Integration Coming Soon 🚀"}
+                  </h3>
+                  <p className="text-xs text-slate-300 font-bold">
+                    {isAr ? `الخطة المختارة: ${selectedPlan.nameAr}` : `Selected Plan: ${selectedPlan.nameEn}`}
+                  </p>
+                  <p className="text-sm font-black font-mono text-emerald-400">
+                    {isAnnual ? selectedPlan.priceAnnualEGP : selectedPlan.priceMonthlyEGP} EGP / {isAr ? "شهر" : "month"}
+                  </p>
+                </div>
+
+                {/* Description */}
+                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 leading-relaxed space-y-2 text-right rtl:text-right ltr:text-left">
+                  <p className="font-medium">
+                    {isAr
+                      ? "🔒 نعمل حالياً على ربط بوابات الدفع الإلكترونية الرسمية (PayMob، فوري، فودافون كاش، فيزا). لم تكتمل عملية الربط بعد ولن يتم خصم أي أموال."
+                      : "🔒 We are currently integrating official payment gateways (PayMob, Fawry, Vodafone Cash, Visa). Integration is in progress and no charges can be made."}
+                  </p>
+                  <p className="font-bold text-amber-300">
+                    {isAr
+                      ? "💡 يمكن لمالك المنصة والآدمن تفعيل اشتراك PRO مجاني لك ولأي لاعب عبر لوحة التحكم."
+                      : "💡 Platform Owner & Admins can grant free PRO subscriptions to any player via the Admin Panel."}
+                  </p>
+                </div>
+
+                {/* Payment Methods Disabled Preview */}
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
+                    {isAr ? "وسائل الدفع الجاري ربطها:" : "Gateways Under Integration:"}
+                  </span>
+                  <div className="grid grid-cols-2 gap-2 opacity-75 pointer-events-none select-none">
+                    {[
+                      { label: "💳 Visa / Mastercard" },
+                      { label: "📱 Vodafone Cash" },
+                      { label: "🏪 Fawry Pay" },
+                      { label: "🌐 PayPal Express" },
+                    ].map((pm, i) => (
+                      <div key={i} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-bold text-slate-400 flex items-center justify-between">
+                        <span>{pm.label}</span>
+                        <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-extrabold">
+                          {isAr ? "قريباً" : "Soon"}
+                        </span>
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <h4 className="text-lg font-black text-amber-300">
-                        {isAr ? "بوابة الدفع قريباً 🚀" : "Payment Gateway Coming Soon 🚀"}
-                      </h4>
-                      <p className="text-xs text-slate-400 leading-relaxed font-medium max-w-xs mx-auto">
-                        {isAr
-                          ? "نعمل على ربط بوابة الدفع الآمنة. ستُطلق قريباً مع دعم كامل لفيزا، فوري، فودافون كاش، وباي بال."
-                          : "We're integrating a secure payment gateway. Launching soon with full support for Visa, Fawry, Vodafone Cash & PayPal."}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 opacity-60 pointer-events-none select-none">
-                      {["💳 Visa / Mastercard", "📱 Vodafone Cash", "🏪 Fawry Pay", "🌐 PayPal"].map((pm, i) => (
-                        <div key={i} className="p-2.5 rounded-xl border border-slate-700 bg-slate-800/50 text-[11px] font-bold text-slate-500 flex items-center justify-between gap-1">
-                          <span>{pm}</span>
-                          <span className="text-[9px] bg-slate-700 px-1.5 py-0.5 rounded text-slate-600">{isAr ? "قريباً" : "Soon"}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      {isAr ? "للوصول المبكر تواصل مع المالك 📩" : "For early access, contact the platform owner 📩"}
-                    </p>
-                    <button
-                      onClick={() => { setIsPaymentModalOpen(false); setShowComingSoon(false); }}
-                      className="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm transition-colors"
-                    >
-                      {isAr ? "حسناً، سأنتظر" : "Got it, I'll wait"}
-                    </button>
+                    ))}
                   </div>
-                ) : (
-                  /* ── STANDARD CHECKOUT STATE ───────────────────────────────── */
-                  <>
-                    {/* Amount summary */}
-                    <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-400">{isAr ? "المبلغ الإجمالي:" : "Total Amount:"}</span>
-                      <span className="text-2xl font-black font-mono text-amber-400">
-                        {currency === "USD"
-                          ? `$${isAnnual ? selectedPlan.priceAnnualUSD : selectedPlan.priceMonthlyUSD}`
-                          : `${isAnnual ? selectedPlan.priceAnnualEGP : selectedPlan.priceMonthlyEGP} EGP`}
-                      </span>
-                    </div>
+                </div>
 
-                    {/* Payment Method Selector */}
-                    <div className="space-y-3">
-                      <label className="text-xs font-bold text-slate-400 block">
-                        {isAr ? "اختر طريقة الدفع:" : "Select Payment Method:"}
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {[
-                          { id: "card", labelEn: "Credit / Debit Card", labelAr: "بطاقة ائتمان / فيزا", icon: <CreditCard className="w-4 h-4 text-emerald-400" /> },
-                          { id: "vodafone", labelEn: "Vodafone Cash", labelAr: "فودافون كاش", icon: <Zap className="w-4 h-4 text-red-400" /> },
-                          { id: "fawry", labelEn: "Fawry Pay Code", labelAr: "كود دَفع فوري", icon: <Award className="w-4 h-4 text-amber-400" /> },
-                          { id: "paypal", labelEn: "PayPal Express", labelAr: "حساب PayPal", icon: <Globe className="w-4 h-4 text-cyan-400" /> },
-                        ].map((pm) => (
-                          <button
-                            key={pm.id}
-                            onClick={() => setPaymentMethod(pm.id as any)}
-                            className={`p-3 rounded-2xl border text-left flex items-center gap-2.5 transition-all text-xs font-bold ${
-                              paymentMethod === pm.id
-                                ? "bg-slate-800 border-amber-400 text-white shadow-md shadow-amber-500/10"
-                                : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
-                            }`}
-                          >
-                            {pm.icon}
-                            <span>{isAr ? pm.labelAr : pm.labelEn}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Security note */}
-                    <div className="flex items-start gap-2.5 bg-slate-950/80 p-3 rounded-xl border border-slate-800/80">
-                      <span className="text-base shrink-0 mt-0.5">🔒</span>
-                      <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
-                        {isAr
-                          ? "جميع المدفوعات مشفرة وآمنة. لن يتم تفعيل الاشتراك إلا بعد التحقق الكامل من الدفع."
-                          : "All payments are encrypted & secure. Subscription activates only after full payment verification."}
-                      </p>
-                    </div>
-
-                    {/* Confirm button */}
-                    <div className="flex items-center justify-end gap-3 pt-1">
-                      <button
-                        onClick={() => setIsPaymentModalOpen(false)}
-                        className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition-colors"
-                      >
-                        {isAr ? "إلغاء" : "Cancel"}
-                      </button>
-                      <button
-                        onClick={handleConfirmPayment}
-                        disabled={isProcessing}
-                        className="px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 flex items-center gap-2 disabled:opacity-60"
-                      >
-                        {isProcessing ? (
-                          <span>{isAr ? "جاري المعالجة..." : "Processing..."}</span>
-                        ) : (
-                          <span>{isAr ? "تأكيد الدفع والتفعيل" : "Confirm & Activate Pass"}</span>
-                        )}
-                      </button>
-                    </div>
-                  </>
+                {/* Admin Shortcut if Admin/Owner */}
+                {(isAdmin || isOwner) && (
+                  <Link
+                    href="/admin"
+                    onClick={() => setIsPaymentModalOpen(false)}
+                    className="block w-full py-2.5 px-4 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors"
+                  >
+                    👑 {isAr ? "الذهاب للوحة التحكم لمنح اشتراك لاعب" : "Go to Admin Panel to Grant PRO"}
+                  </Link>
                 )}
+
+                {/* Close Button */}
+                <button
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs transition-colors shadow-lg"
+                >
+                  {isAr ? "حسناً، فهمت ذلك" : "Got it, thanks!"}
+                </button>
               </motion.div>
             </div>
           )}
