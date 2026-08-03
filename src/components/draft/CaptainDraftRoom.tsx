@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useId } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PESPosition, PlayerProfile } from '@/types';
 import { calculateTeamMetrics, calculatePSI } from '@/lib/engine';
@@ -132,42 +132,20 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
   turnSeconds = 30,
   onMatchLaunch,
 }) => {
-  // Empty state — no real players provided
-  if (initialPlayers.length < 4) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center space-y-5">
-        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-          <Shield className="w-10 h-10 text-emerald-400/60" />
-        </div>
-        <div className="space-y-2">
-          <h2 className="text-2xl font-black text-white">No Players Available</h2>
-          <p className="text-slate-400 text-sm max-w-xs leading-relaxed">
-            The Captain Draft Room requires at least 4 registered players in your community. Add players first, then come back to start the draft.
-          </p>
-        </div>
-        <a
-          href="/community"
-          className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/20 transition-all"
-        >
-          Go to Player Directory
-        </a>
-      </div>
-    );
-  }
   // Mode state
   const [draftMode, setDraftMode] = useState<'snake' | 'classic'>('snake');
 
   // Separate Captains from Pool
   const { cap1, cap2, initialAvailable } = useMemo(() => {
-    const p1 = initialPlayers.find((p) => p.uid === captain1Uid) || initialPlayers[0];
-    const p2 = initialPlayers.find((p) => p.uid === captain2Uid) || initialPlayers[1];
-    const pool = initialPlayers.filter((p) => p.uid !== p1.uid && p.uid !== p2.uid);
+    const p1 = initialPlayers.find((p) => p.uid === captain1Uid) || initialPlayers[0] || {} as PlayerProfile;
+    const p2 = initialPlayers.find((p) => p.uid === captain2Uid) || initialPlayers[1] || {} as PlayerProfile;
+    const pool = initialPlayers.filter((p) => p.uid !== p1?.uid && p.uid !== p2?.uid);
     return { cap1: p1, cap2: p2, initialAvailable: pool };
   }, [initialPlayers, captain1Uid, captain2Uid]);
 
   // Draft State
-  const [teamA, setTeamA] = useState<PlayerProfile[]>([cap1]);
-  const [teamB, setTeamB] = useState<PlayerProfile[]>([cap2]);
+  const [teamA, setTeamA] = useState<PlayerProfile[]>(() => cap1 ? [cap1] : []);
+  const [teamB, setTeamB] = useState<PlayerProfile[]>(() => cap2 ? [cap2] : []);
   const [availablePlayers, setAvailablePlayers] = useState<PlayerProfile[]>(initialAvailable);
   const [pickLogs, setPickLogs] = useState<DraftPickLogItem[]>([]);
   const [pickIndex, setPickIndex] = useState<number>(0);
@@ -189,26 +167,8 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
   // Real-time Balance Calculation
   const balance = useMemo(() => calculateDraftBalance(teamA, teamB), [teamA, teamB]);
 
-  // Timer Interval Effect
-  useEffect(() => {
-    if (isCompleted || availablePlayers.length === 0) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          // Auto-Draft Trigger on Timeout
-          handleAutoDraft();
-          return turnSeconds;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [pickIndex, isCompleted, availablePlayers, turnSeconds, draftMode]);
-
   // Draft a player
-  const executePick = (player: PlayerProfile) => {
+  const executePick = useCallback((player: PlayerProfile) => {
     if (!currentTurn || isCompleted) return;
 
     const newTeamA = currentTurn === 'teamA' ? [...teamA, player] : teamA;
@@ -233,17 +193,34 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
       setPickIndex((prev) => prev + 1);
       setTimeLeft(turnSeconds);
     }
-  };
+  }, [currentTurn, isCompleted, teamA, teamB, availablePlayers, pickIndex, turnSeconds]);
 
   // Auto Draft Fallback
-  const handleAutoDraft = () => {
+  const handleAutoDraft = useCallback(() => {
     if (!currentTurn || availablePlayers.length === 0) return;
     const draftingTeam = currentTurn === 'teamA' ? teamA : teamB;
     const bestPick = autoDraftPick(availablePlayers, draftingTeam);
     if (bestPick) {
       executePick(bestPick);
     }
-  };
+  }, [currentTurn, availablePlayers, teamA, teamB, executePick]);
+
+  // Timer Interval Effect
+  useEffect(() => {
+    if (isCompleted || availablePlayers.length === 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleAutoDraft();
+          return turnSeconds;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pickIndex, isCompleted, availablePlayers, turnSeconds, draftMode, handleAutoDraft]);
 
   // Filtered available pool
   const filteredAvailable = useMemo(() => {
@@ -257,6 +234,29 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
       return true;
     });
   }, [availablePlayers, filterPosition]);
+
+  // Empty state — no real players provided
+  if (initialPlayers.length < 4) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center space-y-5">
+        <div className="w-20 h-20 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+          <Shield className="w-10 h-10 text-emerald-400/60" />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-black text-white">No Players Available</h2>
+          <p className="text-slate-400 text-sm max-w-xs leading-relaxed">
+            The Captain Draft Room requires at least 4 registered players in your community. Add players first, then come back to start the draft.
+          </p>
+        </div>
+        <a
+          href="/community"
+          className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/20 transition-all"
+        >
+          Go to Player Directory
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-7xl mx-auto space-y-6 font-sans text-slate-100 p-2 sm:p-4">

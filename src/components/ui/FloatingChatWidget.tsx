@@ -29,6 +29,25 @@ interface AIChatMsg {
 
 import FormattedText, { formatBidiText } from "@/components/ui/FormattedText";
 
+const formatMessageTime = (ts: any, isAr: boolean) => {
+  if (!ts) return "";
+  let date: Date | null = null;
+  if (typeof ts?.toDate === "function") {
+    date = ts.toDate();
+  } else if (ts?.seconds) {
+    date = new Date(ts.seconds * 1000);
+  } else if (ts instanceof Date) {
+    date = ts;
+  } else if (typeof ts === "number" || typeof ts === "string") {
+    date = new Date(ts);
+  }
+  if (!date || isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString(isAr ? "ar-EG" : "en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 export default function FloatingChatWidget() {
   const [mounted, setMounted] = useState(false);
   const { user, isAdmin, isOwner, isGlobalModerator } = useAuth();
@@ -985,6 +1004,11 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                                 {isAr ? "فريق الدعم" : "Official Support"}
                               </span>
                             )}
+                            {formatMessageTime(msg.timestamp, isAr) && (
+                              <span className="text-[10px] text-slate-400/90 font-medium">
+                                {formatMessageTime(msg.timestamp, isAr)}
+                              </span>
+                            )}
                           </div>
 
                           {/* Reply preview */}
@@ -1019,6 +1043,13 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                             )}
 
                             <p className="whitespace-pre-wrap font-medium">{msg.text}</p>
+
+                            {/* Sent time inside bubble */}
+                            {formatMessageTime(msg.timestamp, isAr) && (
+                              <div className={`flex items-center justify-end gap-1 mt-1 text-[9px] ${isMe ? "text-emerald-100/75" : "text-slate-400/80"} font-medium`}>
+                                <span>{formatMessageTime(msg.timestamp, isAr)}</span>
+                              </div>
+                            )}
 
                             {/* Reactions row */}
                             {hasReactions && (

@@ -25,6 +25,8 @@ import TurfMatchDisplay from "@/components/match/TurfMatchDisplay";
 import LiveMatchController from "@/components/match/LiveMatchController";
 import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
 import RegistrationPanel from "@/components/match/RegistrationPanel";
+import InteractivePitchSimulator from "@/components/tactics/InteractivePitchSimulator";
+import LiveMvpVotingWidget from "@/components/match/LiveMvpVotingWidget";
 
 // Modular Sub-Components
 import MatchHeader from "@/components/match/MatchHeader";
@@ -782,6 +784,10 @@ function MatchContent() {
                           </div>
                         </div>
                       )}
+
+                      {/* Live MVP Voting & Tactical Simulator Innovations */}
+                      <LiveMvpVotingWidget />
+                      <InteractivePitchSimulator />
                     </div>
                   )}
                 </div>

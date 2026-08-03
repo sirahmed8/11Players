@@ -15,6 +15,7 @@ import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import FormIcon from "@/components/ui/FormIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainerVariants, staggerItemVariants, microSpringProps, microSpringRowProps } from "@/lib/animations";
+import LeagueTiersWidget from "@/components/leaderboard/LeagueTiersWidget";
 
 // ─── Avatar ─────────────────────────────────────────────────────────────────
 function PlayerAvatar({
@@ -737,6 +738,9 @@ export default function StatsPage() {
             <SiteSkeletonLoader variant="stats" />
           ) : (
             <>
+              {/* Competitive Division Tiers */}
+              <LeagueTiersWidget />
+
               {/* ── Ballon d'Or Podium ───────────────────────────────────── */}
               <section>
                 <div className="flex items-center gap-2 mb-6">

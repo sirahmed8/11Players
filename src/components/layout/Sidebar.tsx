@@ -13,6 +13,8 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
+import QuickMatchGeneratorModal from "@/components/match/QuickMatchGeneratorModal";
+import CommandPaletteModal from "@/components/ui/CommandPaletteModal";
 
 import { Suspense } from "react";
 
@@ -28,7 +30,21 @@ function SidebarContent() {
   const isAr = locale === "ar";
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isQuickMatchOpen, setIsQuickMatchOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [unreadInboxCount, setUnreadInboxCount] = useState(0);
+
+  // Global Ctrl+K / Cmd+K listener for Command Palette
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
   const [pendingEditsCount, setPendingEditsCount] = useState(0);
@@ -566,6 +582,8 @@ function SidebarContent() {
           </div>
         </div>
       </div>
+      <QuickMatchGeneratorModal isOpen={isQuickMatchOpen} onClose={() => setIsQuickMatchOpen(false)} />
+      <CommandPaletteModal isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} onOpenQuickMatch={() => setIsQuickMatchOpen(true)} />
     </aside>
   );
 }
