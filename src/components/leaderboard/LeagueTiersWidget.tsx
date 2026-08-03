@@ -20,7 +20,7 @@ interface TierDef {
   icon: React.ReactNode;
 }
 
-const TIER_DEFS: TierDef[] = [
+export const TIER_DEFS: TierDef[] = [
   {
     id: "champions",
     nameEn: "Champions League",
