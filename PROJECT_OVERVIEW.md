@@ -426,6 +426,10 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - **Quick Match Generator Modal (`src/components/match/QuickMatchGeneratorModal.tsx`)**: 3-step rapid match creation wizard trigger accessible globally from `Sidebar.tsx`.
   - **Competitive League Tier Rankings (`src/components/leaderboard/LeagueTiersWidget.tsx`)**: Division tier ranking widget (Champions League, Master Division, Premier Tier, Challenge League) powered by **real live Firestore player OVR statistics**, dynamically computing division player counts and roster percentage distribution.
   - **Global Command Palette Modal (`CommandPaletteModal.tsx`)**: Global keyboard shortcut palette (`Ctrl+K` / `Cmd+K`) enabling instant search and quick actions across all navigation routes, settings toggles, and match creation wizards.
+- **Legal Terms & Privacy Disclaimer Integration (`page.tsx`)**:
+  - Added professional agreement prompt below Google Login CTA button on home page: *"By continuing, you agree to 11Players Platform Terms of Service and Privacy Policy."* with clickable links to `/tos` and `/privacy` in both English & Arabic.
+- **Clean Architecture & Sound System Removal**:
+  - Removed audio synthesizer engine and sound controls to maintain clean, quiet, and ultra-fast UI rendering.
 - **Quality & Verification**:
   - 100/100 Vitest unit tests passing cleanly across 9 test suites (`npm run test`).
   - Next.js 16 production build (`npm run build`) compiled successfully across all 49 routes.

@@ -412,24 +412,55 @@ export default function Home() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col sm:flex-row items-center gap-4"
+            className="flex flex-col items-center gap-3"
           >
-            <motion.button
-              onClick={handleGoogleLogin}
-              disabled={loginInProgress}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="relative group inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 disabled:opacity-60 overflow-hidden cursor-pointer"
-            >
-              {loginInProgress ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
-              <span className="relative">{t("cta_login")}</span>
-              {!loginInProgress && <ArrowRight className="relative w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />}
-            </motion.button>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <motion.button
+                onClick={handleGoogleLogin}
+                disabled={loginInProgress}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="relative group inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 disabled:opacity-60 overflow-hidden cursor-pointer"
+              >
+                {loginInProgress ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
+                <span className="relative">{t("cta_login")}</span>
+                {!loginInProgress && <ArrowRight className="relative w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />}
+              </motion.button>
 
-            <Link href="/guide" className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-base transition-all hover:border-emerald-500/50 group">
-              {isAr ? "تعرّف على المنصة" : "Learn more"}
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />
-            </Link>
+              <Link href="/guide" className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-base transition-all hover:border-emerald-500/50 group">
+                {isAr ? "تعرّف على المنصة" : "Learn more"}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />
+              </Link>
+            </div>
+
+            {/* Legal Agreement Disclaimer */}
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium text-center mt-1 max-w-md">
+              {isAr ? (
+                <>
+                  بالمتابعة، فإنك توافق على{" "}
+                  <Link href="/tos" className="text-emerald-500 hover:underline font-semibold">
+                    شروط الخدمة
+                  </Link>{" "}
+                  و{" "}
+                  <Link href="/privacy" className="text-emerald-500 hover:underline font-semibold">
+                    سياسة الخصوصية
+                  </Link>{" "}
+                  لمنصة 11Players.
+                </>
+              ) : (
+                <>
+                  By continuing, you agree to 11Players Platform{" "}
+                  <Link href="/tos" className="text-emerald-500 hover:underline font-semibold">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-emerald-500 hover:underline font-semibold">
+                    Privacy Policy
+                  </Link>
+                  .
+                </>
+              )}
+            </p>
           </motion.div>
         </div>
 

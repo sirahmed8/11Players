@@ -4,11 +4,10 @@ import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, Globe, Sun, Moon, LogOut, User, Volume2, VolumeX } from "lucide-react";
+import { Settings, Globe, Sun, Moon, LogOut, User } from "lucide-react";
 import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
-import { soundFx } from "@/lib/soundEffects";
 
 interface SettingsMenuProps {
   direction?: "up" | "down";
@@ -21,13 +20,6 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
   const { user, logout }       = useAuth();
   const router                 = useRouter();
   const menuRef                = useRef<HTMLDivElement>(null);
-  const [isMuted, setIsMuted]   = useState<boolean>(() => soundFx.getIsMuted());
-
-  const toggleSound = () => {
-    const muted = soundFx.toggleMute();
-    setIsMuted(muted);
-    if (!muted) soundFx.playClick();
-  };
 
   // Close on outside click
   useEffect(() => {
@@ -181,7 +173,7 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
               </span>
             </button>
 
-            {/* Theme toggle */}
+// Theme toggle
             <button
               onClick={toggleTheme}
               className="
@@ -201,29 +193,6 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
               </div>
               <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {theme === "dark" ? t("light_mode") : t("dark_mode")}
-              </span>
-            </button>
-
-            {/* Sound Effects toggle */}
-            <button
-              onClick={toggleSound}
-              className="
-                w-full px-4 py-3 flex items-center gap-3
-                hover:bg-slate-50 dark:hover:bg-slate-800/60
-                transition-colors duration-150
-                text-start group
-              "
-              role="menuitem"
-            >
-              <div className="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center group-hover:bg-teal-500/20 transition-colors">
-                {isMuted ? (
-                  <VolumeX className="w-4 h-4 text-slate-400" />
-                ) : (
-                  <Volume2 className="w-4 h-4 text-emerald-500" />
-                )}
-              </div>
-              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                {isMuted ? (locale === "ar" ? "تفعيل الأصوات 🔊" : "Unmute Audio 🔊") : (locale === "ar" ? "كتم الأصوات 🔇" : "Mute Audio 🔇")}
               </span>
             </button>
 

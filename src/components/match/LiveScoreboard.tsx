@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { Crown, Sparkles, Flame } from "lucide-react";
+import React from "react";
+import { Crown, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-import { soundFx } from "@/lib/soundEffects";
 
 interface LiveScoreboardProps {
   recordedStats: any;
@@ -62,7 +61,6 @@ export default function LiveScoreboard({
       {/* Scoreboard Center Badge */}
       <motion.div
         whileHover={{ scale: 1.04 }}
-        onClick={() => soundFx.playGoal()}
         className="flex flex-col items-center justify-center bg-slate-950/90 px-8 py-4 rounded-2xl border border-slate-800 shadow-inner relative z-10 cursor-pointer group"
       >
         <span className="text-[10px] font-black text-amber-400 uppercase mb-1 flex items-center gap-1">

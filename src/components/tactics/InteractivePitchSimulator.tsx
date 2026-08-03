@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Sparkles, Move, RefreshCw, Layers, Volume2, VolumeX, CheckCircle, Flame } from "lucide-react";
-import { soundFx } from "@/lib/soundEffects";
+import { Shield, Sparkles, Move, RefreshCw, Layers, CheckCircle, Flame } from "lucide-react";
 
 export interface TacticalPlayer {
   id: string;
@@ -44,7 +43,6 @@ export const InteractivePitchSimulator: React.FC<InteractivePitchSimulatorProps>
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
   const [pressingIntensity, setPressingIntensity] = useState<number>(75);
   const [tacticalWidth, setTacticalWidth] = useState<number>(65);
-  const [isMuted, setIsMuted] = useState<boolean>(soundFx.getIsMuted());
 
   // Calculate Team Chemistry & Strength Index
   const chemistryStats = useMemo(() => {
@@ -56,7 +54,6 @@ export const InteractivePitchSimulator: React.FC<InteractivePitchSimulatorProps>
 
   // Handle position click-swap or drag selection
   const handlePlayerClick = (p: TacticalPlayer) => {
-    soundFx.playClick();
     if (!selectedPlayerId) {
       setSelectedPlayerId(p.id);
     } else if (selectedPlayerId === p.id) {
@@ -76,19 +73,12 @@ export const InteractivePitchSimulator: React.FC<InteractivePitchSimulatorProps>
         return next;
       });
       setSelectedPlayerId(null);
-      soundFx.playTick();
     }
   };
 
   const handleFormationSelect = (fmt: string) => {
-    soundFx.playClick();
     setFormation(fmt);
     if (onFormationChange) onFormationChange(fmt);
-  };
-
-  const toggleSound = () => {
-    const muted = soundFx.toggleMute();
-    setIsMuted(muted);
   };
 
   return (
@@ -111,14 +101,6 @@ export const InteractivePitchSimulator: React.FC<InteractivePitchSimulatorProps>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Audio toggle button */}
-          <button
-            onClick={toggleSound}
-            className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all border border-slate-700"
-            title={isMuted ? "Unmute Audio" : "Mute Audio"}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
-          </button>
 
           {/* Formations */}
           <div className="flex items-center bg-slate-950/70 p-1 rounded-xl border border-slate-800 text-xs font-bold">
@@ -257,7 +239,6 @@ export const InteractivePitchSimulator: React.FC<InteractivePitchSimulatorProps>
             onClick={() => {
               setPlayersList(DEFAULT_PLAYERS);
               setSelectedPlayerId(null);
-              soundFx.playClick();
             }}
             className="w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-all border border-slate-700 flex items-center justify-center gap-2"
           >

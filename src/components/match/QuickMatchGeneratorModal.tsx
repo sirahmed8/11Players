@@ -2,8 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Zap, X, Users, Shield, ArrowRight, Check } from "lucide-react";
-import { soundFx } from "@/lib/soundEffects";
+import { Zap, X, ArrowRight, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export interface QuickMatchGeneratorModalProps {
@@ -16,14 +15,12 @@ export const QuickMatchGeneratorModal: React.FC<QuickMatchGeneratorModalProps> =
   onClose,
 }) => {
   const router = useRouter();
-  const [step, setStep] = useState<number>(1);
   const [matchFormat, setMatchFormat] = useState<"5v5" | "8v8" | "11v11">("11v11");
   const [turfType, setTurfType] = useState<string>("Natural Grass");
 
   if (!isOpen) return null;
 
   const handleLaunch = () => {
-    soundFx.playGoal();
     onClose();
     router.push("/match/draft");
   };
@@ -48,10 +45,7 @@ export const QuickMatchGeneratorModal: React.FC<QuickMatchGeneratorModalProps> =
               </div>
             </div>
             <button
-              onClick={() => {
-                soundFx.playClick();
-                onClose();
-              }}
+              onClick={onClose}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 transition-all"
             >
               <X className="w-4 h-4" />
@@ -65,10 +59,7 @@ export const QuickMatchGeneratorModal: React.FC<QuickMatchGeneratorModalProps> =
                 {(["5v5", "8v8", "11v11"] as const).map((fmt) => (
                   <button
                     key={fmt}
-                    onClick={() => {
-                      soundFx.playClick();
-                      setMatchFormat(fmt);
-                    }}
+                    onClick={() => setMatchFormat(fmt)}
                     className={`py-3 rounded-xl font-black text-sm border transition-all ${
                       matchFormat === fmt
                         ? "bg-gradient-to-r from-emerald-600 to-teal-600 border-emerald-400 text-white shadow-lg shadow-emerald-500/20"
@@ -87,10 +78,7 @@ export const QuickMatchGeneratorModal: React.FC<QuickMatchGeneratorModalProps> =
                 {["Natural Grass", "Artificial Turf 3G", "Indoor Futsal", "Floodlight Arena"].map((t) => (
                   <button
                     key={t}
-                    onClick={() => {
-                      soundFx.playClick();
-                      setTurfType(t);
-                    }}
+                    onClick={() => setTurfType(t)}
                     className={`py-2.5 px-3 rounded-xl font-bold text-xs border text-left transition-all flex items-center justify-between ${
                       turfType === t
                         ? "bg-slate-800 border-emerald-500 text-emerald-400"

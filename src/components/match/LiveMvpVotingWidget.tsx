@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Star, Vote, CheckCircle2, Flame, Award } from "lucide-react";
-import { soundFx } from "@/lib/soundEffects";
 
 export interface MvpCandidate {
   uid: string;
@@ -38,7 +37,6 @@ export const LiveMvpVotingWidget: React.FC<LiveMvpVotingWidgetProps> = ({
 
   const handleVote = (candidateUid: string) => {
     if (userVotedUid) return;
-    soundFx.playGoal();
     setUserVotedUid(candidateUid);
 
     setCandidatesList((prev) =>

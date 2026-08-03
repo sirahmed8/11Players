@@ -5,7 +5,6 @@ import { Vote, CheckCircle2 } from "lucide-react";
 import { doc, onSnapshot, getDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
-import { soundFx } from "@/lib/soundEffects";
 import { motion } from "framer-motion";
 
 interface MatchPredictionWidgetProps {
@@ -66,8 +65,6 @@ export default function MatchPredictionWidget({
   }, [communityId, matchId, userUid]);
 
   const handleVote = async (choice: 'teamA' | 'teamB' | 'draw') => {
-    soundFx.playClick();
-
     if (!userUid) {
       toast.error(isAr ? "يرجى تسجيل الدخول للتصويت" : "Please log in to vote");
       return;

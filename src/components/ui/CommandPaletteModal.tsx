@@ -2,10 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Command, Zap, Trophy, Shield, Users, Settings, Volume2, VolumeX, Moon, Sun, ArrowRight, X } from "lucide-react";
+import { Search, Zap, Trophy, Shield, Users, Moon, Sun, ArrowRight, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
-import { soundFx } from "@/lib/soundEffects";
 
 export interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -28,7 +27,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
   onOpenQuickMatch,
 }) => {
   const router = useRouter();
-  const { locale, toggleLocale } = useLocale();
+  const { locale } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const isAr = locale === "ar";
   const [query, setQuery] = useState("");
@@ -37,11 +36,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        soundFx.playClick();
         if (isOpen) onClose();
-        else {
-          // Open triggered from parent or direct listener
-        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -93,17 +88,6 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       action: () => {
         onClose();
         router.push("/stats");
-      },
-    },
-    {
-      id: "toggle-sound",
-      titleEn: soundFx.getIsMuted() ? "Unmute Sound Effects" : "Mute Sound Effects",
-      titleAr: soundFx.getIsMuted() ? "تفعيل الأصوات" : "كتم الأصوات",
-      category: "settings",
-      icon: soundFx.getIsMuted() ? <VolumeX className="w-4 h-4 text-slate-400" /> : <Volume2 className="w-4 h-4 text-emerald-400" />,
-      action: () => {
-        soundFx.toggleMute();
-        onClose();
       },
     },
     {
@@ -164,7 +148,6 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => {
-                    soundFx.playClick();
                     item.action();
                   }}
                   className="w-full p-3 rounded-2xl flex items-center justify-between hover:bg-slate-800/80 transition-all text-left group"

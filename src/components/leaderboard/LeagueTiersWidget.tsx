@@ -3,7 +3,6 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Crown, Sparkles, Shield, Medal, Award } from "lucide-react";
-import { soundFx } from "@/lib/soundEffects";
 import { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
@@ -129,7 +128,6 @@ export const LeagueTiersWidget: React.FC<LeagueTiersWidgetProps> = ({
             <motion.div
               key={tier.id}
               whileHover={{ scale: 1.03, y: -2 }}
-              onClick={() => soundFx.playClick()}
               className={`p-4 rounded-2xl border border-slate-800 bg-slate-950/70 hover:border-slate-700 shadow-lg ${tier.glowColor} transition-all space-y-3 cursor-pointer`}
             >
               {/* Icon + OVR badge */}
