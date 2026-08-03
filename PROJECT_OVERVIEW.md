@@ -430,7 +430,12 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Added professional agreement prompt below Google Login CTA button on home page: *"By continuing, you agree to 11Players Platform Terms of Service and Privacy Policy."* with clickable links to `/tos` and `/privacy` in both English & Arabic.
 - **Clean Architecture & Sound System Removal**:
   - Removed audio synthesizer engine and sound controls to maintain clean, quiet, and ultra-fast UI rendering.
+- **11Players PRO Pass Monetization Hub (`src/app/pro-pass/page.tsx`)**:
+  - Premium membership subscription hub featuring Grassroots (Free), PRO Captain Pass ($4.99/mo or 149 EGP/mo), and Club Organizer Pass ($14.99/mo or 449 EGP/mo) tiers.
+  - Interactive monthly vs. annual billing toggle (25% annual discount), currency selector (EGP & USD), feature comparison matrix, and FAQ section.
+  - Payment gateway checkout modal supporting Credit/Debit Cards (Visa/Mastercard), Vodafone Cash, Fawry Pay codes, and PayPal Express.
+  - Sidebar navigation link with glowing Crown badge added for seamless access.
 - **Quality & Verification**:
   - 100/100 Vitest unit tests passing cleanly across 9 test suites (`npm run test`).
-  - Next.js 16 production build (`npm run build`) compiled successfully across all 49 routes.
+  - Next.js 16 production build (`npm run build`) compiled successfully across all 50 routes.
   - Full production push and deployment live on Firebase Hosting (`an-11-players.web.app`).

@@ -7,7 +7,7 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import SettingsMenu from "@/components/layout/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
@@ -372,6 +372,7 @@ function SidebarContent() {
       titleEn: "Personal Hub",
       titleAr: "الحساب الشخصي",
       items: [
+        { href: "/pro-pass", labelEn: "11Players PRO Pass 👑", labelAr: "اشتراك PRO Pass 👑", icon: <Crown className="w-5 h-5 text-amber-400" /> },
         ...(user ? [
           { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
           { href: "/skill-tree", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
