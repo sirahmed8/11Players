@@ -424,8 +424,9 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - **Interactive Pitch Formation Simulator (`src/components/tactics/InteractivePitchSimulator.tsx`)**: 2D pitch board with drag-and-drop & click-to-swap position simulator, formation preset switchers (4-3-3, 4-4-2, 3-5-2, 4-2-3-1), tactical width, pressing intensity, and real-time team strength meters.
   - **Realtime Live Match MVP Voting Widget (`src/components/match/LiveMvpVotingWidget.tsx`)**: Fan poll panel for Man of the Match with real-time percentage progress bars, animated star ratings, candidate cards, and sound effect triggers.
   - **Quick Match Generator Modal (`src/components/match/QuickMatchGeneratorModal.tsx`)**: 3-step rapid match creation wizard trigger accessible globally from `Sidebar.tsx`.
-  - **Competitive League Tier Rankings (`src/components/leaderboard/LeagueTiersWidget.tsx`)**: Division tier ranking widget (Champions League, Master, Diamond, Gold, Silver leagues) with promotion/relegation threshold progress bars and tier badge styling.
+  - **Competitive League Tier Rankings (`src/components/leaderboard/LeagueTiersWidget.tsx`)**: Division tier ranking widget (Champions League, Master Division, Premier Tier, Challenge League) powered by **real live Firestore player OVR statistics**, dynamically computing division player counts and roster percentage distribution.
   - **Global Command Palette Modal (`CommandPaletteModal.tsx`)**: Global keyboard shortcut palette (`Ctrl+K` / `Cmd+K`) enabling instant search and quick actions across all navigation routes, settings toggles, and match creation wizards.
 - **Quality & Verification**:
   - 100/100 Vitest unit tests passing cleanly across 9 test suites (`npm run test`).
   - Next.js 16 production build (`npm run build`) compiled successfully across all 49 routes.
+  - Full production push and deployment live on Firebase Hosting (`an-11-players.web.app`).
