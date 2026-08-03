@@ -738,8 +738,8 @@ export default function StatsPage() {
             <SiteSkeletonLoader variant="stats" />
           ) : (
             <>
-              {/* Competitive Division Tiers */}
-              <LeagueTiersWidget />
+              {/* Competitive Division Tiers — real player counts */}
+              <LeagueTiersWidget players={filteredPlayers} isAr={isAr} />
 
               {/* ── Ballon d'Or Podium ───────────────────────────────────── */}
               <section>
