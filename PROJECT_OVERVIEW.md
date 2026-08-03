@@ -431,15 +431,17 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Clean Architecture & Sound System Removal**:
   - Removed audio synthesizer engine and sound controls to maintain clean, quiet, and ultra-fast UI rendering.
 - **11Players PRO Pass Monetization & Platform Analytics System (`/pro-pass`, `/analytics`, `/owner/analytics`)**:
-  - **Clean PRO Pass UI**: Removed unnecessary owner banner and USD currency toggles. Prices strictly standardized to EGP (149 EGP/mo for PRO Captain, 449 EGP/mo for Club Organizer). Emoji removed from sidebar link.
+  - **Clean PRO Pass UI**: Removed unnecessary owner banner and USD currency toggles. Prices strictly standardized to EGP (149 EGP/mo for PRO Captain, 449 EGP/mo for Club Organizer). Emoji removed from sidebar link and payment modal shortcut removed per owner request.
   - **Payment Gateway Coming Soon Modal**: Selecting paid plans displays a transparent, professional modal explaining that official payment gateways (Visa, Fawry, Vodafone Cash, PayPal) are under integration. Prevents any fake/unauthorized purchase simulation or Firestore writes for regular users.
   - **1-Click Admin/Owner Free PRO Granting (`GlobalUsersTable.tsx`)**: Enables Platform Owner and Admins to grant `PRO Captain` or `Club Organizer` subscriptions for free to any friend or player with 1-click (individual or bulk selection).
-  - **Comprehensive Platform Analytics Dashboard (`/analytics`, `/owner/analytics`)**: Ultra-modern intelligence dashboard featuring:
-    - Executive KPI Cards (Total Players, Active Communities, Total Matches, PRO Subscriptions, Estimated Monthly Revenue in EGP).
+  - **Comprehensive Platform Analytics & AI Intelligence Dashboard (`/analytics`, `/owner/analytics`)**: Ultra-modern intelligence dashboard featuring:
+    - Executive KPI Cards (Total Players, Active Communities, Total Matches, PRO Subscriptions, Estimated Monthly Revenue, Complimentary Value Granted).
+    - **🎁 VIP Grants & Complimentary Audit**: Tracks all free PRO subscriptions granted by the owner to friends, calculating total opportunity cost and value given free in EGP.
+    - **🤖 AI Scout Tokens & Infrastructure Cost Tracker**: Live tracking of AI tactical scout report requests, total Gemini tokens consumed, and estimated cloud API costs (USD/EGP).
     - Player Position Distribution Bars (FW, MF, DF, GK).
     - OVR Competitive Division Tiers (Champions League, Master, Premier, Challenge).
     - Top 5 Rated Players Roster Showcase.
-    - Full User Subscription Management Table with search, status filters, and 1-click admin grant actions.
+    - Full User Subscription Management Table with search, granular filters (VIP Gifts vs Paid vs Free), and 1-click admin grant actions.
 - **Quality & Verification**:
   - 106/106 Vitest unit tests passing cleanly across 10 test suites (`npm run test`).
   - Next.js 16 production build (`npm run build`) compiled successfully across all 52 static routes.

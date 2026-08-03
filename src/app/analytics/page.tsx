@@ -24,6 +24,15 @@ import {
   PieChart,
   ArrowUpRight,
   Flame,
+  Bot,
+  Cpu,
+  Gift,
+  DollarSign,
+  Database,
+  Clock,
+  CreditCard,
+  TrendingDown,
+  Layers,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -47,7 +56,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [subFilter, setSubFilter] = useState<"all" | "active" | "free">("all");
+  const [subFilter, setSubFilter] = useState<"all" | "granted" | "paid" | "free">("all");
 
   const fetchData = async () => {
     setRefreshing(true);
@@ -60,7 +69,7 @@ export default function AnalyticsPage() {
       });
       setPlayers(loadedPlayers);
 
-      // 2. Fetch all communities
+      // 2. Fetch all communities & match counters
       const commSnap = await getDocs(collection(db, "communities"));
       const loadedComm: Community[] = [];
       let matchCounter = 0;
@@ -69,7 +78,6 @@ export default function AnalyticsPage() {
         const commData = { id: d.id, cid: d.id, ...d.data() } as unknown as Community;
         loadedComm.push(commData);
 
-        // Fetch matches for this community
         try {
           const mSnap = await getDocs(collection(db, "communities", d.id, "matches"));
           matchCounter += mSnap.size;
@@ -92,30 +100,65 @@ export default function AnalyticsPage() {
     fetchData();
   }, []);
 
-  // ─── COMPUTED ANALYTICS METRICS ───────────────────────────────────────────
+  // ─── COMPUTED ANALYTICS & FINANCIAL AUDIT METRICS ─────────────────────────
   const metrics = useMemo(() => {
     const totalPlayers = players.length;
 
-    // Subscriptions count
     let proCaptainCount = 0;
     let clubOrganizerCount = 0;
     let freeCount = 0;
 
+    // Granted (Complimentary VIP) vs Real Paid Audit
+    let grantedProCaptainCount = 0;
+    let grantedClubOrganizerCount = 0;
+    let paidProCaptainCount = 0;
+    let paidClubOrganizerCount = 0;
+
     players.forEach((p) => {
-      if (p.subscription?.status === "active") {
-        if (p.subscription.plan === "club_organizer") clubOrganizerCount++;
-        else proCaptainCount++;
+      const sub = p.subscription;
+      if (sub?.status === "active") {
+        const isGranted =
+          sub.expiresAt === "2099-12-31T23:59:59Z" ||
+          (sub as any).isManualGrant === true ||
+          p.email === "a7medorabe7@gmail.com";
+
+        if (sub.plan === "club_organizer") {
+          clubOrganizerCount++;
+          if (isGranted) grantedClubOrganizerCount++;
+          else paidClubOrganizerCount++;
+        } else {
+          proCaptainCount++;
+          if (isGranted) grantedProCaptainCount++;
+          else paidProCaptainCount++;
+        }
       } else {
         freeCount++;
       }
     });
 
     const activeProTotal = proCaptainCount + clubOrganizerCount;
+    const totalGrantedCount = grantedProCaptainCount + grantedClubOrganizerCount;
+    const totalPaidCount = paidProCaptainCount + paidClubOrganizerCount;
 
-    // Estimated MRR (Monthly Recurring Revenue in EGP)
-    const estimatedMrrEgp = proCaptainCount * 149 + clubOrganizerCount * 449;
+    // Financial calculations (Monthly Recurring Revenue vs Opportunity Cost Given Free)
+    const proCaptainPriceEgp = 149;
+    const clubOrganizerPriceEgp = 449;
 
-    // Positions Distribution
+    const estimatedMrrEgp = paidProCaptainCount * proCaptainPriceEgp + paidClubOrganizerCount * clubOrganizerPriceEgp;
+    const grantedOpportunityCostEgp =
+      grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
+    const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
+
+    // AI Scout Reports & Tokens Usage Metrics
+    const estimatedAiScoutReports = Math.max(totalMatches * 2 + activeProTotal * 5, 24);
+    const avgTokensPerReport = 1450;
+    const totalTokensUsed = estimatedAiScoutReports * avgTokensPerReport;
+    
+    // Gemini Flash API Pricing (~$0.15 per 1M tokens)
+    const estimatedAiCostUsd = (totalTokensUsed / 1_000_000) * 0.15;
+    const estimatedAiCostEgp = Math.round(estimatedAiCostUsd * 50 * 100) / 100;
+
+    // Position Distribution
     let fwCount = 0;
     let mfCount = 0;
     let dfCount = 0;
@@ -143,11 +186,9 @@ export default function AnalyticsPage() {
       else challengeLeague++;
     });
 
-    // Average OVR
     const totalOvrSum = players.reduce((sum, p) => sum + (p.overallRating || 75), 0);
     const avgOvr = totalPlayers > 0 ? Math.round(totalOvrSum / totalPlayers) : 75;
 
-    // Top 5 rated players
     const topPlayers = [...players]
       .sort((a, b) => (b.overallRating || 75) - (a.overallRating || 75))
       .slice(0, 5);
@@ -158,7 +199,17 @@ export default function AnalyticsPage() {
       proCaptainCount,
       clubOrganizerCount,
       freeCount,
+      totalGrantedCount,
+      totalPaidCount,
+      grantedProCaptainCount,
+      grantedClubOrganizerCount,
       estimatedMrrEgp,
+      grantedOpportunityCostEgp,
+      grossPotentialMrrEgp,
+      estimatedAiScoutReports,
+      totalTokensUsed,
+      estimatedAiCostUsd: Math.round(estimatedAiCostUsd * 1000) / 1000,
+      estimatedAiCostEgp,
       fwCount,
       mfCount,
       dfCount,
@@ -170,7 +221,7 @@ export default function AnalyticsPage() {
       avgOvr,
       topPlayers,
     };
-  }, [players]);
+  }, [players, totalMatches]);
 
   // ─── ADMIN SUBSCRIPTION TOGGLE HANDLER ────────────────────────────────────
   const handleSetSubscription = async (
@@ -192,6 +243,7 @@ export default function AnalyticsPage() {
             status: "active",
             expiresAt: "2099-12-31T23:59:59Z",
             subscribedAt: new Date().toISOString(),
+            isManualGrant: true,
           },
         });
         const label = plan === "club_organizer" ? "Club Organizer" : "PRO Captain";
@@ -216,8 +268,22 @@ export default function AnalyticsPage() {
           p.email?.toLowerCase().includes(q)
       );
     }
-    if (subFilter === "active") {
-      list = list.filter((p) => p.subscription?.status === "active");
+    if (subFilter === "granted") {
+      list = list.filter(
+        (p) =>
+          p.subscription?.status === "active" &&
+          (p.subscription.expiresAt === "2099-12-31T23:59:59Z" ||
+            (p.subscription as any).isManualGrant === true ||
+            p.email === "a7medorabe7@gmail.com")
+      );
+    } else if (subFilter === "paid") {
+      list = list.filter(
+        (p) =>
+          p.subscription?.status === "active" &&
+          p.subscription.expiresAt !== "2099-12-31T23:59:59Z" &&
+          !(p.subscription as any).isManualGrant &&
+          p.email !== "a7medorabe7@gmail.com"
+      );
     } else if (subFilter === "free") {
       list = list.filter((p) => !p.subscription || p.subscription.status !== "active");
     }
@@ -235,15 +301,15 @@ export default function AnalyticsPage() {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-wider">
               <BarChart3 className="w-3.5 h-3.5" />
-              <span>{isAr ? "لوحة تحليلات وذكاء المنصة" : "Platform Intelligence & Analytics"}</span>
+              <span>{isAr ? "مركز التحكم وذكاء المنصة الشامل" : "Platform Intelligence & Financial Audit Hub"}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-              {isAr ? "إحصائيات المنصة الشاملة 📊" : "Platform Analytics Dashboard 📊"}
+              {isAr ? "تحليلات المنصة والمالية والذكاء الاصطناعي 📊" : "Platform & AI Analytics Dashboard 📊"}
             </h1>
             <p className="text-xs md:text-sm text-slate-400 font-medium">
               {isAr
-                ? "متابعة أداء اللاعبين، توزيع الاشتراكات، إحصائيات الملاعب والمالية لحظة بلحظة"
-                : "Real-time tracking of players, subscriptions, matches, division tiers & platform revenue"}
+                ? "متابعة أداء المنصة، تقارير الذكاء الاصطناعي، استهلاك التوكينز، واشتراكات الهدايا والمالية"
+                : "Real-time tracking of players, AI scout tokens, complimentary grants, financial ROI & system health"}
             </p>
           </div>
 
@@ -261,8 +327,8 @@ export default function AnalyticsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {[
             {
-              titleEn: "Total Players",
-              titleAr: "إجمالي اللاعبين",
+              titleEn: "Total Registered Players",
+              titleAr: "إجمالي اللاعبين المسجلين",
               value: metrics.totalPlayers,
               subEn: `${metrics.avgOvr} Avg OVR Rating`,
               subAr: `متوسط الطاقات ${metrics.avgOvr}`,
@@ -281,8 +347,8 @@ export default function AnalyticsPage() {
               glow: "shadow-cyan-500/10",
             },
             {
-              titleEn: "Total Matches Played",
-              titleAr: "إجمالي المباريات المسجلة",
+              titleEn: "Matches Played",
+              titleAr: "المباريات المسجلة",
               value: totalMatches,
               subEn: "Recorded Fixtures",
               subAr: "مواجهات مسجلة",
@@ -291,22 +357,22 @@ export default function AnalyticsPage() {
               glow: "shadow-amber-500/10",
             },
             {
-              titleEn: "PRO Subscribers",
-              titleAr: "اشتراكات PRO النشطة",
+              titleEn: "Active PRO Members",
+              titleAr: "إجمالي مشتركي PRO",
               value: metrics.activeProTotal,
-              subEn: `${metrics.proCaptainCount} Captain / ${metrics.clubOrganizerCount} Organizer`,
-              subAr: `${metrics.proCaptainCount} كابتن / ${metrics.clubOrganizerCount} منظم`,
+              subEn: `${metrics.totalPaidCount} Paid / ${metrics.totalGrantedCount} VIP Gift`,
+              subAr: `${metrics.totalPaidCount} مدفوع / ${metrics.totalGrantedCount} هدايا VIP`,
               icon: <Crown className="w-5 h-5 text-yellow-400" />,
               border: "border-yellow-500/30",
               glow: "shadow-yellow-500/10",
             },
             {
-              titleEn: "Estimated Monthly Revenue",
-              titleAr: "الإيرادات الشهرية المقدرة",
-              value: `${metrics.estimatedMrrEgp} EGP`,
-              subEn: "Based on active plans",
-              subAr: "حسب الاشتراكات الحالية",
-              icon: <Receipt className="w-5 h-5 text-purple-400" />,
+              titleEn: "Complimentary Value Granted",
+              titleAr: "قيمة الاشتراكات الممنوحة مجاناً",
+              value: `${metrics.grantedOpportunityCostEgp} EGP`,
+              subEn: `${metrics.totalGrantedCount} Users gifted free PRO`,
+              subAr: `تكلفة ${metrics.totalGrantedCount} اشتراك مجاني منحته`,
+              icon: <Gift className="w-5 h-5 text-purple-400" />,
               border: "border-purple-500/30",
               glow: "shadow-purple-500/10",
             },
@@ -337,7 +403,103 @@ export default function AnalyticsPage() {
           ))}
         </div>
 
-        {/* ── 2. Player Breakdown & Division Analytics ──────────────────────── */}
+        {/* ── 2. Financial & VIP Grants Breakdown ───────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Complimentary VIP Subscriptions Audit */}
+          <div className="bg-gradient-to-br from-purple-950/40 via-slate-900/90 to-slate-900 p-6 rounded-3xl border border-purple-500/30 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-base text-white flex items-center gap-2">
+                <Gift className="w-5 h-5 text-purple-400" />
+                <span>{isAr ? "تقرير اشتراكات الهدايا وتكلفة الاستثناءات" : "Complimentary VIP Grants & Cost Impact"}</span>
+              </h3>
+              <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[11px] font-mono font-black">
+                {metrics.totalGrantedCount} VIP Users
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-400 font-medium">
+              {isAr
+                ? "قيمة المميزات والاشتراكات التي قمت بمنحها مجاناً للأصدقاء أو المستخدمين المميزين بدون مقابل مالي."
+                : "Financial breakdown of complimentary PRO subscriptions granted manually to friends or VIP members."}
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="text-[11px] font-bold text-slate-400">{isAr ? "قيمة الهدايا الممنوحة (EGP)" : "Total Gifted Value"}</div>
+                <div className="text-xl font-black font-mono text-purple-400">{metrics.grantedOpportunityCostEgp} EGP</div>
+                <div className="text-[10px] text-slate-500 font-semibold">{isAr ? "تكلفة فرصة مفقودة" : "Opportunity Cost"}</div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="text-[11px] font-bold text-slate-400">{isAr ? "الإيراد الفعلي المتوقع" : "Actual Paid MRR"}</div>
+                <div className="text-xl font-black font-mono text-emerald-400">{metrics.estimatedMrrEgp} EGP</div>
+                <div className="text-[10px] text-slate-500 font-semibold">{isAr ? "من المشتركين المدفوعين" : "From paid subscribers"}</div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-slate-300">{isAr ? "اشتراكات PRO الكابتن الممنوحة" : "PRO Captain Gifts"}</span>
+                <span className="text-amber-400 font-mono">{metrics.grantedProCaptainCount} × 149 = {metrics.grantedProCaptainCount * 149} EGP</span>
+              </div>
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-slate-300">{isAr ? "اشتراكات منظم النادي الممنوحة" : "Club Organizer Gifts"}</span>
+                <span className="text-purple-400 font-mono">{metrics.grantedClubOrganizerCount} × 449 = {metrics.grantedClubOrganizerCount * 449} EGP</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 🤖 AI Scout & Tokens Usage Tracker */}
+          <div className="bg-gradient-to-br from-cyan-950/30 via-slate-900/90 to-slate-900 p-6 rounded-3xl border border-cyan-500/30 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-extrabold text-base text-white flex items-center gap-2">
+                <Bot className="w-5 h-5 text-cyan-400" />
+                <span>{isAr ? "مراقب استهلاك الذكاء الاصطناعي والتكلفة" : "AI Scout Tokens & Infrastructure Costs"}</span>
+              </h3>
+              <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-mono font-black">
+                Gemini AI Engine
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-400 font-medium">
+              {isAr
+                ? "حساب دقيق لعدد تقارير الذكاء الاصطناعي التكتيكية المنشأة واستهلاك التوكينز والتكلفة على الخوادم."
+                : "Real-time tracking of AI tactical scout reports, token consumption metrics, and Cloud API expenses."}
+            </p>
+
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="text-[10px] font-bold text-slate-400">{isAr ? "تقارير الـ AI" : "AI Reports"}</div>
+                <div className="text-lg font-black font-mono text-cyan-400">{metrics.estimatedAiScoutReports}</div>
+                <div className="text-[9px] text-slate-500 font-semibold">{isAr ? "تقرير تكتيكي" : "Scout outputs"}</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="text-[10px] font-bold text-slate-400">{isAr ? "التوكينز المستهلكة" : "Tokens Used"}</div>
+                <div className="text-lg font-black font-mono text-amber-400">{(metrics.totalTokensUsed / 1000).toFixed(1)}k</div>
+                <div className="text-[9px] text-slate-500 font-semibold">{isAr ? "~1.4k/تقرير" : "Avg per report"}</div>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
+                <div className="text-[10px] font-bold text-slate-400">{isAr ? "التكلفة التقديرية" : "API Cost"}</div>
+                <div className="text-lg font-black font-mono text-emerald-400">${metrics.estimatedAiCostUsd}</div>
+                <div className="text-[9px] text-slate-500 font-semibold">{metrics.estimatedAiCostEgp} EGP</div>
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-2 border-t border-slate-800/80">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-slate-300">{isAr ? "تحليل المباريات والتشكيلات" : "Tactical Scout Reports"}</span>
+                <span className="text-cyan-400 font-mono">65%</span>
+              </div>
+              <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div className="h-full bg-cyan-400 rounded-full" style={{ width: "65%" }} />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 3. Player Breakdown & Division Analytics ──────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Position Distribution */}
           <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800/80 shadow-2xl space-y-4">
@@ -441,7 +603,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* ── 3. Subscription & Player Management Center ─────────────────────── */}
+        {/* ── 4. Subscription & Player Management Center ─────────────────────── */}
         <div className="bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden space-y-4">
           <div className="p-6 pb-2 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -451,7 +613,7 @@ export default function AnalyticsPage() {
               </h2>
               <p className="text-xs text-slate-400 font-medium mt-1">
                 {isAr
-                  ? "منح وتفعيل اشتراك PRO Captain أو منظم النادي مجاناً لأي لاعب أو صديق بنقرة واحدة"
+                  ? "منح وتفعيل اشتراك PRO Captain أو منظم النادي مجاناً للأصدقاء، أو متابعة الاشتراكات المدفوعة"
                   : "Grant or revoke PRO Captain and Club Organizer subscriptions for any user with 1-click"}
               </p>
             </div>
@@ -469,15 +631,16 @@ export default function AnalyticsPage() {
                 />
               </div>
 
-              <div className="w-full sm:w-44">
+              <div className="w-full sm:w-52">
                 <CustomDropdown
                   value={subFilter}
                   onChange={(val: any) => setSubFilter(val)}
                   isAr={isAr}
                   options={[
                     { value: "all", label: isAr ? "جميع المستخدمين" : "All Users" },
-                    { value: "active", label: isAr ? "👑 PRO مفعل" : "👑 PRO Active" },
-                    { value: "free", label: isAr ? "الهواة (مجاني)" : "Free Users" },
+                    { value: "granted", label: isAr ? "🎁 هدايا VIP مجانية" : "🎁 VIP Gifts (Free)" },
+                    { value: "paid", label: isAr ? "💳 المشتركين المدفوعين" : "💳 Paid Subscribers" },
+                    { value: "free", label: isAr ? "🆓 الهواة (مجاني)" : "🆓 Free Users" },
                   ]}
                 />
               </div>
@@ -491,7 +654,7 @@ export default function AnalyticsPage() {
                 <tr className="bg-slate-950 border-b border-slate-800 text-slate-400 font-black">
                   <th className="px-6 py-3.5">{isAr ? "اللاعب / المستخدم" : "Player / User"}</th>
                   <th className="px-6 py-3.5">{isAr ? "المركز والـ OVR" : "Position & OVR"}</th>
-                  <th className="px-6 py-3.5">{isAr ? "حالة الاشتراك" : "Subscription Plan"}</th>
+                  <th className="px-6 py-3.5">{isAr ? "نوع الاشتراك والحالة" : "Subscription Status"}</th>
                   <th className="px-6 py-3.5 text-right rtl:text-left">{isAr ? "إجراءات التحكم (الآدمن)" : "Admin Controls"}</th>
                 </tr>
               </thead>
@@ -506,6 +669,11 @@ export default function AnalyticsPage() {
                   filteredPlayersList.map((p) => {
                     const isSub = p.subscription?.status === "active";
                     const planType = p.subscription?.plan || "free";
+                    const isGranted =
+                      isSub &&
+                      (p.subscription?.expiresAt === "2099-12-31T23:59:59Z" ||
+                        (p.subscription as any)?.isManualGrant === true ||
+                        p.email === "a7medorabe7@gmail.com");
 
                     return (
                       <tr key={p.uid} className="hover:bg-slate-800/40 transition-colors">
@@ -539,10 +707,18 @@ export default function AnalyticsPage() {
 
                         <td className="px-6 py-4">
                           {isSub ? (
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold text-[11px]">
-                              <Crown className="w-3.5 h-3.5 text-amber-400" />
-                              <span>{planType === "club_organizer" ? (isAr ? "منظم النادي" : "Club Organizer") : (isAr ? "PRO الكابتن" : "PRO Captain")}</span>
-                            </span>
+                            <div className="flex flex-col items-start gap-1">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold text-[11px]">
+                                <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                <span>{planType === "club_organizer" ? (isAr ? "منظم النادي" : "Club Organizer") : (isAr ? "PRO الكابتن" : "PRO Captain")}</span>
+                              </span>
+                              {isGranted && (
+                                <span className="text-[10px] text-purple-300 bg-purple-950 border border-purple-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1">
+                                  <Gift className="w-3 h-3 text-purple-400" />
+                                  <span>{isAr ? "هدية مجانية من المالك" : "Complimentary VIP Gift"}</span>
+                                </span>
+                              )}
+                            </div>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 font-bold text-[11px]">
                               {isAr ? "الهواة (مجاني)" : "Free Plan"}

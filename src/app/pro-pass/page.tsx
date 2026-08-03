@@ -537,17 +537,6 @@ export default function ProPassPage() {
                   </div>
                 </div>
 
-                {/* Admin Shortcut if Admin/Owner */}
-                {(isAdmin || isOwner) && (
-                  <Link
-                    href="/admin"
-                    onClick={() => setIsPaymentModalOpen(false)}
-                    className="block w-full py-2.5 px-4 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors"
-                  >
-                    👑 {isAr ? "الذهاب للوحة التحكم لمنح اشتراك لاعب" : "Go to Admin Panel to Grant PRO"}
-                  </Link>
-                )}
-
                 {/* Close Button */}
                 <button
                   onClick={() => setIsPaymentModalOpen(false)}
