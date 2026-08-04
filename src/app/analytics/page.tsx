@@ -33,6 +33,8 @@ import {
   CreditCard,
   TrendingDown,
   Layers,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
@@ -57,6 +59,10 @@ export default function AnalyticsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [subFilter, setSubFilter] = useState<"all" | "granted" | "paid" | "free">("all");
+
+  // ─── PAGINATION STATE (MAX 10 PER PAGE) ──────────────────────────────────
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const fetchData = async () => {
     setRefreshing(true);
@@ -99,6 +105,11 @@ export default function AnalyticsPage() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Reset page back to 1 on filter or search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, subFilter]);
 
   // ─── COMPUTED ANALYTICS & FINANCIAL AUDIT METRICS ─────────────────────────
   const metrics = useMemo(() => {
@@ -290,6 +301,14 @@ export default function AnalyticsPage() {
     return list;
   }, [players, searchQuery, subFilter]);
 
+  // Paginated players (Max 10 per page)
+  const totalPages = Math.max(1, Math.ceil(filteredPlayersList.length / itemsPerPage));
+
+  const paginatedPlayers = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredPlayersList.slice(start, start + itemsPerPage);
+  }, [filteredPlayersList, currentPage]);
+
   return (
     <ProtectedRoute>
       <div
@@ -304,7 +323,7 @@ export default function AnalyticsPage() {
               <span>{isAr ? "مركز التحكم وذكاء المنصة الشامل" : "Platform Intelligence & Financial Audit Hub"}</span>
             </div>
             <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight">
-              {isAr ? "تحليلات المنصة والمالية والذكاء الاصطناعي 📊" : "Platform & AI Analytics Dashboard 📊"}
+              {isAr ? "إحصائيات المنصة والمالية والذكاء الاصطناعي 📊" : "Platform & AI Analytics Dashboard 📊"}
             </h1>
             <p className="text-xs md:text-sm text-slate-400 font-medium">
               {isAr
@@ -603,9 +622,9 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* ── 4. Subscription & Player Management Center ─────────────────────── */}
-        <div className="bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden space-y-4">
-          <div className="p-6 pb-2 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* ── 4. Subscription & Player Management Center (PAGINATED MAX 10 WITH FRAMER MOTION) ──── */}
+        <div className="bg-slate-900/90 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden space-y-0">
+          <div className="p-6 pb-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="text-xl font-black text-white flex items-center gap-2">
                 <Crown className="w-5 h-5 text-amber-400" />
@@ -613,8 +632,8 @@ export default function AnalyticsPage() {
               </h2>
               <p className="text-xs text-slate-400 font-medium mt-1">
                 {isAr
-                  ? "منح وتفعيل اشتراك PRO Captain أو منظم النادي مجاناً للأصدقاء، أو متابعة الاشتراكات المدفوعة"
-                  : "Grant or revoke PRO Captain and Club Organizer subscriptions for any user with 1-click"}
+                  ? "منح وتفعيل اشتراك PRO Captain أو منظم النادي مجاناً للأصدقاء، أو متابعة الاشتراكات المدفوعة (10 لاعبين بالصفحة)"
+                  : "Grant or revoke PRO Captain and Club Organizer subscriptions for any user with 1-click (Max 10 per page)"}
               </p>
             </div>
 
@@ -647,7 +666,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Table */}
+          {/* Animated Table Body with Framer Motion */}
           <div className="overflow-x-auto">
             <table className="w-full text-left rtl:text-right border-collapse text-xs">
               <thead>
@@ -659,103 +678,191 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 font-semibold">
-                {filteredPlayersList.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-slate-500 text-xs font-medium">
-                      {isAr ? "لا توجد نتائج متطابقة" : "No matching users found"}
-                    </td>
-                  </tr>
-                ) : (
-                  filteredPlayersList.map((p) => {
-                    const isSub = p.subscription?.status === "active";
-                    const planType = p.subscription?.plan || "free";
-                    const isGranted =
-                      isSub &&
-                      (p.subscription?.expiresAt === "2099-12-31T23:59:59Z" ||
-                        (p.subscription as any)?.isManualGrant === true ||
-                        p.email === "a7medorabe7@gmail.com");
-
-                    return (
-                      <tr key={p.uid} className="hover:bg-slate-800/40 transition-colors">
+                <AnimatePresence mode="wait">
+                  {loading ? (
+                    [...Array(6)].map((_, i) => (
+                      <tr key={i} className="animate-pulse bg-slate-950/40">
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 font-black text-amber-400 flex items-center justify-center text-xs">
-                              {getPlayerDisplayName(p).slice(0, 2).toUpperCase()}
+                            <div className="w-9 h-9 rounded-xl bg-slate-800" />
+                            <div className="space-y-1.5">
+                              <div className="w-28 h-4 bg-slate-800 rounded" />
+                              <div className="w-20 h-3 bg-slate-800/60 rounded" />
                             </div>
-                            <div>
-                              <div className="font-bold text-white text-sm flex items-center gap-1.5">
-                                <span>{getPlayerDisplayName(p)}</span>
-                                {p.email === "a7medorabe7@gmail.com" && (
-                                  <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-extrabold">
-                                    OWNER 👑
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="w-20 h-5 bg-slate-800 rounded" />
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="w-24 h-5 bg-slate-800 rounded" />
+                        </td>
+                        <td className="px-6 py-4 text-right rtl:text-left">
+                          <div className="w-28 h-8 bg-slate-800 rounded-xl inline-block" />
+                        </td>
+                      </tr>
+                    ))
+                  ) : paginatedPlayers.length === 0 ? (
+                    <motion.tr
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                    >
+                      <td colSpan={4} className="px-6 py-12 text-center text-slate-500 text-xs font-medium">
+                        {isAr ? "لا توجد نتائج متطابقة في هذه الصفحة" : "No matching users found on this page"}
+                      </td>
+                    </motion.tr>
+                  ) : (
+                    paginatedPlayers.map((p, idx) => {
+                      const isSub = p.subscription?.status === "active";
+                      const planType = p.subscription?.plan || "free";
+                      const isGranted =
+                        isSub &&
+                        (p.subscription?.expiresAt === "2099-12-31T23:59:59Z" ||
+                          (p.subscription as any)?.isManualGrant === true ||
+                          p.email === "a7medorabe7@gmail.com");
+
+                      return (
+                        <motion.tr
+                          key={p.uid}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -6 }}
+                          transition={{ duration: 0.15, delay: idx * 0.02 }}
+                          className="hover:bg-slate-800/40 transition-colors"
+                        >
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 font-black text-amber-400 flex items-center justify-center text-xs shadow-inner">
+                                {getPlayerDisplayName(p).slice(0, 2).toUpperCase()}
+                              </div>
+                              <div>
+                                <div className="font-bold text-white text-sm flex items-center gap-1.5">
+                                  <span>{getPlayerDisplayName(p)}</span>
+                                  {p.email === "a7medorabe7@gmail.com" && (
+                                    <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.5 rounded font-extrabold">
+                                      OWNER 👑
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="text-[11px] text-slate-400">{p.email || p.uid}</div>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2">
+                              <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300 font-mono font-bold">
+                                {((p as any).position || p.primaryPosition || "MF")}
+                              </span>
+                              <span className="font-black font-mono text-emerald-400">{p.overallRating || 75} OVR</span>
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            {isSub ? (
+                              <div className="flex flex-col items-start gap-1">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold text-[11px]">
+                                  <Crown className="w-3.5 h-3.5 text-amber-400" />
+                                  <span>{planType === "club_organizer" ? (isAr ? "منظم النادي" : "Club Organizer") : (isAr ? "PRO الكابتن" : "PRO Captain")}</span>
+                                </span>
+                                {isGranted && (
+                                  <span className="text-[10px] text-purple-300 bg-purple-950 border border-purple-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1">
+                                    <Gift className="w-3 h-3 text-purple-400" />
+                                    <span>{isAr ? "هدية مجانية من المالك" : "Complimentary VIP Gift"}</span>
                                   </span>
                                 )}
                               </div>
-                              <div className="text-[11px] text-slate-400">{p.email || p.uid}</div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 py-0.5 rounded bg-slate-950 border border-slate-800 text-slate-300 font-mono font-bold">
-                              {((p as any).position || p.primaryPosition || "MF")}
-                            </span>
-                            <span className="font-black font-mono text-emerald-400">{p.overallRating || 75} OVR</span>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4">
-                          {isSub ? (
-                            <div className="flex flex-col items-start gap-1">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-extrabold text-[11px]">
-                                <Crown className="w-3.5 h-3.5 text-amber-400" />
-                                <span>{planType === "club_organizer" ? (isAr ? "منظم النادي" : "Club Organizer") : (isAr ? "PRO الكابتن" : "PRO Captain")}</span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 font-bold text-[11px]">
+                                {isAr ? "الهواة (مجاني)" : "Free Plan"}
                               </span>
-                              {isGranted && (
-                                <span className="text-[10px] text-purple-300 bg-purple-950 border border-purple-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1">
-                                  <Gift className="w-3 h-3 text-purple-400" />
-                                  <span>{isAr ? "هدية مجانية من المالك" : "Complimentary VIP Gift"}</span>
-                                </span>
+                            )}
+                          </td>
+
+                          <td className="px-6 py-4 text-right rtl:text-left">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "pro_captain")}
+                                className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition-all active:scale-95 shadow-sm"
+                              >
+                                👑 {isAr ? "منح PRO الكابتن" : "Grant PRO Captain"}
+                              </button>
+                              <button
+                                onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "club_organizer")}
+                                className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-[11px] font-bold transition-all active:scale-95 shadow-sm"
+                              >
+                                🏟️ {isAr ? "منح منظم النادي" : "Grant Club Organizer"}
+                              </button>
+                              {isSub && (
+                                <button
+                                  onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "free")}
+                                  className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-[11px] font-bold transition-all active:scale-95 shadow-sm"
+                                >
+                                  ✕ {isAr ? "إلغاء التفعيل" : "Revoke"}
+                                </button>
                               )}
                             </div>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-slate-950 border border-slate-800 text-slate-400 font-bold text-[11px]">
-                              {isAr ? "الهواة (مجاني)" : "Free Plan"}
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="px-6 py-4 text-right rtl:text-left">
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "pro_captain")}
-                              className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition-all"
-                            >
-                              👑 {isAr ? "منح PRO الكابتن" : "Grant PRO Captain"}
-                            </button>
-                            <button
-                              onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "club_organizer")}
-                              className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-[11px] font-bold transition-all"
-                            >
-                              🏟️ {isAr ? "منح منظم النادي" : "Grant Club Organizer"}
-                            </button>
-                            {isSub && (
-                              <button
-                                onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "free")}
-                                className="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-[11px] font-bold transition-all"
-                              >
-                                ✕ {isAr ? "إلغاء التفعيل" : "Revoke"}
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
+                          </td>
+                        </motion.tr>
+                      );
+                    })
+                  )}
+                </AnimatePresence>
               </tbody>
             </table>
+          </div>
+
+          {/* ── PAGINATION CONTROLS BAR (PREVIOUS / NEXT & PAGE NUMBERS) ───────── */}
+          <div className="p-4 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold">
+            <div className="text-slate-400 font-medium flex items-center gap-2">
+              <span>
+                {isAr
+                  ? `عرض ${filteredPlayersList.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} إلى ${Math.min(currentPage * itemsPerPage, filteredPlayersList.length)} من أصل ${filteredPlayersList.length} لاعب`
+                  : `Showing ${filteredPlayersList.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, filteredPlayersList.length)} of ${filteredPlayersList.length} players`}
+              </span>
+              <span className="text-slate-700">|</span>
+              <span className="font-bold text-slate-300">
+                {isAr ? `صفحة ${currentPage} من ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1 || loading}
+                className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-bold disabled:opacity-40 disabled:hover:bg-slate-900 hover:bg-slate-800 hover:text-white transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+              >
+                <ChevronLeft className="w-4 h-4 rtl:rotate-180" />
+                <span>{isAr ? "السابق" : "Previous"}</span>
+              </button>
+
+              {/* Page Number Badges */}
+              <div className="hidden md:flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-8 h-8 rounded-xl font-mono text-xs font-bold transition-all active:scale-95 ${
+                      currentPage === page
+                        ? "bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20"
+                        : "bg-slate-900 text-slate-400 border border-slate-800 hover:text-white hover:border-slate-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages || totalPages === 0 || loading}
+                className="px-4 py-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 font-bold disabled:opacity-40 disabled:hover:bg-slate-900 hover:bg-slate-800 hover:text-white transition-all flex items-center gap-1.5 active:scale-95 shadow-sm"
+              >
+                <span>{isAr ? "التالي" : "Next"}</span>
+                <ChevronRight className="w-4 h-4 rtl:rotate-180" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
