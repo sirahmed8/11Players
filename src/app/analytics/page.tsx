@@ -85,6 +85,30 @@ export default function AnalyticsPage() {
     tokens: 0,
   });
 
+  const [localAiStats, setLocalAiStats] = useState<{ requests: number; tokens: number }>({
+    requests: 0,
+    tokens: 0,
+  });
+
+  const syncLocalAiStats = () => {
+    try {
+      const raw = localStorage.getItem("11players_ai_usage_stats");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        setLocalAiStats({
+          requests: parsed.totalRequests || 0,
+          tokens: parsed.totalTokens || 0,
+        });
+      }
+    } catch (e) {}
+  };
+
+  useEffect(() => {
+    syncLocalAiStats();
+    window.addEventListener("11ai_usage_updated", syncLocalAiStats);
+    return () => window.removeEventListener("11ai_usage_updated", syncLocalAiStats);
+  }, []);
+
   useEffect(() => {
     // 1. Realtime doc listener on system/ai_analytics
     const ref = doc(db, "system", "ai_analytics");
@@ -241,16 +265,20 @@ export default function AnalyticsPage() {
       grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
     const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
 
-    // Real AI Scout Reports & Tokens Usage Metrics (Sum of Firestore realtime, logs & local interactions)
-    const realAiRequestsCount = Math.max(realAiStats.totalRequests, aiLogsStats.requests);
-    const realTokensUsed = Math.max(realAiStats.totalTokens, aiLogsStats.tokens);
-
-    // Guaranteed dynamic calculation baseline (if zero, compute from recorded fixtures & activity)
-    const totalAiScoutReports = Math.max(realAiRequestsCount, totalMatches * 2 + activeProTotal * 3 + 18);
-    const totalTokensUsed = Math.max(realTokensUsed, totalAiScoutReports * 1450);
+    // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY EMPIRICAL DATA FROM FIRESTORE + LOCALSTORAGE)
+    const totalAiScoutReports = Math.max(
+      realAiStats.totalRequests,
+      aiLogsStats.requests,
+      localAiStats.requests
+    );
+    const totalTokensUsed = Math.max(
+      realAiStats.totalTokens,
+      aiLogsStats.tokens,
+      localAiStats.tokens
+    );
 
     // Gemini Flash API Pricing ($0.075 per 1M input tokens, $0.30 per 1M output tokens => ~$0.15 / 1M tokens)
-    const estimatedAiCostUsd = (totalTokensUsed / 1_000_000) * 0.15;
+    const estimatedAiCostUsd = Math.round(((totalTokensUsed / 1_000_000) * 0.15) * 1000) / 1000;
     const estimatedAiCostEgp = Math.round(estimatedAiCostUsd * 50 * 100) / 100;
 
     // Position Distribution
@@ -316,7 +344,7 @@ export default function AnalyticsPage() {
       avgOvr,
       topPlayers,
     };
-  }, [players, totalMatches, realAiStats, aiLogsStats]);
+  }, [players, totalMatches, realAiStats, aiLogsStats, localAiStats]);
 
   // ─── ADMIN SINGLE SUBSCRIPTION TOGGLE HANDLER ────────────────────────────
   const handleSetSubscription = async (

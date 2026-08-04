@@ -17,7 +17,7 @@ import { uploadImageToCloudinary } from "@/lib/cloudinary";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { usePlayers } from "@/contexts/PlayersContext";
-import { call11AIChat } from "@/lib/aiService";
+import { call11AIChat, recordRealAiUsage } from "@/lib/aiService";
 
 interface AIChatMsg {
   id: string;
@@ -526,12 +526,15 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
 
       // Record AI Usage locally & to analytics
       try {
-        const estTokens = Math.ceil((queryText.length + (data.reply?.length || 0)) / 3.8);
-        const raw = localStorage.getItem("11players_ai_usage_stats");
-        const stats = raw ? JSON.parse(raw) : { totalRequests: 0, totalTokens: 0 };
-        stats.totalRequests = (stats.totalRequests || 0) + 1;
-        stats.totalTokens = (stats.totalTokens || 0) + estTokens;
-        localStorage.setItem("11players_ai_usage_stats", JSON.stringify(stats));
+        const pTokens = Math.ceil(queryText.length / 3.8);
+        const cTokens = Math.ceil(data.reply.length / 3.8);
+        recordRealAiUsage({
+          tokensUsed: pTokens + cTokens,
+          promptTokens: pTokens,
+          candidateTokens: cTokens,
+          modelUsed: data.modelUsed || "gemini-2.0-flash",
+          category: "chat",
+        });
       } catch (e) {}
 
       setAiMessages((prev) => [

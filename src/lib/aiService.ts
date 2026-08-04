@@ -1,5 +1,4 @@
-// Centralized 11AI Gemini Service with Multi-Model Fallback & Client-Side Host Adaptation
-import { doc, setDoc, increment } from "firebase/firestore";
+import { doc, setDoc, addDoc, collection, increment, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 export async function recordRealAiUsage(stats: {
@@ -9,23 +8,47 @@ export async function recordRealAiUsage(stats: {
   modelUsed: string;
   category?: string;
 }) {
+  // 1. Instant LocalStorage update & custom window event dispatch
+  if (typeof window !== "undefined") {
+    try {
+      const raw = localStorage.getItem("11players_ai_usage_stats");
+      const existing = raw ? JSON.parse(raw) : { totalRequests: 0, totalTokens: 0 };
+      existing.totalRequests = (existing.totalRequests || 0) + 1;
+      existing.totalTokens = (existing.totalTokens || 0) + (stats.tokensUsed || 1);
+      localStorage.setItem("11players_ai_usage_stats", JSON.stringify(existing));
+      window.dispatchEvent(new Event("11ai_usage_updated"));
+    } catch (e) {}
+  }
+
+  // 2. Firestore atomic increment on system/ai_analytics
   try {
     const ref = doc(db, "system", "ai_analytics");
     await setDoc(
       ref,
       {
         totalRequests: increment(1),
-        totalTokens: increment(stats.tokensUsed),
-        totalPromptTokens: increment(stats.promptTokens),
-        totalCandidateTokens: increment(stats.candidateTokens),
+        totalTokens: increment(stats.tokensUsed || 1),
+        totalPromptTokens: increment(stats.promptTokens || 1),
+        totalCandidateTokens: increment(stats.candidateTokens || 1),
         lastRequestAt: new Date().toISOString(),
         lastModelUsed: stats.modelUsed,
       },
       { merge: true }
     );
-  } catch (err) {
-    // Non-blocking catch
-  }
+  } catch (err) {}
+
+  // 3. Log document to ai_logs collection
+  try {
+    await addDoc(collection(db, "ai_logs"), {
+      tokensUsed: stats.tokensUsed || 1,
+      promptTokens: stats.promptTokens || 1,
+      candidateTokens: stats.candidateTokens || 1,
+      modelUsed: stats.modelUsed,
+      category: stats.category || "chat",
+      createdAt: new Date().toISOString(),
+      timestamp: serverTimestamp(),
+    });
+  } catch (err) {}
 }
 
 export interface AIServiceOptions {
