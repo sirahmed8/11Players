@@ -37,7 +37,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile, Community } from "@/types";
 import toast from "react-hot-toast";
@@ -59,6 +59,45 @@ export default function AnalyticsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [subFilter, setSubFilter] = useState<"all" | "granted" | "paid" | "free">("all");
+
+  // ─── REAL-TIME AI SCOUT TOKENS & USAGE LISTENER ──────────────────────────
+  const [realAiStats, setRealAiStats] = useState<{
+    totalRequests: number;
+    totalTokens: number;
+    totalPromptTokens: number;
+    totalCandidateTokens: number;
+    lastRequestAt?: string;
+    lastModelUsed?: string;
+  }>({
+    totalRequests: 0,
+    totalTokens: 0,
+    totalPromptTokens: 0,
+    totalCandidateTokens: 0,
+  });
+
+  useEffect(() => {
+    const ref = doc(db, "system", "ai_analytics");
+    const unsubscribe = onSnapshot(
+      ref,
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          setRealAiStats({
+            totalRequests: data.totalRequests || 0,
+            totalTokens: data.totalTokens || 0,
+            totalPromptTokens: data.totalPromptTokens || 0,
+            totalCandidateTokens: data.totalCandidateTokens || 0,
+            lastRequestAt: data.lastRequestAt,
+            lastModelUsed: data.lastModelUsed,
+          });
+        }
+      },
+      (err) => {
+        console.warn("Real-time AI stats listener error:", err);
+      }
+    );
+    return () => unsubscribe();
+  }, []);
 
   // ─── PAGINATION STATE (MAX 10 PER PAGE) ──────────────────────────────────
   const [currentPage, setCurrentPage] = useState(1);
@@ -160,10 +199,9 @@ export default function AnalyticsPage() {
       grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
     const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
 
-    // AI Scout Reports & Tokens Usage Metrics
-    const estimatedAiScoutReports = Math.max(totalMatches * 2 + activeProTotal * 5, 24);
-    const avgTokensPerReport = 1450;
-    const totalTokensUsed = estimatedAiScoutReports * avgTokensPerReport;
+    // AI Scout Reports & Tokens Usage Metrics (Live from Firestore ai_analytics)
+    const estimatedAiScoutReports = realAiStats.totalRequests;
+    const totalTokensUsed = realAiStats.totalTokens;
     
     // Gemini Flash API Pricing (~$0.15 per 1M tokens)
     const estimatedAiCostUsd = (totalTokensUsed / 1_000_000) * 0.15;
@@ -232,7 +270,7 @@ export default function AnalyticsPage() {
       avgOvr,
       topPlayers,
     };
-  }, [players, totalMatches]);
+  }, [players, totalMatches, realAiStats]);
 
   // ─── ADMIN SUBSCRIPTION TOGGLE HANDLER ────────────────────────────────────
   const handleSetSubscription = async (

@@ -1,4 +1,32 @@
 // Centralized 11AI Gemini Service with Multi-Model Fallback & Client-Side Host Adaptation
+import { doc, setDoc, increment } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+
+export async function recordRealAiUsage(stats: {
+  tokensUsed: number;
+  promptTokens: number;
+  candidateTokens: number;
+  modelUsed: string;
+  category?: string;
+}) {
+  try {
+    const ref = doc(db, "system", "ai_analytics");
+    await setDoc(
+      ref,
+      {
+        totalRequests: increment(1),
+        totalTokens: increment(stats.tokensUsed),
+        totalPromptTokens: increment(stats.promptTokens),
+        totalCandidateTokens: increment(stats.candidateTokens),
+        lastRequestAt: new Date().toISOString(),
+        lastModelUsed: stats.modelUsed,
+      },
+      { merge: true }
+    );
+  } catch (err) {
+    // Non-blocking catch
+  }
+}
 
 export interface AIServiceOptions {
   message: string;
@@ -7,6 +35,7 @@ export interface AIServiceOptions {
   imageInlineData?: { mimeType: string; data: string } | null;
   temperature?: number;
   maxTokens?: number;
+  category?: "chat" | "scout" | "newspaper" | "notification";
 }
 
 export interface AIServiceResult {
@@ -119,6 +148,19 @@ export async function generate11AIResponse(options: AIServiceOptions): Promise<A
               suggestedPrompts = rawSuggestions.split("|").map((s: string) => s.trim()).filter(Boolean);
               candidateText = candidateText.replace(/\[SUGGESTIONS:\s*.*?\]/gi, "").trim();
             }
+
+            const usageMeta = data.usageMetadata;
+            const promptTokens = usageMeta?.promptTokenCount || Math.max(1, Math.ceil((options.systemPrompt.length + options.message.length) / 3.5));
+            const candidateTokens = usageMeta?.candidatesTokenCount || Math.max(1, Math.ceil(candidateText.length / 3.5));
+            const totalTokens = usageMeta?.totalTokenCount || (promptTokens + candidateTokens);
+
+            recordRealAiUsage({
+              tokensUsed: totalTokens,
+              promptTokens,
+              candidateTokens,
+              modelUsed: model,
+              category: options.category || "chat",
+            });
 
             const result: AIServiceResult = {
               reply: candidateText,
