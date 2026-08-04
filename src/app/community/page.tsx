@@ -21,6 +21,8 @@ import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
+import ScrollableTabContainer from "@/components/ui/ScrollableTabContainer";
+
 export default function CommunityPage() {
   const { user } = useAuth();
   const { locale } = useLocale();
@@ -170,46 +172,50 @@ export default function CommunityPage() {
         <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
           
           {/* Community Suite Ecosystem Navigation Bar */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 backdrop-blur-xl shadow-xl flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-            <Link
-              href="/community-chat"
-              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-500/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:scale-[1.02]"
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span>{isAr ? "دردشة المجتمع" : "Live Chat"}</span>
-            </Link>
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 backdrop-blur-xl shadow-xl">
+            <ScrollableTabContainer>
+              <div className="flex items-center gap-2 min-w-max w-full">
+                <Link
+                  href="/community-chat"
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-500/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:scale-[1.02]"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{isAr ? "دردشة المجتمع" : "Live Chat"}</span>
+                </Link>
 
-            <Link
-              href="/community/kit-builder"
-              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300 transition-all hover:scale-[1.02]"
-            >
-              <Shirt className="w-4 h-4" />
-              <span>{isAr ? "استوديو الأطقم" : "Kit Studio"}</span>
-            </Link>
+                <Link
+                  href="/community/kit-builder"
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300 transition-all hover:scale-[1.02]"
+                >
+                  <Shirt className="w-4 h-4" />
+                  <span>{isAr ? "استوديو الأطقم" : "Kit Studio"}</span>
+                </Link>
 
-            <Link
-              href="/stats/derby"
-              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all hover:scale-[1.02]"
-            >
-              <Swords className="w-4 h-4" />
-              <span>{isAr ? "ديربي المواجهات" : "Derby Rivalries"}</span>
-            </Link>
+                <Link
+                  href="/stats/derby"
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all hover:scale-[1.02]"
+                >
+                  <Swords className="w-4 h-4" />
+                  <span>{isAr ? "ديربي المواجهات" : "Derby Rivalries"}</span>
+                </Link>
 
-            <Link
-              href="/global"
-              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all hover:scale-[1.02]"
-            >
-              <Globe className="w-4 h-4" />
-              <span>{isAr ? "الترتيب العالمي" : "Global Board"}</span>
-            </Link>
+                <Link
+                  href="/global"
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all hover:scale-[1.02]"
+                >
+                  <Globe className="w-4 h-4" />
+                  <span>{isAr ? "الترتيب العالمي" : "Global Board"}</span>
+                </Link>
 
-            <Link
-              href="/community-settings"
-              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-600 flex items-center justify-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-all hover:scale-[1.02]"
-            >
-              <Settings className="w-4 h-4" />
-              <span>{isAr ? "إعدادات المجتمع" : "Settings"}</span>
-            </Link>
+                <Link
+                  href="/community-settings"
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-600 flex items-center justify-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-all hover:scale-[1.02]"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>{isAr ? "إعدادات المجتمع" : "Settings"}</span>
+                </Link>
+              </div>
+            </ScrollableTabContainer>
           </div>
 
           {/* Header section */}

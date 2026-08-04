@@ -173,7 +173,7 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
               </span>
             </button>
 
-// Theme toggle
+            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               className="

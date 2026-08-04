@@ -466,7 +466,15 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Updated `src/lib/aiService.ts` and `FloatingChatWidget.tsx` to enforce Markdown text formatting (`FormattedText.tsx`), token tracking, dynamic welcome greetings, voice speech synthesis/listening, and fallback handling for static host deployments.
 - **PRO Pass Access Control**:
   - Standardized `ProGate.tsx` and `SubscriptionGiftModal.tsx` to enforce proper plan permissions (`pro_captain` / `club_organizer`) with glassmorphic dark/light UI styling.
-- **Build & Quality Verification**:
+## 17. Milestone M3.0 — Horizontal Scrollable Tab Bar Component & Settings Menu Comment Fix
+- **Settings Menu JSX Comment Fix (`SettingsMenu.tsx`)**:
+  - Resolved literal text rendering of `// Theme toggle` in the user dropdown menu card by converting the raw JS comment line to a valid JSX comment `{/* Theme toggle */}`.
+- **Universal PC & Mobile Scrollable Tab Container (`ScrollableTabContainer.tsx`)**:
+  - Implemented `ScrollableTabContainer` supporting mouse wheel vertical-to-horizontal conversion on PC, mouse drag-to-scroll, native touch swipe on mobile, and smooth left/right chevron navigation buttons on desktop.
+  - Integrated `ScrollableTabContainer` across key ecosystem navigation bars (`MatchActionHubBar.tsx`, `community/page.tsx`, `profile/page.tsx`) to guarantee smooth horizontal scrolling without layout cutoff on any screen size.
+- **Quality & Verification**:
   - Verified Next.js 16 production build (`npm run build`), compiling all 52 static routes and server API routes cleanly with 0 compilation errors.
+  - Verified 106/106 Vitest unit tests passing across all 10 test suites (`npm run test`).
+
 
 
