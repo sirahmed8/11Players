@@ -190,7 +190,29 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
       }
 
       await batch.commit();
-      toast.success(isAr ? "تم حفظ إحصائيات المباراة وإنهاء المباراة بنجاح!" : "Match ended & stats recorded successfully!");
+      toast.custom((t) => (
+        <div
+          onClick={() => {
+            toast.dismiss(t.id);
+            window.location.href = "/match/newspaper";
+          }}
+          className="max-w-md w-full bg-slate-900 border border-emerald-500/50 shadow-2xl rounded-2xl pointer-events-auto p-4 flex items-center gap-3.5 cursor-pointer text-white hover:scale-[1.02] transition-transform"
+        >
+          <div className="w-11 h-11 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-xl shrink-0">
+            📰
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-black flex items-center justify-between">
+              <span>{isAr ? "تم حفظ إحصائيات المباراة بنجاح!" : "Match stats recorded!"}</span>
+              <span className="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse" />
+            </p>
+            <p className="text-xs text-slate-300 font-medium truncate mt-0.5">
+              {isAr ? "اضغط هنا لإصدار جريدة المباراة وتقسيم الحجز" : "Click to view Newspaper & Split Rent Bill"}
+            </p>
+          </div>
+        </div>
+      ), { duration: 7000, position: 'top-center' });
+
       onClose();
     } catch (e) {
       console.error("Failed to save stats:", e);
@@ -202,7 +224,8 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={onClose} dir={isAr ? 'rtl' : 'ltr'}>
+      {isOpen && matchData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md" onClick={onClose} dir={isAr ? 'rtl' : 'ltr'}>
         <motion.div
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -415,6 +438,7 @@ export default function RecordStatsModal({ isOpen, onClose, matchData }: RecordS
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+    )}
+  </AnimatePresence>
   );
 }

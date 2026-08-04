@@ -362,6 +362,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
     return () => {
       isMounted = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile, user, isOpen, isAr]);
 
   // Full Chat Shared State (Community & Support)
@@ -378,6 +379,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
   // Slow mode logic
   const [lastMessageTime, setLastMessageTime] = useState(0);
   const [cooldown, setCooldown] = useState(0);
+  const slowModeSeconds = (communitySettings as any)?.slowModeSeconds || 0;
 
   // Support State for Staff & Users
   const isStaff = Boolean(isAdmin || isOwner || isGlobalModerator);
@@ -399,7 +401,6 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
 
   // Slow mode timer
   useEffect(() => {
-    const slowModeSeconds = (communitySettings as any)?.slowModeSeconds || 0;
     if (slowModeSeconds === 0 || lastMessageTime === 0) return;
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - lastMessageTime) / 1000);
@@ -412,7 +413,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [lastMessageTime, (communitySettings as any)?.slowModeSeconds]);
+  }, [lastMessageTime, slowModeSeconds]);
 
   // Listen to Community Chat (`communities/${cid}/chats`)
   useEffect(() => {

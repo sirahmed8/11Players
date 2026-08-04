@@ -1,8 +1,29 @@
 import { NextResponse } from "next/server";
 import { generate11AIResponse } from "@/lib/aiService";
+import { z } from "zod";
+
+const chatRequestSchema = z.object({
+  message: z.string().optional(),
+  playerContext: z.object({
+    fullName: z.string().optional(),
+    overall: z.number().optional(),
+    primaryPosition: z.string().optional(),
+    goals: z.number().optional(),
+    assists: z.number().optional(),
+    matchesCount: z.number().optional(),
+    playStyle: z.string().optional(),
+    communityName: z.string().optional(),
+  }).optional(),
+  communityRoster: z.array(z.any()).optional(),
+  history: z.array(z.any()).optional(),
+  imageInlineData: z.object({
+    mimeType: z.string(),
+    data: z.string(),
+  }).nullable().optional(),
+});
 
 function cleanPlayStyleName(style?: string): string {
-  if (!style) return "Standard";
+  if (!style) return "Standard (قياسي)";
   const map: Record<string, string> = {
     extra_frontman: "Extra Frontman (المهاجم الإضافي)",
     the_destroyer: "The Destroyer (المحطم)",
@@ -22,6 +43,10 @@ function cleanPlayStyleName(style?: string): string {
     orchestrator: "Orchestrator (المايسترو)",
     target_man: "Target Man (المهاجم المحطة)",
     goal_poacher: "Goal Poacher (القناص)",
+    dummy_runner: "Dummy Runner (العداء الوهمي)",
+    roaming_flank: "Roaming Flank (الجناح الجوال)",
+    prolific_winger: "Prolific Winger (الجناح الهداف)",
+    deep_lying_forward: "Deep-Lying Forward (المهاجم المتراجع)",
   };
   const key = style.toLowerCase().trim().replace(/[\s-]+/g, "_");
   return map[key] || style.replace(/_/g, " ");
@@ -29,9 +54,19 @@ function cleanPlayStyleName(style?: string): string {
 
 export async function POST(req: Request) {
   try {
-    const { message, playerContext, communityRoster, history, imageInlineData } = await req.json();
+    const rawBody = await req.json();
+    const parsed = chatRequestSchema.safeParse(rawBody);
 
-    if ((!message || typeof message !== "string") && !imageInlineData) {
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "bad_request", message: "Invalid payload parameters.", details: parsed.error.format() },
+        { status: 400 }
+      );
+    }
+
+    const { message, playerContext, communityRoster, history, imageInlineData } = parsed.data;
+
+    if (!message && !imageInlineData) {
       return NextResponse.json(
         { error: "bad_request", message: "Message or image parameter is required." },
         { status: 400 }
@@ -58,7 +93,7 @@ export async function POST(req: Request) {
           const pos = [p.position, p.secondaryPosition, p.tertiaryPosition].filter(Boolean).join("/");
           const body = [p.height ? `${p.height}cm` : "", p.weight ? `${p.weight}kg` : "", p.calculatedAge ? `${p.calculatedAge}yo` : ""].filter(Boolean).join(" ");
           const playStyle = cleanPlayStyleName(p.playStyle);
-          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr} | Pos: ${pos || "MID"} | PlayStyle: ${playStyle} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
+          return `- CardName: "${cardName}" | FullName: "${fullName}" | OVR: ${p.ovr || p.overallRating || 72} | Pos: ${pos || "MID"} | PlayStyle: ${playStyle} | Stats: ${p.goals || 0}G/${p.assists || 0}A (${p.matchesCount || 0}M) ${body ? `| Body: ${body}` : ""}`;
         })
         .join("\n");
     }
@@ -96,19 +131,19 @@ Strict Behavioral & Data Access Guidelines:
 [SUGGESTIONS: Question 1 | Question 2 | Question 3]
 Provide 2-3 short, highly relevant follow-up questions tailored to the conversation (in the same language as user prompt).`;
 
-    const formattedHistory = Array.isArray(history)
+    const formattedHistory: { role: "user" | "model"; parts: { text: string }[] }[] = Array.isArray(history)
       ? history.slice(-6).map((h: any) => ({
-          role: h.sender === "user" ? ("user" as const) : ("model" as const),
-          parts: [{ text: h.text }],
+          role: (h.role === "user" || h.sender === "user" ? "user" : "model") as "user" | "model",
+          parts: [{ text: String(h.parts?.[0]?.text || h.text || "") }],
         }))
       : [];
 
     const result = await generate11AIResponse({
-      message: message || (imageInlineData ? "Analyze this attached image for me." : "Hello"),
+      message: message || "Analyze squad and my profile",
       systemPrompt,
       history: formattedHistory,
       imageInlineData,
-      temperature: 0.2,
+      category: "chat",
     });
 
     return NextResponse.json(result);

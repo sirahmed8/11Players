@@ -31,11 +31,8 @@ export default function EditMatchModal({ isOpen, onClose, matchData, communityId
       setTime(matchData.config.time || "");
       setLocation(matchData.config.location || "");
       setCost(matchData.config.cost || "");
-      setNotes(matchData.config.notes || "");
     }
   }, [isOpen, matchData]);
-
-  if (!isOpen) return null;
 
   const handleSave = async () => {
     setIsSaving(true);

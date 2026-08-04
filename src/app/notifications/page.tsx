@@ -93,6 +93,7 @@ export default function NotificationsPage() {
 
   useEffect(() => {
     fetchAiAlert(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const markAsRead = async (id: string) => {

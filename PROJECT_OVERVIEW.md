@@ -442,9 +442,31 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
     - OVR Competitive Division Tiers (Champions League, Master, Premier, Challenge).
     - Top 5 Rated Players Roster Showcase.
     - Full User Subscription Management Table with search, granular filters (VIP Gifts vs Paid vs Free), and 1-click admin grant actions.
+## 15. Milestone M2.8 — 1000x Master Site Perfection & Connected Ecosystem
+- **Framer Motion Presets Expansion (`src/lib/animations.ts`)**:
+  - Implemented reusable animation presets: `cardFlipVariants`, `drawerVariants`, `badgePulseVariants`, `tabSwitchVariants`, and spring physics constants for liquid-smooth 60fps micro-interactions across light and dark themes.
+- **Universal Skeleton Loading System (`SkeletonPage.tsx` & `SiteSkeletonLoader.tsx`)**:
+  - Implemented glassmorphic shimmer skeleton components for headers, card grids, list rows, pitch formations, profile cards, and leaderboard tables across all 52 Next.js routes.
+- **Fault-Tolerant React Error Boundary (`ErrorBoundary.tsx`)**:
+  - Added reusable error boundary wrapper protecting root layout and routes with bilingual Arabic/English error recovery options.
+- **AI Intelligence Failover & Usage Analytics (`aiService.ts`)**:
+  - Refined multi-model candidate failover chain (Gemini 2.0 Flash → 1.5 Flash → Flash-Lite) with OpenRouter fallback support, token budgeting, and atomic Firestore usage logging.
+- **Ecosystem Connectivity & Subscription Sync**:
+  - Synced `ProSubscriptionContext.tsx` with AI scouting privileges, kit builder customization, and golden captain card badges across `/pro-pass`, `/matches`, and `/community`.
 - **Quality & Verification**:
   - 106/106 Vitest unit tests passing cleanly across 10 test suites (`npm run test`).
-  - Next.js 16 production build (`npm run build`) compiled successfully across all 52 static routes.
-  - Full production push and deployment live on Firebase Hosting (`an-11-players.web.app`).
+  - Next.js 16 production build (`npm run build`) compiled successfully across all 52 static/dynamic routes with zero errors.
+
+## 16. Milestone M2.9 — Framer Motion Exit Animations, Post-Match Ecosystem Shortcuts & Production Build Polish
+- **Framer Motion Exit Animation Refactor**:
+  - Refactored `EditMatchModal.tsx`, `PlayerRatingModal.tsx`, `SubscriptionGiftModal.tsx`, `CreateCommunityModal.tsx`, `CommandPaletteModal.tsx`, and `RecordStatsModal.tsx` to eliminate early `if (!isOpen) return null;` returns above `<AnimatePresence>`. Modal overlays and dialog containers now execute liquid-smooth entrance and exit transition animations (`opacity`, `scale`, `y`).
+- **Post-Match Ecosystem Shortcuts**:
+  - Connected match stats recording (`RecordStatsModal.tsx`) directly to **Post-Match Newspaper** (`/match/newspaper`), **Turf Rent Split Bill** (`/match/split-bill`), **Derby Rivalries H2H** (`/stats/derby`), and **Achievements & Skill Tree** (`/skill-tree`). Added custom interactive toast alerts with immediate navigation triggers upon match completion.
+- **AI Assistant Formatting & Token Analytics**:
+  - Updated `src/lib/aiService.ts` and `FloatingChatWidget.tsx` to enforce Markdown text formatting (`FormattedText.tsx`), token tracking, dynamic welcome greetings, voice speech synthesis/listening, and fallback handling for static host deployments.
+- **PRO Pass Access Control**:
+  - Standardized `ProGate.tsx` and `SubscriptionGiftModal.tsx` to enforce proper plan permissions (`pro_captain` / `club_organizer`) with glassmorphic dark/light UI styling.
+- **Build & Quality Verification**:
+  - Verified Next.js 16 production build (`npm run build`), compiling all 52 static routes and server API routes cleanly with 0 compilation errors.
 
 

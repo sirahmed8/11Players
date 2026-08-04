@@ -346,7 +346,7 @@ export default function OnboardingWizard() {
       setSubmitMessage({ type: 'error', text: `${txt.submitError} (${errorMessage})` });
       setIsSubmitting(false);
     }
-  }, [user, state, txt, validateStep]);
+  }, [user, state, txt, validateStep, locale]);
 
   /* ── Preview profile ── */
   const previewProfile = useMemo((): PlayerProfile => ({

@@ -26,8 +26,6 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  if (!isOpen) return null;
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -68,7 +66,8 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -262,6 +261,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
           </form>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 }

@@ -385,18 +385,18 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
     }
   };
 
-  if (!isOpen) return null;
-
   const editablePlayers = players.filter(p => p.uid !== user?.uid);
   const ratedCount = Object.keys(abilityRatings).filter(pid => getPlayerOverallAverage(pid) > 0).length;
   const starRatedCount = Object.keys(starRatings).filter(pid => starRatings[pid] > 0).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
         className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
         dir={isAr ? 'rtl' : 'ltr'}
       >
@@ -601,6 +601,8 @@ export default function PlayerRatingModal({ isOpen, onClose, matchId, players, i
         )}
       </motion.div>
     </div>
+    )}
+    </AnimatePresence>
   );
 }
 

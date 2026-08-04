@@ -99,6 +99,7 @@ export default function OnboardingAIAdvisor({ state, locale, onApply }: Onboardi
       rationale,
     });
     setHasApplied(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.attributes, state.primaryPosition, state.height, state.weight, isAr]);
 
   if (!suggestion) return null;

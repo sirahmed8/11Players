@@ -1,5 +1,5 @@
-'use client';
-import SiteSkeletonLoader from '@/components/ui/SiteSkeletonLoader';
-export default function Loading() {
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+
+export default function LeaderboardLoading() {
   return <SiteSkeletonLoader variant="stats" />;
 }

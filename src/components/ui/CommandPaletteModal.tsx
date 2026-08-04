@@ -39,11 +39,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         if (isOpen) onClose();
       }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
 
   const items: CommandItem[] = [
     {
@@ -110,10 +106,11 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div
-        className="fixed inset-0 z-[100] flex items-start justify-center pt-20 p-4 bg-slate-950/80 backdrop-blur-md"
-        onClick={onClose}
-      >
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-start justify-center pt-20 p-4 bg-slate-950/80 backdrop-blur-md"
+          onClick={onClose}
+        >
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -167,6 +164,7 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
           </div>
         </motion.div>
       </div>
+      )}
     </AnimatePresence>
   );
 };

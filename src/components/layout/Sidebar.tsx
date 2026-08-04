@@ -151,6 +151,7 @@ function SidebarContent() {
     });
 
     return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isOwner, isGlobalModerator]);
 
   // Listen for Admin Edit Requests & System Feed (Self-edits / Peer Proposals)
@@ -201,6 +202,7 @@ function SidebarContent() {
     });
 
     return () => unsubEdits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isAdmin, isOwner, isGlobalModerator, activeCommunityId]);
 
   // Listen for Global Chat Notifications (Regular User Support Desk)
@@ -266,6 +268,7 @@ function SidebarContent() {
     });
 
     return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, isOwner, isGlobalModerator]);
 
   // Listen for Unrated Recent Matches
