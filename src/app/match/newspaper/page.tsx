@@ -8,6 +8,8 @@ import { useCommunity } from '@/contexts/CommunityContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import ProGate from '@/components/ui/ProGate';
 
+import MatchActionHubBar from '@/components/match/MatchActionHubBar';
+
 function NewspaperContent() {
   const { activeCommunityId, activeCommunity } = useCommunity();
   const { historyMatches } = useMatchData(activeCommunityId);
@@ -90,6 +92,8 @@ function NewspaperContent() {
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-8">
+        <MatchActionHubBar />
+
         {/* Page Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-extrabold uppercase tracking-widest">

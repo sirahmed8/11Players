@@ -9,6 +9,8 @@ import ProGate from '@/components/ui/ProGate';
 import { Swords, Calendar, ArrowRight, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
+import MatchActionHubBar from '@/components/match/MatchActionHubBar';
+
 function DraftContent() {
   const { players } = usePlayers();
   const { user } = useAuth();
@@ -24,6 +26,9 @@ function DraftContent() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">
+      <div className="max-w-7xl mx-auto">
+        <MatchActionHubBar />
+      </div>
       {!hasEnoughPlayers ? (
         <div className="max-w-xl mx-auto py-16 text-center space-y-6">
           <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">

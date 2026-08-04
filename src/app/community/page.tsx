@@ -10,7 +10,8 @@ import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 import ConfirmModal from "@/components/ui/ConfirmModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles, Shirt, MessageSquare, Settings, Swords, Globe } from "lucide-react";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/community/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -166,8 +167,51 @@ export default function CommunityPage() {
           <div className="absolute top-1/3 right-0 w-[500px] h-[400px] rounded-full bg-teal-500/4 blur-[100px]" />
         </div>
 
-        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
           
+          {/* Community Suite Ecosystem Navigation Bar */}
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 backdrop-blur-xl shadow-xl flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+            <Link
+              href="/community-chat"
+              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 hover:border-emerald-500/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:scale-[1.02]"
+            >
+              <MessageSquare className="w-4 h-4" />
+              <span>{isAr ? "دردشة المجتمع" : "Live Chat"}</span>
+            </Link>
+
+            <Link
+              href="/community/kit-builder"
+              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300 transition-all hover:scale-[1.02]"
+            >
+              <Shirt className="w-4 h-4" />
+              <span>{isAr ? "استوديو الأطقم" : "Kit Studio"}</span>
+            </Link>
+
+            <Link
+              href="/stats/derby"
+              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all hover:scale-[1.02]"
+            >
+              <Swords className="w-4 h-4" />
+              <span>{isAr ? "ديربي المواجهات" : "Derby Rivalries"}</span>
+            </Link>
+
+            <Link
+              href="/global"
+              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all hover:scale-[1.02]"
+            >
+              <Globe className="w-4 h-4" />
+              <span>{isAr ? "الترتيب العالمي" : "Global Board"}</span>
+            </Link>
+
+            <Link
+              href="/community-settings"
+              className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-600 flex items-center justify-center gap-2 text-xs font-bold text-slate-300 hover:text-white transition-all hover:scale-[1.02]"
+            >
+              <Settings className="w-4 h-4" />
+              <span>{isAr ? "إعدادات المجتمع" : "Settings"}</span>
+            </Link>
+          </div>
+
           {/* Header section */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>

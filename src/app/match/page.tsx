@@ -37,6 +37,8 @@ import MatchTimeline from "@/components/match/MatchTimeline";
 import PenaltyShootout from "@/components/match/PenaltyShootout";
 import MatchPredictionWidget from "@/components/match/MatchPredictionWidget";
 
+import MatchActionHubBar from "@/components/match/MatchActionHubBar";
+
 import { generateTurfMatch, balanceTeams } from "@/lib/engine";
 import toast from "react-hot-toast";
 import { Trophy, Sparkles, RefreshCw, Trash2, Edit, Flag, ArrowLeft, Users } from "lucide-react";
@@ -428,6 +430,7 @@ function MatchContent() {
     <ProtectedRoute requireCommunity>
       <div className="min-h-screen bg-slate-950 text-white transition-colors pb-16" dir={isAr ? 'rtl' : 'ltr'}>
         <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+          <MatchActionHubBar />
           
           {/* Header Banner — Solid Dark Slate */}
           <div className="bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-2xl border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

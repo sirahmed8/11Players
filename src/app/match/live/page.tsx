@@ -11,6 +11,8 @@ import ProGate from '@/components/ui/ProGate';
 import { Swords, Play, Activity } from 'lucide-react';
 import Link from 'next/link';
 
+import MatchActionHubBar from '@/components/match/MatchActionHubBar';
+
 function LiveContent() {
   const { activeCommunityId, activeCommunity } = useCommunity();
   const { matchData, loading } = useMatchData(activeCommunityId);
@@ -28,6 +30,9 @@ function LiveContent() {
 
     return (
       <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4">
+        <div className="max-w-7xl mx-auto mb-6">
+          <MatchActionHubBar />
+        </div>
         <LiveMatchBroadcaster
           teamAName={teamAName}
           teamBName={teamBName}
@@ -42,6 +47,9 @@ function LiveContent() {
   // No active match running — Clean empty state wrapped in premium glass card
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 flex flex-col items-center justify-center">
+      <div className="w-full max-w-xl mb-6">
+        <MatchActionHubBar />
+      </div>
       <div className="w-full max-w-xl p-10 rounded-3xl bg-slate-900/80 border border-slate-800 backdrop-blur-2xl shadow-2xl text-center space-y-6">
         <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
           <Activity className="w-8 h-8 animate-pulse" />
