@@ -100,7 +100,7 @@ function PlayerProfileContent() {
   const router = useRouter();
   const { activeCommunityId } = useCommunity();
   const searchParams = useSearchParams();
-  const rawUid = searchParams.get("uid");
+  const rawUid = searchParams.get("username") || searchParams.get("uid");
   const uid = (rawUid && rawUid !== "undefined" && rawUid !== "null") ? rawUid : null;
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
   const { locale } = useLocale();
@@ -281,6 +281,11 @@ function PlayerProfileContent() {
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white">
                 {player.fullName}
               </h1>
+              {player.username && (
+                <span className="px-3.5 py-1 bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 font-extrabold text-sm sm:text-base rounded-2xl shadow-sm" dir="ltr">
+                  @{player.username}
+                </span>
+              )}
               <button
                 onClick={() => setIsOvrInfoOpen(true)}
                 className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95"
@@ -535,6 +540,18 @@ function PlayerProfileContent() {
               </span>
             </button>
           )}
+
+          <button
+            onClick={() => {
+              const url = `${window.location.origin}/profile?${player.username ? `username=${player.username}` : `uid=${player.uid}`}`;
+              navigator.clipboard.writeText(url);
+              toast.success(isAr ? "تم نسخ رابط الملف الشخصي!" : "Profile link copied to clipboard!");
+            }}
+            className="px-7 py-3.5 bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 hover:border-emerald-400 rounded-2xl text-emerald-400 font-black text-base transition-all shadow-xl active:scale-95 flex items-center gap-2 cursor-pointer"
+          >
+            <Share2 className="w-5 h-5 text-emerald-400" />
+            <span>{isAr ? "مشاركة الرابط" : "Share Profile Link"}</span>
+          </button>
 
           {canExport && (
             <button

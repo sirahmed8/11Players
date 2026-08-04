@@ -26,6 +26,22 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
           setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
           setLoading(false);
         } else {
+          // Check if effectiveUid is actually a username handle
+          try {
+            const cleanHandle = effectiveUid.toLowerCase().replace(/^@+/, "");
+            const uQuery = query(collection(db, "players"), where("username", "==", cleanHandle));
+            const uSnap = await getDocs(uQuery);
+            if (!uSnap.empty) {
+              const uDoc = uSnap.docs[0];
+              const ud = uDoc.data();
+              setPlayer({ uid: uDoc.id, ...ud, attributes: ud.attributes || {}, stats: ud.stats || {} } as PlayerProfile);
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            console.warn("Username query lookup error:", err);
+          }
+
           // Check if player exists in active community before giving up
           const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
           if (activeCommId) {

@@ -23,6 +23,7 @@ import { PLAYER_STYLES } from '@/components/player/PlayerStylePicker';
 import TacticalSuggestionsCard from '@/components/match/TacticalSuggestionsCard';
 import { playerProfileSchema } from '@/schemas/playerSchema';
 import BlobPhotoUpload from '@/components/player/BlobPhotoUpload';
+import { cleanUsername, validateUsernameFormat, checkUsernameAvailability } from '@/lib/username';
 
 interface EditProfileModalProps {
   player: PlayerProfile;
@@ -131,6 +132,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
   const [formData, setFormData] = useState({
     fullName: player.fullName || '',
     cardName: player.cardName || '',
+    username: player.username || '',
     dateOfBirth: player.dateOfBirth || '',
     height: player.height || 175,
     weight: player.weight || 70,
@@ -177,6 +179,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
       setFormData({
         fullName: player.fullName || '',
         cardName: player.cardName || '',
+        username: player.username || '',
         dateOfBirth: player.dateOfBirth || '',
         height: player.height || 175,
         weight: player.weight || 70,
@@ -254,6 +257,18 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         toast.error(isRTL ? 'لا يمكنك التعديل لأن اللاعب مقفل لمجتمع آخر' : 'You cannot edit because the player is locked to another community');
         setIsSaving(false);
         return;
+      }
+
+      // Username handle check
+      const newUsername = cleanUsername(formData.username);
+      if (newUsername && newUsername !== (player.username || '').toLowerCase()) {
+        const uCheck = await checkUsernameAvailability(newUsername, player.uid);
+        if (!uCheck.available) {
+          toast.error(isRTL ? uCheck.errorAr || 'اسم المستخدم غير متاح' : uCheck.errorEn || 'Username is not available');
+          setIsSaving(false);
+          return;
+        }
+        dataToSave.username = newUsername;
       }
 
       // Username uniqueness and 7-day cooldown check
@@ -506,6 +521,20 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الاسم على البطاقة" : "Card Name"}</label>
                   <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder={isRTL ? "الاسم المعروف" : "Nickname"} />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "اسم المستخدم (@username)" : "Username (@username)"}</label>
+                  <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500 transition-all duration-300">
+                    <span className="text-emerald-500 font-bold text-sm pl-3 rtl:pl-0 rtl:pr-3 select-none">@</span>
+                    <input
+                      type="text"
+                      value={formData.username}
+                      onChange={(e) => handleChange('username', cleanUsername(e.target.value))}
+                      className="w-full bg-transparent px-2 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none placeholder-slate-400 dark:placeholder-slate-500"
+                      placeholder="e.g. omda_7"
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "تاريخ الميلاد" : "Date of Birth"}</label>

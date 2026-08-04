@@ -297,6 +297,7 @@ export default function GlobalUsersTable() {
       result = result.filter(u => 
         (u.fullName || '').toLowerCase().includes(q) || 
         (u.cardName || '').toLowerCase().includes(q) || 
+        (u.username && u.username.toLowerCase().includes(q.replace(/^@/, ''))) ||
         (u.email && u.email.toLowerCase().includes(q))
       );
     }

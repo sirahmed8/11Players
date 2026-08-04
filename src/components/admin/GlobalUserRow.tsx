@@ -69,6 +69,9 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
           <div className="min-w-0">
             <div className="font-black text-white text-xs truncate flex items-center gap-1.5">
               <span>{u.cardName || u.fullName}</span>
+              {u.username && (
+                <span className="text-[10px] text-emerald-400 font-bold" dir="ltr">@{u.username}</span>
+              )}
               {(u as any).isOwner && (
                 <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9px] font-black flex items-center gap-0.5">
                   <Crown className="w-2.5 h-2.5" />
@@ -160,7 +163,7 @@ const GlobalUserRow = React.memo(function GlobalUserRow({
             <span>{isAr ? "المجتمعات" : "Communities"}</span>
           </motion.button>
           <Link
-            href={`/profile?uid=${u.uid}`}
+            href={u.username ? `/profile?username=${u.username}` : `/profile?uid=${u.uid}`}
             className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
             title={isAr ? "عرض الملف الشخصي" : "View Profile"}
           >

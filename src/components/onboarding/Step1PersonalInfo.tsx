@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { WizardState } from './types';
+import { cleanUsername } from '@/lib/username';
 
 // Custom Select Dropdown
 export const CustomSelect = ({ value, options, placeholder, onChange }: { value: string | number; options: { value: string | number; label: string }[]; placeholder: string; onChange: (v: string) => void }) => {
@@ -141,6 +142,23 @@ export default function Step1PersonalInfo({
             />
           </div>
           {errors.cardName && <p className="text-xs text-red-400">{errors.cardName}</p>}
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            {isRTL ? "اسم المستخدم (@username)" : "Username (@username)"} *
+          </label>
+          <div className={`relative flex items-center bg-white dark:bg-slate-800/60 rounded-xl border-2 transition-all duration-300 ${errors.username ? 'border-red-400' : 'border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500'}`}>
+            <span className="text-emerald-500 font-black text-base pl-4 rtl:pl-0 rtl:pr-4 select-none">@</span>
+            <input
+              type="text"
+              value={state.username}
+              onChange={(e) => handleFieldChange('username', cleanUsername(e.target.value))}
+              placeholder="e.g. omda_7"
+              className="w-full bg-transparent px-2 py-3 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none font-bold"
+              dir="ltr"
+            />
+          </div>
+          {errors.username && <p className="text-xs text-red-400">{errors.username}</p>}
         </div>
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">{txt.dateOfBirth} *</label>

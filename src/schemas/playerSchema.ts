@@ -36,6 +36,7 @@ export const playerProfileSchema = z.object({
   firstName: z.string().optional().nullable(),
   lastName: z.string().optional().nullable(),
   cardName: z.string().min(1, "Card name is required").max(35, "Card name is too long"),
+  username: z.string().optional().nullable(),
   dateOfBirth: z.string().optional().nullable(),
   height: z.number().min(80, "Height must be at least 80cm").max(250, "Height must be under 250cm").optional().nullable(),
   weight: z.number().min(20, "Weight must be at least 20kg").max(200, "Weight must be under 200kg").optional().nullable(),

@@ -474,7 +474,26 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Integrated `ScrollableTabContainer` across key ecosystem navigation bars (`MatchActionHubBar.tsx`, `community/page.tsx`, `profile/page.tsx`) to guarantee smooth horizontal scrolling without layout cutoff on any screen size.
 - **Quality & Verification**:
   - Verified Next.js 16 production build (`npm run build`), compiling all 52 static routes and server API routes cleanly with 0 compilation errors.
+  ## 18. Milestone M3.1 — Platform-Wide `@username` System Infrastructure & Ecosystem Integration
+- **Unique `@username` Infrastructure (`src/lib/username.ts`)**:
+  - Implemented core username engine containing handle normalization (`cleanUsername`), length/regex/reserved word validation (`validateUsernameFormat`), Firestore async availability checking (`checkUsernameAvailability`), and 1-click handle suggestion generator (`generateUsernameSuggestions`).
+- **Schema & Type Expansion (`src/types/index.ts` & `src/schemas/playerSchema.ts`)**:
+  - Added optional `username?: string;` property to `PlayerProfile` interface and updated `playerProfileSchema` validation.
+- **Glassmorphic Username Claim Modal (`ClaimUsernameModal.tsx`)**:
+  - Created global modal mounted in `src/app/layout.tsx` under `<RouteGuard />` prompting existing players without a handle to select a unique `@username` with live debounced availability status and 1-click handle suggestions.
+- **Onboarding Setup & Profile Editing Integration**:
+  - Integrated `@username` input field into `Step1PersonalInfo.tsx` and `OnboardingWizard.tsx` with live format validation, uniqueness enforcement, and initial setup fallback.
+  - Added `@username` input field and availability verification to `EditProfileModal.tsx`.
+- **Username Lookup & Deep Profile Linking (`usePlayerProfile.ts` & `profile/page.tsx`)**:
+  - Enhanced `usePlayerProfile.ts` hook with Firestore query fallback (`where("username", "==", cleanHandle)`), enabling profile lookup by `@username` handle or UID.
+  - Updated `src/app/profile/page.tsx` to read `searchParams.get("username")`, display `@username` badge in header, and provide 1-click **Share Profile Link** button copying `?username=handle`.
+- **Command Palette & User Roster Search (`CommandPaletteModal.tsx` & `GlobalUserRow.tsx`)**:
+  - Added player search by `@username` or cardName to `CommandPaletteModal.tsx` (`Ctrl+K`).
+  - Added `@username` badges and handle search filtering to `GlobalUsersTable.tsx` and `GlobalUserRow.tsx`.
+- **Quality & Build Verification**:
+  - Verified Next.js 16 production build (`npm run build`), compiling all 52 static and dynamic routes cleanly with zero errors.
   - Verified 106/106 Vitest unit tests passing across all 10 test suites (`npm run test`).
+
 
 
 

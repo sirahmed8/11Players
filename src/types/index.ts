@@ -94,6 +94,7 @@ export interface PlayerAttributes {
 
 export interface PlayerProfile {
   uid: string;
+  username?: string;
   email?: string;
   googlePic?: string;
   googleName?: string;

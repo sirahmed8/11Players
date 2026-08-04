@@ -17,6 +17,7 @@ import { ChevronUp, ChevronDown } from 'lucide-react';
 import { WizardState } from './types';
 import { calculateAge } from '@/lib/playerUtils';
 import { playerProfileSchema } from '@/schemas/playerSchema';
+import { cleanUsername, validateUsernameFormat, checkUsernameAvailability } from '@/lib/username';
 
 /* ──────────────────────────────────────────────
    Translations
@@ -120,7 +121,7 @@ const DEFAULT_ATTRIBUTES: PlayerAttributes = {
 };
 
 const INITIAL_STATE: WizardState = {
-  firstName: '', lastName: '', cardName: '', dateOfBirth: '', calculatedAge: 0,
+  firstName: '', lastName: '', username: '', cardName: '', dateOfBirth: '', calculatedAge: 0,
   height: 175, weight: 70, preferredFoot: 'Right',
   primaryPosition: null, secondaryPosition: null, tertiaryPosition: null,
   attributes: { ...DEFAULT_ATTRIBUTES }, specialSkills: [], playStyle: '',
@@ -216,6 +217,14 @@ export default function OnboardingWizard() {
     if (step === 1) {
       if (!state.firstName.trim()) newErrors['firstName'] = txt.required;
       if (!state.lastName.trim()) newErrors['lastName'] = txt.required;
+      if (!state.username.trim()) {
+        newErrors['username'] = txt.required;
+      } else {
+        const uFormat = validateUsernameFormat(state.username);
+        if (!uFormat.valid) {
+          newErrors['username'] = locale === 'ar' ? uFormat.errorAr || 'اسم المستخدم غير صالح' : uFormat.errorEn || 'Invalid username';
+        }
+      }
       if (!state.cardName.trim()) {
         newErrors['cardName'] = txt.required;
       } else if (!/^[A-Za-z\s\-]+$/.test(state.cardName)) {
@@ -284,6 +293,15 @@ export default function OnboardingWizard() {
         setIsSubmitting(false);
         return;
       }
+
+      if (state.username) {
+        const uCheck = await checkUsernameAvailability(state.username, user.uid);
+        if (!uCheck.available) {
+          setSubmitMessage({ type: 'error', text: locale === 'ar' ? uCheck.errorAr || 'اسم المستخدم غير متاح' : uCheck.errorEn || 'Username is not available' });
+          setIsSubmitting(false);
+          return;
+        }
+      }
     } catch (err) {
       console.warn("Could not verify card name uniqueness:", err);
     }
@@ -291,6 +309,7 @@ export default function OnboardingWizard() {
     try {
       const profile: PlayerProfile = {
         uid: user.uid,
+        username: cleanUsername(state.username || state.cardName),
         email: user.email || '',
         fullName: `${state.firstName.trim()} ${state.lastName.trim()}`,
         cardName: state.cardName.trim().toUpperCase(),

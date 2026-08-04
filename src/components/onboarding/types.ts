@@ -3,6 +3,7 @@ import { PESPosition, PlayerAttributes } from '@/types';
 export interface WizardState {
   firstName: string;
   lastName: string;
+  username: string;
   cardName: string;
   dateOfBirth: string;
   calculatedAge: number;
