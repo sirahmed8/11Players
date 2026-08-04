@@ -524,6 +524,16 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
         throw new Error("Failed to fetch response");
       }
 
+      // Record AI Usage locally & to analytics
+      try {
+        const estTokens = Math.ceil((queryText.length + (data.reply?.length || 0)) / 3.8);
+        const raw = localStorage.getItem("11players_ai_usage_stats");
+        const stats = raw ? JSON.parse(raw) : { totalRequests: 0, totalTokens: 0 };
+        stats.totalRequests = (stats.totalRequests || 0) + 1;
+        stats.totalTokens = (stats.totalTokens || 0) + estTokens;
+        localStorage.setItem("11players_ai_usage_stats", JSON.stringify(stats));
+      } catch (e) {}
+
       setAiMessages((prev) => [
         ...prev,
         {

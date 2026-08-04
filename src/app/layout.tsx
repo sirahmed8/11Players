@@ -18,6 +18,7 @@ import RouteGuard from "@/components/auth/RouteGuard";
 import UpdateNotification from "@/components/layout/UpdateNotification";
 import SiteRatingModal from "@/components/ui/SiteRatingModal";
 import ToastProvider from "@/components/ui/ToastProvider";
+import SubscriptionGiftModal from "@/components/ui/SubscriptionGiftModal";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -123,6 +124,7 @@ export default function RootLayout({
                       </div>
                       <UpdateNotification />
                       <SiteRatingModal />
+                      <SubscriptionGiftModal />
                     </RouteGuard>
                     <FloatingChatWidget />
                     <ToastProvider />
