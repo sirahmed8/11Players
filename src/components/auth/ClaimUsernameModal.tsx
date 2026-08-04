@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cleanUsername, validateUsernameFormat, checkUsernameAvailability, generateUsernameSuggestions } from "@/lib/username";
-import { AtSign, Check, Loader2, Sparkles, User, AlertCircle } from "lucide-react";
+import { AtSign, Check, Loader2, Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ClaimUsernameModal() {
@@ -102,111 +102,172 @@ export default function ClaimUsernameModal() {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-xl" dir={isAr ? "rtl" : "ltr"}>
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-slate-955/85 backdrop-blur-2xl" dir={isAr ? "rtl" : "ltr"}>
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9, y: 20 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="relative w-full max-w-md bg-slate-900 border border-emerald-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-emerald-500/20 overflow-hidden text-white space-y-6"
+          exit={{ opacity: 0, scale: 0.9, y: 30 }}
+          transition={{ type: "spring", stiffness: 350, damping: 28 }}
+          className="relative w-full max-w-md bg-slate-900/95 border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-2xl shadow-emerald-500/10 overflow-hidden text-white space-y-6"
         >
-          {/* Background Glow */}
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+          {/* Ambient Lighting FX */}
+          <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
+          <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-teal-500/10 rounded-full blur-[90px] pointer-events-none" />
 
-          {/* Header */}
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-0.5 mx-auto shadow-lg shadow-emerald-500/30 flex items-center justify-center">
-              <div className="w-full h-full bg-slate-900 rounded-[14px] flex items-center justify-center">
-                <AtSign className="w-7 h-7 text-emerald-400" />
+          {/* FUT Top Icon Badge */}
+          <div className="text-center space-y-3 relative z-10">
+            <motion.div
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+              className="relative w-20 h-20 mx-auto flex items-center justify-center"
+            >
+              {/* Outer Glow Ring */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-emerald-500/40 via-teal-500/30 to-emerald-600/40 blur-xl animate-pulse" />
+              
+              {/* Main Badge Frame */}
+              <div className="relative w-full h-full rounded-3xl bg-gradient-to-br from-emerald-400 via-teal-500 to-emerald-600 p-[2px] shadow-2xl shadow-emerald-500/40">
+                <div className="w-full h-full bg-slate-950/90 rounded-[22px] backdrop-blur-md flex items-center justify-center border border-emerald-400/20">
+                  <AtSign className="w-9 h-9 text-emerald-400 drop-shadow-[0_0_12px_rgba(52,211,153,0.6)]" />
+                </div>
               </div>
+
+              {/* Verified Mini Badge */}
+              <div className="absolute -bottom-1 -right-1 bg-slate-950 border border-emerald-400/50 p-1 rounded-full text-emerald-400 shadow-md">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+            </motion.div>
+
+            <div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
+                <span>{isAr ? "اختر اسم المستخدم الفريد" : "Claim Your Unique Username"}</span>
+                <Sparkles className="w-5 h-5 text-amber-400 animate-bounce" />
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium mt-1 max-w-sm mx-auto">
+                {isAr
+                  ? "يسمح لك اسم المستخدم (@username) بمشاركة رابط ملفك الشخصي بسهولة والظهور في البحث."
+                  : "Your unique handle (@username) lets friends search for you easily and gives you a clean, shareable profile link."}
+              </p>
             </div>
-            <h2 className="text-2xl font-black text-white flex items-center justify-center gap-2">
-              <span>{isAr ? "اختر اسم المستخدم الفريد الخاص بك" : "Claim Your Unique Username"}</span>
-              <Sparkles className="w-5 h-5 text-amber-400" />
-            </h2>
-            <p className="text-xs text-slate-400 leading-relaxed font-medium">
-              {isAr
-                ? "يسمح لك اسم المستخدم (@username) بمشاركة رابط ملفك الشخصي بسهولة والظهور في البحث."
-                : "Your unique handle (@username) lets friends search for you easily and gives you a memorable clean profile link."}
-            </p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleClaim} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center gap-1">
-                <span>{isAr ? "اسم المستخدم" : "Username Handle"}</span>
-                <span className="text-rose-400">*</span>
+          <form onSubmit={handleClaim} className="space-y-5 relative z-10">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <span>{isAr ? "اسم المستخدم" : "Username Handle"}</span>
+                  <span className="text-rose-400">*</span>
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">@a-z, 0-9, _</span>
               </label>
+
+              {/* Input Container with Unified Outline Animation */}
               <div
-                className={`relative flex items-center bg-slate-950 border-2 rounded-2xl px-3.5 py-3 transition-all duration-300 ${
+                className={`relative flex items-center bg-slate-950/90 rounded-2xl px-4 py-1 border-2 transition-all duration-300 ease-out ${
                   errorMsg
-                    ? "border-rose-500/80 shadow-lg shadow-rose-500/10"
-                    : available
-                    ? "border-emerald-500/80 shadow-lg shadow-emerald-500/10"
-                    : "border-slate-800 focus-within:border-emerald-500"
+                    ? "border-rose-500/80 ring-4 ring-rose-500/15 shadow-lg shadow-rose-500/10"
+                    : available === true
+                    ? "border-emerald-500/80 ring-4 ring-emerald-500/15 shadow-lg shadow-emerald-500/10"
+                    : "border-slate-800 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20"
                 }`}
               >
-                <span className="text-emerald-400 font-black text-lg select-none mr-1.5 rtl:mr-0 rtl:ml-1.5">@</span>
+                <span className="text-emerald-400 font-black text-lg select-none shrink-0 mr-2 rtl:mr-0 rtl:ml-2">@</span>
+                
                 <input
                   type="text"
                   value={inputVal}
                   onChange={(e) => setInputVal(cleanUsername(e.target.value))}
                   placeholder="e.g. omda_7"
-                  className="w-full bg-transparent text-white font-bold placeholder-slate-600 focus:outline-none text-base tracking-wide"
+                  className="w-full bg-transparent text-white font-bold placeholder-slate-600 text-base tracking-wide py-3 border-0 outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none shadow-none"
+                  style={{ outline: "none", boxShadow: "none" }}
                   dir="ltr"
                 />
 
-                {/* Status Indicator */}
-                <div className="flex items-center ml-2 rtl:ml-0 rtl:mr-2">
-                  {checking && <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />}
-                  {!checking && available === true && (
-                    <div className="flex items-center gap-1 bg-emerald-500/20 text-emerald-400 text-xs font-black px-2 py-1 rounded-lg border border-emerald-500/40">
-                      <Check className="w-3.5 h-3.5" />
-                      <span>{isAr ? "متاح" : "Available"}</span>
-                    </div>
-                  )}
-                  {!checking && available === false && (
-                    <div className="flex items-center gap-1 bg-rose-500/20 text-rose-400 text-xs font-bold px-2 py-1 rounded-lg border border-rose-500/40">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>{isAr ? "غير متاح" : "Taken"}</span>
-                    </div>
-                  )}
+                {/* Live Status Indicator */}
+                <div className="flex items-center shrink-0 ml-2 rtl:ml-0 rtl:mr-2">
+                  <AnimatePresence mode="wait">
+                    {checking && (
+                      <motion.div
+                        key="checking"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                      >
+                        <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
+                      </motion.div>
+                    )}
+                    {!checking && available === true && (
+                      <motion.div
+                        key="available"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-black px-2.5 py-1 rounded-xl border border-emerald-500/40 shadow-sm"
+                      >
+                        <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        <span>{isAr ? "متاح" : "Available"}</span>
+                      </motion.div>
+                    )}
+                    {!checking && available === false && (
+                      <motion.div
+                        key="taken"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="flex items-center gap-1.5 bg-rose-500/20 text-rose-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-rose-500/40 shadow-sm"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{isAr ? "غير متاح" : "Taken"}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
 
               {/* Error Message */}
-              {errorMsg && <p className="text-xs font-semibold text-rose-400 mt-1">{errorMsg}</p>}
+              {errorMsg && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-xs font-semibold text-rose-400 px-1"
+                >
+                  {errorMsg}
+                </motion.p>
+              )}
             </div>
 
-            {/* Suggestions */}
+            {/* Quick Suggestions Pills */}
             {suggestions.length > 0 && (
-              <div className="space-y-1.5">
-                <p className="text-[11px] font-bold text-slate-400">{isAr ? "مقترحات سريعة لك:" : "Suggested for you:"}</p>
-                <div className="flex flex-wrap gap-1.5">
+              <div className="space-y-2 pt-1">
+                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{isAr ? "مقترحات سريعة لك:" : "Suggested for you:"}</p>
+                <div className="flex flex-wrap gap-2">
                   {suggestions.map((sug) => (
-                    <button
+                    <motion.button
                       key={sug}
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
                       type="button"
                       onClick={() => setInputVal(sug)}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all active:scale-95 ${
+                      className={`text-xs font-extrabold px-3.5 py-2 rounded-xl border transition-all cursor-pointer ${
                         inputVal === sug
-                          ? "bg-emerald-500 text-slate-950 border-emerald-400 font-black shadow-md shadow-emerald-500/20"
-                          : "bg-slate-800/80 text-slate-300 border-slate-700 hover:border-emerald-500/40 hover:text-white"
+                          ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 border-emerald-400 font-black shadow-lg shadow-emerald-500/30"
+                          : "bg-slate-800/90 text-slate-300 border-slate-700 hover:border-emerald-500/50 hover:text-white hover:bg-slate-800"
                       }`}
                     >
                       @{sug}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </div>
             )}
 
             {/* Submit Button */}
-            <button
+            <motion.button
+              whileHover={available && !checking && !submitting ? { scale: 1.02 } : {}}
+              whileTap={available && !checking && !submitting ? { scale: 0.98 } : {}}
               type="submit"
               disabled={!available || checking || submitting}
-              className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-sm shadow-xl shadow-emerald-500/25 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-600 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-black text-base shadow-xl shadow-emerald-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-3 cursor-pointer"
             >
               {submitting ? (
                 <>
@@ -215,11 +276,11 @@ export default function ClaimUsernameModal() {
                 </>
               ) : (
                 <>
-                  <Check className="w-5 h-5" />
+                  <Check className="w-5 h-5 stroke-[3]" />
                   <span>{isAr ? `تأكيد وحفظ @${cleanUsername(inputVal) || "username"}` : `Claim @${cleanUsername(inputVal) || "username"}`}</span>
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
         </motion.div>
       </div>
