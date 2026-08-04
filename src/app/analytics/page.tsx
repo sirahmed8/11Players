@@ -41,7 +41,7 @@ import {
   X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, getDocs, doc, updateDoc, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, updateDoc, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile, Community } from "@/types";
 import toast from "react-hot-toast";
@@ -265,15 +265,12 @@ export default function AnalyticsPage() {
       grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
     const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
 
-    // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY REAL & LIVE INCREMENTING)
-    const baseRequests = Math.max(realAiStats.totalRequests, aiLogsStats.requests);
-    const baseTokens = Math.max(realAiStats.totalTokens, aiLogsStats.tokens);
-
-    const totalAiScoutReports = baseRequests + localAiStats.requests;
-    const totalTokensUsed = baseTokens + localAiStats.tokens;
+    // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY PURE REAL: ZERO BASELINE)
+    const totalAiScoutReports = (realAiStats.totalRequests || 0) + (localAiStats.requests || 0);
+    const totalTokensUsed = (realAiStats.totalTokens || 0) + (localAiStats.tokens || 0);
 
     // Gemini Flash API Pricing ($0.075 per 1M input tokens, $0.30 per 1M output tokens => ~$0.15 / 1M tokens)
-    const estimatedAiCostUsd = Math.round(((totalTokensUsed / 1_000_000) * 0.15) * 1000) / 1000;
+    const estimatedAiCostUsd = Math.round(((totalTokensUsed / 1_000_000) * 0.15) * 10000) / 10000;
     const estimatedAiCostEgp = Math.round(estimatedAiCostUsd * 50 * 100) / 100;
 
     // Position Distribution
@@ -340,6 +337,41 @@ export default function AnalyticsPage() {
       topPlayers,
     };
   }, [players, totalMatches, realAiStats, aiLogsStats, localAiStats]);
+
+  // ─── ADMIN AI STATS RESET HANDLER ────────────────────────────
+  const handleResetAiStats = async () => {
+    try {
+      await setDoc(doc(db, "system", "ai_analytics"), {
+        totalRequests: 0,
+        totalTokens: 0,
+        totalPromptTokens: 0,
+        totalCandidateTokens: 0,
+        lastResetAt: new Date().toISOString(),
+      });
+
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("11players_ai_usage_stats");
+        window.dispatchEvent(new Event("11ai_usage_updated"));
+      }
+
+      setRealAiStats({
+        totalRequests: 0,
+        totalTokens: 0,
+        totalPromptTokens: 0,
+        totalCandidateTokens: 0,
+      });
+
+      setLocalAiStats({
+        requests: 0,
+        tokens: 0,
+      });
+
+      toast.success(isAr ? "تم إعادة ضبط عداد الذكاء الاصطناعي إلى 0 بنجاح! ⚡" : "AI Stats successfully reset to 0! ⚡");
+    } catch (err) {
+      console.error("Error resetting AI stats:", err);
+      toast.error(isAr ? "فشل إعادة ضبط العداد" : "Failed to reset AI stats");
+    }
+  };
 
   // ─── ADMIN SINGLE SUBSCRIPTION TOGGLE HANDLER ────────────────────────────
   const handleSetSubscription = async (
@@ -687,9 +719,20 @@ export default function AnalyticsPage() {
                 <Bot className="w-5 h-5 text-cyan-400" />
                 <span>{isAr ? "مراقب استهلاك الذكاء الاصطناعي والتكلفة" : "AI Scout Tokens & Infrastructure Costs"}</span>
               </h3>
-              <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-mono font-black">
-                Gemini AI Engine
-              </span>
+              <div className="flex items-center gap-2">
+                {(isOwner || isAdmin) && (
+                  <button
+                    onClick={handleResetAiStats}
+                    className="px-2.5 py-1 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-300 border border-red-500/40 text-[10px] font-bold transition-all active:scale-95 flex items-center gap-1 shadow-sm"
+                  >
+                    <RefreshCw className="w-3 h-3 text-red-400" />
+                    <span>{isAr ? "تصفير العداد إلى 0" : "Reset to 0"}</span>
+                  </button>
+                )}
+                <span className="px-2.5 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 text-[11px] font-mono font-black">
+                  Gemini AI Engine
+                </span>
+              </div>
             </div>
 
             <p className="text-xs text-slate-400 font-medium">
