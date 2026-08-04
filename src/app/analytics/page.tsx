@@ -265,17 +265,12 @@ export default function AnalyticsPage() {
       grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
     const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
 
-    // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY EMPIRICAL DATA FROM FIRESTORE + LOCALSTORAGE)
-    const totalAiScoutReports = Math.max(
-      realAiStats.totalRequests,
-      aiLogsStats.requests,
-      localAiStats.requests
-    );
-    const totalTokensUsed = Math.max(
-      realAiStats.totalTokens,
-      aiLogsStats.tokens,
-      localAiStats.tokens
-    );
+    // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY REAL & LIVE INCREMENTING)
+    const baseRequests = Math.max(realAiStats.totalRequests, aiLogsStats.requests);
+    const baseTokens = Math.max(realAiStats.totalTokens, aiLogsStats.tokens);
+
+    const totalAiScoutReports = baseRequests + localAiStats.requests;
+    const totalTokensUsed = baseTokens + localAiStats.tokens;
 
     // Gemini Flash API Pricing ($0.075 per 1M input tokens, $0.30 per 1M output tokens => ~$0.15 / 1M tokens)
     const estimatedAiCostUsd = Math.round(((totalTokensUsed / 1_000_000) * 0.15) * 1000) / 1000;
