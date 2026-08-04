@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md — Architectural & Technical Specification
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
-> **Last Updated**: July 28, 2026  
-> **Status**: Production Full-Stack Next.js 16 Web Application (100% REALTIME FIRESTORE SYNC, ZERO MOCK DATA, CLEAN URL ROUTES /leaderboard, /matches, /draft, /live, /newspaper, /split-bill, /derby, /kit-builder, /skill-tree, /chat, /settings)  
+> **Last Updated**: August 4, 2026  
+> **Status**: Production Full-Stack Next.js 16 Web Application (100% REALTIME FIRESTORE SYNC, REAL-TIME AI TOKEN & COST TRACKING, MULTI-SELECT BULK PRO GRANTS, CELEBRATION GIFT MODAL, CLEAN URL ROUTES)  
 
 ---
 
