@@ -118,10 +118,10 @@ function PlayerProfileContent() {
   const { player, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
 
   useEffect(() => {
-    if (isViewingOwnProfile && !rawUid && player?.username) {
+    if (player?.username && (searchParams.get("uid") || (!rawUid && isViewingOwnProfile))) {
       router.replace(`/profile?username=${player.username}`);
     }
-  }, [isViewingOwnProfile, rawUid, player?.username, router]);
+  }, [player?.username, searchParams, rawUid, isViewingOwnProfile, router]);
 
   useEffect(() => {
     if (!effectiveUid && !authLoading) setLoading(false);

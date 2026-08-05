@@ -377,7 +377,7 @@ function SidebarContent() {
       items: [
         { href: "/pro-pass", labelEn: "11Players PRO Pass", labelAr: "اشتراك PRO Pass", icon: <Crown className="w-5 h-5 text-amber-400" /> },
         ...(user ? [
-          { href: `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
+          { href: userProfile?.username ? `/profile?username=${userProfile.username}` : `/profile?uid=${user.uid}`, labelEn: "My Profile", labelAr: "ملفي الشخصي", icon: <User className="w-5 h-5" /> },
           { href: "/skill-tree", labelEn: "Achievements", labelAr: "الإنجازات", icon: <Trophy className="w-5 h-5" /> },
           { href: "/notifications", labelEn: "Notifications", labelAr: "الإشعارات", icon: <Bell className="w-5 h-5" /> }
         ] : []),

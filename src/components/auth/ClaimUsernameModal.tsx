@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { useLocale } from "@/components/ui/ThemeProvider";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cleanUsername, validateUsernameFormat, checkUsernameAvailability, generateUsernameSuggestions } from "@/lib/username";
 import { AtSign, Check, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
@@ -23,22 +23,29 @@ export default function ClaimUsernameModal() {
   const [errorMsg, setErrorMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  
   const [claimedLocally, setClaimedLocally] = useState<boolean>(() => {
-    if (typeof window !== "undefined" && user?.uid) {
-      return Boolean(localStorage.getItem(`claimed_username_${user.uid}`));
+    if (typeof window !== "undefined") {
+      const uKey = user?.uid ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
+      const eKey = user?.email ? localStorage.getItem(`claimed_username_${user.email}`) : null;
+      const gKey = localStorage.getItem("claimed_username_global");
+      return Boolean(uKey || eKey || gKey);
     }
     return false;
   });
 
   useEffect(() => {
-    if (typeof window !== "undefined" && user?.uid) {
-      if (localStorage.getItem(`claimed_username_${user.uid}`)) {
+    if (typeof window !== "undefined") {
+      const uKey = user?.uid ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
+      const eKey = user?.email ? localStorage.getItem(`claimed_username_${user.email}`) : null;
+      const gKey = localStorage.getItem("claimed_username_global");
+      if (uKey || eKey || gKey) {
         setClaimedLocally(true);
       }
     }
-  }, [user?.uid]);
+  }, [user?.uid, user?.email]);
 
-  // Show modal only if user is logged in, profile exists or loaded, username is missing, and not claimed in local storage
+  // Show modal only if user is logged in, profile exists or loaded, username is missing, and not claimed locally
   const hasUsername = Boolean(userProfile?.username || claimedLocally);
   const isMissingUsername = Boolean(user && userProfile && !hasUsername);
 
@@ -106,14 +113,24 @@ export default function ClaimUsernameModal() {
       // 1. Save to main user document in Firestore
       await setDoc(doc(db, "players", user.uid), { username: cleaned }, { merge: true });
 
-      // 2. If user profile has a separate doc ID, sync to it as well
-      if (userProfile?.uid && userProfile.uid !== user.uid) {
-        await setDoc(doc(db, "players", userProfile.uid), { username: cleaned }, { merge: true });
+      // 2. Query any existing docs by email to update them as well
+      if (user.email) {
+        try {
+          const q = query(collection(db, "players"), where("email", "==", user.email));
+          const querySnap = await getDocs(q);
+          for (const docSnap of querySnap.docs) {
+            await setDoc(doc(db, "players", docSnap.id), { username: cleaned }, { merge: true });
+          }
+        } catch (e) {
+          console.error("Sync handle by email failed:", e);
+        }
       }
 
-      // 3. Store in localStorage so window never opens on refresh
+      // 3. Store in localStorage keys
       if (typeof window !== "undefined") {
         localStorage.setItem(`claimed_username_${user.uid}`, cleaned);
+        if (user.email) localStorage.setItem(`claimed_username_${user.email}`, cleaned);
+        localStorage.setItem("claimed_username_global", cleaned);
       }
       setClaimedLocally(true);
 

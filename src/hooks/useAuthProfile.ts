@@ -29,9 +29,12 @@ export function useAuthProfile(user: any) {
       }
 
       if (data) {
-        const localHandle = typeof window !== "undefined" ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
+        const localHandle = typeof window !== "undefined"
+          ? (localStorage.getItem(`claimed_username_${user.uid}`) || (user.email && localStorage.getItem(`claimed_username_${user.email}`)) || localStorage.getItem("claimed_username_global"))
+          : null;
         if (localHandle && !data.username) {
           data = { ...data, username: localHandle };
+          setDoc(doc(db, "players", user.uid), { username: localHandle }, { merge: true }).catch(console.error);
         }
         setUserProfile(data);
       }
