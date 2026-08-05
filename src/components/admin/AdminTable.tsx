@@ -553,7 +553,7 @@ export default function AdminTable({ players, onRefresh }: AdminTableProps) {
           ),
           type: "updates",
           read: false,
-          link: `/profile?uid=${attrModal.player.uid}`,
+          link: attrModal.player.username ? `/profile?username=${attrModal.player.username}` : `/profile?uid=${attrModal.player.uid}`,
           createdAt: serverTimestamp()
         });
       } catch (nErr) {

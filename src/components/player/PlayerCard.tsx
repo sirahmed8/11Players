@@ -120,9 +120,10 @@ const PlayerCard = React.memo(function PlayerCard({
     const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
     const isCurrentUser = Boolean(currentUserId && player.uid === currentUserId);
     const captainVotesCount = player.captainVotes?.length || 0;
+    const profileUrl = player.username ? `/profile?username=${player.username}` : `/profile?uid=${player.uid}`;
 
     return (
-      <Link href={`/profile?uid=${player.uid}`} className="block w-full">
+      <Link href={profileUrl} className="block w-full">
         <motion.div
           whileHover={{ scale: 1.025, y: -2 }}
           whileTap={{ scale: 0.96 }}
@@ -434,7 +435,8 @@ const PlayerCard = React.memo(function PlayerCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const url = typeof window !== 'undefined' ? `${window.location.origin}/profile?uid=${player.uid}` : '';
+              const profilePath = player.username ? `/profile?username=${player.username}` : `/profile?uid=${player.uid}`;
+              const url = typeof window !== 'undefined' ? `${window.location.origin}${profilePath}` : '';
               if (navigator.clipboard) {
                 navigator.clipboard.writeText(url);
                 toast.success(isAr ? `تم نسخ رابط ملف ${player.cardName || player.fullName}!` : `Profile link for ${player.cardName || player.fullName} copied!`);

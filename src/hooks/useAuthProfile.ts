@@ -12,20 +12,28 @@ export function useAuthProfile(user: any) {
     }
 
     const unsub = onSnapshot(doc(db, "players", user.uid), async (userDoc) => {
+      let data: any = null;
       if (userDoc.exists()) {
-        setUserProfile(userDoc.data());
+        data = userDoc.data();
       } else if (user.email) {
         try {
           const q = query(collection(db, "players"), where("email", "==", user.email));
           const querySnap = await getDocs(q);
           if (!querySnap.empty) {
-            const existingData = querySnap.docs[0].data();
-            await setDoc(doc(db, "players", user.uid), { ...existingData, uid: user.uid }, { merge: true });
-            setUserProfile(existingData);
+            data = querySnap.docs[0].data();
+            await setDoc(doc(db, "players", user.uid), { ...data, uid: user.uid }, { merge: true });
           }
         } catch (e) {
           console.error("Profile sync by email error:", e);
         }
+      }
+
+      if (data) {
+        const localHandle = typeof window !== "undefined" ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
+        if (localHandle && !data.username) {
+          data = { ...data, username: localHandle };
+        }
+        setUserProfile(data);
       }
     }, (err) => {
       console.warn("useAuthProfile onSnapshot error:", err);

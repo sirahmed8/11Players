@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Settings, Globe, Sun, Moon, LogOut, User } from "lucide-react";
 import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { useRouter } from "next/navigation";
 
 interface SettingsMenuProps {
@@ -18,8 +19,11 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
   const { locale, toggleLocale, isRTL, t } = useLocale();
   const { theme, toggleTheme } = useTheme();
   const { user, logout }       = useAuth();
+  const { userProfile }        = useAuthProfile(user);
   const router                 = useRouter();
   const menuRef                = useRef<HTMLDivElement>(null);
+  
+  const myProfileUrl = userProfile?.username ? `/profile?username=${userProfile.username}` : "/profile";
 
   // Close on outside click
   useEffect(() => {
@@ -115,7 +119,7 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
             {user && (
               <>
                 <Link
-                  href="/profile"
+                  href={myProfileUrl}
                   onClick={() => setIsOpen(false)}
                   className="
                     flex items-center gap-3 px-4 py-3.5

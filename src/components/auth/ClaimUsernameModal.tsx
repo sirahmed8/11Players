@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 
 export default function ClaimUsernameModal() {
   const { user } = useAuth();
-  const { userProfile } = useAuthProfile(user);
+  const { userProfile, setUserProfile } = useAuthProfile(user);
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
@@ -23,12 +23,27 @@ export default function ClaimUsernameModal() {
   const [errorMsg, setErrorMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-
-  // Show modal only if user is logged in, profile exists, but username is missing
-  const isMissingUsername = Boolean(user && userProfile && !userProfile.username);
+  const [claimedLocally, setClaimedLocally] = useState<boolean>(() => {
+    if (typeof window !== "undefined" && user?.uid) {
+      return Boolean(localStorage.getItem(`claimed_username_${user.uid}`));
+    }
+    return false;
+  });
 
   useEffect(() => {
-    if (userProfile && !userProfile.username) {
+    if (typeof window !== "undefined" && user?.uid) {
+      if (localStorage.getItem(`claimed_username_${user.uid}`)) {
+        setClaimedLocally(true);
+      }
+    }
+  }, [user?.uid]);
+
+  // Show modal only if user is logged in, profile exists or loaded, username is missing, and not claimed in local storage
+  const hasUsername = Boolean(userProfile?.username || claimedLocally);
+  const isMissingUsername = Boolean(user && userProfile && !hasUsername);
+
+  useEffect(() => {
+    if (userProfile && !userProfile.username && !claimedLocally) {
       const initialSuggestions = generateUsernameSuggestions(
         userProfile.fullName || user?.displayName || undefined,
         userProfile.cardName || undefined,
@@ -39,7 +54,7 @@ export default function ClaimUsernameModal() {
         setInputVal(initialSuggestions[0]);
       }
     }
-  }, [userProfile, user]);
+  }, [userProfile, user, claimedLocally]);
 
   // Live debounced availability check
   useEffect(() => {
@@ -88,7 +103,25 @@ export default function ClaimUsernameModal() {
 
     setSubmitting(true);
     try {
+      // 1. Save to main user document in Firestore
       await setDoc(doc(db, "players", user.uid), { username: cleaned }, { merge: true });
+
+      // 2. If user profile has a separate doc ID, sync to it as well
+      if (userProfile?.uid && userProfile.uid !== user.uid) {
+        await setDoc(doc(db, "players", userProfile.uid), { username: cleaned }, { merge: true });
+      }
+
+      // 3. Store in localStorage so window never opens on refresh
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`claimed_username_${user.uid}`, cleaned);
+      }
+      setClaimedLocally(true);
+
+      // 4. Update local state
+      if (setUserProfile) {
+        setUserProfile((prev: any) => ({ ...prev, username: cleaned }));
+      }
+
       toast.success(isAr ? `مرحباً بك! تم تعيين اسم المستخدم @${cleaned} بنجاح 🎉` : `Welcome! Username @${cleaned} claimed successfully 🎉`);
     } catch (err) {
       console.error("Failed to claim username:", err);
@@ -157,14 +190,12 @@ export default function ClaimUsernameModal() {
                 <span className="text-rose-400">*</span>
               </label>
 
-              {/* Global UI Search Box Architecture — Single Input Element */}
+              {/* Single Input Box Architecture — Matches Global Search Box 100% */}
               <div className="relative w-full">
-                {/* Prefix @ Symbol */}
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-lg select-none pointer-events-none z-10 rtl:left-auto rtl:right-4">
                   @
                 </span>
 
-                {/* THE SINGLE TYPE BOX — Matching Global UI Search Box 100% */}
                 <input
                   type="text"
                   value={inputVal}
