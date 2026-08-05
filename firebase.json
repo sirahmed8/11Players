@@ -8,6 +8,16 @@
     ],
     "cleanUrls": true,
     "trailingSlash": false,
+    "rewrites": [
+      {
+        "source": "/c/**",
+        "destination": "/c/[slug].html"
+      },
+      {
+        "source": "/:username",
+        "destination": "/[username].html"
+      }
+    ],
     "headers": [
       {
         "source": "**",
