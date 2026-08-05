@@ -61,7 +61,7 @@ export function validateUsernameFormat(username: string): { valid: boolean; erro
 /**
  * Asynchronously checks if a username is available in Firestore players collection.
  */
-export async function checkUsernameAvailability(username: string, currentUid?: string): Promise<{ available: boolean; errorEn?: string; errorAr?: string }> {
+export async function checkUsernameAvailability(username: string, currentUid?: string, currentUserEmail?: string): Promise<{ available: boolean; errorEn?: string; errorAr?: string }> {
   const formatResult = validateUsernameFormat(username);
   if (!formatResult.valid) {
     return { available: false, errorEn: formatResult.errorEn, errorAr: formatResult.errorAr };
@@ -77,8 +77,14 @@ export async function checkUsernameAvailability(username: string, currentUid?: s
       return { available: true };
     }
 
-    // If matches belong to current user, it's available for them
-    const isOwnedByCurrent = snap.docs.every((d) => d.id === currentUid || d.data().uid === currentUid);
+    // If matches belong to current user (by UID or Email), it's available for them!
+    const isOwnedByCurrent = snap.docs.every((d) => {
+      const data = d.data();
+      const matchUid = Boolean(currentUid && (d.id === currentUid || data.uid === currentUid));
+      const matchEmail = Boolean(currentUserEmail && data.email && currentUserEmail && data.email.toLowerCase() === currentUserEmail.toLowerCase());
+      return matchUid || matchEmail;
+    });
+
     if (isOwnedByCurrent) {
       return { available: true };
     }

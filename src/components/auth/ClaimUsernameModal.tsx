@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { doc, setDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cleanUsername, validateUsernameFormat, checkUsernameAvailability, generateUsernameSuggestions } from "@/lib/username";
-import { AtSign, Check, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
+import { AtSign, Check, Loader2, AlertCircle, ShieldCheck, X } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ClaimUsernameModal() {
@@ -23,40 +23,20 @@ export default function ClaimUsernameModal() {
   const [errorMsg, setErrorMsg] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  
-  const [claimedLocally, setClaimedLocally] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const uKey = user?.uid ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
-      const eKey = user?.email ? localStorage.getItem(`claimed_username_${user.email}`) : null;
-      const gKey = localStorage.getItem("claimed_username_global");
-      return Boolean(uKey || eKey || gKey);
-    }
-    return false;
-  });
+  const [dismissed, setDismissed] = useState(false);
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const uKey = user?.uid ? localStorage.getItem(`claimed_username_${user.uid}`) : null;
-      const eKey = user?.email ? localStorage.getItem(`claimed_username_${user.email}`) : null;
-      const gKey = localStorage.getItem("claimed_username_global");
-      if (uKey || eKey || gKey) {
-        setClaimedLocally(true);
-      }
-    }
-  }, [user?.uid, user?.email]);
-
-  // Read localStorage dynamically so auth loading resolution immediately hides modal
+  // Evaluate localStorage dynamically so auth loading resolution immediately hides modal
   const isLocallyClaimed = typeof window !== "undefined" && Boolean(
     (user?.uid && localStorage.getItem(`claimed_username_${user.uid}`)) ||
     (user?.email && localStorage.getItem(`claimed_username_${user.email}`)) ||
     localStorage.getItem("claimed_username_global")
   );
 
-  const hasUsername = Boolean(userProfile?.username || isLocallyClaimed || claimedLocally);
+  const hasUsername = Boolean(userProfile?.username || isLocallyClaimed || dismissed);
   const isMissingUsername = Boolean(user && userProfile && !hasUsername);
 
   useEffect(() => {
-    if (userProfile && !userProfile.username && !claimedLocally) {
+    if (userProfile && !userProfile.username && !isLocallyClaimed) {
       const initialSuggestions = generateUsernameSuggestions(
         userProfile.fullName || user?.displayName || undefined,
         userProfile.cardName || undefined,
@@ -67,7 +47,7 @@ export default function ClaimUsernameModal() {
         setInputVal(initialSuggestions[0]);
       }
     }
-  }, [userProfile, user, claimedLocally]);
+  }, [userProfile, user, isLocallyClaimed]);
 
   // Live debounced availability check
   useEffect(() => {
@@ -91,7 +71,7 @@ export default function ClaimUsernameModal() {
     setErrorMsg("");
 
     const timer = setTimeout(async () => {
-      const res = await checkUsernameAvailability(cleaned, user?.uid);
+      const res = await checkUsernameAvailability(cleaned, user?.uid, user?.email || undefined);
       if (isMounted) {
         setChecking(false);
         setAvailable(res.available);
@@ -105,7 +85,16 @@ export default function ClaimUsernameModal() {
       isMounted = false;
       clearTimeout(timer);
     };
-  }, [inputVal, isAr, user?.uid]);
+  }, [inputVal, isAr, user?.uid, user?.email]);
+
+  const handleDismiss = () => {
+    if (typeof window !== "undefined") {
+      if (user?.uid) localStorage.setItem(`claimed_username_${user.uid}`, "skipped");
+      if (user?.email) localStorage.setItem(`claimed_username_${user.email}`, "skipped");
+      localStorage.setItem("claimed_username_global", "skipped");
+    }
+    setDismissed(true);
+  };
 
   const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,7 +127,7 @@ export default function ClaimUsernameModal() {
         if (user.email) localStorage.setItem(`claimed_username_${user.email}`, cleaned);
         localStorage.setItem("claimed_username_global", cleaned);
       }
-      setClaimedLocally(true);
+      setDismissed(true);
 
       // 4. Update local state
       if (setUserProfile) {
@@ -166,6 +155,16 @@ export default function ClaimUsernameModal() {
           transition={{ type: "spring", stiffness: 350, damping: 28 }}
           className="relative w-full max-w-md bg-slate-900/95 border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-2xl shadow-emerald-500/10 overflow-hidden text-white space-y-6"
         >
+          {/* Close / Skip Button */}
+          <button
+            type="button"
+            onClick={handleDismiss}
+            className="absolute top-5 right-5 rtl:right-auto rtl:left-5 p-2 bg-slate-800/80 hover:bg-slate-800 text-slate-400 hover:text-white rounded-full transition-all cursor-pointer z-30"
+            title={isAr ? "إغلاق" : "Close"}
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           {/* Ambient Lighting FX */}
           <div className="absolute -top-28 left-1/2 -translate-x-1/2 w-80 h-80 bg-emerald-500/15 rounded-full blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-20 -right-20 w-60 h-60 bg-teal-500/10 rounded-full blur-[90px] pointer-events-none" />
