@@ -77,7 +77,7 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
   const [isSuggestModalOpen, setIsSuggestModalOpen] = useState(false);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
-  const { player, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
+  const { player, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid || null, activeCommunityId);
 
   useEffect(() => {
     if (player?.username && !directUsername && (searchParams.get("uid") || searchParams.get("username") || (!rawUid && isViewingOwnProfile))) {
