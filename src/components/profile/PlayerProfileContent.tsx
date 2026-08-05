@@ -56,6 +56,7 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
 
 export function PlayerProfileContent({ directUsername }: { directUsername?: string }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { activeCommunityId } = useCommunity();
   const pathUsername = typeof window !== "undefined"
     ? decodeURIComponent(window.location.pathname.replace(/^\/+/, "").split("/")[0]).replace(/^@+/, "")
