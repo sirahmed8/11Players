@@ -35,6 +35,14 @@ export function useAuthProfile(user: any) {
         if (localHandle && !data.username) {
           data = { ...data, username: localHandle };
           setDoc(doc(db, "players", user.uid), { username: localHandle }, { merge: true }).catch(console.error);
+          if (user.email) {
+            const qEmail = query(collection(db, "players"), where("email", "==", user.email));
+            getDocs(qEmail).then((snap) => {
+              snap.docs.forEach((dSnap) => {
+                setDoc(doc(db, "players", dSnap.id), { username: localHandle }, { merge: true }).catch(console.error);
+              });
+            }).catch(console.error);
+          }
         }
         setUserProfile(data);
       }

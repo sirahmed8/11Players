@@ -45,8 +45,14 @@ export default function ClaimUsernameModal() {
     }
   }, [user?.uid, user?.email]);
 
-  // Show modal only if user is logged in, profile exists or loaded, username is missing, and not claimed locally
-  const hasUsername = Boolean(userProfile?.username || claimedLocally);
+  // Read localStorage dynamically so auth loading resolution immediately hides modal
+  const isLocallyClaimed = typeof window !== "undefined" && Boolean(
+    (user?.uid && localStorage.getItem(`claimed_username_${user.uid}`)) ||
+    (user?.email && localStorage.getItem(`claimed_username_${user.email}`)) ||
+    localStorage.getItem("claimed_username_global")
+  );
+
+  const hasUsername = Boolean(userProfile?.username || isLocallyClaimed || claimedLocally);
   const isMissingUsername = Boolean(user && userProfile && !hasUsername);
 
   useEffect(() => {
