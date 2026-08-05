@@ -86,17 +86,17 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default function PlayerProfilePage({ directUsername }: { directUsername?: string }) {
+export default function PlayerProfilePage() {
   return (
     <ProtectedRoute>
       <Suspense fallback={<SiteSkeletonLoader variant="profile" />}>
-        <PlayerProfileContent directUsername={directUsername} />
+        <PlayerProfileContent />
       </Suspense>
     </ProtectedRoute>
   );
 }
 
-function PlayerProfileContent({ directUsername }: { directUsername?: string }) {
+export function PlayerProfileContent({ directUsername }: { directUsername?: string }) {
   const router = useRouter();
   const { activeCommunityId } = useCommunity();
   const searchParams = useSearchParams();
