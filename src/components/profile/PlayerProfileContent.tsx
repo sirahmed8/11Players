@@ -57,8 +57,11 @@ function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?:
 export function PlayerProfileContent({ directUsername }: { directUsername?: string }) {
   const router = useRouter();
   const { activeCommunityId } = useCommunity();
-  const searchParams = useSearchParams();
-  const rawUid = directUsername || searchParams.get("username") || searchParams.get("uid");
+  const pathUsername = typeof window !== "undefined"
+    ? decodeURIComponent(window.location.pathname.replace(/^\/+/, "").split("/")[0]).replace(/^@+/, "")
+    : "";
+  const validPathUsername = (pathUsername && pathUsername !== "profile" && pathUsername !== "demo" && pathUsername !== "404" && pathUsername !== "index.html") ? pathUsername : undefined;
+  const rawUid = directUsername || searchParams.get("username") || searchParams.get("uid") || validPathUsername;
   const uid = (rawUid && rawUid !== "undefined" && rawUid !== "null") ? rawUid : null;
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
   const { locale } = useLocale();

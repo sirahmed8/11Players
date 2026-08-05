@@ -10,12 +10,16 @@
     "trailingSlash": false,
     "rewrites": [
       {
+        "source": "**/__next.*",
+        "destination": "/index.html"
+      },
+      {
         "source": "/c/**",
-        "destination": "/c/[slug].html"
+        "destination": "/community.html"
       },
       {
         "source": "/:username",
-        "destination": "/[username].html"
+        "destination": "/profile.html"
       }
     ],
     "headers": [
