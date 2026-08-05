@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { cleanUsername, validateUsernameFormat, checkUsernameAvailability, generateUsernameSuggestions } from "@/lib/username";
-import { AtSign, Check, Loader2, Sparkles, AlertCircle, ShieldCheck } from "lucide-react";
+import { AtSign, Check, Loader2, AlertCircle, ShieldCheck } from "lucide-react";
 import toast from "react-hot-toast";
 
 export default function ClaimUsernameModal() {
@@ -138,9 +138,8 @@ export default function ClaimUsernameModal() {
             </motion.div>
 
             <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center justify-center gap-2">
-                <span>{isAr ? "اختر اسم المستخدم الفريد" : "Claim Your Unique Username"}</span>
-                <Sparkles className="w-5 h-5 text-amber-400 animate-bounce" />
+              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight text-center">
+                {isAr ? "اختر اسم المستخدم الفريد" : "Claim Your Unique Username"}
               </h2>
               <p className="text-xs sm:text-sm text-slate-400 leading-relaxed font-medium mt-1 max-w-sm mx-auto">
                 {isAr
@@ -153,22 +152,19 @@ export default function ClaimUsernameModal() {
           {/* Form */}
           <form onSubmit={handleClaim} className="space-y-5 relative z-10">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1">
-                  <span>{isAr ? "اسم المستخدم" : "Username Handle"}</span>
-                  <span className="text-rose-400">*</span>
-                </span>
-                <span className="text-[10px] text-slate-500 font-mono">@a-z, 0-9, _</span>
+              <label className="text-xs font-bold text-slate-300 flex items-center gap-1">
+                <span>{isAr ? "اسم المستخدم" : "Username Handle"}</span>
+                <span className="text-rose-400">*</span>
               </label>
 
-              {/* Input Container with Unified Outline Animation */}
+              {/* Single Outer Input Box (Styled identically to Community Search box) */}
               <div
-                className={`relative flex items-center bg-slate-950/90 rounded-2xl px-4 py-1 border-2 transition-all duration-300 ease-out ${
+                className={`relative flex items-center bg-slate-900/80 rounded-2xl px-4 py-1.5 border transition-all duration-300 ${
                   errorMsg
-                    ? "border-rose-500/80 ring-4 ring-rose-500/15 shadow-lg shadow-rose-500/10"
+                    ? "border-rose-500/80 focus-within:ring-2 focus-within:ring-rose-500/30 focus-within:border-rose-500"
                     : available === true
-                    ? "border-emerald-500/80 ring-4 ring-emerald-500/15 shadow-lg shadow-emerald-500/10"
-                    : "border-slate-800 focus-within:border-emerald-500 focus-within:ring-4 focus-within:ring-emerald-500/20"
+                    ? "border-emerald-500/80 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500"
+                    : "border-slate-800 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/30"
                 }`}
               >
                 <span className="text-emerald-400 font-black text-lg select-none shrink-0 mr-2 rtl:mr-0 rtl:ml-2">@</span>
@@ -178,8 +174,8 @@ export default function ClaimUsernameModal() {
                   value={inputVal}
                   onChange={(e) => setInputVal(cleanUsername(e.target.value))}
                   placeholder="e.g. omda_7"
-                  className="w-full bg-transparent text-white font-bold placeholder-slate-600 text-base tracking-wide py-3 border-0 outline-none ring-0 focus:border-0 focus:outline-none focus:ring-0 focus:shadow-none shadow-none"
-                  style={{ outline: "none", boxShadow: "none" }}
+                  className="w-full bg-transparent text-white font-bold placeholder-slate-500 text-sm md:text-base py-2.5 outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none focus:shadow-none shadow-none appearance-none"
+                  style={{ outline: "none", border: "none", boxShadow: "none" }}
                   dir="ltr"
                 />
 
