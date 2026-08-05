@@ -219,7 +219,7 @@ export default function CommunityPage() {
                 <button
                   onClick={() => {
                     if (!activeCommunityId) return;
-                    const url = `${window.location.origin}/c/${activeCommunity?.code || activeCommunityId}`;
+                    const url = `${window.location.origin}/c/${activeCommunity?.joinCode || (activeCommunity as any)?.code || activeCommunityId}`;
                     navigator.clipboard.writeText(url);
                     toast.success(isAr ? "تم نسخ رابط المجتمع!" : "Community share link copied!");
                   }}
