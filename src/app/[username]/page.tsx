@@ -1,20 +1,13 @@
-"use client";
+import React from "react";
+import DynamicUsernameClient from "./DynamicUsernameClient";
 
-import React, { use, Suspense } from "react";
-import { PlayerProfileContent } from "@/components/profile/PlayerProfileContent";
-import ProtectedRoute from "@/components/auth/ProtectedRoute";
-import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+export function generateStaticParams() {
+  return [{ username: "demo" }];
+}
 
-export default function DynamicUsernamePage({ params }: { params: Promise<{ username: string }> }) {
-  // Next.js 16 params Promise unwrap
-  const unwrappedParams = use(params);
+export default async function DynamicUsernamePage({ params }: { params: Promise<{ username: string }> }) {
+  const unwrappedParams = await params;
   const rawUsername = unwrappedParams?.username ? unwrappedParams.username.replace(/^@+/, "") : "";
 
-  return (
-    <ProtectedRoute>
-      <Suspense fallback={<SiteSkeletonLoader variant="profile" />}>
-        <PlayerProfileContent directUsername={rawUsername} />
-      </Suspense>
-    </ProtectedRoute>
-  );
+  return <DynamicUsernameClient rawUsername={rawUsername} />;
 }
