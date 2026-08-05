@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import SettingsMenu from "@/components/layout/SettingsMenu";
 import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap, Crown } from "lucide-react";
@@ -22,6 +23,7 @@ const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie"];
 
 function SidebarContent() {
   const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
+  const { userProfile } = useAuthProfile(user);
   const { activeCommunityId, loadingCommunity } = useCommunity();
   const { locale } = useLocale();
   const pathname = usePathname();
