@@ -1,7 +1,7 @@
 "use client";
 
 import React, { use, Suspense } from "react";
-import { PlayerProfileContent } from "@/app/profile/page";
+import { PlayerProfileContent } from "@/components/profile/PlayerProfileContent";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 
