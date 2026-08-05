@@ -15,13 +15,28 @@ export function useAuthProfile(user: any) {
       let data: any = null;
       if (userDoc.exists()) {
         data = userDoc.data();
-      } else if (user.email) {
+      }
+      
+      // If primary doc missing OR missing username, search by email to find existing handle/profile
+      if ((!data || !data.username) && user.email) {
         try {
           const q = query(collection(db, "players"), where("email", "==", user.email));
           const querySnap = await getDocs(q);
           if (!querySnap.empty) {
-            data = querySnap.docs[0].data();
-            await setDoc(doc(db, "players", user.uid), { ...data, uid: user.uid }, { merge: true });
+            // Find doc with username or first doc
+            const docWithUsername = querySnap.docs.find((d) => Boolean(d.data().username)) || querySnap.docs[0];
+            const emailData = docWithUsername.data();
+            data = { ...(data || {}), ...emailData };
+            
+            // Sync found username to user.uid document in Firestore
+            if (emailData.username) {
+              await setDoc(doc(db, "players", user.uid), { ...emailData, username: emailData.username, uid: user.uid }, { merge: true });
+              if (typeof window !== "undefined") {
+                localStorage.setItem(`claimed_username_${user.uid}`, emailData.username);
+                localStorage.setItem(`claimed_username_${user.email}`, emailData.username);
+                localStorage.setItem("claimed_username_global", emailData.username);
+              }
+            }
           }
         } catch (e) {
           console.error("Profile sync by email error:", e);
