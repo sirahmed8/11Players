@@ -86,21 +86,21 @@ function AttributeBar({ label, value }: { label: string; value: number }) {
   );
 }
 
-export default function PlayerProfilePage() {
+export default function PlayerProfilePage({ directUsername }: { directUsername?: string }) {
   return (
     <ProtectedRoute>
       <Suspense fallback={<SiteSkeletonLoader variant="profile" />}>
-        <PlayerProfileContent />
+        <PlayerProfileContent directUsername={directUsername} />
       </Suspense>
     </ProtectedRoute>
   );
 }
 
-function PlayerProfileContent() {
+function PlayerProfileContent({ directUsername }: { directUsername?: string }) {
   const router = useRouter();
   const { activeCommunityId } = useCommunity();
   const searchParams = useSearchParams();
-  const rawUid = searchParams.get("username") || searchParams.get("uid");
+  const rawUid = directUsername || searchParams.get("username") || searchParams.get("uid");
   const uid = (rawUid && rawUid !== "undefined" && rawUid !== "null") ? rawUid : null;
   const { user, isAdmin, isOwner, loading: authLoading } = useAuth();
   const { locale } = useLocale();
@@ -118,10 +118,10 @@ function PlayerProfileContent() {
   const { player, loading, setLoading } = usePlayerProfile(effectiveUid, user, isViewingOwnProfile, rawUid, activeCommunityId);
 
   useEffect(() => {
-    if (player?.username && (searchParams.get("uid") || (!rawUid && isViewingOwnProfile))) {
-      router.replace(`/profile?username=${player.username}`);
+    if (player?.username && !directUsername && (searchParams.get("uid") || searchParams.get("username") || (!rawUid && isViewingOwnProfile))) {
+      router.replace(`/${player.username}`);
     }
-  }, [player?.username, searchParams, rawUid, isViewingOwnProfile, router]);
+  }, [player?.username, directUsername, searchParams, rawUid, isViewingOwnProfile, router]);
 
   useEffect(() => {
     if (!effectiveUid && !authLoading) setLoading(false);
@@ -549,7 +549,7 @@ function PlayerProfileContent() {
 
           <button
             onClick={() => {
-              const url = `${window.location.origin}/profile?${player.username ? `username=${player.username}` : `uid=${player.uid}`}`;
+              const url = `${window.location.origin}/${player.username || player.uid}`;
               navigator.clipboard.writeText(url);
               toast.success(isAr ? "تم نسخ رابط الملف الشخصي!" : "Profile link copied to clipboard!");
             }}

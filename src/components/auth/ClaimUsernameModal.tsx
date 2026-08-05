@@ -29,7 +29,9 @@ export default function ClaimUsernameModal() {
   const isLocallyClaimed = typeof window !== "undefined" && Boolean(
     (user?.uid && localStorage.getItem(`claimed_username_${user.uid}`)) ||
     (user?.email && localStorage.getItem(`claimed_username_${user.email}`)) ||
-    localStorage.getItem("claimed_username_global")
+    localStorage.getItem("claimed_username_global") ||
+    (user?.uid && localStorage.getItem(`username_modal_dismissed_${user.uid}`)) ||
+    localStorage.getItem("username_modal_dismissed")
   );
 
   const hasUsername = Boolean(userProfile?.username || isLocallyClaimed || dismissed);
@@ -89,9 +91,13 @@ export default function ClaimUsernameModal() {
 
   const handleDismiss = () => {
     if (typeof window !== "undefined") {
-      if (user?.uid) localStorage.setItem(`claimed_username_${user.uid}`, "skipped");
+      if (user?.uid) {
+        localStorage.setItem(`claimed_username_${user.uid}`, "skipped");
+        localStorage.setItem(`username_modal_dismissed_${user.uid}`, "true");
+      }
       if (user?.email) localStorage.setItem(`claimed_username_${user.email}`, "skipped");
       localStorage.setItem("claimed_username_global", "skipped");
+      localStorage.setItem("username_modal_dismissed", "true");
     }
     setDismissed(true);
   };

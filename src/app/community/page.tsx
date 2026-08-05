@@ -11,7 +11,8 @@ import ConfirmModal from "@/components/ui/ConfirmModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles, Shirt, MessageSquare, Settings, Swords, Globe } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles, Shirt, MessageSquare, Settings, Swords, Globe, Share2 } from "lucide-react";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/community/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -19,7 +20,6 @@ import OvrExplanationModal from "@/components/player/OvrExplanationModal";
 import { arrayRemove, arrayUnion, deleteDoc, doc, updateDoc, getDoc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
 
 import ScrollableTabContainer from "@/components/ui/ScrollableTabContainer";
 
@@ -47,6 +47,15 @@ export default function CommunityPage() {
     setComparingPlayer(player || null);
     setIsCompareModalOpen(true);
   };
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const queryId = searchParams.get("id");
+    if (queryId && queryId !== activeCommunityId) {
+      setActiveCommunityId(queryId);
+    }
+  }, [searchParams, activeCommunityId, setActiveCommunityId]);
 
   useEffect(() => {
     setVisibleCount(20);
@@ -206,6 +215,19 @@ export default function CommunityPage() {
                   <Globe className="w-4 h-4" />
                   <span>{isAr ? "الترتيب العالمي" : "Global Board"}</span>
                 </Link>
+
+                <button
+                  onClick={() => {
+                    if (!activeCommunityId) return;
+                    const url = `${window.location.origin}/c/${activeCommunity?.code || activeCommunityId}`;
+                    navigator.clipboard.writeText(url);
+                    toast.success(isAr ? "تم نسخ رابط المجتمع!" : "Community share link copied!");
+                  }}
+                  className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-teal-500/10 border border-teal-500/30 hover:border-teal-500/60 flex items-center justify-center gap-2 text-xs font-bold text-teal-400 hover:text-teal-300 transition-all hover:scale-[1.02] cursor-pointer"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>{isAr ? "مشاركة المجتمع" : "Share Link"}</span>
+                </button>
 
                 <Link
                   href="/community-settings"

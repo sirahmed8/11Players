@@ -23,7 +23,7 @@ export default function SettingsMenu({ direction = "down" }: SettingsMenuProps) 
   const router                 = useRouter();
   const menuRef                = useRef<HTMLDivElement>(null);
   
-  const myProfileUrl = userProfile?.username ? `/profile?username=${userProfile.username}` : "/profile";
+  const myProfileUrl = userProfile?.username ? `/${userProfile.username}` : "/profile";
 
   // Close on outside click
   useEffect(() => {

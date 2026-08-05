@@ -120,7 +120,7 @@ const PlayerCard = React.memo(function PlayerCard({
     const hasStats = pStats && (pStats.goals > 0 || pStats.assists > 0 || pStats.mvp);
     const isCurrentUser = Boolean(currentUserId && player.uid === currentUserId);
     const captainVotesCount = player.captainVotes?.length || 0;
-    const profileUrl = player.username ? `/profile?username=${player.username}` : `/profile?uid=${player.uid}`;
+    const profileUrl = player.username ? `/${player.username}` : `/profile?uid=${player.uid}`;
 
     return (
       <Link href={profileUrl} className="block w-full">
@@ -435,7 +435,7 @@ const PlayerCard = React.memo(function PlayerCard({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              const profilePath = player.username ? `/profile?username=${player.username}` : `/profile?uid=${player.uid}`;
+              const profilePath = player.username ? `/${player.username}` : `/profile?uid=${player.uid}`;
               const url = typeof window !== 'undefined' ? `${window.location.origin}${profilePath}` : '';
               if (navigator.clipboard) {
                 navigator.clipboard.writeText(url);
