@@ -157,9 +157,9 @@ export default function ClaimUsernameModal() {
                 <span className="text-rose-400">*</span>
               </label>
 
-              {/* Single Outer Input Box (Styled identically to Community Search box) */}
+              {/* Unified Outer Input Box — Styled identically to Community Search box */}
               <div
-                className={`relative flex items-center bg-slate-900/80 rounded-2xl px-4 py-1.5 border transition-all duration-300 ${
+                className={`relative flex items-center bg-slate-900/80 rounded-2xl px-4 py-1 border transition-all duration-300 ${
                   errorMsg
                     ? "border-rose-500/80 focus-within:ring-2 focus-within:ring-rose-500/30 focus-within:border-rose-500"
                     : available === true
@@ -174,8 +174,8 @@ export default function ClaimUsernameModal() {
                   value={inputVal}
                   onChange={(e) => setInputVal(cleanUsername(e.target.value))}
                   placeholder="e.g. omda_7"
-                  className="w-full bg-transparent text-white font-bold placeholder-slate-500 text-sm md:text-base py-2.5 outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none focus:shadow-none shadow-none appearance-none"
-                  style={{ outline: "none", border: "none", boxShadow: "none" }}
+                  className="w-full bg-transparent text-white font-bold placeholder-slate-500 text-sm md:text-base py-2.5 outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-none focus:shadow-none shadow-none appearance-none"
+                  style={{ outline: "none !important", border: "none !important", boxShadow: "none !important" }}
                   dir="ltr"
                 />
 
