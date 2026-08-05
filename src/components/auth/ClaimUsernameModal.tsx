@@ -157,38 +157,34 @@ export default function ClaimUsernameModal() {
                 <span className="text-rose-400">*</span>
               </label>
 
-              {/* Unified Outer Input Box — Styled identically to Community Search box */}
-              <div
-                className={`relative flex items-center bg-slate-900/80 rounded-2xl px-4 py-1 border transition-all duration-300 ${
-                  errorMsg
-                    ? "border-rose-500/80 focus-within:ring-2 focus-within:ring-rose-500/30 focus-within:border-rose-500"
-                    : available === true
-                    ? "border-emerald-500/80 focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500"
-                    : "border-slate-800 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/30"
-                }`}
-              >
-                <span className="text-emerald-400 font-black text-lg select-none shrink-0 mr-2 rtl:mr-0 rtl:ml-2">@</span>
-                
+              {/* Global UI Search Box Architecture — Single Input Element */}
+              <div className="relative w-full">
+                {/* Prefix @ Symbol */}
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-emerald-400 font-black text-lg select-none pointer-events-none z-10 rtl:left-auto rtl:right-4">
+                  @
+                </span>
+
+                {/* THE SINGLE TYPE BOX — Matching Global UI Search Box 100% */}
                 <input
                   type="text"
                   value={inputVal}
                   onChange={(e) => setInputVal(cleanUsername(e.target.value))}
                   placeholder="e.g. omda_7"
-                  className="w-full bg-transparent text-white font-bold placeholder-slate-500 text-sm md:text-base py-2.5 outline-none border-none ring-0 focus:outline-none focus:ring-0 focus:border-none focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-none focus:shadow-none shadow-none appearance-none"
-                  style={{ outline: "none !important", border: "none !important", boxShadow: "none !important" }}
+                  className={`w-full pl-10 rtl:pl-28 rtl:pr-10 pr-28 py-3.5 bg-slate-900/80 border rounded-2xl text-sm md:text-base font-bold text-white placeholder-slate-500 outline-none focus:outline-none focus-visible:outline-none transition-all duration-300 ${
+                    errorMsg
+                      ? "border-rose-500/80 focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500"
+                      : available === true
+                      ? "border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                      : "border-slate-800 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
+                  }`}
                   dir="ltr"
                 />
 
-                {/* Live Status Indicator */}
-                <div className="flex items-center shrink-0 ml-2 rtl:ml-0 rtl:mr-2">
+                {/* Status Badge — Positioned inside single input */}
+                <div className="absolute right-3 rtl:right-auto rtl:left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10 flex items-center">
                   <AnimatePresence mode="wait">
                     {checking && (
-                      <motion.div
-                        key="checking"
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                      >
+                      <motion.div key="checking" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
                       </motion.div>
                     )}
@@ -198,7 +194,7 @@ export default function ClaimUsernameModal() {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-black px-2.5 py-1 rounded-xl border border-emerald-500/40 shadow-sm"
+                        className="flex items-center gap-1.5 bg-emerald-500/20 text-emerald-400 text-xs font-black px-2.5 py-1 rounded-xl border border-emerald-500/40"
                       >
                         <Check className="w-3.5 h-3.5 stroke-[3]" />
                         <span>{isAr ? "متاح" : "Available"}</span>
@@ -210,7 +206,7 @@ export default function ClaimUsernameModal() {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="flex items-center gap-1.5 bg-rose-500/20 text-rose-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-rose-500/40 shadow-sm"
+                        className="flex items-center gap-1.5 bg-rose-500/20 text-rose-400 text-xs font-bold px-2.5 py-1 rounded-xl border border-rose-500/40"
                       >
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span>{isAr ? "غير متاح" : "Taken"}</span>
