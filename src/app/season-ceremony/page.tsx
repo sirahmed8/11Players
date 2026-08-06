@@ -9,7 +9,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SeasonCeremonyModal from "@/components/match/SeasonCeremonyModal";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { Trophy, Crown, Sparkles, Medal, History, Send, FileDown, Trash2, Calendar, Shield } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { collection, getDocs, query, orderBy, deleteDoc, doc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
@@ -41,6 +41,7 @@ export default function SeasonCeremonyPage() {
   const [history, setHistory] = useState<SeasonHistoryDoc[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [broadcasting, setBroadcasting] = useState(false);
+  const [deleteConfirmSeasonId, setDeleteConfirmSeasonId] = useState<string | null>(null);
 
   const currentYear = new Date().getFullYear();
 
@@ -68,9 +69,8 @@ export default function SeasonCeremonyPage() {
     fetchHistory();
   }, [activeCommunityId]);
 
-  const handleDeleteSeason = async (seasonId: string) => {
+  const confirmDeleteSeason = async (seasonId: string) => {
     if (!activeCommunityId) return;
-    if (!window.confirm(isAr ? "هل أنت متأكد من حذف أرشيف هذا الموسم بالكامل؟ لا يمكن التراجع عن هذا الإجراء." : "Are you sure you want to completely delete this season's archive? This cannot be undone.")) return;
 
     try {
       await deleteDoc(doc(db, `communities/${activeCommunityId}/seasonHistory`, seasonId));
@@ -545,7 +545,7 @@ export default function SeasonCeremonyPage() {
                         </span>
                         {isOwner && (
                           <button
-                            onClick={() => handleDeleteSeason(docItem.id)}
+                            onClick={() => setDeleteConfirmSeasonId(docItem.id)}
                             className="p-1.5 rounded-full hover:bg-rose-950/40 text-rose-400 transition-colors"
                             title={isAr ? "حذف الموسم" : "Delete Season"}
                           >
@@ -609,6 +609,61 @@ export default function SeasonCeremonyPage() {
           locale={locale}
           onRefresh={refreshPlayers}
         />
+
+        {/* ── Custom UI Delete Confirmation Modal ─────────────────────────────── */}
+        <AnimatePresence>
+          {deleteConfirmSeasonId && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                className="w-full max-w-md bg-slate-900 border border-rose-500/30 p-6 md:p-8 rounded-3xl text-white shadow-2xl space-y-6 relative overflow-hidden text-center"
+              >
+                {/* Trash Warning Icon */}
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
+                    <Trash2 className="w-8 h-8 animate-pulse" />
+                  </div>
+                </div>
+
+                {/* Title & Message */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-black text-white">
+                    {isAr ? "حذف أرشيف الموسم" : "Delete Season Archive"}
+                  </h3>
+                  <p className="text-sm text-slate-300 font-medium leading-relaxed">
+                    {isAr
+                      ? "هل أنت متأكد من حذف أرشيف هذا الموسم بالكامل؟ لا يمكن التراجع عن هذا الإجراء."
+                      : "Are you sure you want to completely delete this season's archive? This cannot be undone."}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setDeleteConfirmSeasonId(null)}
+                    className="flex-1 py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs sm:text-sm transition-all border border-slate-700 cursor-pointer"
+                  >
+                    {isAr ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sid = deleteConfirmSeasonId;
+                      setDeleteConfirmSeasonId(null);
+                      if (sid) confirmDeleteSeason(sid);
+                    }}
+                    className="flex-1 py-3 px-4 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs sm:text-sm transition-all shadow-lg shadow-rose-600/20 cursor-pointer"
+                  >
+                    {isAr ? "حذف الأرشيف" : "Delete Archive"}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );

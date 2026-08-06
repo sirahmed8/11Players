@@ -283,7 +283,7 @@ export default function ProPassPage() {
           </div>
 
           {/* ── Pricing Cards Grid ────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
             {plans.map((plan, idx) => {
               const price = isAnnual ? plan.priceAnnualEGP : plan.priceMonthlyEGP;
 
@@ -293,35 +293,37 @@ export default function ProPassPage() {
                   initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 * idx, duration: 0.5 }}
-                  className={`relative glass-card p-8 rounded-3xl border bg-slate-900/90 flex flex-col justify-between shadow-2xl transition-all hover:border-slate-600 ${
+                  className={`relative glass-card p-6 sm:p-8 rounded-3xl border bg-slate-900/90 flex flex-col justify-between shadow-2xl transition-all hover:border-slate-600 overflow-hidden ${
                     plan.popular ? "border-amber-400/80 ring-2 ring-amber-400/30" : plan.borderColor
                   }`}
                 >
                   {/* Badge banner for popular */}
                   {plan.badgeEn && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-b-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20 whitespace-nowrap z-10">
                       {isAr ? plan.badgeAr : plan.badgeEn}
                     </div>
                   )}
 
-                  <div className="space-y-6">
+                  <div className="space-y-6 pt-2">
                     {/* Header */}
                     <div>
-                      <h3 className="text-2xl font-black text-white">{isAr ? plan.nameAr : plan.nameEn}</h3>
-                      <p className="text-slate-400 text-xs mt-1.5 font-medium leading-relaxed">
+                      <h3 className="text-xl sm:text-2xl font-black text-white break-words tracking-tight">
+                        {isAr ? plan.nameAr : plan.nameEn}
+                      </h3>
+                      <p className="text-slate-400 text-xs sm:text-sm mt-2 font-medium leading-relaxed">
                         {isAr ? plan.descAr : plan.descEn}
                       </p>
                     </div>
 
                     {/* Price tag */}
-                    <div className="py-3 border-y border-slate-800/80">
+                    <div className="py-4 border-y border-slate-800/80">
                       {price === 0 ? (
-                        <div className="text-4xl font-black text-white font-mono">
+                        <div className="text-3xl sm:text-4xl font-black text-white font-mono">
                           {isAr ? "مجاناً" : "Free"}
                         </div>
                       ) : (
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-4xl font-black font-mono text-white">
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
                             {price} EGP
                           </span>
                           <span className="text-xs text-slate-400 font-bold">
@@ -338,9 +340,9 @@ export default function ProPassPage() {
                       </p>
                       <ul className="space-y-2.5">
                         {(isAr ? plan.featuresAr : plan.featuresEn).map((ft, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-xs text-slate-200 font-semibold">
+                          <li key={i} className="flex items-start gap-2.5 text-xs text-slate-200 font-semibold leading-relaxed">
                             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                            <span>{ft}</span>
+                            <span className="break-words">{ft}</span>
                           </li>
                         ))}
                       </ul>
@@ -348,10 +350,10 @@ export default function ProPassPage() {
                   </div>
 
                   {/* CTA button */}
-                  <div className="pt-8">
+                  <div className="pt-6 sm:pt-8">
                     <button
                       onClick={() => handleSelectPlan(plan)}
-                      className={`w-full py-4 rounded-2xl font-black text-sm transition-all shadow-xl flex items-center justify-center gap-2 ${
+                      className={`w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer ${
                         plan.popular
                           ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-amber-500/20"
                           : plan.id === "free"
@@ -359,8 +361,8 @@ export default function ProPassPage() {
                           : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20"
                       }`}
                     >
-                      <span>{isAr ? plan.buttonTextAr : plan.buttonTextEn}</span>
-                      <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                      <span className="break-words">{isAr ? plan.buttonTextAr : plan.buttonTextEn}</span>
+                      <ArrowRight className="w-4 h-4 rtl:rotate-180 shrink-0" />
                     </button>
                   </div>
                 </motion.div>
@@ -439,28 +441,47 @@ export default function ProPassPage() {
                 return (
                   <div
                     key={index}
-                    className="bg-slate-900/90 rounded-2xl border border-slate-800 overflow-hidden"
+                    className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
+                      isOpen ? "bg-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5" : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                    }`}
                   >
                     <button
                       onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      className="w-full p-5 text-left flex items-center justify-between font-bold text-sm text-white hover:text-amber-300 transition-colors"
+                      className="w-full p-5 text-left flex items-center justify-between font-bold text-sm text-white hover:text-amber-300 transition-colors cursor-pointer"
                     >
-                      <span>{isAr ? faq.qAr : faq.qEn}</span>
+                      <span className="rtl:text-right ltr:text-left">{isAr ? faq.qAr : faq.qEn}</span>
                       <ChevronDown
-                        className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${
+                        className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ease-out ${
                           isOpen ? "rotate-180 text-amber-400" : ""
                         }`}
                       />
                     </button>
-                    <AnimatePresence>
+                    <AnimatePresence initial={false}>
                       {isOpen && (
                         <motion.div
+                          key="content"
                           initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="px-5 pb-5 text-xs text-slate-400 leading-relaxed border-t border-slate-800/60 pt-3"
+                          animate={{
+                            height: "auto",
+                            opacity: 1,
+                            transition: {
+                              height: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] },
+                              opacity: { duration: 0.25, delay: 0.05 },
+                            },
+                          }}
+                          exit={{
+                            height: 0,
+                            opacity: 0,
+                            transition: {
+                              height: { duration: 0.3, ease: [0.04, 0.62, 0.23, 0.98] },
+                              opacity: { duration: 0.15 },
+                            },
+                          }}
+                          className="overflow-hidden"
                         >
-                          {isAr ? faq.aAr : faq.aEn}
+                          <div className="px-5 pb-5 text-xs sm:text-sm text-slate-300 leading-relaxed border-t border-slate-800/60 pt-3 rtl:text-right ltr:text-left">
+                            {isAr ? faq.aAr : faq.aEn}
+                          </div>
                         </motion.div>
                       )}
                     </AnimatePresence>

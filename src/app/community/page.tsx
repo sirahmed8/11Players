@@ -257,7 +257,7 @@ export default function CommunityPage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2.5 w-full md:w-auto items-center">
+            <div className="flex flex-col sm:flex-row gap-2.5 w-full md:w-auto items-stretch sm:items-center">
               {/* Copy Invite Link */}
               <button
                 onClick={() => {
@@ -267,7 +267,7 @@ export default function CommunityPage() {
                     toast.success(isAr ? "تم نسخ رابط دعوة المجتمع!" : "Community invite link copied!");
                   }
                 }}
-                className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
+                className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer flex-1 sm:flex-initial"
               >
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{isAr ? "دعوة لاعبين" : "Invite Players"}</span>
@@ -286,7 +286,7 @@ export default function CommunityPage() {
 
               <button
                 onClick={() => setIsLeaveModalOpen(true)}
-                className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold text-xs flex items-center gap-2 transition-all shrink-0 cursor-pointer"
+                className="px-4 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer flex-1 sm:flex-initial"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>{isAr ? "مغادرة المجتمع" : "Leave Community"}</span>
@@ -326,12 +326,12 @@ export default function CommunityPage() {
 
             {/* Directory Action Tools & Filters Bar */}
             {activeTab === "directory" && (
-              <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800/80 shadow-sm">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-slate-900/40 p-3 rounded-2xl border border-slate-800/80 shadow-sm">
                 {/* Quick Action Badges */}
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                   <button
                     onClick={() => handleOpenCompare()}
-                    className="flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
+                    className="flex items-center justify-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
                   >
                     <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
                     <span>{isAr ? "مقارنة اللاعبين" : "Compare Players"}</span>
@@ -339,7 +339,7 @@ export default function CommunityPage() {
 
                   <button
                     onClick={() => setIsOvrInfoOpen(true)}
-                    className="flex items-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
+                    className="flex items-center justify-center gap-1.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shrink-0"
                     title={isAr ? "كيف يتم حساب التقييم الكلي؟" : "How is OVR Calculated?"}
                   >
                     <HelpCircle className="w-3.5 h-3.5 shrink-0" />
@@ -348,7 +348,7 @@ export default function CommunityPage() {
                 </div>
 
                 {/* Filter & Sort Dropdowns */}
-                <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                <div className="grid grid-cols-2 gap-2.5 w-full sm:w-auto sm:flex sm:items-center">
                   {/* Position Filter */}
                   <div className="relative flex-1 sm:flex-initial">
                     <button 

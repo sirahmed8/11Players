@@ -294,13 +294,13 @@ export default function XpSkillTree() {
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 select-none">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-6 rounded-3xl border border-slate-800 backdrop-blur-md">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <Award className="w-8 h-8 text-amber-400" />
-            {isAr ? "شجرة المهارات والأوسمة (XP Skill Tree)" : "XP Playstyle Skill Tree"}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-5 sm:p-6 rounded-3xl border border-slate-800 backdrop-blur-md overflow-hidden">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+            <Award className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 shrink-0" />
+            <span>{isAr ? "شجرة المهارات والأوسمة (XP Skill Tree)" : "XP Playstyle Skill Tree"}</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
             {isAr
               ? "افتح أوسمة أسلوب اللعب وارتقِ برتبتك من البرونزي إلى الماسي بزيادة نقاط الخبرة والأداء."
               : "Unlock playstyle badges, gain XP through matches & stats, and promote rank tiers."}

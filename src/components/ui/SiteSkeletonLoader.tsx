@@ -291,7 +291,7 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
   // 4. Community Page Skeleton (Home / Players) — Mirrors Real Page 1-to-1
   if (variant === "community") {
     return (
-      <div className="w-full max-w-full overflow-x-hidden space-y-6" dir={isAr ? "rtl" : "ltr"}>
+      <div className="w-full max-w-full overflow-x-hidden space-y-6" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
         {/* Header section skeleton */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div className="space-y-2 min-w-0">

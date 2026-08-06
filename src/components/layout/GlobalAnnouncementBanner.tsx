@@ -76,7 +76,7 @@ export default function GlobalAnnouncementBanner() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.96 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="w-full px-3 sm:px-4 pt-3 sm:pt-4 z-50 relative"
+            className="w-full px-3 sm:px-4 pt-3 sm:pt-4 z-10 relative"
           >
             <div
               onClick={() => setShowModal(true)}
@@ -199,14 +199,19 @@ export default function GlobalAnnouncementBanner() {
                       {showSecondaryLang && (
                         <motion.div
                           key="secondary-lang"
-                          initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                          animate={{ opacity: 1, height: "auto", marginTop: 8 }}
-                          exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                          transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{
+                            height: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] },
+                            opacity: { duration: 0.25 }
+                          }}
                           className="overflow-hidden"
                         >
-                          <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 whitespace-pre-line leading-relaxed" dir="auto">
-                            {secondaryBody}
+                          <div className="pt-2">
+                            <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800/80 text-xs text-slate-300 whitespace-pre-line leading-relaxed" dir="auto">
+                              {secondaryBody}
+                            </div>
                           </div>
                         </motion.div>
                       )}

@@ -258,26 +258,28 @@ export default function PitchSplitBillCalculator() {
   return (
     <div className="w-full max-w-5xl mx-auto p-4 md:p-6 space-y-6">
       {/* Top Banner Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-6 rounded-3xl border border-slate-800 backdrop-blur-md">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <DollarSign className="w-8 h-8 text-emerald-400" />
-            {isAr ? "حاسبة تقسيم حجز الملعب" : "Pitch Split Bill Calculator"}
+      <div className="flex flex-col gap-4 bg-slate-900/80 p-5 sm:p-6 rounded-3xl border border-slate-800 backdrop-blur-md">
+        <div className="w-full">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+            <DollarSign className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-400 shrink-0" />
+            <span>{isAr ? "حاسبة تقسيم حجز الملعب" : "Pitch Split Bill Calculator"}</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
             {isAr
               ? "وزّع تكلفة الملعب بالتساوي أو حسب التخصيص، وتابع حالة الدفع الفورية مع دعم العملات والمشاركة."
               : "Automatically calculate equal/custom pitch rent splits and track player payments in real-time."}
           </p>
         </div>
 
-        <button
-          onClick={copyShareLink}
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-sm flex items-center gap-2 shadow-lg transition-all"
-        >
-          {copiedShareLink ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-          {copiedShareLink ? (isAr ? "تم النسخ!" : "Copied!") : isAr ? "مشاركة الفاتورة" : "Share Split Summary"}
-        </button>
+        <div className="pt-3 border-t border-slate-800/60 w-full flex justify-start">
+          <button
+            onClick={copyShareLink}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
+          >
+            {copiedShareLink ? <Check className="w-4 h-4 shrink-0" /> : <Share2 className="w-4 h-4 shrink-0" />}
+            <span>{copiedShareLink ? (isAr ? "تم النسخ!" : "Copied!") : isAr ? "مشاركة الفاتورة" : "Share Split Summary"}</span>
+          </button>
+        </div>
       </div>
 
       {/* Overview Summary Cards & Progress Meter */}

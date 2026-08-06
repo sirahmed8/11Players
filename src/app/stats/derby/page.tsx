@@ -94,45 +94,44 @@ function DerbyContent() {
         <MatchActionHubBar />
 
         {/* Real Captain Selector Header */}
-        <div className="relative z-30 p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-5">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-                <Flame className="w-6 h-6 text-amber-400" />
-              </div>
-              <div>
-                <h1 className="text-xl font-black text-white tracking-tight">Select Real Captain Rivalry</h1>
-                <p className="text-xs text-slate-400 font-medium">
-                  Compute head-to-head stats & rivalry intensity from real community matches
-                </p>
-              </div>
+        <div className="relative z-30 p-5 sm:p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-4 overflow-hidden">
+          {/* Top Row: Full-Width Title & Description */}
+          <div className="flex items-center gap-3.5 w-full">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
+              <Flame className="w-6 h-6 text-amber-400" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Select Real Captain Rivalry</h1>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
+                Compute head-to-head stats & rivalry intensity from real community matches
+              </p>
+            </div>
+          </div>
+
+          {/* Bottom Row: Custom Styled Captain Selectors */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full pt-3 border-t border-slate-800/60">
+            <div>
+              <label className="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 block mb-1">
+                Captain 1
+              </label>
+              <CustomDropdown
+                value={captainA}
+                onChange={setCaptainA}
+                options={playerOptions}
+                placeholder="Select Captain 1"
+              />
             </div>
 
-            {/* Custom Styled Captain Selectors */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full md:w-auto min-w-[280px] sm:min-w-[480px]">
-              <div>
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 block mb-1">
-                  Captain 1
-                </label>
-                <CustomDropdown
-                  value={captainA}
-                  onChange={setCaptainA}
-                  options={playerOptions}
-                  placeholder="Select Captain 1"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] font-extrabold uppercase tracking-widest text-blue-400 block mb-1">
-                  Captain 2
-                </label>
-                <CustomDropdown
-                  value={captainB}
-                  onChange={setCaptainB}
-                  options={playerOptions}
-                  placeholder="Select Captain 2"
-                />
-              </div>
+            <div>
+              <label className="text-[10px] font-extrabold uppercase tracking-widest text-blue-400 block mb-1">
+                Captain 2
+              </label>
+              <CustomDropdown
+                value={captainB}
+                onChange={setCaptainB}
+                options={playerOptions}
+                placeholder="Select Captain 2"
+              />
             </div>
           </div>
         </div>

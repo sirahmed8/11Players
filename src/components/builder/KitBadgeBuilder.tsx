@@ -333,33 +333,33 @@ export default function KitBadgeBuilder() {
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-6 rounded-3xl border border-slate-800 backdrop-blur-md">
-        <div>
-          <h1 className="text-3xl font-extrabold text-white flex items-center gap-3">
-            <Shirt className="w-8 h-8 text-amber-400" />
-            {isAr ? "مصمم الأطقم والشعارات" : "Kit & Badge Builder"}
+      <div className="flex flex-col gap-4 bg-slate-900/80 p-5 sm:p-6 rounded-3xl border border-slate-800 backdrop-blur-md">
+        <div className="w-full">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
+            <Shirt className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 shrink-0" />
+            <span>{isAr ? "مصمم الأطقم والشعارات" : "Kit & Badge Builder"}</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
             {isAr
               ? "صمم طقم فريقك وشعار مجتمعك بخيارات وألوان وأنماط متقدمة مع إمكانية التصدير بلمسة واحدة."
               : "Customize jersey patterns, custom colors, shield shapes, and export PNG assets for your squad."}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full pt-3 border-t border-slate-800/60">
           <button
             onClick={() => exportCanvasAsPng(jerseyCanvasRef, `${config.kitName.replace(/\s+/g, "_")}_Kit.png`)}
-            className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm flex items-center gap-2 shadow-lg transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all"
           >
-            <Download className="w-4 h-4" />
-            {isAr ? "تحميل الطقم PNG" : "Export Kit PNG"}
+            <Download className="w-4 h-4 shrink-0" />
+            <span>{isAr ? "تحميل الطقم PNG" : "Export Kit PNG"}</span>
           </button>
           <button
             onClick={() => exportCanvasAsPng(crestCanvasRef, `${config.kitName.replace(/\s+/g, "_")}_Crest.png`)}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm flex items-center gap-2 border border-slate-700 transition-all"
+            className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 border border-slate-700 transition-all"
           >
-            <Shield className="w-4 h-4 text-emerald-400" />
-            {isAr ? "تحميل الشعار PNG" : "Export Crest PNG"}
+            <Shield className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{isAr ? "تحميل الشعار PNG" : "Export Crest PNG"}</span>
           </button>
         </div>
       </div>
@@ -395,18 +395,18 @@ export default function KitBadgeBuilder() {
           </div>
 
           {/* Canvas Rendering Containers */}
-          <div className="relative flex justify-center items-center p-4 bg-slate-950/80 rounded-2xl border border-slate-800 shadow-2xl w-full">
+          <div className="relative flex justify-center items-center p-2 sm:p-4 bg-slate-950/80 rounded-2xl border border-slate-800 shadow-2xl w-full overflow-hidden">
             <canvas
               ref={jerseyCanvasRef}
               width={380}
               height={440}
-              className={`rounded-xl shadow-inner transition-all ${activeTab === "jersey" ? "block" : "hidden"}`}
+              className={`rounded-xl shadow-inner transition-all max-w-full h-auto object-contain ${activeTab === "jersey" ? "block" : "hidden"}`}
             />
             <canvas
               ref={crestCanvasRef}
               width={380}
               height={440}
-              className={`rounded-xl shadow-inner transition-all ${activeTab === "crest" ? "block" : "hidden"}`}
+              className={`rounded-xl shadow-inner transition-all max-w-full h-auto object-contain ${activeTab === "crest" ? "block" : "hidden"}`}
             />
           </div>
 

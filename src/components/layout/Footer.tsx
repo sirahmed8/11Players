@@ -17,7 +17,7 @@ export default function Footer() {
   const isAr = mounted ? locale === "ar" : true;
 
   return (
-    <footer className="w-full border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl py-6 mt-auto shrink-0 transition-colors duration-300">
+    <footer className="w-full border-t border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl py-6 pb-20 md:pb-6 mt-auto shrink-0 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs">
         
         {/* Main Legal & Sitemap Links */}

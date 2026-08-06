@@ -490,9 +490,19 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Command Palette & User Roster Search (`CommandPaletteModal.tsx` & `GlobalUserRow.tsx`)**:
   - Added player search by `@username` or cardName to `CommandPaletteModal.tsx` (`Ctrl+K`).
   - Added `@username` badges and handle search filtering to `GlobalUsersTable.tsx` and `GlobalUserRow.tsx`.
-- **Quality & Build Verification**:
-  - Verified Next.js 16 production build (`npm run build`), compiling all 52 static and dynamic routes cleanly with zero errors.
-  - Verified 106/106 Vitest unit tests passing across all 10 test suites (`npm run test`).
+## 19. Milestone M3.2 — Mobile Browser UI, Layering, & Text Formatting Refactor
+- **Floating Assistant Z-Index Layering (`FloatingChatWidget.tsx`)**:
+  - Lowered `FloatingChatWidget` floating trigger z-index to `z-40` and modal window z-index to `z-[70]`. Prevents floating button from obscuring open navigation drawers, modals, footers, and interactive cards.
+- **Mobile Navigation Drawer Layering (`Sidebar.tsx`)**:
+  - Upgraded mobile drawer backdrop to `z-[80]` and drawer menu container to `z-[90]`. Guarantees system drawer sits cleanly above all page content, cards, headers, and announcement banners.
+- **Markdown Text Formatting & Literal Asterisk Fix (`notifications/page.tsx`, `announcements/page.tsx`, `GlobalAnnouncementBanner.tsx`)**:
+  - Integrated `FormattedText` component across notifications list items, detailed modal popups, and announcement history cards. Replaced raw literal `**` asterisks with styled emerald bold text formatting.
+- **Responsive Mobile Layouts & Safe Padding (`KitBadgeBuilder.tsx`, `community/page.tsx`, `Footer.tsx`)**:
+  - Made Kit Builder jersey & crest preview canvas dynamically scale on narrow mobile viewports (`max-w-full h-auto object-contain`).
+  - Converted Community action tools & filter controls to responsive vertical stacking (`flex-col sm:flex-row`).
+  - Added safe bottom padding (`pb-20 md:pb-6`) to `Footer.tsx` so developer links and copyright notices remain unobstructed.
+  - Made Announcements search box and priority filter tabs stack cleanly on mobile viewports without placeholder text truncation.
+
 
 
 

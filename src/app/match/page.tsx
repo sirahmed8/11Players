@@ -170,9 +170,13 @@ function MatchContent() {
     }
   };
 
-  const handleEndBooking = async () => {
+  const [confirmAction, setConfirmAction] = useState<'end' | 'delete' | null>(null);
+
+  const handleEndBooking = () => setConfirmAction('end');
+  const handleDeleteMatch = () => setConfirmAction('delete');
+
+  const confirmEndBooking = async () => {
     if (!activeCommunityId || !matchData) return;
-    if (!window.confirm(isAr ? "هل أنت متأكد من رغبتك في إنهاء الحجز بالكامل؟ سيتم نقل المباراة للأرشيف." : "Are you sure you want to end this booking completely?")) return;
     try {
       let bestMotmPlayer: any = null;
       let highestMotmScore = -999;
@@ -216,9 +220,8 @@ function MatchContent() {
     }
   };
 
-  const handleDeleteMatch = async () => {
+  const confirmDeleteMatch = async () => {
     if (!activeCommunityId || !matchData) return;
-    if (!window.confirm(isAr ? "هل أنت متأكد من رغبتك في حذف المباراة تماماً؟ لن يتم نقلها للأرشيف." : "Are you sure you want to completely delete this match? It will not be archived.")) return;
     try {
       await deleteDoc(doc(db, "communities", activeCommunityId, "matches", "latest"));
       await deleteDoc(doc(db, "communities", activeCommunityId, "matches", matchData.id));

@@ -170,38 +170,38 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
     >
       <main className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8">
         {/* Profile Ecosystem Quick Navigation Bar */}
-        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 backdrop-blur-xl shadow-xl">
+        <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-2 backdrop-blur-xl shadow-xl relative overflow-hidden">
           <ScrollableTabContainer>
-            <div className="flex items-center gap-2 min-w-max w-full">
+            <div className="flex items-center gap-2 min-w-max">
               <Link
                 href="/profile/skill-tree"
-                className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 hover:border-emerald-500/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all hover:scale-[1.02]"
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/30 hover:border-emerald-500/60 flex items-center justify-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-all shrink-0 whitespace-nowrap"
               >
-                <Sparkles className="w-4 h-4" />
+                <Sparkles className="w-4 h-4 shrink-0" />
                 <span>{isAr ? "شجرة المهارات XP" : "XP Skill Tree"}</span>
               </Link>
 
               <Link
                 href="/achievements"
-                className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all hover:scale-[1.02]"
+                className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:border-amber-500/60 flex items-center justify-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-all shrink-0 whitespace-nowrap"
               >
-                <Trophy className="w-4 h-4" />
+                <Trophy className="w-4 h-4 shrink-0" />
                 <span>{isAr ? "خزانة الكؤوس" : "Trophy Cabinet"}</span>
               </Link>
 
               <Link
                 href="/stats"
-                className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all hover:scale-[1.02]"
+                className="px-4 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all shrink-0 whitespace-nowrap"
               >
-                <Target className="w-4 h-4" />
+                <Target className="w-4 h-4 shrink-0" />
                 <span>{isAr ? "قائمة اللاعبين الإجمالية" : "Player Roster"}</span>
               </Link>
 
               <Link
                 href="/community/kit-builder"
-                className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300 transition-all hover:scale-[1.02]"
+                className="px-4 py-2.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 flex items-center justify-center gap-2 text-xs font-bold text-purple-400 hover:text-purple-300 transition-all shrink-0 whitespace-nowrap"
               >
-                <Swords className="w-4 h-4" />
+                <Swords className="w-4 h-4 shrink-0" />
                 <span>{isAr ? "استوديو الأطقم" : "Kit Studio"}</span>
               </Link>
             </div>

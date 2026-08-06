@@ -700,7 +700,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
           setIsOpen((prev) => !prev);
         }}
         aria-label="Toggle 11AI Chatbot"
-        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 rtl:right-auto rtl:left-4 sm:rtl:left-6 z-[9999999] w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/50 flex items-center justify-center text-white cursor-pointer transition-all pointer-events-auto"
+        className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 rtl:right-auto rtl:left-4 sm:rtl:left-6 z-40 w-13 h-13 sm:w-14 sm:h-14 rounded-full bg-slate-900 border-2 border-emerald-500 shadow-2xl shadow-emerald-500/50 flex items-center justify-center text-white cursor-pointer transition-all pointer-events-auto"
       >
         <Bot className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-400" />
       </motion.button>
@@ -724,7 +724,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
               height: dimensions.height,
               transformOrigin: isAr ? "bottom left" : "bottom right",
             }}
-            className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 rtl:right-auto rtl:left-3 sm:rtl:left-6 z-[9999999] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[94vw] max-h-[72vh] sm:max-h-[82vh]"
+            className="fixed bottom-20 sm:bottom-24 right-3 sm:right-6 rtl:right-auto rtl:left-3 sm:rtl:left-6 z-[70] bg-slate-900/95 backdrop-blur-2xl border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto max-w-[94vw] max-h-[72vh] sm:max-h-[82vh]"
             dir={isAr ? "rtl" : "ltr"}
           >
             {/* Drag Resize Handle (Top Edge) */}

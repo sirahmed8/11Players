@@ -16,6 +16,7 @@ import { useNotifications, NotificationType, UserNotification } from "@/hooks/us
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { microSpringRowProps } from "@/lib/animations";
+import FormattedText from "@/components/ui/FormattedText";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -498,9 +499,7 @@ export default function NotificationsPage() {
 
                   <div className="flex-1 overflow-y-auto mb-6 pr-2 custom-scrollbar">
                     <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl">
-                      <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap font-medium">
-                        {isAr ? (selectedNotif.bodyAr || selectedNotif.body) : (selectedNotif.bodyEn || selectedNotif.body)}
-                      </p>
+                      <FormattedText content={isAr ? (selectedNotif.bodyAr || selectedNotif.body) : (selectedNotif.bodyEn || selectedNotif.body)} />
                     </div>
                   </div>
 
@@ -567,9 +566,9 @@ export default function NotificationsPage() {
                 {notif.createdAt?.toDate ? new Date(notif.createdAt.toDate()).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
               </span>
             </div>
-            <p className={`text-xs line-clamp-2 ${!notif.read ? "text-slate-300 font-medium" : "text-slate-400"}`}>
-              {isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)}
-            </p>
+            <div className={`text-xs line-clamp-2 ${!notif.read ? "text-slate-300 font-medium" : "text-slate-400"}`}>
+              <FormattedText content={isAr ? (notif.bodyAr || notif.body) : (notif.bodyEn || notif.body)} />
+            </div>
             {notif.link && (
               <Link
                 href={notif.link}

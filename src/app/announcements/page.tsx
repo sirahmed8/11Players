@@ -13,6 +13,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import { enhanceAnnouncementWithAI, stripMarkdownAsterisks } from "@/lib/aiService";
+import FormattedText from "@/components/ui/FormattedText";
 
 export interface Announcement {
   id: string;
@@ -625,48 +626,54 @@ export default function AnnouncementsPage() {
                       )}
                     </motion.div>
                   ) : (
-                    /* Community Live Chat Announcement Banner — Title + Smooth Spring Read More */
+                    /* Community Live Chat Announcement Banner — Title + Ultra-Smooth 60 FPS Read More */
                     <motion.div
                       key="chat"
-                      layout
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -6 }}
-                      transition={{ type: "spring", stiffness: 350, damping: 28 }}
-                      className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner space-y-2 overflow-hidden"
+                      transition={{ duration: 0.25 }}
+                      className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 shadow-inner overflow-hidden flex flex-col justify-start"
                     >
-                      <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-black">
-                        <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                      <div className="flex items-center gap-2 text-[11px] text-emerald-400 font-black mb-1.5">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
                         <span>{isAr ? "📢 [إعلان رسمي جديد في القناة العامة]" : "📢 [Official Community Broadcast]"}</span>
                       </div>
-                      <h4 className="font-black text-xs text-white" dir="auto">
+                      <h4 className="font-black text-xs text-white leading-snug" dir="auto">
                         {stripMarkdownAsterisks(isAr ? titleAr : titleEn) || "Title preview..."}
                       </h4>
                       <AnimatePresence initial={false}>
                         {chatBodyExpanded && (
                           <motion.div
                             key="chat-body"
-                            initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                            animate={{ opacity: 1, height: "auto", marginTop: 8 }}
-                            exit={{ opacity: 0, height: 0, marginTop: 0 }}
-                            transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{
+                              height: { duration: 0.35, ease: [0.04, 0.62, 0.23, 0.98] },
+                              opacity: { duration: 0.25, ease: "linear" }
+                            }}
                             className="overflow-hidden"
                           >
-                            <p className="text-[11px] text-slate-300 leading-relaxed font-medium whitespace-pre-line" dir="auto">
-                              {stripMarkdownAsterisks(isAr ? bodyAr : bodyEn) || "Body text preview..."}
-                            </p>
+                            <div className="pt-2">
+                              <p className="text-[11px] text-slate-300 leading-relaxed font-medium whitespace-pre-line" dir="auto">
+                                {stripMarkdownAsterisks(isAr ? bodyAr : bodyEn) || "Body text preview..."}
+                              </p>
+                            </div>
                           </motion.div>
                         )}
                       </AnimatePresence>
                       <button
                         type="button"
                         onClick={() => setChatBodyExpanded(p => !p)}
-                        className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors mt-2"
+                        className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors pt-2 self-start cursor-pointer select-none"
                       >
-                        {chatBodyExpanded
-                          ? (isAr ? "طي" : "Show less")
-                          : (isAr ? "اقرأ المزيد" : "Read more")}
-                        {chatBodyExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                        <span>
+                          {chatBodyExpanded
+                            ? (isAr ? "طي" : "Show less")
+                            : (isAr ? "اقرأ المزيد" : "Read more")}
+                        </span>
+                        <ChevronDown className={`w-3 h-3 transition-transform duration-300 ${chatBodyExpanded ? 'rotate-180' : 'rotate-0'}`} />
                       </button>
                     </motion.div>
                   )}
@@ -706,7 +713,7 @@ export default function AnnouncementsPage() {
               </div>
 
               {/* Search & Filter Inputs */}
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <div className="relative flex-1 sm:w-64">
                   <Search className="w-3.5 h-3.5 absolute top-3 left-3 rtl:left-auto rtl:right-3 text-slate-400" />
                   <input
@@ -718,13 +725,13 @@ export default function AnnouncementsPage() {
                   />
                 </div>
 
-                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
+                <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs justify-center">
                   {(["all", "urgent", "normal"] as const).map(f => (
                     <button
                       key={f}
                       type="button"
                       onClick={() => setHistoryFilter(f)}
-                      className={`px-3 py-1 rounded-lg font-bold transition-all text-xs ${
+                      className={`flex-1 sm:flex-initial px-3 py-1 rounded-lg font-bold transition-all text-xs ${
                         historyFilter === f ? "bg-emerald-600 text-white shadow-md" : "text-slate-400 hover:text-white"
                       }`}
                     >

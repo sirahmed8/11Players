@@ -7,6 +7,8 @@ import { BookOpen, Target, Shuffle, Star, Rocket, Scale, CheckCircle2, Shield, S
 import { PLAYER_STYLES } from "@/components/player/PlayerStylePicker";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 
+import ScrollableTabContainer from "@/components/ui/ScrollableTabContainer";
+
 type Tab = 'overview' | 'positions' | 'playstyles' | 'skills' | 'features' | 'rules';
 
 export default function GuidePage() {
@@ -37,17 +39,40 @@ export default function GuidePage() {
               </h2>
             </div>
             
-            <nav className="flex flex-row lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 scrollbar-none touch-pan-x w-full">
+            {/* Mobile & Tablet Horizontal Scrollable Tabs */}
+            <div className="block lg:hidden">
+              <ScrollableTabContainer>
+                <div className="flex items-center gap-2 min-w-max py-1">
+                  {tabs.map(tab => {
+                    const isActive = activeTab === tab.id;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-3.5 py-2.5 rounded-2xl transition-all whitespace-nowrap shrink-0 text-xs font-black cursor-pointer ${
+                          isActive 
+                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
+                            : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'
+                        }`}
+                      >
+                        <tab.Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                        <span>{isAr ? tab.labelAr : tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </ScrollableTabContainer>
+            </div>
+
+            {/* Desktop Vertical Navigation Stack */}
+            <nav className="hidden lg:flex flex-col gap-2 w-full">
               {tabs.map(tab => {
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={(e) => {
-                      setActiveTab(tab.id);
-                      e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    }}
-                    className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl transition-all whitespace-nowrap shrink-0 text-xs font-black ${
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2.5 px-4 py-3 rounded-2xl transition-all whitespace-nowrap text-xs font-black cursor-pointer ${
                       isActive 
                         ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' 
                         : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'

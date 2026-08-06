@@ -710,22 +710,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 // ── Locale Provider ────────────────────────────────────────────────────────────
 export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // ✅ FIX: Initialize from localStorage synchronously to prevent flash
-  const [locale, setLocale] = useState<Locale>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("locale") as Locale;
-      if (saved === "en" || saved === "ar") return saved;
-    }
-    return "ar";
-  });
-
-  const [direction, setDirection] = useState<Direction>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("locale") as Locale;
-      return saved === "en" ? "ltr" : "rtl";
-    }
-    return "rtl";
-  });
+  const [locale, setLocale] = useState<Locale>("ar");
+  const [direction, setDirection] = useState<Direction>("rtl");
 
   // Sync document attributes on mount
   useEffect(() => {

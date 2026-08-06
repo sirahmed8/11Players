@@ -120,8 +120,8 @@ export default function ScrollableTabContainer({
   };
 
   return (
-    <div className={`relative group/scroll-container flex items-center w-full ${className}`}>
-      {/* Scroll Left Button (PC / Desktop) */}
+    <div className={`relative group/scroll-container flex items-center w-full overflow-hidden rounded-2xl ${className}`}>
+      {/* Scroll Left Button */}
       {showButtons && (
         <button
           type="button"
@@ -129,16 +129,22 @@ export default function ScrollableTabContainer({
           aria-label="Scroll Left"
           className={`
             absolute left-1 z-30 p-1.5 rounded-full
-            bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80
+            bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80
             text-slate-300 hover:text-white shadow-xl backdrop-blur-md
-            transition-all duration-200
-            hidden md:flex items-center justify-center
-            ${canScrollLeft ? "opacity-90 hover:opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}
+            transition-all duration-200 flex items-center justify-center
+            ${canScrollLeft ? "opacity-95 hover:opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}
           `}
         >
-          <ChevronLeft className="w-4 h-4" />
+          <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       )}
+
+      {/* Left Gradient Fade Edge */}
+      <div
+        className={`absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent pointer-events-none z-20 rounded-l-2xl transition-opacity duration-200 ${
+          canScrollLeft ? "opacity-100" : "opacity-0"
+        }`}
+      />
 
       {/* Main Scrollable Content Track */}
       <div
@@ -149,7 +155,7 @@ export default function ScrollableTabContainer({
         onMouseLeave={handleMouseUpOrLeave}
         onClickCapture={handleClickCapture}
         className="
-          w-full flex items-center overflow-x-auto no-scrollbar scroll-smooth
+          w-full flex items-center overflow-x-auto hide-scrollbar scroll-smooth
           touch-pan-x select-none cursor-grab active:cursor-grabbing
           py-0.5 px-0.5
         "
@@ -157,7 +163,14 @@ export default function ScrollableTabContainer({
         {children}
       </div>
 
-      {/* Scroll Right Button (PC / Desktop) */}
+      {/* Right Gradient Fade Edge */}
+      <div
+        className={`absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent pointer-events-none z-20 rounded-r-2xl transition-opacity duration-200 ${
+          canScrollRight ? "opacity-100" : "opacity-0"
+        }`}
+      />
+
+      {/* Scroll Right Button */}
       {showButtons && (
         <button
           type="button"
@@ -165,14 +178,13 @@ export default function ScrollableTabContainer({
           aria-label="Scroll Right"
           className={`
             absolute right-1 z-30 p-1.5 rounded-full
-            bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80
+            bg-slate-900/95 hover:bg-slate-800 border border-slate-700/80
             text-slate-300 hover:text-white shadow-xl backdrop-blur-md
-            transition-all duration-200
-            hidden md:flex items-center justify-center
-            ${canScrollRight ? "opacity-90 hover:opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}
+            transition-all duration-200 flex items-center justify-center
+            ${canScrollRight ? "opacity-95 hover:opacity-100 scale-100" : "opacity-0 pointer-events-none scale-90"}
           `}
         >
-          <ChevronRight className="w-4 h-4" />
+          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         </button>
       )}
     </div>
