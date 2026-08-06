@@ -784,13 +784,13 @@ export default function KitBadgeBuilder() {
               <CustomDropdown
                 value={config.pattern}
                 options={[
-                  { value: "Stripes", label: "Stripes (خطوط طولية)" },
-                  { value: "Hoops", label: "Hoops (خطوط عرضية)" },
-                  { value: "Gradient", label: "Gradient (تدرج لوني)" },
-                  { value: "Diagonal", label: "Diagonal (خط مائل)" },
-                  { value: "Camouflage", label: "Camouflage (تمويه مائل)" },
-                  { value: "Diamonds", label: "Diamonds (معينات هندسية)" },
-                  { value: "Chevron", label: "Chevron (أجنحة النصر)" },
+                  { value: "Stripes", label: isAr ? "خطوط طولية" : "Vertical Stripes" },
+                  { value: "Hoops", label: isAr ? "خطوط عرضية" : "Horizontal Hoops" },
+                  { value: "Gradient", label: isAr ? "تدرج لوني" : "Linear Gradient" },
+                  { value: "Diagonal", label: isAr ? "خط مائل" : "Diagonal Sash" },
+                  { value: "Camouflage", label: isAr ? "تمويه مائل" : "Tactical Camo" },
+                  { value: "Diamonds", label: isAr ? "معينات هندسية" : "Diamond Pattern" },
+                  { value: "Chevron", label: isAr ? "أجنحة النصر" : "Chevron Victory" },
                 ]}
                 onChange={(p) => setConfig({ ...config, pattern: p as PatternType })}
               />
@@ -803,10 +803,10 @@ export default function KitBadgeBuilder() {
               <CustomDropdown
                 value={config.collarStyle}
                 options={[
-                  { value: "V-Neck", label: "V-Neck (ياقة 7)" },
-                  { value: "Crew Neck", label: "Crew Neck (ياقة دائرية)" },
-                  { value: "Polo Collar", label: "Polo Collar (ياقة بولو بأزرار)" },
-                  { value: "Athletic Ribbed", label: "Athletic Ribbed (ياقة رياضية)" },
+                  { value: "V-Neck", label: isAr ? "ياقة V سبعة" : "V-Neck" },
+                  { value: "Crew Neck", label: isAr ? "ياقة دائرية" : "Crew Neck" },
+                  { value: "Polo Collar", label: isAr ? "ياقة بولو بأزرار" : "Polo Collar" },
+                  { value: "Athletic Ribbed", label: isAr ? "ياقة رياضية" : "Athletic Ribbed" },
                 ]}
                 onChange={(c) => setConfig({ ...config, collarStyle: c as CollarStyle })}
               />
@@ -822,12 +822,12 @@ export default function KitBadgeBuilder() {
               <CustomDropdown
                 value={config.shieldShape}
                 options={[
-                  { value: "Classic Shield", label: "Classic Shield (درع كلاسيكي)" },
-                  { value: "Modern Circle", label: "Modern Circle (دائري حديث)" },
-                  { value: "Diamond Badge", label: "Diamond Badge (ماسـي)" },
-                  { value: "Heater Shield", label: "Heater Shield (درع القرون الوسطى)" },
-                  { value: "French Crest", label: "French Crest (شعار ملكي)" },
-                  { value: "Apex Hexagon", label: "Apex Hexagon (سداسي سايبر)" },
+                  { value: "Classic Shield", label: isAr ? "درع كلاسيكي" : "Classic Shield" },
+                  { value: "Modern Circle", label: isAr ? "دائري حديث" : "Modern Circle" },
+                  { value: "Diamond Badge", label: isAr ? "درع ماسـي" : "Diamond Badge" },
+                  { value: "Heater Shield", label: isAr ? "درع القرون الوسطى" : "Heater Shield" },
+                  { value: "French Crest", label: isAr ? "شعار ملكي" : "French Crest" },
+                  { value: "Apex Hexagon", label: isAr ? "سداسي سايبر" : "Apex Hexagon" },
                 ]}
                 onChange={(s) => setConfig({ ...config, shieldShape: s as ShieldShape })}
               />
@@ -840,13 +840,13 @@ export default function KitBadgeBuilder() {
               <CustomDropdown
                 value={config.emblemIcon}
                 options={[
-                  { value: "Crown", label: "👑 Crown (التاج الملكي)" },
-                  { value: "Falcon", label: "🦅 Falcon (الصقر الذهبى)" },
-                  { value: "Lion", label: "🦁 Lion (الأسد الشجاع)" },
-                  { value: "Lightning", label: "⚡ Lightning (البرق السريع)" },
-                  { value: "Football", label: "⚽ Football (كرة البطولة)" },
-                  { value: "Trophy", label: "🏆 Trophy (كأس المجد)" },
-                  { value: "Swords", label: "⚔️ Swords (السيفان المتقاطعان)" },
+                  { value: "Crown", label: isAr ? "👑 التاج الملكي" : "👑 Crown" },
+                  { value: "Falcon", label: isAr ? "🦅 الصقر الذهبى" : "🦅 Golden Falcon" },
+                  { value: "Lion", label: isAr ? "🦁 الأسد الشجاع" : "🦁 Brave Lion" },
+                  { value: "Lightning", label: isAr ? "⚡ البرق السريع" : "⚡ Lightning" },
+                  { value: "Football", label: isAr ? "⚽ كرة البطولة" : "⚽ Football" },
+                  { value: "Trophy", label: isAr ? "🏆 كأس المجد" : "🏆 Trophy" },
+                  { value: "Swords", label: isAr ? "⚔️ السيفان المتقاطعان" : "⚔️ Crossed Swords" },
                 ]}
                 onChange={(e) => setConfig({ ...config, emblemIcon: e as EmblemIcon })}
               />
@@ -862,10 +862,10 @@ export default function KitBadgeBuilder() {
               <CustomDropdown
                 value={config.badgeFinish}
                 options={[
-                  { value: "Gold Chrome", label: "🌟 Gold Chrome (ذهب لمعة)" },
-                  { value: "Platinum Silver", label: "🛡️ Platinum Silver (فضة بلا Go)" },
-                  { value: "Matte Carbon", label: "🕶️ Matte Carbon (كاربون مطفي)" },
-                  { value: "Neon Glow", label: "⚡ Neon Glow (نيون متألق)" },
+                  { value: "Gold Chrome", label: isAr ? "🌟 ذهب لمعة" : "🌟 Gold Chrome" },
+                  { value: "Platinum Silver", label: isAr ? "🛡️ فضة بلا Go" : "🛡️ Platinum Silver" },
+                  { value: "Matte Carbon", label: isAr ? "🕶️ كاربون مطفي" : "🕶️ Matte Carbon" },
+                  { value: "Neon Glow", label: isAr ? "⚡ نيون متألق" : "⚡ Neon Glow" },
                 ]}
                 onChange={(f) => setConfig({ ...config, badgeFinish: f as any })}
               />

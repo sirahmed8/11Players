@@ -57,7 +57,7 @@ const OWNER_UID = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
 export const ProSubscriptionProvider: React.FC<{
   children: React.ReactNode;
 }> = ({ children }) => {
-  const { user, isOwner } = useAuth();
+  const { user, isOwner, loading: authLoading } = useAuth();
   const [subState, setSubState] = useState<Omit<SubscriptionState, "isOwner">>({
     plan: "free",
     status: "none",
@@ -67,6 +67,13 @@ export const ProSubscriptionProvider: React.FC<{
   });
 
   useEffect(() => {
+    // 1. If Auth is still loading from localStorage/Firebase, stay in loading state!
+    if (authLoading) {
+      setSubState((prev) => ({ ...prev, loading: true }));
+      return;
+    }
+
+    // 2. If Auth finished loading and there is no user
     if (!user) {
       setSubState({
         plan: "free",
@@ -78,10 +85,10 @@ export const ProSubscriptionProvider: React.FC<{
       return;
     }
 
-    // Owner always has full access – no need to query Firestore
+    // 3. Owner always has full access – no need to wait for Firestore subscription doc
     const userIsOwner =
       isOwner ||
-      user.email?.toLowerCase() === OWNER_EMAIL ||
+      (user.email && user.email.toLowerCase() === OWNER_EMAIL) ||
       user.uid === OWNER_UID;
 
     if (userIsOwner) {
@@ -168,7 +175,7 @@ export const ProSubscriptionProvider: React.FC<{
     );
 
     return () => unsubscribe();
-  }, [user, isOwner]);
+  }, [user, isOwner, authLoading]);
 
   const value = useMemo<ProSubscriptionContextProps>(
     () => ({
