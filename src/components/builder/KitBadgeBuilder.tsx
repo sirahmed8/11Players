@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Download, Palette, Shield, Shirt, Sparkles, RefreshCw, Copy, Check, ChevronDown, Eye, Layers, Zap, Award, Sparkle } from "lucide-react";
+import { Download, Palette, Shield, Shirt, Sparkles, RefreshCw, Copy, Check, ChevronDown, Eye, Layers, Zap, Award, Sparkle, Camera, Image as ImageIcon } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
@@ -124,9 +124,9 @@ export function generateKitPatternData(
 
 export function getShieldPath(shieldShape: ShieldShape, width: number, height: number): string {
   const cx = width / 2;
-  const cy = height / 2;
-  const w = width * 0.8;
-  const h = height * 0.85;
+  const cy = height / 2 - 15;
+  const w = width * 0.68;
+  const h = height * 0.72;
 
   switch (shieldShape) {
     case "Modern Circle":
@@ -134,9 +134,9 @@ export function getShieldPath(shieldShape: ShieldShape, width: number, height: n
     case "Diamond Badge":
       return `M ${cx} ${cy - h / 2} L ${cx + w / 2} ${cy} L ${cx} ${cy + h / 2} L ${cx - w / 2} ${cy} Z`;
     case "Heater Shield":
-      return `M ${cx - w / 2} ${cy - h / 2} L ${cx + w / 2} ${cy - h / 2} L ${cx + w / 2} ${cy} C ${cx + w / 2} ${cy + h / 2}, ${cx} ${cy + h / 2 + 20}, ${cx} ${cy + h / 2 + 30} C ${cx} ${cy + h / 2 + 20}, ${cx - w / 2} ${cy + h / 2}, ${cx - w / 2} ${cy} Z`;
+      return `M ${cx - w / 2} ${cy - h / 2} L ${cx + w / 2} ${cy - h / 2} L ${cx + w / 2} ${cy + 10} C ${cx + w / 2} ${cy + h / 2}, ${cx} ${cy + h / 2 + 15}, ${cx} ${cy + h / 2 + 25} C ${cx} ${cy + h / 2 + 15}, ${cx - w / 2} ${cy + h / 2}, ${cx - w / 2} ${cy + 10} Z`;
     case "French Crest":
-      return `M ${cx - w / 2 + 10} ${cy - h / 2} L ${cx + w / 2 - 10} ${cy - h / 2} Q ${cx + w / 2} ${cy - h / 2} ${cx + w / 2} ${cy - h / 2 + 10} L ${cx + w / 2} ${cy + 10} C ${cx + w / 2} ${cy + h / 2}, ${cx} ${cy + h / 2 + 20}, ${cx} ${cy + h / 2 + 25} C ${cx} ${cy + h / 2 + 20}, ${cx - w / 2} ${cy + h / 2}, ${cx - w / 2} ${cy + 10} L ${cx - w / 2} ${cy - h / 2 + 10} Q ${cx - w / 2} ${cy - h / 2} ${cx - w / 2 + 10} ${cy - h / 2} Z`;
+      return `M ${cx - w / 2 + 15} ${cy - h / 2} L ${cx + w / 2 - 15} ${cy - h / 2} Q ${cx + w / 2} ${cy - h / 2} ${cx + w / 2} ${cy - h / 2 + 15} L ${cx + w / 2} ${cy + 10} C ${cx + w / 2} ${cy + h / 2}, ${cx} ${cy + h / 2 + 20}, ${cx} ${cy + h / 2 + 25} C ${cx} ${cy + h / 2 + 20}, ${cx - w / 2} ${cy + h / 2}, ${cx - w / 2} ${cy + 10} L ${cx - w / 2} ${cy - h / 2 + 15} Q ${cx - w / 2} ${cy - h / 2} ${cx - w / 2 + 15} ${cy - h / 2} Z`;
     case "Apex Hexagon":
       return `M ${cx} ${cy - h / 2} L ${cx + w / 2} ${cy - h / 4} L ${cx + w / 2} ${cy + h / 4} L ${cx} ${cy + h / 2} L ${cx - w / 2} ${cy + h / 4} L ${cx - w / 2} ${cy - h / 4} Z`;
     case "Classic Shield":
@@ -169,7 +169,7 @@ export default function KitBadgeBuilder() {
   const jerseyCanvasRef = useRef<HTMLCanvasElement>(null);
   const crestCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Render 3D High-Detail Jersey Canvas
+  // Render Photorealistic 3D Jersey Canvas
   useEffect(() => {
     const canvas = jerseyCanvasRef.current;
     if (!canvas) return;
@@ -181,41 +181,43 @@ export default function KitBadgeBuilder() {
 
     ctx.clearRect(0, 0, w, h);
 
-    // 1. Studio Lighting Background Shadow
-    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, w * 0.7);
+    // 1. Studio Lighting Radial Backdrop
+    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.75);
     bgGrad.addColorStop(0, "#1e293b");
-    bgGrad.addColorStop(1, "#090d16");
+    bgGrad.addColorStop(1, "#030712");
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // 2. Base 3D Jersey Path
     ctx.save();
+
+    // 2. High-Precision Athletic Jersey Path (Ergonomic 3D Contour)
     ctx.beginPath();
-    ctx.moveTo(w * 0.28, h * 0.12);
-    ctx.lineTo(w * 0.38, h * 0.12);
-    ctx.quadraticCurveTo(w * 0.5, h * 0.18, w * 0.62, h * 0.12);
-    ctx.lineTo(w * 0.72, h * 0.12);
-    ctx.lineTo(w * 0.92, h * 0.32);
-    ctx.lineTo(w * 0.8, h * 0.42);
-    ctx.lineTo(w * 0.73, h * 0.36);
-    ctx.lineTo(w * 0.73, h * 0.88);
-    ctx.quadraticCurveTo(w * 0.5, h * 0.91, w * 0.27, h * 0.88);
-    ctx.lineTo(w * 0.27, h * 0.36);
-    ctx.lineTo(w * 0.2, h * 0.42);
-    ctx.lineTo(w * 0.08, h * 0.32);
+    ctx.moveTo(w * 0.32, h * 0.12); // Left neck corner
+    ctx.lineTo(w * 0.15, h * 0.18); // Left shoulder tip
+    ctx.lineTo(w * 0.08, h * 0.36); // Left sleeve outer cuff
+    ctx.lineTo(w * 0.20, h * 0.42); // Left sleeve inner cuff
+    ctx.lineTo(w * 0.25, h * 0.34); // Left armpit
+    ctx.lineTo(w * 0.24, h * 0.86); // Left waist
+    ctx.quadraticCurveTo(w * 0.5, h * 0.89, w * 0.76, h * 0.86); // Bottom curved hem
+    ctx.lineTo(w * 0.75, h * 0.34); // Right armpit
+    ctx.lineTo(w * 0.80, h * 0.42); // Right sleeve inner cuff
+    ctx.lineTo(w * 0.92, h * 0.36); // Right sleeve outer cuff
+    ctx.lineTo(w * 0.85, h * 0.18); // Right shoulder tip
+    ctx.lineTo(w * 0.68, h * 0.12); // Right neck corner
+    ctx.quadraticCurveTo(w * 0.5, h * 0.20, w * 0.32, h * 0.12); // Collar curve
     ctx.closePath();
 
-    // Clip to Jersey Shape
+    // Clip to Jersey Contour
     ctx.clip();
 
-    // 3. Primary Color Base & Fabric Micro-Mesh Shading
+    // 3. Fill Base Primary Color
     ctx.fillStyle = config.primaryColor;
     ctx.fillRect(0, 0, w, h);
 
-    // Subtle Fabric Micro Mesh Texture Lines
-    ctx.strokeStyle = "rgba(255,255,255,0.03)";
+    // Micro Poly-Mesh Fabric Weave Simulation Lines
+    ctx.strokeStyle = "rgba(255,255,255,0.035)";
     ctx.lineWidth = 1;
-    for (let y = 0; y < h; y += 4) {
+    for (let y = 0; y < h; y += 3) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(w, y);
@@ -260,7 +262,7 @@ export default function KitBadgeBuilder() {
       }
     } else if (config.pattern === "Diamonds") {
       ctx.fillStyle = config.secondaryColor;
-      const size = 30;
+      const size = 32;
       for (let x = 0; x < w + size; x += size * 2) {
         for (let y = 0; y < h + size; y += size) {
           ctx.beginPath();
@@ -274,126 +276,140 @@ export default function KitBadgeBuilder() {
     } else if (config.pattern === "Chevron") {
       ctx.fillStyle = config.secondaryColor;
       ctx.beginPath();
-      ctx.moveTo(0, h * 0.3);
-      ctx.lineTo(w / 2, h * 0.45);
-      ctx.lineTo(w, h * 0.3);
-      ctx.lineTo(w, h * 0.42);
-      ctx.lineTo(w / 2, h * 0.57);
-      ctx.lineTo(0, h * 0.42);
+      ctx.moveTo(0, h * 0.25);
+      ctx.lineTo(w / 2, h * 0.42);
+      ctx.lineTo(w, h * 0.25);
+      ctx.lineTo(w, h * 0.38);
+      ctx.lineTo(w / 2, h * 0.55);
+      ctx.lineTo(0, h * 0.38);
       ctx.fill();
     }
 
-    // 5. 3D Body Lighting & Contour Shadows Overlays
-    const bodyShadow = ctx.createLinearGradient(w * 0.25, 0, w * 0.75, 0);
-    bodyShadow.addColorStop(0, "rgba(0,0,0,0.45)");
-    bodyShadow.addColorStop(0.15, "rgba(255,255,255,0.12)");
+    // 5. 3D Body Lighting & Realistic Cloth Fold Shadow Gradient
+    const bodyShadow = ctx.createLinearGradient(0, 0, w, 0);
+    bodyShadow.addColorStop(0, "rgba(0,0,0,0.5)");
+    bodyShadow.addColorStop(0.2, "rgba(255,255,255,0.15)");
     bodyShadow.addColorStop(0.5, "rgba(255,255,255,0.0)");
-    bodyShadow.addColorStop(0.85, "rgba(0,0,0,0.2)");
-    bodyShadow.addColorStop(1, "rgba(0,0,0,0.5)");
+    bodyShadow.addColorStop(0.8, "rgba(0,0,0,0.2)");
+    bodyShadow.addColorStop(1, "rgba(0,0,0,0.55)");
     ctx.fillStyle = bodyShadow;
     ctx.fillRect(0, 0, w, h);
 
-    // 6. Collar Styling
+    // 6. Collar Construction (Stays 100% inside neck seam!)
     ctx.strokeStyle = config.accentColor;
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 7;
     ctx.fillStyle = config.accentColor;
 
     if (config.collarStyle === "V-Neck") {
       ctx.beginPath();
-      ctx.moveTo(w * 0.38, h * 0.12);
-      ctx.lineTo(w * 0.5, h * 0.25);
-      ctx.lineTo(w * 0.62, h * 0.12);
+      ctx.moveTo(w * 0.34, h * 0.12);
+      ctx.lineTo(w * 0.5, h * 0.24);
+      ctx.lineTo(w * 0.66, h * 0.12);
       ctx.stroke();
     } else if (config.collarStyle === "Crew Neck") {
       ctx.beginPath();
-      ctx.arc(w * 0.5, h * 0.12, w * 0.12, 0, Math.PI);
+      ctx.arc(w * 0.5, h * 0.12, w * 0.14, 0, Math.PI);
       ctx.stroke();
     } else if (config.collarStyle === "Polo Collar") {
       ctx.beginPath();
-      ctx.moveTo(w * 0.36, h * 0.12);
-      ctx.lineTo(w * 0.48, h * 0.24);
-      ctx.lineTo(w * 0.52, h * 0.24);
-      ctx.lineTo(w * 0.64, h * 0.12);
+      ctx.moveTo(w * 0.32, h * 0.12);
+      ctx.lineTo(w * 0.47, h * 0.22);
+      ctx.lineTo(w * 0.53, h * 0.22);
+      ctx.lineTo(w * 0.68, h * 0.12);
       ctx.stroke();
-      ctx.fillRect(w * 0.48, h * 0.24, 8, 20);
+      ctx.fillRect(w * 0.47, h * 0.22, 12, 20);
     } else {
       ctx.beginPath();
-      ctx.moveTo(w * 0.35, h * 0.12);
-      ctx.lineTo(w * 0.65, h * 0.12);
+      ctx.moveTo(w * 0.32, h * 0.12);
+      ctx.lineTo(w * 0.68, h * 0.12);
       ctx.stroke();
     }
 
-    // 7. Sleeve Trims & PRO League Badges
+    // 7. Sleeve Trims
     ctx.strokeStyle = config.accentColor;
-    ctx.lineWidth = 6;
+    ctx.lineWidth = 5;
     ctx.beginPath();
-    ctx.moveTo(w * 0.08, h * 0.32);
-    ctx.lineTo(w * 0.2, h * 0.42);
-    ctx.moveTo(w * 0.92, h * 0.32);
-    ctx.lineTo(w * 0.8, h * 0.42);
+    ctx.moveTo(w * 0.08, h * 0.36);
+    ctx.lineTo(w * 0.20, h * 0.42);
+    ctx.moveTo(w * 0.92, h * 0.36);
+    ctx.lineTo(w * 0.80, h * 0.42);
     ctx.stroke();
 
-    // 8. Front View vs Back View Elements
+    // 8. Front View vs Back View Layout Rendering
     if (viewMode === "front") {
-      // PRO Badge on Sleeve
-      ctx.fillStyle = "#fbbf24";
+      // Sleeve PRO League Gold Badge (Left Sleeve)
+      ctx.fillStyle = "#f59e0b";
       ctx.beginPath();
-      ctx.arc(w * 0.15, h * 0.33, 10, 0, Math.PI * 2);
+      ctx.arc(w * 0.14, h * 0.32, 10, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
       ctx.fillStyle = "#0f172a";
-      ctx.font = "bold 9px sans-serif";
+      ctx.font = "bold 8px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("PRO", w * 0.15, h * 0.36);
+      ctx.fillText("PRO", w * 0.14, h * 0.35);
 
-      // Chest Sponsor Text (3D Shadow effect)
-      ctx.fillStyle = "rgba(0,0,0,0.5)";
-      ctx.font = "black 22px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(config.sponsorText, w * 0.5 + 2, h * 0.54 + 2);
-
-      ctx.fillStyle = config.accentColor;
-      ctx.fillText(config.sponsorText, w * 0.5, h * 0.54);
-
-      // Small Chest Crest Emblem (Right Chest)
+      // Left Chest (Viewer's Left): Metallic Shield Badge
       ctx.save();
-      ctx.translate(w * 0.36, h * 0.32);
-      ctx.scale(0.3, 0.3);
-      const miniShield = new Path2D(getShieldPath(config.shieldShape, 100, 120));
+      ctx.translate(w * 0.32, h * 0.28);
+      ctx.scale(0.25, 0.25);
+      const chestShieldPath = new Path2D(getShieldPath(config.shieldShape, 120, 140));
       ctx.fillStyle = config.primaryColor;
-      ctx.fill(miniShield);
+      ctx.fill(chestShieldPath);
       ctx.strokeStyle = config.accentColor;
       ctx.lineWidth = 6;
-      ctx.stroke(miniShield);
+      ctx.stroke(chestShieldPath);
+      ctx.fillStyle = config.accentColor;
+      ctx.font = "bold 40px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("👑", 60, 65);
       ctx.restore();
 
-      // Front Squad Number
+      // Right Chest (Viewer's Right): 11P Logo & Small Front Squad Number
       ctx.fillStyle = config.accentColor;
-      ctx.font = "black 28px monospace";
-      ctx.fillText(config.squadNumber.toString(), w * 0.64, h * 0.35);
+      ctx.font = "black 18px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(config.squadNumber.toString(), w * 0.68, h * 0.31);
 
-    } else {
-      // BACK VIEW - Player Name Curved & Massive Squad Number
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
+      // CENTER CHEST SPONSOR LOGO (High Contrast Chest Level Y: h * 0.48 = 230px!)
+      const sponsorStr = (config.sponsorText || "11PLAYERS PRO").toUpperCase();
       ctx.font = "black 20px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(config.playerName.toUpperCase(), w * 0.5 + 2, h * 0.35 + 2);
 
-      ctx.fillStyle = config.accentColor;
-      ctx.fillText(config.playerName.toUpperCase(), w * 0.5, h * 0.35);
+      // Shadow
+      ctx.fillStyle = "#000000";
+      ctx.fillText(sponsorStr, w * 0.5 + 2, h * 0.48 + 2);
 
-      // Massive Back Squad Number (3D Shadow)
-      ctx.fillStyle = "rgba(0,0,0,0.6)";
-      ctx.font = "black 88px monospace";
-      ctx.fillText(config.squadNumber.toString(), w * 0.5 + 4, h * 0.65 + 4);
+      // High-Contrast Main Text Color (Accent or Bright White)
+      ctx.fillStyle = config.accentColor || "#ffffff";
+      ctx.fillText(sponsorStr, w * 0.5, h * 0.48);
 
-      ctx.fillStyle = config.accentColor;
-      ctx.fillText(config.squadNumber.toString(), w * 0.5, h * 0.65);
+    } else {
+      // BACK VIEW - Player Name Curved & Massive Varsity Squad Number
+      const nameStr = (config.playerName || "CAPTAIN 11").toUpperCase();
+      ctx.font = "black 20px sans-serif";
+      ctx.textAlign = "center";
+
+      ctx.fillStyle = "#000000";
+      ctx.fillText(nameStr, w * 0.5 + 2, h * 0.32 + 2);
+
+      ctx.fillStyle = config.accentColor || "#ffffff";
+      ctx.fillText(nameStr, w * 0.5, h * 0.32);
+
+      // Massive Back Squad Number (High-Impact 3D Shadow)
+      ctx.fillStyle = "#000000";
+      ctx.font = "black 90px monospace";
+      ctx.fillText(config.squadNumber.toString(), w * 0.5 + 4, h * 0.62 + 4);
+
+      ctx.fillStyle = config.accentColor || "#ffffff";
+      ctx.fillText(config.squadNumber.toString(), w * 0.5, h * 0.62);
     }
 
     ctx.restore();
   }, [config, viewMode]);
 
-  // Render 3D Metallic Crest Canvas
+  // Render 3D Metallic Crest Badge Canvas (Auto-Fit Text!)
   useEffect(() => {
     const canvas = crestCanvasRef.current;
     if (!canvas) return;
@@ -405,8 +421,8 @@ export default function KitBadgeBuilder() {
 
     ctx.clearRect(0, 0, w, h);
 
-    // 1. Studio Metallic Backdrop Glow
-    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.7);
+    // Studio Metallic Background Radial Glow
+    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 40, w / 2, h / 2, w * 0.75);
     bgGrad.addColorStop(0, "#0f172a");
     bgGrad.addColorStop(1, "#030712");
     ctx.fillStyle = bgGrad;
@@ -414,15 +430,15 @@ export default function KitBadgeBuilder() {
 
     ctx.save();
 
-    // 2. Outer 3D Shield Outline
+    // Shield Outline Path
     const shieldSvgPath = getShieldPath(config.shieldShape, w, h);
     const shieldPath = new Path2D(shieldSvgPath);
 
-    // Fill Base Color
+    // Fill Shield Base Color
     ctx.fillStyle = config.primaryColor;
     ctx.fill(shieldPath);
 
-    // 3. Metallic Border Finish Styling
+    // Metallic Border Styling
     let strokeGrad = ctx.createLinearGradient(0, 0, w, h);
     if (config.badgeFinish === "Gold Chrome") {
       strokeGrad.addColorStop(0, "#f59e0b");
@@ -442,7 +458,7 @@ export default function KitBadgeBuilder() {
     }
 
     ctx.strokeStyle = strokeGrad;
-    ctx.lineWidth = 12;
+    ctx.lineWidth = 14;
     ctx.stroke(shieldPath);
 
     // Inner Accent Line
@@ -453,13 +469,13 @@ export default function KitBadgeBuilder() {
     // Clip to Shield Interior
     ctx.clip(shieldPath);
 
-    // 4. Interior Starburst Pattern Lines
-    ctx.fillStyle = config.secondaryColor + "30";
+    // Interior Decorative Stripes
+    ctx.fillStyle = config.secondaryColor + "35";
     for (let i = 0; i < w; i += 24) {
       ctx.fillRect(i, 0, 12, h);
     }
 
-    // 5. High-Res Emblem Icon Symbol Rendering
+    // Emblem Symbol Glyph Rendering
     const symbolMap: Record<EmblemIcon, string> = {
       Crown: "👑",
       Falcon: "🦅",
@@ -470,26 +486,43 @@ export default function KitBadgeBuilder() {
       Swords: "⚔️",
     };
 
-    // Symbol Shadow
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
+    // Icon Shadow
+    ctx.fillStyle = "rgba(0,0,0,0.6)";
     ctx.textAlign = "center";
-    ctx.font = "bold 64px sans-serif";
-    ctx.fillText(symbolMap[config.emblemIcon] || "👑", w / 2 + 3, h / 2 + 13);
+    ctx.font = "bold 56px sans-serif";
+    ctx.fillText(symbolMap[config.emblemIcon] || "👑", w / 2 + 3, h / 2 - 20 + 3);
 
     ctx.fillStyle = config.accentColor;
-    ctx.fillText(symbolMap[config.emblemIcon] || "👑", w / 2, h / 2 + 10);
+    ctx.fillText(symbolMap[config.emblemIcon] || "👑", w / 2, h / 2 - 20);
 
-    // 6. Community Text Curved Banner Frame
+    // Community Ribbon Banner Frame (Inside Lower Shield)
+    const bannerY = h * 0.62;
+    const bannerH = 34;
+    const bannerW = w * 0.60; // 60% of canvas width to stay 100% inside shield!
+    const bannerX = (w - bannerW) / 2;
+
     ctx.fillStyle = config.secondaryColor;
-    ctx.fillRect(w * 0.1, h * 0.72, w * 0.8, 38);
+    ctx.fillRect(bannerX, bannerY, bannerW, bannerH);
 
     ctx.strokeStyle = config.accentColor;
     ctx.lineWidth = 2;
-    ctx.strokeRect(w * 0.1, h * 0.72, w * 0.8, 38);
+    ctx.strokeRect(bannerX, bannerY, bannerW, bannerH);
 
-    ctx.fillStyle = config.primaryColor;
-    ctx.font = "black 14px sans-serif";
-    ctx.fillText(config.communityText.toUpperCase(), w / 2, h * 0.72 + 24);
+    // CRITICAL - DYNAMIC AUTO-FIT TEXT SCALING (Prevents ANY text overflow!)
+    const rawText = (config.communityText || "HAGOOZAT ELITE").toUpperCase();
+    let fontSize = 13;
+    ctx.font = `black ${fontSize}px sans-serif`;
+
+    // Loop until text fits safely inside banner padding
+    while (ctx.measureText(rawText).width > bannerW - 12 && fontSize > 8) {
+      fontSize -= 1;
+      ctx.font = `black ${fontSize}px sans-serif`;
+    }
+
+    // Dynamic contrast text color
+    ctx.fillStyle = config.primaryColor === "#ffffff" ? "#0f172a" : "#ffffff";
+    ctx.textAlign = "center";
+    ctx.fillText(rawText, w / 2, bannerY + bannerH / 2 + fontSize / 3.2);
 
     ctx.restore();
   }, [config]);
@@ -515,41 +548,39 @@ export default function KitBadgeBuilder() {
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-      {/* Studio Header Banner */}
-      <div className="bg-slate-900/90 p-6 sm:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="space-y-2 relative z-10">
+      {/* Studio Header Banner - Solid Color Card */}
+      <div className="bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-xl flex flex-col space-y-4 relative overflow-hidden">
+        <div className="space-y-2 relative z-10 max-w-3xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-black uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5" />
             <span>PRO Captain Pass Feature 👑</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight flex items-center gap-3">
-            <Shirt className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" />
+            <Shirt className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400 shrink-0" />
             <span>{isAr ? "استوديو الأطقم والشعارات 3D" : "3D Kit & Crest Builder Studio"}</span>
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm max-w-2xl leading-relaxed">
+          <p className="text-slate-400 text-xs sm:text-sm leading-relaxed">
             {isAr
               ? "استوديو الأطقم الاحترافي 3D المعتمد لمنصة 11Players! صمم طقم فريقك وشعار مجتمعك بألوان، خامات أنماط، وتشطيبات كروم احترافية."
               : "Design high-definition 3D squad jerseys and metallic crest badges with custom fabric patterns, realistic shaders, and 4K PNG exports."}
           </p>
         </div>
 
-        {/* Quick Presets Dropdown */}
-        <div className="flex flex-wrap items-center gap-3 relative z-10 w-full md:w-auto">
-          <div className="flex items-center gap-2 bg-slate-950/80 p-2 rounded-2xl border border-slate-800 w-full sm:w-auto">
-            <span className="text-xs font-bold text-slate-400 px-2">{isAr ? "القوالب:" : "Presets:"}</span>
-            <div className="flex flex-wrap gap-1.5">
-              {PRESET_KITS.map((p) => (
-                <button
-                  key={p.name}
-                  onClick={() => setConfig((prev) => ({ ...prev, ...p.config }))}
-                  className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
+        {/* Studio Presets Bar - Dedicated Full Row (Never Clips!) */}
+        <div className="pt-2 border-t border-slate-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-black text-slate-400 uppercase tracking-wider shrink-0 mr-2">
+              {isAr ? "🎨 القوالب الجاهزة:" : "🎨 Presets:"}
+            </span>
+            {PRESET_KITS.map((p) => (
+              <button
+                key={p.name}
+                onClick={() => setConfig((prev) => ({ ...prev, ...p.config }))}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-white text-xs font-bold transition-all cursor-pointer shrink-0 border border-slate-700/60 shadow-sm"
+              >
+                {p.name}
+              </button>
+            ))}
           </div>
         </div>
       </div>
@@ -557,7 +588,7 @@ export default function KitBadgeBuilder() {
       {/* Main Studio Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Left Column: Interactive 3D Canvas Preview */}
-        <div className="lg:col-span-5 flex flex-col items-center bg-slate-900/80 p-6 rounded-3xl border border-slate-800 backdrop-blur-xl shadow-2xl space-y-5">
+        <div className="lg:col-span-5 flex flex-col items-center bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-5">
           {/* Studio Tab Switcher */}
           <div className="flex bg-slate-950 p-1.5 rounded-2xl border border-slate-800 w-full">
             <button
@@ -586,7 +617,7 @@ export default function KitBadgeBuilder() {
 
           {/* Jersey View Mode Toggle (Front / Back) */}
           {activeTab === "jersey" && (
-            <div className="flex items-center gap-2 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300">
+            <div className="flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs text-slate-300">
               <span className="font-bold">{isAr ? "منظور الرؤية:" : "Perspective:"}</span>
               <button
                 onClick={() => setViewMode("front")}
@@ -655,7 +686,7 @@ export default function KitBadgeBuilder() {
         </div>
 
         {/* Right Column: Customization Controls Panel */}
-        <div className="lg:col-span-7 bg-slate-900/80 p-6 sm:p-8 rounded-3xl border border-slate-800 backdrop-blur-xl space-y-6 shadow-2xl">
+        <div className="lg:col-span-7 bg-slate-900 p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 shadow-xl">
           <div className="flex items-center justify-between border-b border-slate-800 pb-4">
             <h2 className="text-xl font-black text-white flex items-center gap-2">
               <Palette className="w-5 h-5 text-emerald-400" />
@@ -721,7 +752,7 @@ export default function KitBadgeBuilder() {
           </div>
 
           {/* 3. Color Controls */}
-          <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800 space-y-4">
+          <div className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider">
               {isAr ? "لوحة ألوان القميص والشعار" : "Color Palette Tokens"}
             </h3>

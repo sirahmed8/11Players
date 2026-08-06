@@ -75,7 +75,7 @@ export default function ModernColorPicker({
   };
 
   return (
-    <div ref={containerRef} className={`relative inline-block ${className}`}>
+    <div ref={containerRef} className={`relative w-full ${className}`}>
       {label && (
         <label className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400 block mb-1">
           {label}
@@ -86,7 +86,7 @@ export default function ModernColorPicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-950 border border-slate-700/80 hover:border-emerald-500/60 transition-all cursor-pointer group shadow-inner"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700/80 hover:border-emerald-500/60 transition-all cursor-pointer group shadow-inner"
       >
         <div
           className="w-6 h-6 rounded-lg border border-white/20 shadow-sm shrink-0 transition-transform group-hover:scale-105"
