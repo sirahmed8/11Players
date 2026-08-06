@@ -181,7 +181,27 @@ export default function AnnouncementsPage() {
       // 1. Save to global announcements collection
       await setDoc(doc(db, "announcements", annId), announcementData);
 
-      // 2. Broadcast to community live chat (if mode is 'chat' or 'both')
+      // 2. Sync to notifications collection under category broadcasts for /notifications page
+      const notifId = `notif_broadcast_${Date.now()}`;
+      await setDoc(doc(db, "notifications", notifId), {
+        id: notifId,
+        announcementId: annId,
+        category: "broadcasts",
+        type: priority === "urgent" ? "urgent_broadcast" : "announcement",
+        titleEn: titleEn.trim(),
+        titleAr: titleAr.trim(),
+        messageEn: bodyEn.trim(),
+        messageAr: bodyAr.trim(),
+        bodyEn: bodyEn.trim(),
+        bodyAr: bodyAr.trim(),
+        priority,
+        link: link.trim() || "/notifications?category=broadcasts",
+        communityId: targetScope === 'active_community' ? activeCommunityId || "" : "global",
+        createdAt: new Date().toISOString(),
+        isPublicBroadcast: true,
+      });
+
+      // 3. Broadcast to community live chat (if mode is 'chat' or 'both')
       if ((mode === 'chat' || mode === 'both') && targetScope === 'active_community' && activeCommunityId) {
         try {
           await addDoc(collection(db, "communities", activeCommunityId, "chat"), {

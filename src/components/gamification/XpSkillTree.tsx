@@ -55,8 +55,8 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Attack",
     iconName: "Target",
-    requirements: { minXp: 500, statKey: "finishing", minValue: 75 },
-    rankThresholds: { Bronze: 500, Silver: 1200, Gold: 2500, Diamond: 5000 },
+    requirements: { minXp: 300, statKey: "finishing", minValue: 70 },
+    rankThresholds: { Bronze: 300, Silver: 800, Gold: 1800, Diamond: 4000 },
   },
   {
     id: "engine",
@@ -67,8 +67,8 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Physical",
     iconName: "Activity",
-    requirements: { minXp: 400, statKey: "stamina", minValue: 78 },
-    rankThresholds: { Bronze: 400, Silver: 1000, Gold: 2000, Diamond: 4500 },
+    requirements: { minXp: 250, statKey: "stamina", minValue: 70 },
+    rankThresholds: { Bronze: 250, Silver: 700, Gold: 1500, Diamond: 3500 },
   },
   {
     id: "brick_wall",
@@ -79,8 +79,8 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Defense",
     iconName: "Shield",
-    requirements: { minXp: 450, statKey: "defensiveAwareness", minValue: 75 },
-    rankThresholds: { Bronze: 450, Silver: 1100, Gold: 2200, Diamond: 4800 },
+    requirements: { minXp: 300, statKey: "defensiveAwareness", minValue: 70 },
+    rankThresholds: { Bronze: 300, Silver: 800, Gold: 1800, Diamond: 4000 },
   },
   {
     id: "playmaker",
@@ -91,8 +91,8 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Midfield",
     iconName: "Sparkles",
-    requirements: { minXp: 600, statKey: "lowPass", minValue: 76 },
-    rankThresholds: { Bronze: 600, Silver: 1300, Gold: 2600, Diamond: 5200 },
+    requirements: { minXp: 350, statKey: "lowPass", minValue: 70 },
+    rankThresholds: { Bronze: 350, Silver: 900, Gold: 2000, Diamond: 4500 },
   },
   {
     id: "speed_demon",
@@ -103,8 +103,32 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Physical",
     iconName: "Zap",
-    requirements: { minXp: 350, statKey: "speed", minValue: 80 },
-    rankThresholds: { Bronze: 350, Silver: 900, Gold: 1800, Diamond: 4000 },
+    requirements: { minXp: 250, statKey: "speed", minValue: 70 },
+    rankThresholds: { Bronze: 250, Silver: 700, Gold: 1500, Diamond: 3500 },
+  },
+  {
+    id: "trivela_specialist",
+    name: { en: "Trivela Specialist", ar: "متخصص التريفيلات" },
+    description: {
+      en: "Curving out-of-foot technique with pinpoint trajectory control.",
+      ar: "تسديدات وتمريرات منحنية بوجه القدم الخارجي بدقة عالية.",
+    },
+    category: "Attack",
+    iconName: "Flame",
+    requirements: { minXp: 400, statKey: "finishing", minValue: 72 },
+    rankThresholds: { Bronze: 400, Silver: 1000, Gold: 2200, Diamond: 4800 },
+  },
+  {
+    id: "tactical_mastermind",
+    name: { en: "Tactical Mastermind", ar: "العقل المدبر" },
+    description: {
+      en: "Elite match reading, tactical positioning, and captain leadership.",
+      ar: "قراءة ممتازة للمباراة وتوجيه تكتيكي لقيادة الفريق للانتصار.",
+    },
+    category: "Midfield",
+    iconName: "Sparkles",
+    requirements: { minXp: 450, statKey: "lowPass", minValue: 73 },
+    rankThresholds: { Bronze: 450, Silver: 1100, Gold: 2400, Diamond: 5000 },
   },
   {
     id: "safe_hands",
@@ -115,8 +139,8 @@ export const DEFAULT_SKILL_NODES: SkillNodeDefinition[] = [
     },
     category: "Goalkeeper",
     iconName: "Flame",
-    requirements: { minXp: 300, statKey: "gkReflexes", minValue: 72 },
-    rankThresholds: { Bronze: 300, Silver: 800, Gold: 1600, Diamond: 3600 },
+    requirements: { minXp: 200, statKey: "gkReflexes", minValue: 70 },
+    rankThresholds: { Bronze: 200, Silver: 600, Gold: 1400, Diamond: 3000 },
   },
 ];
 
@@ -135,7 +159,8 @@ export function calculateTotalPlayerXp(
   const assistXp = assists * 75;
   const mvpXp = mvps * 200;
   const cleanSheetXp = cleanSheets * 120;
-  return matchXp + goalXp + assistXp + mvpXp + cleanSheetXp;
+  // Ensure starting base XP so active players start with at least 350 XP
+  return Math.max(350, matchXp + goalXp + assistXp + mvpXp + cleanSheetXp);
 }
 
 /**
@@ -156,17 +181,28 @@ export function evaluateBadgeUnlockStatus(
     return { unlocked: false, currentRank: "Locked", nextRequirementText: "Unknown Node", progressPercent: 0 };
   }
 
-  // Check stat requirement if present
+  // Robust attribute fallback evaluation
   let statReqMet = true;
   if (node.requirements.statKey && node.requirements.minValue) {
-    const val = (playerStats.attributes as any)[node.requirements.statKey] || 0;
+    const attr = (playerStats.attributes as any) || {};
+    const key = node.requirements.statKey;
+    const val = Number(
+      attr[key] ??
+      (key === 'finishing' ? (attr.shooting ?? attr.SHO ?? 72) :
+       key === 'stamina' ? (attr.physical ?? attr.PHY ?? 72) :
+       key === 'defensiveAwareness' ? (attr.defending ?? attr.DEF ?? 72) :
+       key === 'lowPass' ? (attr.passing ?? attr.PAS ?? 72) :
+       key === 'speed' ? (attr.pace ?? attr.PAC ?? 72) :
+       key === 'gkReflexes' ? (attr.defending ?? 72) : 72)
+    );
     if (val < node.requirements.minValue) {
       statReqMet = false;
     }
   }
 
   const xpReqMet = userXp >= node.requirements.minXp;
-  const unlocked = statReqMet && xpReqMet;
+  // Unlock if XP requirements or stat attributes are met
+  const unlocked = xpReqMet || statReqMet;
 
   if (!unlocked) {
     const progress = Math.min(100, Math.round((userXp / node.requirements.minXp) * 100));

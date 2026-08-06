@@ -380,51 +380,51 @@ export default function GlobalUsersTable() {
         </div>
       </div>
 
-      {/* Floating Bulk Action Panel (When users selected) */}
+      {/* Floating Bulk Action Panel (Fixed Sticky Dock at Bottom of Screen) */}
       <AnimatePresence>
         {selectedUids.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            exit={{ opacity: 0, y: 50, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
-            className="bg-emerald-950/40 border-b border-emerald-500/40 p-4 px-6 flex flex-wrap items-center justify-between gap-4 backdrop-blur-xl"
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] max-w-3xl w-[92vw] bg-slate-900/95 border border-emerald-500/50 p-3.5 px-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 backdrop-blur-2xl shadow-2xl shadow-slate-950/80"
           >
-            <div className="flex items-center gap-3">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/30">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl bg-emerald-500 text-slate-950 font-black text-xs shadow-md shadow-emerald-500/30 shrink-0">
                 {selectedUids.length}
               </span>
-              <div>
-                <span className="block text-xs font-black text-white">
+              <div className="min-w-0">
+                <span className="block text-xs font-black text-white truncate">
                   {isAr ? `تم تحديد ${selectedUids.length} لاعب من المنصة` : `${selectedUids.length} platform players selected`}
                 </span>
-                <span className="text-[10px] text-emerald-400 font-bold">
+                <span className="text-[10px] text-emerald-400 font-bold block truncate">
                   {isAr ? "جاهز لإجراءات التحكم المجمعة بالذكاء الاصطناعي" : "Ready for bulk AI optimization & actions"}
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
               <button
                 type="button"
                 onClick={() => handleBulkGrantPro()}
-                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-amber-500/30 transition-all cursor-pointer"
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/30 transition-all cursor-pointer shrink-0"
               >
                 <Crown className="w-4 h-4 text-slate-950" />
-                <span>{isAr ? "منح PRO مجاناً للمحددين 👑" : "Grant PRO Pass to Selected 👑"}</span>
+                <span>{isAr ? "منح PRO 👑" : "Grant PRO Pass 👑"}</span>
               </button>
               <button
                 type="button"
                 onClick={() => handleApplyAIToSelectedUsers(users.filter(u => selectedUids.includes(u.uid)))}
-                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-600/30 transition-all cursor-pointer shrink-0"
               >
                 <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
-                <span>{isAr ? "تطبيق الذكاء الاصطناعي ⚡" : "Apply AI Choice ⚡"}</span>
+                <span>{isAr ? "تطبيق الذكاء ⚡" : "Apply AI ⚡"}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setSelectedUids([])}
-                className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer"
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0"
               >
                 {isAr ? "إلغاء التحديد" : "Clear Selection"}
               </button>

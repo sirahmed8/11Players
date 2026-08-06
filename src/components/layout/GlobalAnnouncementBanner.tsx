@@ -112,6 +112,14 @@ export default function GlobalAnnouncementBanner() {
               </div>
 
               <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                <Link
+                  href="/notifications?category=broadcasts"
+                  onClick={(e) => e.stopPropagation()}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700/80 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-md active:scale-95"
+                >
+                  <Bell className="w-3.5 h-3.5 text-amber-400" />
+                  <span>{isAr ? "التحديثات 🔔" : "Updates 🔔"}</span>
+                </Link>
                 {announcement.link && (
                   <a
                     href={announcement.link}

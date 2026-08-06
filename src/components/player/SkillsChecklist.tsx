@@ -192,7 +192,7 @@ export default function SkillsChecklist({
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 6 }}
-                          className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900 text-slate-200 text-xs rounded-lg px-3 py-2 border border-slate-700 shadow-xl whitespace-nowrap pointer-events-none"
+                          className="absolute z-50 bottom-full mb-2 left-1/2 -translate-x-1/2 bg-slate-900/95 text-slate-200 text-xs rounded-xl px-3 py-2 border border-slate-700/80 shadow-2xl max-w-[200px] sm:max-w-xs w-max whitespace-normal text-center leading-relaxed pointer-events-none"
                         >
                           {locale === 'ar' ? skill.descriptionAr : skill.description}
                           <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">

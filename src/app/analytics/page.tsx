@@ -886,13 +886,14 @@ export default function AnalyticsPage() {
           <AnimatePresence>
             {selectedUids.length > 0 && (
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="bg-amber-500 text-slate-950 px-6 py-3 border-b border-amber-400 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg"
+                initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[100] max-w-3xl w-[92vw] bg-slate-900/95 border border-amber-500/50 p-3.5 px-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 backdrop-blur-2xl shadow-2xl shadow-slate-950/80"
               >
-                <div className="flex items-center gap-2 font-black text-xs">
-                  <Check className="w-4 h-4 stroke-[3]" />
+                <div className="flex items-center gap-2.5 text-xs font-black text-amber-400">
+                  <Crown className="w-4 h-4 stroke-[3]" />
                   <span>
                     {isAr
                       ? `تم تحديد ${selectedUids.length} لاعب من أصل ${filteredPlayersList.length}`

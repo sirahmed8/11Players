@@ -286,6 +286,8 @@ export default function ProPassPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
             {plans.map((plan, idx) => {
               const price = isAnnual ? plan.priceAnnualEGP : plan.priceMonthlyEGP;
+              const activeTierId = isOwner ? "enterprise" : ((user as any)?.proPassTier || (isAdmin ? "pro_captain" : "free"));
+              const isCurrent = plan.id === activeTierId;
 
               return (
                 <motion.div
@@ -294,15 +296,23 @@ export default function ProPassPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 * idx, duration: 0.5 }}
                   className={`relative glass-card p-6 sm:p-8 rounded-3xl border bg-slate-900/90 flex flex-col justify-between shadow-2xl transition-all hover:border-slate-600 overflow-hidden ${
-                    plan.popular ? "border-amber-400/80 ring-2 ring-amber-400/30" : plan.borderColor
+                    isCurrent
+                      ? "border-emerald-500/80 ring-2 ring-emerald-500/40"
+                      : plan.popular
+                      ? "border-amber-400/80 ring-2 ring-amber-400/30"
+                      : plan.borderColor
                   }`}
                 >
-                  {/* Badge banner for popular */}
-                  {plan.badgeEn && (
+                  {/* Badge banner for popular / active */}
+                  {isCurrent ? (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-b-2xl bg-emerald-500 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-emerald-500/20 whitespace-nowrap z-10">
+                      {isAr ? "خطتك الحالية (مفعّلة 👑)" : "ACTIVE PLAN (GRANTED 👑)"}
+                    </div>
+                  ) : plan.badgeEn ? (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-b-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20 whitespace-nowrap z-10">
                       {isAr ? plan.badgeAr : plan.badgeEn}
                     </div>
-                  )}
+                  ) : null}
 
                   <div className="space-y-6 pt-2">
                     {/* Header */}
@@ -352,17 +362,21 @@ export default function ProPassPage() {
                   {/* CTA button */}
                   <div className="pt-6 sm:pt-8">
                     <button
-                      onClick={() => handleSelectPlan(plan)}
+                      onClick={() => !isCurrent && handleSelectPlan(plan)}
+                      disabled={isCurrent}
                       className={`w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer ${
-                        plan.popular
+                        isCurrent
+                          ? "bg-emerald-600 text-white cursor-default opacity-90 shadow-emerald-600/30"
+                          : plan.popular
                           ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-amber-500/20"
-                          : plan.id === "free"
-                          ? "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-                          : "bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-500/20"
+                          : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
                       }`}
                     >
-                      <span className="break-words">{isAr ? plan.buttonTextAr : plan.buttonTextEn}</span>
-                      <ArrowRight className="w-4 h-4 rtl:rotate-180 shrink-0" />
+                      <span>
+                        {isCurrent
+                          ? (isAr ? "الخطة الحالية المفعّلة" : "Current Active Plan")
+                          : (isAr ? plan.buttonTextAr : plan.buttonTextEn)}
+                      </span>
                     </button>
                   </div>
                 </motion.div>

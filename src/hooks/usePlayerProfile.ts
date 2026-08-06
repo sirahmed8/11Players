@@ -26,7 +26,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
           setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
           setLoading(false);
         } else {
-          // Check if effectiveUid is actually a username handle
+          // Check if effectiveUid is actually a username handle or card name
           try {
             const cleanHandle = effectiveUid.toLowerCase().replace(/^@+/, "");
             const uQuery = query(collection(db, "players"), where("username", "==", cleanHandle));
@@ -38,8 +38,19 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
               setLoading(false);
               return;
             }
+
+            // Secondary check by upper case cardName or fullName
+            const cQuery = query(collection(db, "players"), where("cardName", "==", cleanHandle.toUpperCase()));
+            const cSnap = await getDocs(cQuery);
+            if (!cSnap.empty) {
+              const cDoc = cSnap.docs[0];
+              const cd = cDoc.data();
+              setPlayer({ uid: cDoc.id, ...cd, attributes: cd.attributes || {}, stats: cd.stats || {} } as PlayerProfile);
+              setLoading(false);
+              return;
+            }
           } catch (err) {
-            console.warn("Username query lookup error:", err);
+            console.warn("Username/CardName query lookup error:", err);
           }
 
           // Check if player exists in active community before giving up
@@ -64,8 +75,8 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
               const querySnap = await getDocs(q);
               if (!querySnap.empty) {
                 const existingData = querySnap.docs[0].data();
-                await setDoc(doc(db, "players", effectiveUid), { ...existingData, uid: effectiveUid }, { merge: true });
-                setPlayer({ uid: effectiveUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
+                const matchedUid = querySnap.docs[0].id;
+                setPlayer({ uid: matchedUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
                 setLoading(false);
                 return;
               }

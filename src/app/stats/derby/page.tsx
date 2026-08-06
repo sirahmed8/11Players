@@ -94,7 +94,7 @@ function DerbyContent() {
         <MatchActionHubBar />
 
         {/* Real Captain Selector Header */}
-        <div className="relative z-30 p-5 sm:p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-4 overflow-hidden">
+        <div className="relative z-40 p-5 sm:p-6 rounded-3xl border border-slate-800 bg-slate-900/80 backdrop-blur-xl shadow-xl space-y-4">
           {/* Top Row: Full-Width Title & Description */}
           <div className="flex items-center gap-3.5 w-full">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500/20 to-orange-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">

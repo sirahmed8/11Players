@@ -34,6 +34,12 @@ export default function ClaimUsernameModal() {
     localStorage.getItem("username_modal_dismissed")
   );
 
+  useEffect(() => {
+    if (userProfile?.username && user?.uid) {
+      localStorage.setItem(`claimed_username_${user.uid}`, userProfile.username);
+    }
+  }, [userProfile?.username, user?.uid]);
+
   const hasUsername = Boolean(userProfile?.username || isLocallyClaimed || dismissed);
   const isMissingUsername = Boolean(user && userProfile && !hasUsername);
 
