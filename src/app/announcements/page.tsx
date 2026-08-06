@@ -487,7 +487,7 @@ export default function AnnouncementsPage() {
                     dir="auto"
                     placeholder="e.g. Next Match Sign-Up Open!"
                     value={titleEn}
-                    onChange={e => setTitleEn(stripMarkdownAsterisks(e.target.value))}
+                    onChange={e => setTitleEn(e.target.value)}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
@@ -502,7 +502,7 @@ export default function AnnouncementsPage() {
                     dir="auto"
                     placeholder="مثال: فتح باب التسجيل للمباراة القادمة!"
                     value={titleAr}
-                    onChange={e => setTitleAr(stripMarkdownAsterisks(e.target.value))}
+                    onChange={e => setTitleAr(e.target.value)}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-bold text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm"
                   />
                 </div>
@@ -520,7 +520,7 @@ export default function AnnouncementsPage() {
                     dir="auto"
                     placeholder="Type your message description here in English..."
                     value={bodyEn}
-                    onChange={e => setBodyEn(stripMarkdownAsterisks(e.target.value))}
+                    onChange={e => setBodyEn(e.target.value)}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>
@@ -535,7 +535,7 @@ export default function AnnouncementsPage() {
                     dir="auto"
                     placeholder="اكتب تفاصيل ومحتوى الإعلان هنا باللغة العربية..."
                     value={bodyAr}
-                    onChange={e => setBodyAr(stripMarkdownAsterisks(e.target.value))}
+                    onChange={e => setBodyAr(e.target.value)}
                     className="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 outline-none placeholder-slate-500 shadow-sm leading-relaxed"
                   />
                 </div>

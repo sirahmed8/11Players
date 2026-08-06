@@ -420,8 +420,7 @@ export function stripMarkdownAsterisks(str: string): string {
     .replace(/\*([^*]+)\*/g, "$1")
     .replace(/__([^_]+)__/g, "$1")
     .replace(/_([^_]+)_/g, "$1")
-    .replace(/[\*\_]/g, "")
-    .trim();
+    .replace(/[\*\_]/g, "");
 }
 
 export function cleanSingleLanguageText(text: string | null | undefined, locale: 'en' | 'ar'): string {
