@@ -182,24 +182,28 @@ export default function AnnouncementsPage() {
       await setDoc(doc(db, "announcements", annId), announcementData, { merge: true });
 
       // 2. Sync to notifications collection under category broadcasts for /notifications page
-      const notifId = `notif_broadcast_${annId}`;
-      await setDoc(doc(db, "notifications", notifId), {
-        id: notifId,
-        announcementId: annId,
-        category: "broadcasts",
-        type: priority === "urgent" ? "urgent_broadcast" : "announcement",
-        titleEn: titleEn.trim(),
-        titleAr: titleAr.trim(),
-        messageEn: bodyEn.trim(),
-        messageAr: bodyAr.trim(),
-        bodyEn: bodyEn.trim(),
-        bodyAr: bodyAr.trim(),
-        priority,
-        link: link.trim() || "/notifications?category=broadcasts",
-        communityId: targetScope === 'active_community' ? activeCommunityId || "" : "global",
-        createdAt: new Date().toISOString(),
-        isPublicBroadcast: true,
-      }, { merge: true });
+      try {
+        const notifId = `notif_broadcast_${annId}`;
+        await setDoc(doc(db, "notifications", notifId), {
+          id: notifId,
+          announcementId: annId,
+          category: "broadcasts",
+          type: priority === "urgent" ? "urgent_broadcast" : "announcement",
+          titleEn: titleEn.trim(),
+          titleAr: titleAr.trim(),
+          messageEn: bodyEn.trim(),
+          messageAr: bodyAr.trim(),
+          bodyEn: bodyEn.trim(),
+          bodyAr: bodyAr.trim(),
+          priority,
+          link: link.trim() || "/notifications?category=broadcasts",
+          communityId: targetScope === 'active_community' ? activeCommunityId || "" : "global",
+          createdAt: new Date().toISOString(),
+          isPublicBroadcast: true,
+        }, { merge: true });
+      } catch (syncErr) {
+        console.warn("Global broadcast notification sync skipped:", syncErr);
+      }
 
       // 3. Broadcast to community live chat (if mode is 'chat' or 'both')
       if ((mode === 'chat' || mode === 'both') && targetScope === 'active_community' && activeCommunityId) {
@@ -219,41 +223,45 @@ export default function AnnouncementsPage() {
         }
       }
 
-      // 3. Deliver to users/{uid}/notifications in safe 400 chunks (if mode is 'push' or 'both')
-      let targetUids: string[] = [];
+      // 4. Deliver to users/{uid}/notifications in safe 400 chunks (if mode is 'push' or 'both')
       if (mode === 'push' || mode === 'both') {
-        if (targetScope === 'active_community' && activeCommunityId) {
-          const snap = await getDocs(collection(db, "communities", activeCommunityId, "players"));
-          snap.forEach(d => targetUids.push(d.id));
-        } else if (targetScope === 'global_all_users' && isOwner) {
-          const snap = await getDocs(collection(db, "users"));
-          snap.forEach(d => targetUids.push(d.id));
-        }
+        try {
+          let targetUids: string[] = [];
+          if (targetScope === 'active_community' && activeCommunityId) {
+            const snap = await getDocs(collection(db, "communities", activeCommunityId, "players"));
+            snap.forEach(d => targetUids.push(d.id));
+          } else if (targetScope === 'global_all_users') {
+            const snap = await getDocs(collection(db, "users"));
+            snap.forEach(d => targetUids.push(d.id));
+          }
 
-        const chunkSize = 400;
-        for (let i = 0; i < targetUids.length; i += chunkSize) {
-          const chunk = targetUids.slice(i, i + chunkSize);
-          await Promise.all(chunk.map(async (recipientUid) => {
-            try {
-              const notifId = `broadcast_${annId}`;
-              const notifPayload: any = {
-                id: notifId,
-                type: priority === 'urgent' ? 'admin' : 'updates',
-                title: titleEn.trim(),
-                titleAr: titleAr.trim(),
-                titleEn: titleEn.trim(),
-                body: bodyEn.trim(),
-                bodyAr: bodyAr.trim(),
-                bodyEn: bodyEn.trim(),
-                read: false,
-                createdAt: serverTimestamp(),
-                link: link.trim() || null
-              };
-              await setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
-            } catch (notifErr) {
-              console.warn(`Failed notification for ${recipientUid}:`, notifErr);
-            }
-          }));
+          const chunkSize = 400;
+          for (let i = 0; i < targetUids.length; i += chunkSize) {
+            const chunk = targetUids.slice(i, i + chunkSize);
+            await Promise.all(chunk.map(async (recipientUid) => {
+              try {
+                const notifId = `broadcast_${annId}`;
+                const notifPayload: any = {
+                  id: notifId,
+                  type: priority === 'urgent' ? 'admin' : 'updates',
+                  title: titleEn.trim(),
+                  titleAr: titleAr.trim(),
+                  titleEn: titleEn.trim(),
+                  body: bodyEn.trim(),
+                  bodyAr: bodyAr.trim(),
+                  bodyEn: bodyEn.trim(),
+                  read: false,
+                  createdAt: serverTimestamp(),
+                  link: link.trim() || null
+                };
+                await setDoc(doc(db, "users", recipientUid, "notifications", notifId), notifPayload, { merge: true });
+              } catch (notifErr) {
+                console.warn(`Failed notification for ${recipientUid}:`, notifErr);
+              }
+            }));
+          }
+        } catch (pushErr) {
+          console.warn("User inbox push skipped:", pushErr);
         }
       }
 
