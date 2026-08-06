@@ -113,21 +113,38 @@ export const PlayersProvider: React.FC<{ children: React.ReactNode }> = ({ child
     if (loadingCommunity) return;
 
     if (!activeCommunityId) {
-      setPlayers([]);
-      setLoading(false);
-      return;
+      setLoading(true);
+      const globalQ = query(collection(db, "players"));
+      const unsubGlobal = onSnapshot(globalQ, (snapshot) => {
+        const list: PlayerProfile[] = snapshot.docs.map(d => ({ uid: d.id, ...d.data() } as PlayerProfile));
+        setPlayers(list);
+        setLoading(false);
+      }, (err) => {
+        console.warn("Global players fallback fetch error:", err);
+        setLoading(false);
+      });
+      return () => unsubGlobal();
     }
 
     setLoading(true);
-    // Query without orderBy("calculatedAge") filter so docs missing calculatedAge are never dropped!
+    // Query community roster
     const q = query(collection(db, "communities", activeCommunityId, "players"));
     let fallbackTimer: NodeJS.Timeout | null = null;
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const liveRoster: PlayerProfile[] = [];
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      let liveRoster: PlayerProfile[] = [];
       snapshot.forEach((doc) => {
         liveRoster.push({ uid: doc.id, ...doc.data() } as PlayerProfile);
       });
+
+      if (liveRoster.length === 0) {
+        // Fallback to global players collection if community roster is empty
+        try {
+          const gSnap = await getDocs(query(collection(db, "players")));
+          liveRoster = gSnap.docs.map(d => ({ uid: d.id, ...d.data() } as PlayerProfile));
+        } catch (e) {}
+      }
+
       // Sort in memory safely
       liveRoster.sort((a, b) => (Number(a.calculatedAge) || 99) - (Number(b.calculatedAge) || 99));
       setPlayers(liveRoster);

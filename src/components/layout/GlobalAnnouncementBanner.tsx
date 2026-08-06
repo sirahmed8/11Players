@@ -11,6 +11,7 @@ import { X, ArrowRight, Bell } from "lucide-react";
 
 import { stripMarkdownAsterisks } from "@/lib/aiService";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import FormattedText from "@/components/ui/FormattedText";
 
 export default function GlobalAnnouncementBanner() {
   const { locale } = useLocale();
@@ -187,9 +188,7 @@ export default function GlobalAnnouncementBanner() {
               {/* Full Untruncated Body */}
               <div className="space-y-4">
                 <div className="bg-slate-950 border border-slate-800/80 rounded-2xl p-4 sm:p-5 max-h-80 overflow-y-auto custom-scrollbar">
-                  <p className="text-sm text-slate-200 font-medium leading-relaxed whitespace-pre-line" dir="auto">
-                    {displayBody}
-                  </p>
+                  <FormattedText content={displayBody} />
                 </div>
 
                 {/* Secondary translation if available — Smooth Spring Expand */}

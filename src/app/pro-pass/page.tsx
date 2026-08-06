@@ -79,8 +79,8 @@ export default function ProPassPage() {
         "محادثة المجتمع وسجل المباريات",
         "نظام التقييم المتبادل بين اللاعبين",
       ],
-      buttonTextEn: "Current Plan",
-      buttonTextAr: "خطة حالية",
+      buttonTextEn: "Free Tier Included",
+      buttonTextAr: "خطة مجانية متضمنة",
       gradient: "from-slate-800 to-slate-900",
       borderColor: "border-slate-800",
       glowColor: "shadow-slate-900/50",
@@ -286,7 +286,7 @@ export default function ProPassPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
             {plans.map((plan, idx) => {
               const price = isAnnual ? plan.priceAnnualEGP : plan.priceMonthlyEGP;
-              const activeTierId = isOwner ? "enterprise" : ((user as any)?.proPassTier || (isAdmin ? "pro_captain" : "free"));
+              const activeTierId = isOwner ? "club_organizer" : ((user as any)?.proPassTier || (isAdmin ? "pro_captain" : "free"));
               const isCurrent = plan.id === activeTierId;
 
               return (

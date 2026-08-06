@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { onAuthStateChanged, signInWithPopup, signOut, User } from "firebase/auth";
+import { onAuthStateChanged, signInWithPopup, signOut, User, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { useCommunity } from "./CommunityContext";
@@ -31,6 +31,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const isAdmin = isOwner || isCommunityAdmin;
 
   useEffect(() => {
+    try {
+      setPersistence(auth, browserLocalPersistence).catch(console.error);
+    } catch (e) {}
+
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setLoading(false); // Unblock UI instantly!

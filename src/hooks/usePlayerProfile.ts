@@ -23,7 +23,30 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
       async (snap) => {
         if (snap.exists()) {
           const d = snap.data();
-          setPlayer({ uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile);
+          let finalPlayer = { uid: snap.id, ...d, attributes: d.attributes || {}, stats: d.stats || {} } as PlayerProfile;
+          
+          // Check if attributes or stats/fullName are sparse, enrich from community roster
+          if (!finalPlayer.fullName || !finalPlayer.cardName || Object.keys(finalPlayer.attributes || {}).length === 0) {
+            const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
+            if (activeCommId) {
+              try {
+                const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
+                if (commSnap.exists()) {
+                  const cd = commSnap.data();
+                  finalPlayer = {
+                    ...cd,
+                    ...finalPlayer,
+                    fullName: finalPlayer.fullName || cd.fullName || cd.cardName,
+                    cardName: finalPlayer.cardName || cd.cardName || cd.fullName,
+                    attributes: { ...(cd.attributes || {}), ...(finalPlayer.attributes || {}) },
+                    stats: { ...(cd.stats || {}), ...(finalPlayer.stats || {}) },
+                  } as PlayerProfile;
+                }
+              } catch (e) {}
+            }
+          }
+
+          setPlayer(finalPlayer);
           setLoading(false);
         } else {
           // Check if effectiveUid is actually a username handle or card name

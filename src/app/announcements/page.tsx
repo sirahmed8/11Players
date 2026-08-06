@@ -6,9 +6,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
-import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc } from "firebase/firestore";
+import { collection, getDocs, setDoc, doc, deleteDoc, onSnapshot, serverTimestamp, addDoc, query } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, RotateCcw } from "lucide-react";
+import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader2, Sparkles, Megaphone, AlertCircle, Eye, Smartphone, Search, RefreshCw, Trophy, Zap, Award, X, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, MessageSquare, RotateCcw, Edit3 } from "lucide-react";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
@@ -41,63 +41,39 @@ export default function AnnouncementsPage() {
   const [bodyEn, setBodyEn] = useState("");
   const [bodyAr, setBodyAr] = useState("");
   const [priority, setPriority] = useState<'normal' | 'urgent'>("normal");
-  const [targetScope, setTargetScope] = useState<'active_community' | 'global_all_users'>("active_community");
+  const [targetScope, setTargetScope] = useState<'active_community' | 'global_all_users'>("global_all_users");
   const [link, setLink] = useState("");
+
   const [broadcasting, setBroadcasting] = useState(false);
-
-  // AI Enhancer & Undo State
-  const [aiEnhancing, setAiEnhancing] = useState(false);
-  const [previousDraft, setPreviousDraft] = useState<{ titleEn: string; titleAr: string; bodyEn: string; bodyAr: string } | null>(null);
-  const [activePreviewTab, setActivePreviewTab] = useState<'push' | 'chat'>('push');
-
-  // Read-More Modal State
-  const [readMoreAnn, setReadMoreAnn] = useState<Announcement | null>(null);
-  // Chat banner body expanded
-  const [chatBodyExpanded, setChatBodyExpanded] = useState(false);
-
-  // History Collapse & Pagination State
-  const [historyCollapsed, setHistoryCollapsed] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-
-  // History Search & Filter State
   const [recentAnnouncements, setRecentAnnouncements] = useState<Announcement[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [readMoreAnn, setReadMoreAnn] = useState<Announcement | null>(null);
+
+  // Editing state
+  const [editingAnnId, setEditingAnnId] = useState<string | null>(null);
+
+  // Preset topics & AI Polish Undo history
+  const [aiEnhancing, setAiEnhancing] = useState(false);
+  const [previousDraft, setPreviousDraft] = useState<{ titleEn: string; titleAr: string; bodyEn: string; bodyAr: string } | null>(null);
+
+  // Accordion preview tab state: 'mobile' or 'chat'
+  const [previewTab, setPreviewTab] = useState<'mobile' | 'chat'>('mobile');
+  const [chatBodyExpanded, setChatBodyExpanded] = useState(false);
+
+  // History search, priority filter, & pagination
   const [historySearch, setHistorySearch] = useState("");
-  const [historyFilter, setHistoryFilter] = useState<'all' | 'urgent' | 'normal'>("all");
-
-  // Reset pagination when search or filter changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [historySearch, historyFilter]);
+  const [historyFilter, setHistoryFilter] = useState<"all" | "urgent" | "normal">("all");
+  const [historyCollapsed, setHistoryCollapsed] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("announcement_draft");
-      if (saved) {
-        const draft = JSON.parse(saved);
-        if (draft.titleEn) setTitleEn(stripMarkdownAsterisks(draft.titleEn));
-        if (draft.titleAr) setTitleAr(stripMarkdownAsterisks(draft.titleAr));
-        if (draft.bodyEn) setBodyEn(stripMarkdownAsterisks(draft.bodyEn));
-        if (draft.bodyAr) setBodyAr(stripMarkdownAsterisks(draft.bodyAr));
-        if (draft.link) setLink(draft.link);
-      }
-    } catch (e) {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      if (titleEn || titleAr || bodyEn || bodyAr || link) {
-        localStorage.setItem("announcement_draft", JSON.stringify({ titleEn, titleAr, bodyEn, bodyAr, link }));
-      }
-    } catch (e) {}
-  }, [titleEn, titleAr, bodyEn, bodyAr, link]);
-
-  useEffect(() => {
-    const q = collection(db, "announcements");
-    const unsub = onSnapshot(q, (snap) => {
+    const q = query(collection(db, "announcements"));
+    const unsub = onSnapshot(q, (snapshot) => {
       const list: Announcement[] = [];
-      snap.forEach(d => list.push({ id: d.id, ...d.data() } as Announcement));
+      snapshot.forEach((doc) => {
+        list.push({ id: doc.id, ...doc.data() } as Announcement);
+      });
       list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setRecentAnnouncements(list);
       setLoadingHistory(false);
@@ -112,7 +88,6 @@ export default function AnnouncementsPage() {
   const handleAiEnhance = async (presetKey?: string) => {
     setAiEnhancing(true);
     try {
-      // Save current draft before AI polish for Undo
       setPreviousDraft({ titleEn, titleAr, bodyEn, bodyAr });
 
       const enhanced = await enhanceAnnouncementWithAI({
@@ -129,12 +104,34 @@ export default function AnnouncementsPage() {
       setBodyEn(stripMarkdownAsterisks(enhanced.bodyEn));
       setBodyAr(stripMarkdownAsterisks(enhanced.bodyAr));
 
-      toast.success(isAr ? "✨ 11AI قام بصياغة وترجمة الإعلان باحترافية!" : "✨ 11AI professionally enhanced & translated your announcement!");
+      toast.success(isAr ? "✨ 11AI قام بضبط وترجمة الإعلان باحترافية!" : "✨ 11AI professionally enhanced & translated your announcement!");
     } catch (err) {
       toast.error(isAr ? "فشل توليد الذكاء الاصطناعي" : "AI generation failed");
     } finally {
       setAiEnhancing(false);
     }
+  };
+
+  const handleEditAnnouncement = (ann: Announcement) => {
+    setEditingAnnId(ann.id);
+    setTitleEn(ann.titleEn || "");
+    setTitleAr(ann.titleAr || "");
+    setBodyEn(ann.bodyEn || "");
+    setBodyAr(ann.bodyAr || "");
+    setPriority(ann.priority || "normal");
+    setTargetScope(ann.targetScope || "global_all_users");
+    setLink(ann.link || "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    toast.success(isAr ? "تم تحميل بيانات الإعلان للتعديل ✏️" : "Announcement loaded for editing ✏️");
+  };
+
+  const handleCancelEditing = () => {
+    setEditingAnnId(null);
+    setTitleEn("");
+    setTitleAr("");
+    setBodyEn("");
+    setBodyAr("");
+    setLink("");
   };
 
   const handleUndoAi = () => {
@@ -161,7 +158,7 @@ export default function AnnouncementsPage() {
 
     setBroadcasting(true);
     try {
-      const annId = `ann_${Date.now()}`;
+      const annId = editingAnnId || `ann_${Date.now()}`;
       const announcementData: any = {
         id: annId,
         titleEn: titleEn.trim(),
@@ -179,10 +176,10 @@ export default function AnnouncementsPage() {
       };
 
       // 1. Save to global announcements collection
-      await setDoc(doc(db, "announcements", annId), announcementData);
+      await setDoc(doc(db, "announcements", annId), announcementData, { merge: true });
 
       // 2. Sync to notifications collection under category broadcasts for /notifications page
-      const notifId = `notif_broadcast_${Date.now()}`;
+      const notifId = `notif_broadcast_${annId}`;
       await setDoc(doc(db, "notifications", notifId), {
         id: notifId,
         announcementId: annId,
@@ -199,7 +196,7 @@ export default function AnnouncementsPage() {
         communityId: targetScope === 'active_community' ? activeCommunityId || "" : "global",
         createdAt: new Date().toISOString(),
         isPublicBroadcast: true,
-      });
+      }, { merge: true });
 
       // 3. Broadcast to community live chat (if mode is 'chat' or 'both')
       if ((mode === 'chat' || mode === 'both') && targetScope === 'active_community' && activeCommunityId) {
@@ -541,7 +538,7 @@ export default function AnnouncementsPage() {
                     disabled={broadcasting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={(e) => { setActivePreviewTab('push'); handleBroadcast(e, 'push'); }}
+                    onClick={(e) => { setPreviewTab('mobile'); handleBroadcast(e, 'push'); }}
                     className="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-amber-950/60 hover:bg-amber-900/80 text-amber-300 border border-amber-500/40 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 shrink-0"
                   >
                     {broadcasting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Bell className="w-3.5 h-3.5" />}
@@ -554,7 +551,7 @@ export default function AnnouncementsPage() {
                     disabled={broadcasting}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
-                    onClick={(e) => { setActivePreviewTab('chat'); handleBroadcast(e, 'chat'); }}
+                    onClick={(e) => { setPreviewTab('chat'); handleBroadcast(e, 'chat'); }}
                     className="px-3.5 py-2.5 rounded-2xl font-bold text-xs bg-teal-950/60 hover:bg-teal-900/80 text-teal-300 border border-teal-500/40 transition-all duration-200 flex items-center gap-1.5 disabled:opacity-50 shrink-0"
                   >
                     {broadcasting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageSquare className="w-3.5 h-3.5" />}
@@ -588,18 +585,18 @@ export default function AnnouncementsPage() {
                   <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
                     <button
                       type="button"
-                      onClick={() => setActivePreviewTab('push')}
+                      onClick={() => setPreviewTab('mobile')}
                       className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${
-                        activePreviewTab === 'push' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                        previewTab === 'mobile' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       {isAr ? "إشعار الهاتف" : "Push Notif"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => { setActivePreviewTab('chat'); setChatBodyExpanded(false); }}
+                      onClick={() => { setPreviewTab('chat'); setChatBodyExpanded(false); }}
                       className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${
-                        activePreviewTab === 'chat' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
+                        previewTab === 'chat' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                       }`}
                     >
                       {isAr ? "شريط المحادثة" : "Chat Banner"}
@@ -608,7 +605,7 @@ export default function AnnouncementsPage() {
                 </div>
 
                 <AnimatePresence mode="wait">
-                  {activePreviewTab === 'push' ? (
+                  {previewTab === 'mobile' ? (
                     /* Smartphone Lockscreen Notification Card */
                     <motion.div
                       key="push"
@@ -812,6 +809,15 @@ export default function AnnouncementsPage() {
                                 </div>
 
                                 <div className="flex items-center gap-2 shrink-0">
+                                  {/* Edit button */}
+                                  <button
+                                    type="button"
+                                    onClick={() => handleEditAnnouncement(ann)}
+                                    className="px-3 py-1.5 rounded-xl bg-slate-900 border border-amber-500/40 hover:border-amber-400 text-amber-400 hover:text-amber-300 text-[11px] font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    {isAr ? "تعديل ✏️" : "Edit ✏️"}
+                                  </button>
                                   {/* Read More button */}
                                   <button
                                     type="button"

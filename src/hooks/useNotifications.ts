@@ -33,12 +33,22 @@ export function useNotifications(user: any) {
     let globalAnns: UserNotification[] = [];
 
     const mergeNotifications = () => {
-      let combined = [...userNotifs, ...globalAnns];
-      try {
-        const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
-        combined = combined.filter(n => !deletedIds.includes(n.id) || n.isPublicBroadcast);
-      } catch (e) {}
-      // Sort newest first
+      const seenKeys = new Set<string>();
+      const combined: UserNotification[] = [];
+
+      for (const n of [...userNotifs, ...globalAnns]) {
+        const key = ((n.titleEn || n.title || "") + "___" + (n.bodyEn || n.body || "")).toLowerCase().trim();
+        if (seenKeys.has(key)) continue;
+        seenKeys.add(key);
+
+        try {
+          const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
+          if (deletedIds.includes(n.id) && !n.isPublicBroadcast) continue;
+        } catch (e) {}
+
+        combined.push(n);
+      }
+
       combined.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
       setNotifications(combined);
       setLoading(false);

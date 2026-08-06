@@ -34,13 +34,8 @@ export default function RouteGuard({ children }: { children: React.ReactNode }) 
   }, [user, loading, pathname, router, mounted]);
 
   // Handle server-side render or loading states
-  if (!mounted || loading) {
-    // Only block rendering completely for private routes to prevent flashing content
-    if (!PUBLIC_ROUTES.includes(pathname)) {
-      const variant = getSkeletonVariantForPath(pathname);
-      return <SiteSkeletonLoader variant={variant} />;
-    }
-    // For public routes, let them render normally (or the children handles its own loading state)
+  if (!mounted) {
+    return <div className="min-h-screen bg-slate-950" />;
   }
 
   // If we are fully loaded, user is NOT logged in, and this is a private route,

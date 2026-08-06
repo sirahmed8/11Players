@@ -149,9 +149,11 @@ export default function NotificationsPage() {
     try {
       const chunkSize = 450;
       const deletedIds: string[] = JSON.parse(localStorage.getItem('11players_deleted_notifs') || '[]');
-      for (let i = 0; i < notifications.length; i += chunkSize) {
+      const personalNotifs = notifications.filter(n => !n.isPublicBroadcast);
+
+      for (let i = 0; i < personalNotifs.length; i += chunkSize) {
         const batch = writeBatch(db);
-        const chunk = notifications.slice(i, i + chunkSize);
+        const chunk = personalNotifs.slice(i, i + chunkSize);
         chunk.forEach(n => {
           batch.delete(doc(db, "users", user.uid, "notifications", n.id));
           if (!deletedIds.includes(n.id)) deletedIds.push(n.id);
@@ -159,11 +161,11 @@ export default function NotificationsPage() {
         await batch.commit();
       }
       localStorage.setItem('11players_deleted_notifs', JSON.stringify(deletedIds));
-      setNotifications([]);
+      setNotifications(notifications.filter(n => n.isPublicBroadcast));
       setConfirmDeleteAll(false);
-      toast.success(isAr ? "تم حذف جميع الإشعارات بنجاح" : "All notifications deleted");
+      toast.success(isAr ? "تم مسح التنبيهات الشخصية فقط (تبقى الإعلانات العامة) 🔔" : "Personal alerts cleared (Public broadcasts preserved) 🔔");
     } catch (error) {
-      console.error("Error deleting all notifications:", error);
+      console.error("Error deleting notifications:", error);
       toast.error(isAr ? "فشل حذف الإشعارات" : "Failed to delete notifications");
     }
   };
