@@ -12,7 +12,7 @@ import { Bell, Send, Trash2, ShieldCheck, Globe, Users, Link as LinkIcon, Loader
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
-import { enhanceAnnouncementWithAI, stripMarkdownAsterisks } from "@/lib/aiService";
+import { enhanceAnnouncementWithAI, stripMarkdownAsterisks, cleanSingleLanguageText } from "@/lib/aiService";
 import FormattedText from "@/components/ui/FormattedText";
 
 export interface Announcement {
@@ -84,27 +84,30 @@ export default function AnnouncementsPage() {
     return () => unsub();
   }, []);
 
+  const [customTone, setCustomTone] = useState("");
+
   // 🤖 11AI One-Click Enhancer & Preset Generator
-  const handleAiEnhance = async (presetKey?: string) => {
+  const handleAiEnhance = async (overrideTone?: string) => {
     setAiEnhancing(true);
     try {
       setPreviousDraft({ titleEn, titleAr, bodyEn, bodyAr });
+      const toneToUse = overrideTone || customTone;
 
       const enhanced = await enhanceAnnouncementWithAI({
         titleEn,
         titleAr,
         bodyEn,
         bodyAr,
-        presetTopic: presetKey,
+        customToneInstruction: toneToUse,
         communityName: activeCommunity?.name || "11Players",
       });
 
-      setTitleEn(stripMarkdownAsterisks(enhanced.titleEn));
-      setTitleAr(stripMarkdownAsterisks(enhanced.titleAr));
-      setBodyEn(stripMarkdownAsterisks(enhanced.bodyEn));
-      setBodyAr(stripMarkdownAsterisks(enhanced.bodyAr));
+      setTitleEn(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.titleEn, 'en')));
+      setTitleAr(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.titleAr, 'ar')));
+      setBodyEn(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.bodyEn, 'en')));
+      setBodyAr(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.bodyAr, 'ar')));
 
-      toast.success(isAr ? "✨ 11AI قام بضبط وترجمة الإعلان باحترافية!" : "✨ 11AI professionally enhanced & translated your announcement!");
+      toast.success(isAr ? "✨ 11AI قام بصياغة الإعلان بالأسلوب المحدد!" : "✨ 11AI polished your announcement in requested style!");
     } catch (err) {
       toast.error(isAr ? "فشل توليد الذكاء الاصطناعي" : "AI generation failed");
     } finally {
@@ -114,10 +117,10 @@ export default function AnnouncementsPage() {
 
   const handleEditAnnouncement = (ann: Announcement) => {
     setEditingAnnId(ann.id);
-    setTitleEn(ann.titleEn || "");
-    setTitleAr(ann.titleAr || "");
-    setBodyEn(ann.bodyEn || "");
-    setBodyAr(ann.bodyAr || "");
+    setTitleEn(stripMarkdownAsterisks(cleanSingleLanguageText(ann.titleEn, 'en')));
+    setTitleAr(stripMarkdownAsterisks(cleanSingleLanguageText(ann.titleAr, 'ar')));
+    setBodyEn(stripMarkdownAsterisks(cleanSingleLanguageText(ann.bodyEn, 'en')));
+    setBodyAr(stripMarkdownAsterisks(cleanSingleLanguageText(ann.bodyAr, 'ar')));
     setPriority(ann.priority || "normal");
     setTargetScope(ann.targetScope || "global_all_users");
     setLink(ann.link || "");
@@ -330,29 +333,79 @@ export default function AnnouncementsPage() {
             </div>
           </div>
 
-          {/* Quick Preset Topics Chips */}
-          <div className="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 shadow-md">
-            <div className="text-xs font-black text-slate-400 mb-2.5 flex items-center gap-1.5">
-              <Zap className="w-3.5 h-3.5 text-amber-400" />
-              <span>{isAr ? "نماذج إعلانات سريعة بالذكاء الاصطناعي (Quick AI Presets):" : "Quick AI Presets:"}</span>
+          {/* 🤖 11AI Polish & Custom Tone Studio */}
+          <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-black text-sm shrink-0">
+                  ✨
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white">
+                    {isAr ? "استوديو ضبط وتحسين الإعلانات بالذكاء الاصطناعي (11AI Polish Studio)" : "11AI Announcement Polish & Custom Tone Studio"}
+                  </h3>
+                  <p className="text-[11px] text-slate-400 font-medium">
+                    {isAr ? "اكتب توجيهات الصياغة أو اختر الأسلوب المناسب لضبط النص وترجمته فوراً" : "Set custom writing tone or pick a preset style to polish your draft instantly."}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleAiEnhance()}
+                disabled={aiEnhancing}
+                className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 shrink-0 cursor-pointer"
+              >
+                {aiEnhancing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                <span>{isAr ? "صياغة المسودة بـ 11AI ⚡" : "Polish Draft with 11AI ⚡"}</span>
+              </button>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { key: "next_match", icon: "⚽", labelAr: "فتح تسجيل المباراة", labelEn: "Next Match Sign-Up" },
-                { key: "tournament", icon: "🏆", labelAr: "بطولة كأس المجتمع", labelEn: "Community Tournament" },
-                { key: "urgent_notice", icon: "🚨", labelAr: "تحديث جدول المباريات", labelEn: "Schedule Maintenance" },
-              ].map((preset) => (
-                <button
-                  key={preset.key}
-                  type="button"
-                  onClick={() => handleAiEnhance(preset.key)}
-                  disabled={aiEnhancing}
-                  className="px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 text-xs font-bold text-slate-200 hover:text-emerald-400 transition-all flex items-center gap-1.5 shadow-sm active:scale-95"
-                >
-                  <span>{preset.icon}</span>
-                  <span>{isAr ? preset.labelAr : preset.labelEn}</span>
-                </button>
-              ))}
+
+            {/* Custom Tone Input */}
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-black text-slate-300">
+                🎯 {isAr ? "توجيهات وأسلوب الذكاء الاصطناعي المخصص (Custom AI Tone & Style Instructions)" : "Custom AI Writing Tone & Directives"}
+              </label>
+              <input
+                type="text"
+                value={customTone}
+                onChange={(e) => setCustomTone(e.target.value)}
+                placeholder={
+                  isAr
+                    ? "مثال: اجعل الأسلوب حماسياً بأسلوب الكرات الذهبية، أو اكتب بالعامية المصرية، أو اختصر في جملتين فقط..."
+                    : "e.g. Make it super hyped with football emojis, write in UEFA formal style, or keep it short in 2 sentences..."
+                }
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium text-xs focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all outline-none placeholder-slate-500"
+              />
+            </div>
+
+            {/* Style Preset Chips */}
+            <div className="space-y-2">
+              <span className="text-[11px] font-bold text-slate-400">
+                {isAr ? "أو اختر أسلوباً جاهزاً للذكاء الاصطناعي:" : "Or select an AI Style Preset:"}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { tone: "Make it super hyped, energetic, and full of exciting football emojis!", labelAr: "🔥 حماسي ومشعل", labelEn: "🔥 Hype & Energetic" },
+                  { tone: "Write in an official, formal, executive tone like FIFA or UEFA press releases.", labelAr: "⚽ رسمي ومهني", labelEn: "⚽ Official UEFA" },
+                  { tone: "Write with tactical analysis terminology e.g. pressing, formations, positioning.", labelAr: "📋 تحليلي وتكتيكي", labelEn: "📋 Tactical Insight" },
+                  { tone: "Keep it concise, high impact, under 20 words total.", labelAr: "⚡ قصير ومباشر", labelEn: "⚡ Short & Direct" },
+                  { tone: "Write the Arabic version in friendly, warm Egyptian football slang!", labelAr: "🇪🇬 عامية مصرية كروية", labelEn: "🇪🇬 Egyptian Slang" },
+                ].map((chip) => (
+                  <button
+                    key={chip.labelEn}
+                    type="button"
+                    onClick={() => {
+                      setCustomTone(chip.tone);
+                      handleAiEnhance(chip.tone);
+                    }}
+                    disabled={aiEnhancing}
+                    className="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/50 text-[11px] font-bold text-slate-300 hover:text-emerald-300 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  >
+                    <span>{isAr ? chip.labelAr : chip.labelEn}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

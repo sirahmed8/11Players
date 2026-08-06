@@ -424,12 +424,48 @@ export function stripMarkdownAsterisks(str: string): string {
     .trim();
 }
 
+export function cleanSingleLanguageText(text: string | null | undefined, locale: 'en' | 'ar'): string {
+  if (!text || typeof text !== 'string') return '';
+  let cleaned = text;
+
+  const hasEnglishHeader = /🇺🇸\s*English|US\s*ENGLISH/i.test(cleaned);
+  const hasArabicHeader = /🇸🇦\s*عربي|SA\s*عربي/i.test(cleaned);
+
+  if (hasEnglishHeader || hasArabicHeader) {
+    if (locale === 'ar') {
+      const arMatch = cleaned.match(/(?:🇸🇦\s*عربي|SA\s*عربي)([\s\S]*)/i);
+      if (arMatch && arMatch[1]) {
+        cleaned = arMatch[1].trim();
+      } else {
+        const arOnly = cleaned.split(/(?:🇺🇸\s*English|US\s*ENGLISH)/i)[0];
+        cleaned = arOnly || cleaned;
+      }
+    } else {
+      const enMatch = cleaned.match(/(?:🇺🇸\s*English|US\s*ENGLISH)?([\s\S]*?)(?:🇸🇦\s*عربي|SA\s*عربي|$)/i);
+      if (enMatch && enMatch[1]) {
+        cleaned = enMatch[1].replace(/🇺🇸\s*English|US\s*ENGLISH/gi, '').trim();
+      }
+    }
+  }
+
+  // Remove leftover header tags if present
+  cleaned = cleaned
+    .replace(/🇺🇸\s*English/gi, '')
+    .replace(/US\s*ENGLISH/gi, '')
+    .replace(/🇸🇦\s*عربي/gi, '')
+    .replace(/SA\s*عربي/gi, '')
+    .trim();
+
+  return cleaned;
+}
+
 export async function enhanceAnnouncementWithAI(payload: {
   titleEn?: string;
   titleAr?: string;
   bodyEn?: string;
   bodyAr?: string;
   presetTopic?: string;
+  customToneInstruction?: string;
   communityName?: string;
 }): Promise<{
   titleEn: string;
@@ -446,13 +482,14 @@ Draft Context:
 - English Body Draft: "${payload.bodyEn || ""}"
 - Arabic Body Draft: "${payload.bodyAr || ""}"
 - Preset Category: "${payload.presetTopic || "General Update"}"
+- Custom Tone & Style Request: "${payload.customToneInstruction || "Professional, engaging, clean, single language per field without embedding cross-translations."}"
 - Target Community: "${payload.communityName || "11Players"}"
 
 Instructions:
 1. Make both titles catchy, concise (under 8 words), with relevant sports emojis (e.g. ⚽, 📢, 🏆, 🚨).
-2. Make both body descriptions professional, clear, exciting, and well-structured.
-3. CRITICAL: NEVER use markdown formatting like **bold** or *italic*. Do NOT output any asterisks (*). Return clean plain text only.
-4. For Arabic text, write smooth, natural Arabic phrasing so words read cleanly without awkward text distortion.
+2. Make both body descriptions professional, clear, exciting, and well-structured matching the custom tone request if provided.
+3. CRITICAL: Never mix English and Arabic together inside the same field. titleEn & bodyEn must contain ONLY English text. titleAr & bodyAr must contain ONLY Arabic text. Do NOT include "🇺🇸 English" or "🇸🇦 عربي" labels.
+4. CRITICAL: NEVER use markdown formatting like **bold** or *italic*. Do NOT output any asterisks (*). Return clean plain text only.
 5. Return ONLY a valid JSON object matching this structure with no code blocks or markdown wrapper:
 {
   "titleEn": "...",

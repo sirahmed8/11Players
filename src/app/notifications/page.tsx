@@ -17,6 +17,7 @@ import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { microSpringRowProps } from "@/lib/animations";
 import FormattedText from "@/components/ui/FormattedText";
+import { cleanSingleLanguageText } from "@/lib/aiService";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
@@ -491,7 +492,7 @@ export default function NotificationsPage() {
                     </div>
                     <div className="flex-1 min-w-0 pt-1">
                       <h2 className="text-lg font-black text-white leading-tight">
-                        {isAr ? (selectedNotif.titleAr || selectedNotif.title) : (selectedNotif.titleEn || selectedNotif.title)}
+                        {cleanSingleLanguageText(isAr ? (selectedNotif.titleAr || selectedNotif.title) : (selectedNotif.titleEn || selectedNotif.title), isAr ? 'ar' : 'en')}
                       </h2>
                       <div className="text-xs font-bold text-slate-400 mt-1">
                         {selectedNotif.createdAt?.toDate ? new Date(selectedNotif.createdAt.toDate()).toLocaleDateString(isAr ? 'ar-EG' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ''}
@@ -501,7 +502,7 @@ export default function NotificationsPage() {
 
                   <div className="flex-1 overflow-y-auto mb-6 pr-2 custom-scrollbar">
                     <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl">
-                      <FormattedText content={isAr ? (selectedNotif.bodyAr || selectedNotif.body) : (selectedNotif.bodyEn || selectedNotif.body)} />
+                      <FormattedText content={cleanSingleLanguageText(isAr ? (selectedNotif.bodyAr || selectedNotif.body) : (selectedNotif.bodyEn || selectedNotif.body), isAr ? 'ar' : 'en')} />
                     </div>
                   </div>
 

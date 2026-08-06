@@ -9,7 +9,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import Link from "next/link";
 import { X, ArrowRight, Bell } from "lucide-react";
 
-import { stripMarkdownAsterisks } from "@/lib/aiService";
+import { stripMarkdownAsterisks, cleanSingleLanguageText } from "@/lib/aiService";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import FormattedText from "@/components/ui/FormattedText";
 
@@ -63,9 +63,9 @@ export default function GlobalAnnouncementBanner() {
   };
 
   const isUrgent = announcement?.priority === 'urgent';
-  const displayTitle = stripMarkdownAsterisks(isAr ? announcement?.titleAr : announcement?.titleEn);
-  const displayBody = stripMarkdownAsterisks(isAr ? announcement?.bodyAr : announcement?.bodyEn);
-  const secondaryBody = stripMarkdownAsterisks(isAr ? announcement?.bodyEn : announcement?.bodyAr);
+  const displayTitle = stripMarkdownAsterisks(cleanSingleLanguageText(isAr ? announcement?.titleAr : announcement?.titleEn, isAr ? 'ar' : 'en'));
+  const displayBody = stripMarkdownAsterisks(cleanSingleLanguageText(isAr ? announcement?.bodyAr : announcement?.bodyEn, isAr ? 'ar' : 'en'));
+  const secondaryBody = stripMarkdownAsterisks(cleanSingleLanguageText(isAr ? announcement?.bodyEn : announcement?.bodyAr, isAr ? 'en' : 'ar'));
 
   return (
     <>
