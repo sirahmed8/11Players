@@ -305,11 +305,14 @@ export default function AnnouncementsPage() {
     return matchesSearch && matchesFilter;
   });
 
-  if (loadingHistory || authLoading) {
+  if (authLoading) {
     return (
       <ProtectedRoute adminOnly>
-        <div className="min-h-screen bg-slate-950 text-white py-8 px-4 sm:px-6 max-w-5xl mx-auto">
-          <SiteSkeletonLoader variant="list" />
+        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-8">
+          <div className="flex items-center gap-3 bg-slate-900 px-6 py-4 rounded-2xl border border-slate-800 shadow-xl">
+            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-bold text-slate-300">Loading Announcements Studio...</span>
+          </div>
         </div>
       </ProtectedRoute>
     );
@@ -972,15 +975,11 @@ export default function AnnouncementsPage() {
               dir={isAr ? 'rtl' : 'ltr'}
             >
               {/* Modal Header */}
-              <div className={`p-5 border-b border-slate-800 flex items-start justify-between gap-4 ${
-                readMoreAnn.priority === 'urgent' ? 'bg-rose-950/30' : 'bg-emerald-950/20'
-              }`}>
-                <div className="space-y-1.5 flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+              <div className="p-5 border-b border-slate-800 flex items-start justify-between gap-3">
+                <div className="space-y-1 min-w-0">
+                  <div className="flex items-center gap-2">
                     <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black ${
-                      readMoreAnn.priority === 'urgent'
-                        ? 'bg-rose-950 border border-rose-500/40 text-rose-400'
-                        : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
+                      readMoreAnn.priority === 'urgent' ? 'bg-rose-950 border border-rose-500/40 text-rose-400' : 'bg-emerald-950 border border-emerald-500/40 text-emerald-400'
                     }`}>
                       {readMoreAnn.priority === 'urgent' ? '🚨 URGENT' : 'ℹ️ NORMAL'}
                     </span>
@@ -989,13 +988,13 @@ export default function AnnouncementsPage() {
                     </span>
                   </div>
                   <h2 className="text-base font-black text-white leading-snug" dir="auto">
-                    {stripMarkdownAsterisks(isAr ? readMoreAnn.titleAr : readMoreAnn.titleEn)}
+                    {stripMarkdownAsterisks(cleanSingleLanguageText(isAr ? readMoreAnn.titleAr : readMoreAnn.titleEn, isAr ? 'ar' : 'en'))}
                   </h2>
                 </div>
                 <button
                   type="button"
                   onClick={() => setReadMoreAnn(null)}
-                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors shrink-0"
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors shrink-0 cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, setDoc, limitToLast } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, setDoc, limitToLast, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
 import { Send, Loader2, Sparkles, MessageSquare, Headphones, X, Bot, Search, LogIn, Image as ImageIcon, SmilePlus, Reply, Trash2, ShieldCheck, Volume2, VolumeX, Mic, MicOff, Camera } from "lucide-react";
@@ -42,10 +42,49 @@ const formatMessageTime = (ts: any, isAr: boolean) => {
     date = new Date(ts);
   }
   if (!date || isNaN(date.getTime())) return "";
-  return date.toLocaleTimeString(isAr ? "ar-EG" : "en-US", {
+
+  const now = new Date();
+  const timeStr = date.toLocaleTimeString(isAr ? "ar-EG" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
+
+  if (isToday) {
+    return timeStr;
+  }
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    date.getDate() === yesterday.getDate() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getFullYear() === yesterday.getFullYear();
+
+  if (isYesterday) {
+    return `${isAr ? "أمس" : "Yesterday"}, ${timeStr}`;
+  }
+
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 7 && diffDays > 0) {
+    const dayName = date.toLocaleDateString(isAr ? "ar-EG" : "en-US", { weekday: "long" });
+    return `${dayName}, ${timeStr}`;
+  }
+
+  const isCurrentYear = date.getFullYear() === now.getFullYear();
+  if (isCurrentYear) {
+    const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+    return `${monthDay}, ${timeStr}`;
+  }
+
+  const fullDate = `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear().toString().slice(-2)}`;
+  return `${fullDate}, ${timeStr}`;
 };
 
 export default function FloatingChatWidget() {
@@ -446,6 +485,21 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
     return () => unsub();
   }, [user, isStaff, isOpen, selectedSupportUser]);
 
+  // Listen for Recent Announcements for 11AI updates context
+  const [recentAnnouncements, setRecentAnnouncements] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "announcements"), limit(8));
+    const unsub = onSnapshot(q, (snap) => {
+      const list: any[] = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
+      setRecentAnnouncements(list);
+    }, (err) => console.warn("Announcements widget snapshot error:", err));
+    return () => unsub();
+  }, [user]);
+
   // Listen to Support Messages
   const targetSupportUid = isStaff ? selectedSupportUser?.uid : user?.uid;
 
@@ -517,6 +571,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
         message: queryText,
         playerContext,
         communityRoster,
+        recentAnnouncements,
         history: aiMessages.map((m) => ({ sender: m.sender, text: m.text })),
         imageInlineData: imagePayload,
       });
