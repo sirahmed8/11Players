@@ -155,7 +155,7 @@ export default function Holographic3DFutCard({
   customName,
   customPosition,
   customNation = "🇸🇦",
-  customClub = "Hagoozat Elite",
+  customClub = "11Players",
 }: Holographic3DFutCardProps) {
   const { locale } = useLocale();
   const isAr = locale === "ar";

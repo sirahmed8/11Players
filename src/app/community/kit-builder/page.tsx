@@ -4,7 +4,7 @@ import ProGate from "@/components/ui/ProGate";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Kit & Crest Builder | 11Players Hagoozat Elite",
+  title: "Kit & Crest Builder | 11Players",
   description: "Canvas-based kit & crest designer interface for custom team jerseys and community badges. PRO Captain feature.",
 };
 

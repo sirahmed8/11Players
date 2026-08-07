@@ -4,7 +4,7 @@ import MatchActionHubBar from "@/components/match/MatchActionHubBar";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Pitch Rent Split Bill | 11Players Hagoozat Elite",
+  title: "Pitch Rent Split Bill | 11Players",
   description: "Pitch rent split-bill calculator with multi-currency conversion, payment status tracker, and shareable summaries.",
 };
 

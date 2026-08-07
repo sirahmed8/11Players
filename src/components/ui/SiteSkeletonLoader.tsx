@@ -26,6 +26,7 @@ export type SkeletonVariant =
   | "announcements"
   | "users"
   | "guide"
+  | "legal"
   | "inbox"
   | "draft-room"
   | "live-broadcaster"
@@ -53,7 +54,8 @@ export function getSkeletonVariantForPath(pathname: string): SkeletonVariant {
   if (pathname.startsWith("/kit-builder") || pathname.startsWith("/community/kit-builder")) return "community";
   if (pathname.startsWith("/community")) return "community";
   if (pathname.startsWith("/global")) return "global";
-  if (pathname.startsWith("/cookie") || pathname.startsWith("/privacy") || pathname.startsWith("/tos") || pathname.startsWith("/guide")) return "guide";
+  if (pathname.startsWith("/cookie") || pathname.startsWith("/privacy") || pathname.startsWith("/tos")) return "legal";
+  if (pathname.startsWith("/guide")) return "guide";
   if (pathname.startsWith("/matches") || pathname.startsWith("/match")) return "match";
   if (pathname.startsWith("/notifications")) return "notifications";
   if (pathname.startsWith("/onboarding")) return "onboarding";
@@ -738,6 +740,48 @@ export function SiteSkeletonLoaderInner({ variant = "page" }: Props) {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // Legal Document Skeleton — mirrors /privacy, /tos, /cookie: centered header + structured legal sections card
+  if (variant === "legal") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white pt-24 pb-16 px-4 sm:px-6" dir={isAr ? "rtl" : "ltr"}>
+        <main className="max-w-4xl mx-auto space-y-8 animate-pulse">
+          {/* Hero Header */}
+          <div className="text-center space-y-4 flex flex-col items-center">
+            <div className="w-44 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30" />
+            <div className="w-72 sm:w-96 h-10 bg-slate-800 rounded-2xl" />
+            <div className="w-64 sm:w-80 h-4 bg-slate-800/60 rounded-lg" />
+          </div>
+
+          {/* Legal Content Card */}
+          <div className="bg-slate-900/80 border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 shadow-2xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent -translate-x-full animate-[shimmer_1.8s_infinite]" />
+            
+            {/* Metadata Header */}
+            <div className="flex items-center justify-between pb-6 border-b border-slate-800">
+              <div className="w-40 h-4 bg-slate-800 rounded" />
+              <div className="w-32 h-4 bg-slate-800/60 rounded" />
+            </div>
+
+            {/* 4 Article Block Skeletons */}
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-md bg-emerald-500/30" />
+                  <div className="w-48 h-6 bg-slate-800 rounded-lg" />
+                </div>
+                <div className="space-y-2 pl-7 rtl:pr-7">
+                  <div className="w-full h-3.5 bg-slate-800/80 rounded" />
+                  <div className="w-5/6 h-3.5 bg-slate-800/60 rounded" />
+                  <div className="w-4/6 h-3.5 bg-slate-800/40 rounded" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }

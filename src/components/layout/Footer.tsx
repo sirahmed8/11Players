@@ -51,7 +51,6 @@ export default function Footer() {
           {/* Global & Achievements */}
           <div className="flex flex-col gap-3">
             <h4 className="text-sm font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest">{isAr ? "التصنيفات والدعم" : "Leaderboards & Support"}</h4>
-            <Link href="/global" className="text-sm font-bold text-slate-500 hover:text-emerald-500 transition-colors">{isAr ? "سجل النخبة العالمي" : "Global Leaderboard"}</Link>
             <Link href="/leaderboard" className="text-sm font-bold text-slate-500 hover:text-emerald-500 transition-colors">{isAr ? "لوحة الجوائز والمكافآت" : "Leaderboard & Awards"}</Link>
             <Link href="/guide" className="text-sm font-bold text-slate-500 hover:text-emerald-500 transition-colors">{isAr ? "الدليل والقوانين" : "Guides & Rules"}</Link>
             <button 

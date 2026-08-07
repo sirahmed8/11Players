@@ -27,7 +27,7 @@ export default function CookiePage() {
 
         <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl">
           <div className="flex items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400">
-            <span>{isAr ? "منصة: 11Players (Hagoozat Elite)" : "Platform: 11Players (Hagoozat Elite)"}</span>
+            <span>{isAr ? "منصة: 11Players" : "Platform: 11Players"}</span>
             <span>{isAr ? "آخر تحديث: أغسطس 2026" : "Last Updated: August 2026"}</span>
           </div>
 
