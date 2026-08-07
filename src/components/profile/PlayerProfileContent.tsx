@@ -26,6 +26,7 @@ import AttributesBreakdown from "@/components/player/AttributesBreakdown";
 import { usePlayerProfile } from "@/hooks/usePlayerProfile";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ScrollableTabContainer from "@/components/ui/ScrollableTabContainer";
+import TransferValueWidget from "@/components/player/TransferValueWidget";
 
 /* ── Animated Counter ── */
 function AnimatedCounter({ value, duration = 1500 }: { value: number; duration?: number }) {
@@ -311,6 +312,9 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
               </h3>
               <div className="w-full">
                 <SVGPitchDisplay ratings={getPlayerPositionRatings(player)} />
+              </div>
+              <div className="w-full mt-6">
+                <TransferValueWidget player={player} isAr={isAr} />
               </div>
             </div>
           </div>
