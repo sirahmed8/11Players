@@ -6,6 +6,8 @@ import { X, Sparkles, ShieldCheck, Activity, Users, Award, HelpCircle, Zap, Targ
 import { getTacticalSuggestions } from "@/lib/suggestionEngine";
 import { PLAYER_STYLES } from "@/components/player/PlayerStylePicker";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { calculateFutAttributes } from "@/components/fut/Holographic3DFutCard";
+import PlayerRadarChart from "@/components/player/PlayerRadarChart";
 
 interface OvrExplanationModalProps {
   isOpen: boolean;
@@ -154,6 +156,37 @@ export default function OvrExplanationModal({ isOpen, onClose, player, isOwnProf
                     <p className="p-3 bg-slate-900/80 rounded-2xl border border-slate-800">
                       🎯 {renderPersonalizedStyleHint()}
                     </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Player Radar Chart Visualization */}
+              {player && (
+                <div className="bg-slate-950/80 p-5 rounded-3xl border border-slate-800 space-y-4 shadow-xl flex flex-col items-center justify-center relative overflow-hidden">
+                  <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full" />
+                  <div className="flex items-center gap-2 font-black text-emerald-400 text-base self-start z-10 w-full mb-2">
+                    <Target className="w-5 h-5" />
+                    <span>{isAr ? "رادار قدراتك الشامل" : "Comprehensive Abilities Radar"}</span>
+                  </div>
+                  
+                  <div className="relative z-10">
+                    {(() => {
+                      const fut = calculateFutAttributes(player.approvedAttributes || player.attributes);
+                      return (
+                        <PlayerRadarChart 
+                          stats={{
+                            PAC: fut.pac,
+                            SHO: fut.sho,
+                            PAS: fut.pas,
+                            DRI: fut.dri,
+                            DEF: fut.def,
+                            PHY: fut.phy,
+                          }} 
+                          size={300} 
+                          color="#10b981" 
+                        />
+                      );
+                    })()}
                   </div>
                 </div>
               )}
