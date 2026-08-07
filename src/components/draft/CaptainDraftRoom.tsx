@@ -511,7 +511,7 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
                   variants={staggerItemVariants}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
+                  transition={microSpringProps}
                   onMouseEnter={() => setHoveredPlayer(player)}
                   onMouseLeave={() => setHoveredPlayer(null)}
                   className="glass-card backdrop-blur-xl p-3.5 rounded-xl border border-slate-800/80 hover:border-emerald-500/60 hover:shadow-[0_4px_20px_rgba(16,185,129,0.2)] bg-slate-900/90 hover:bg-slate-900 transition-all flex items-center justify-between group cursor-pointer relative z-0 hover:z-10"
@@ -536,6 +536,7 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    transition={microSpringProps}
                     disabled={isCompleted}
                     onClick={() => executePick(player)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow cursor-pointer ${

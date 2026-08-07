@@ -8,6 +8,8 @@ import CustomDropdown from "@/components/ui/CustomDropdown";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
+import { motion, AnimatePresence } from "framer-motion";
+import { microSpringProps } from "@/lib/animations";
 
 export type PaymentStatus = "Paid" | "Pending" | "Overdue";
 export type CurrencyCode = "SAR" | "USD" | "EUR" | "EGP";
@@ -453,15 +455,29 @@ export default function PitchSplitBillCalculator() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60">
+              <AnimatePresence mode="popLayout">
               {players.length === 0 ? (
-                <tr>
+                <motion.tr 
+                  key="empty-state"
+                  initial={{ opacity: 0 }} 
+                  animate={{ opacity: 1 }} 
+                  exit={{ opacity: 0 }}
+                >
                   <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
                     {isAr ? "لا يوجد لاعبون في القائمة — اضغط + إضافة لاعب لإضافة الأول" : "No players in payment roster — click + Add Player to start"}
                   </td>
-                </tr>
+                </motion.tr>
               ) : (
                 players.map((p, idx) => (
-                <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                <motion.tr 
+                  layout
+                  key={p.id} 
+                  initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={microSpringProps}
+                  className="hover:bg-slate-800/30 transition-colors"
+                >
                   <td className="px-4 py-3 font-mono text-slate-500">{idx + 1}</td>
                   <td className="px-4 py-3 font-semibold text-white">
                     <input
@@ -516,9 +532,10 @@ export default function PitchSplitBillCalculator() {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </td>
-                </tr>
+                </motion.tr>
               ))
             )}
+            </AnimatePresence>
             </tbody>
           </table>
         </div>

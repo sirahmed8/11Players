@@ -68,7 +68,7 @@ interface Props {
   variant?: SkeletonVariant;
 }
 
-export default function SiteSkeletonLoader({ variant = "page" }: Props) {
+export function SiteSkeletonLoaderInner({ variant = "page" }: Props) {
   const { locale } = useLocale();
   const isAr = locale === "ar";
   const [mounted, setMounted] = React.useState(false);
@@ -1607,5 +1607,18 @@ export default function SiteSkeletonLoader({ variant = "page" }: Props) {
         ))}
       </div>
     </div>
+  );
+}
+
+export default function SiteSkeletonLoader(props: Props) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, filter: 'blur(4px)' }}
+      animate={{ opacity: 1, filter: 'blur(0px)' }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
+      <SiteSkeletonLoaderInner {...props} />
+    </motion.div>
   );
 }

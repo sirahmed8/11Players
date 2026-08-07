@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Award, Zap, Shield, Target, Activity, Flame, Lock, CheckCircle2, ChevronRight, Sparkles, Star } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
@@ -363,7 +363,7 @@ export default function XpSkillTree() {
           </h2>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {DEFAULT_SKILL_NODES.map((node) => {
+            {useMemo(() => DEFAULT_SKILL_NODES.map((node) => {
               const status = evaluateBadgeUnlockStatus(node.id, playerStats, totalXp);
               const isSelected = node.id === selectedNodeId;
 
@@ -373,6 +373,7 @@ export default function XpSkillTree() {
                   onClick={() => handleNodeClick(node.id)}
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
                   className={`relative p-4 rounded-2xl border cursor-pointer transition-all flex flex-col items-center text-center gap-3 ${
                     isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
                   } ${getRankBadgeClass(status.currentRank)}`}
@@ -402,7 +403,7 @@ export default function XpSkillTree() {
                   </span>
                 </motion.div>
               );
-            })}
+            }), [playerStats, totalXp, selectedNodeId, unlockedEffect])}
           </div>
         </div>
 

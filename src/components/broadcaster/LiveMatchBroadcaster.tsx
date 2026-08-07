@@ -59,7 +59,7 @@ export async function triggerSpeechSynthesis(text: string, isMuted: boolean = fa
 
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
-      window.speechSynthesis.cancel(); // Stop any pending speech
+      // Removed window.speechSynthesis.cancel() to allow native queueing
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = 'ar-SA';
       utterance.rate = 1.0;
@@ -453,12 +453,15 @@ export const LiveMatchBroadcaster: React.FC<LiveMatchBroadcasterProps> = ({
 
             {/* Event List */}
             <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-              <AnimatePresence>
+              <AnimatePresence mode="popLayout">
                 {events.map((evt) => (
                   <motion.div
                     key={evt.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    layout
+                    initial={{ opacity: 0, x: -20, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                     className={`p-3 rounded-xl border text-xs space-y-1 transition-all ${
                       evt.type === 'GOAL'
                         ? 'bg-emerald-950/50 border-emerald-500/40 text-emerald-200'
