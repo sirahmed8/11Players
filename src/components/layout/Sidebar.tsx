@@ -48,6 +48,13 @@ function SidebarContent() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Auto-close sidebar when a modal opens
+  useEffect(() => {
+    if (isCommandPaletteOpen || isQuickMatchOpen) {
+      setIsOpen(false);
+    }
+  }, [isCommandPaletteOpen, isQuickMatchOpen]);
   const [unreadSupportCount, setUnreadSupportCount] = useState(0);
   const [unreadNotifsCount, setUnreadNotifsCount] = useState(0);
   const [pendingEditsCount, setPendingEditsCount] = useState(0);
