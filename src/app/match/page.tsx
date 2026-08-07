@@ -170,6 +170,37 @@ function MatchContent() {
     }
   };
 
+  const handleSaveTurfResult = async (newTurfResult: any, newConfig?: any) => {
+    if (!activeCommunityId || !matchData) return;
+    try {
+      const latestRef = doc(db, "communities", activeCommunityId, "matches", "latest");
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", matchData.id);
+      const payload: any = { turfResult: newTurfResult };
+      if (newConfig) payload.config = { ...(matchData.config || {}), ...newConfig };
+
+      await updateDoc(latestRef, payload);
+      await updateDoc(matchRef, payload).catch(() => {});
+      toast.success(isAr ? "تم حفظ التشكيلات والفرق بنجاح! ⚽" : "Match lineups and teams saved successfully!");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل حفظ التشكيلة" : "Failed to save match lineups");
+    }
+  };
+
+  const handleSaveAttendance = async (newUids: string[]) => {
+    if (!activeCommunityId || !matchData) return;
+    try {
+      const latestRef = doc(db, "communities", activeCommunityId, "matches", "latest");
+      const matchRef = doc(db, "communities", activeCommunityId, "matches", matchData.id);
+
+      await updateDoc(latestRef, { signedUpPlayerUids: newUids });
+      await updateDoc(matchRef, { signedUpPlayerUids: newUids }).catch(() => {});
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل تحديث الحضور" : "Failed to save attendance");
+    }
+  };
+
   const [confirmAction, setConfirmAction] = useState<'end' | 'delete' | null>(null);
 
   const handleEndBooking = () => setConfirmAction('end');
@@ -645,16 +676,19 @@ function MatchContent() {
                     />
                   )}
 
-                  {/* Turf / Casual Match Display */}
-                  {displayMatch.status !== 'registering' && displayMatch.matchMode === 'turf' && displayMatch.turfResult && (
                     <TurfMatchDisplay 
                       turfResult={displayMatch.turfResult} 
                       isAr={isAr} 
+                      isAdmin={isAdmin || isOwner}
                       captainVotes={displayMatch.captainVotes || {}}
                       onVoteCaptain={handleVoteCaptain}
                       currentUserUid={user?.uid}
+                      allCommunityPlayers={players}
+                      signedUpPlayerUids={displayMatch.signedUpPlayerUids || []}
+                      onSaveTurfResult={handleSaveTurfResult}
+                      onSaveAttendance={handleSaveAttendance}
+                      matchConfig={displayMatch.config || {}}
                     />
-                  )}
 
                   {/* Standard 11v11 Lineup View */}
                   {displayMatch.status !== 'registering' && displayMatch.matchMode !== 'turf' && displayMatch.matchMode !== 'inter_community' && (

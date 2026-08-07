@@ -4,18 +4,26 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { AnimatePresence } from 'framer-motion';
 import { motion } from 'framer-motion';
-import { Users, RotateCw, Trophy, Timer, ChevronDown, ChevronUp, RefreshCw, Bot, X } from 'lucide-react';
-import type { TurfMatchmakingResult, TurfTeam } from '@/lib/engine';
+import { Users, RotateCw, Trophy, Timer, ChevronDown, ChevronUp, RefreshCw, Bot, X, UserPlus, UserMinus, Settings, Check, Sparkles, Shield, UserCheck, Search, SlidersHorizontal, Save } from 'lucide-react';
+import { generateTurfMatch, type TurfMatchmakingResult, type TurfTeam } from '@/lib/engine';
 import { renderMiniPitch } from './shared/PitchRenderer';
 import { OVR_BADGE } from './shared/PlayerBadge';
 import PlayerCardCompact from '@/components/player/PlayerCardCompact';
+import { PlayerProfile } from '@/types';
+import toast from 'react-hot-toast';
 
 interface TurfMatchDisplayProps {
   turfResult: TurfMatchmakingResult;
   isAr?: boolean;
+  isAdmin?: boolean;
   captainVotes?: Record<string, string>;
   onVoteCaptain?: (targetUid: string) => void;
   currentUserUid?: string;
+  allCommunityPlayers?: PlayerProfile[];
+  signedUpPlayerUids?: string[];
+  onSaveTurfResult?: (newResult: TurfMatchmakingResult, newConfig?: any) => Promise<void>;
+  onSaveAttendance?: (newUids: string[]) => Promise<void>;
+  matchConfig?: any;
 }
 
 
@@ -686,19 +694,50 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
 const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
   turfResult,
   isAr = false,
+  isAdmin = false,
   captainVotes = {},
   onVoteCaptain,
-  currentUserUid
+  currentUserUid,
+  allCommunityPlayers = [],
+  signedUpPlayerUids = [],
+  onSaveTurfResult,
+  onSaveAttendance,
+  matchConfig = {}
 }: TurfMatchDisplayProps) {
   const [showFixtures, setShowFixtures] = useState(true);
   const [localTeams, setLocalTeams] = useState<TurfTeam[]>(turfResult.teams);
   const [localWaitingTeams, setLocalWaitingTeams] = useState<TurfTeam[]>(turfResult.waitingTeams || []);
   const [subTarget, setSubTarget] = useState<{ teamId: string, playerUid: string } | null>(null);
 
+  // Live Attendance & Roster Management State
+  const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false);
+  const [attendanceUids, setAttendanceUids] = useState<Set<string>>(() => {
+    if (signedUpPlayerUids && signedUpPlayerUids.length > 0) {
+      return new Set(signedUpPlayerUids);
+    }
+    // Fallback: collect UIDs from current turf teams
+    const currentUids = new Set<string>();
+    turfResult.teams.forEach(t => t.players.forEach(p => currentUids.add(p.uid)));
+    (turfResult.waitingTeams || []).forEach(t => t.players.forEach(p => currentUids.add(p.uid)));
+    return currentUids;
+  });
+  const [attendanceSearch, setAttendanceSearch] = useState('');
+
+  // Quick Format Switcher State
+  const [isFormatModalOpen, setIsFormatModalOpen] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<'friendly' | 'league' | 'knockout' | 'winner_stays'>(
+    (turfResult.matchType === 'friendly' ? 'friendly' : turfResult.matchType === 'winner_stays' ? 'winner_stays' : turfResult.matchType || 'league') as any
+  );
+
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
     setLocalTeams(turfResult.teams);
     setLocalWaitingTeams(turfResult.waitingTeams || []);
-  }, [turfResult]);
+    if (signedUpPlayerUids && signedUpPlayerUids.length > 0) {
+      setAttendanceUids(new Set(signedUpPlayerUids));
+    }
+  }, [turfResult, signedUpPlayerUids]);
 
   const {
     fixtures,
@@ -716,26 +755,142 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
     ? `${numTeams} فرق × ${playersPerTeam} لاعبين — ${matchDurationMins} دق — ${gkMode === 'rotating' ? `دوران الحراسة ${gkRotationInterval === 'per_goal' ? 'كل هدف' : 'كل مباراة'}` : 'حارس ثابت'}`
     : `${numTeams} teams × ${playersPerTeam} players — ${matchDurationMins} min — ${gkMode === 'rotating' ? `rotating GK ${gkRotationInterval === 'per_goal' ? 'per goal' : 'per match'}` : 'fixed GK'}`;
 
+  // Handle Dynamic Re-Generation of Teams from Attendance
+  const handleRegenerateTeamsFromAttendance = async () => {
+    if (!onSaveTurfResult) {
+      toast.error(isAr ? "غير متاح إجراء التعديل الان" : "Update action unavailable");
+      return;
+    }
+    setIsSaving(true);
+    try {
+      const activeUidsArray = Array.from(attendanceUids);
+      const activePlayers = allCommunityPlayers.filter(p => activeUidsArray.includes(p.uid));
+
+      if (activePlayers.length < 4) {
+        toast.error(isAr ? "يلزم اختيار 4 لاعبين حاضرين على الأقل لتكوين الفرق" : "At least 4 checked-in players required");
+        setIsSaving(false);
+        return;
+      }
+
+      const currentTurfConfig = {
+        numTeams: turfResult.numTeams || matchConfig.numTeams || 2,
+        playersPerTeam: turfResult.playersPerTeam || matchConfig.playersPerTeam || 6,
+        gkMode: (turfResult.gkMode || matchConfig.gkMode || 'rotating') as 'fixed' | 'rotating',
+        fixedGkTeamA: matchConfig.fixedGkTeamA,
+        fixedGkTeamB: matchConfig.fixedGkTeamB,
+        gkRotationInterval: (turfResult.gkRotationInterval || matchConfig.gkRotationInterval || 'per_match') as any,
+        gkRotationMinutes: matchConfig.gkRotationMinutes,
+        matchType: selectedFormat,
+        matchDurationMins: matchConfig.matchDurationMins || turfResult.matchDurationMins || 20,
+        endCondition: matchConfig.endCondition || turfResult.endCondition || 'time',
+        targetGoals: matchConfig.targetGoals || turfResult.targetGoals || 3,
+      };
+
+      const newTurfResult = generateTurfMatch(activePlayers, currentTurfConfig);
+
+      if (onSaveAttendance) {
+        await onSaveAttendance(activeUidsArray);
+      }
+      await onSaveTurfResult(newTurfResult, { ...matchConfig, matchType: selectedFormat });
+
+      setIsAttendanceModalOpen(false);
+      setIsFormatModalOpen(false);
+      toast.success(isAr ? "تم إعادة توزيع وتنسيق الفرق وحفظ الحضور بنجاح! ⚡" : "Teams re-balanced and attendance saved successfully! ⚡");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "حدث خطأ أثناء التحديث" : "Failed to re-generate teams");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Handle Changing Match Format Live
+  const handleApplyFormatChange = async (newFormat: 'friendly' | 'league' | 'knockout' | 'winner_stays') => {
+    setSelectedFormat(newFormat);
+    if (!onSaveTurfResult) return;
+    setIsSaving(true);
+    try {
+      const activePlayers = localTeams.flatMap(t => t.players).concat(localWaitingTeams.flatMap(t => t.players));
+      const currentTurfConfig = {
+        numTeams: turfResult.numTeams || matchConfig.numTeams || 2,
+        playersPerTeam: turfResult.playersPerTeam || matchConfig.playersPerTeam || 6,
+        gkMode: (turfResult.gkMode || matchConfig.gkMode || 'rotating') as 'fixed' | 'rotating',
+        fixedGkTeamA: matchConfig.fixedGkTeamA,
+        fixedGkTeamB: matchConfig.fixedGkTeamB,
+        gkRotationInterval: (turfResult.gkRotationInterval || matchConfig.gkRotationInterval || 'per_match') as any,
+        gkRotationMinutes: matchConfig.gkRotationMinutes,
+        matchType: newFormat,
+        matchDurationMins: matchConfig.matchDurationMins || turfResult.matchDurationMins || 20,
+        endCondition: matchConfig.endCondition || turfResult.endCondition || 'time',
+        targetGoals: matchConfig.targetGoals || turfResult.targetGoals || 3,
+      };
+
+      const newTurfResult = generateTurfMatch(activePlayers.length >= 4 ? activePlayers : allCommunityPlayers.slice(0, 12), currentTurfConfig);
+      await onSaveTurfResult(newTurfResult, { ...matchConfig, matchType: newFormat });
+
+      setIsFormatModalOpen(false);
+      toast.success(isAr ? "تم تغيير نظام الحجز والمباريات بنجاح! 🏆" : "Match format updated successfully! 🏆");
+    } catch (err) {
+      console.error(err);
+      toast.error(isAr ? "فشل تغيير النظام" : "Failed to update match format");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* Header Banner with Admin Tools */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-5 text-white shadow-md"
+        className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden"
       >
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-            ⚽
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl shadow-inner shrink-0">
+              ⚽
+            </div>
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black tracking-tight">
+                {isAr ? 'حجز الكورة المباشر' : 'Live Turf Match Booking'}
+              </h2>
+              <p className="text-xs text-white/90 font-medium">{formatLabel}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-xl font-black">
-              {isAr ? 'مباريات الملاعب (خماسي / سداسي / سباعي)' : 'Turf / Casual Match'}
-            </h2>
-            <p className="text-xs text-white/80">{formatLabel}</p>
-          </div>
+
+          {/* Admin Control Bar */}
+          {isAdmin && (
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <button
+                onClick={() => setIsAttendanceModalOpen(true)}
+                className="px-3.5 py-2 bg-white/20 hover:bg-white/30 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 backdrop-blur-md shadow-sm border border-white/20 active:scale-95 cursor-pointer"
+              >
+                <Users className="w-4 h-4" />
+                <span>{isAr ? "👥 كشف الحضور والغياب" : "👥 Attendance Roster"}</span>
+              </button>
+
+              <button
+                onClick={() => setIsFormatModalOpen(true)}
+                className="px-3.5 py-2 bg-slate-900/40 hover:bg-slate-900/60 text-white rounded-xl text-xs font-black transition-all flex items-center gap-1.5 backdrop-blur-md border border-white/20 active:scale-95 cursor-pointer"
+              >
+                <Trophy className="w-4 h-4 text-amber-300" />
+                <span>{isAr ? "⚙️ نظام الحجز" : "⚙️ Format"}</span>
+              </button>
+
+              <button
+                onClick={handleRegenerateTeamsFromAttendance}
+                disabled={isSaving}
+                className="px-3.5 py-2 bg-slate-950 text-emerald-400 hover:bg-slate-900 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 border border-emerald-500/40 shadow-lg active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-400 animate-spin-slow" />
+                <span>{isAr ? "⚡ إعادة تقسيم وتنسيق الفرق" : "⚡ Re-Balance Teams"}</span>
+              </button>
+            </div>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2 mt-3">
+
+        <div className="flex flex-wrap gap-2 mt-4 pt-3 border-t border-white/20">
           <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
             <Users className="w-3.5 h-3.5" />
             {numTeams} {isAr ? 'فرق' : 'teams'}
@@ -746,7 +901,7 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
           </div>
           <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
             <Trophy className="w-3.5 h-3.5" />
-            {matchType === 'friendly' ? (isAr ? 'ودية كاجوال' : 'Casual Friendly') : matchType === 'league' ? (isAr ? 'دوري' : 'League') : matchType === 'knockout' ? (isAr ? 'كأس' : 'Knockout') : (isAr ? 'الكسبان مستمر' : 'Winner Stays On')}
+            {matchType === 'friendly' ? (isAr ? '⚽ ودية كاجوال (دون بطولة)' : '⚽ Casual Friendly') : matchType === 'league' ? (isAr ? '🏆 دوري مجموعات' : '🏆 League') : matchType === 'knockout' ? (isAr ? '⚔️ كأس خروج المغلوب' : '⚔️ Knockout') : (isAr ? '👑 الكسبان مستمر' : '👑 Winner Stays On')}
           </div>
           {gkMode === 'rotating' && (
             <div className="flex items-center gap-1 bg-white/20 rounded-full px-3 py-1 text-xs font-bold">
@@ -1092,6 +1247,226 @@ const TurfMatchDisplay = React.memo(function TurfMatchDisplay({
                     </div>
                   </>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Attendance & Roster Management Modal */}
+      <AnimatePresence>
+        {isAttendanceModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+              onClick={() => setIsAttendanceModalOpen(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-white"
+            >
+              {/* Modal Header */}
+              <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-lg text-white">
+                      {isAr ? "إدارة كشف الحضور والغياب" : "Manage Match Day Roster"}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {isAr ? `الحاضرون حالياً: ${attendanceUids.size} لاعباً` : `Checked-in: ${attendanceUids.size} players`}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setIsAttendanceModalOpen(false)}
+                  className="p-2 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Search Bar */}
+              <div className="p-4 border-b border-slate-800/80 bg-slate-950/40">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 rtl:left-auto rtl:right-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={attendanceSearch}
+                    onChange={(e) => setAttendanceSearch(e.target.value)}
+                    placeholder={isAr ? "ابحث باسم اللاعب..." : "Search player by name..."}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 rtl:pr-10 rtl:pl-4 py-2 text-xs font-bold text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Roster Player Checkbox List */}
+              <div className="p-4 overflow-y-auto space-y-2 flex-1 max-h-[50vh]">
+                {allCommunityPlayers
+                  .filter(p => {
+                    const name = (p.cardName || p.fullName || '').toLowerCase();
+                    return name.includes(attendanceSearch.toLowerCase().trim());
+                  })
+                  .map(p => {
+                    const isAttending = attendanceUids.has(p.uid);
+                    return (
+                      <div
+                        key={p.uid}
+                        onClick={() => {
+                          const next = new Set(attendanceUids);
+                          if (isAttending) {
+                            next.delete(p.uid);
+                          } else {
+                            next.add(p.uid);
+                          }
+                          setAttendanceUids(next);
+                        }}
+                        className={`flex items-center justify-between p-3 rounded-2xl border cursor-pointer transition-all ${
+                          isAttending
+                            ? "bg-emerald-950/30 border-emerald-500/40 text-white"
+                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black transition-colors ${
+                            isAttending ? "bg-emerald-500 text-slate-950" : "bg-slate-800 text-slate-500"
+                          }`}>
+                            {isAttending ? <Check className="w-4 h-4 stroke-[3]" /> : null}
+                          </div>
+                          <div>
+                            <span className="font-bold text-sm text-white block">
+                              {p.cardName || p.fullName}
+                            </span>
+                            <span className="text-[10px] font-semibold text-slate-400">
+                              {p.primaryPosition || "CMF"}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                          isAttending ? "bg-emerald-500/20 text-emerald-400" : "bg-slate-800 text-slate-500"
+                        }`}>
+                          {isAttending ? (isAr ? "حاضر ⚽" : "Attending") : (isAr ? "غائب" : "Absent")}
+                        </span>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="p-4 border-t border-slate-800 bg-slate-950 flex items-center justify-between gap-3">
+                <span className="text-xs text-slate-400 font-bold">
+                  {isAr ? `${attendanceUids.size} لاعب مسجل` : `${attendanceUids.size} selected`}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setIsAttendanceModalOpen(false)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all"
+                  >
+                    {isAr ? "إلغاء" : "Cancel"}
+                  </button>
+                  <button
+                    onClick={handleRegenerateTeamsFromAttendance}
+                    disabled={isSaving}
+                    className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 font-black text-xs hover:scale-105 transition-transform shadow-lg shadow-emerald-500/20 flex items-center gap-1.5 disabled:opacity-50"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>{isAr ? "تكوين وإعادة توزيع الفرق ⚡" : "Re-Generate Teams ⚡"}</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Quick Format Switcher Modal */}
+      <AnimatePresence>
+        {isFormatModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
+              onClick={() => setIsFormatModalOpen(false)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden p-6 text-white space-y-5"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2.5">
+                  <Trophy className="w-5 h-5 text-amber-400" />
+                  <h3 className="font-black text-lg text-white">
+                    {isAr ? "تغيير نظام الحجز والمباريات" : "Change Match Format"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setIsFormatModalOpen(false)}
+                  className="p-1.5 hover:bg-slate-800 rounded-xl text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  {
+                    id: "friendly",
+                    titleAr: "⚽ مباراة وديّة كاجوال (دون بطولة)",
+                    titleEn: "⚽ Casual Friendly (No Tournament)",
+                    descAr: "مباراة 2 فريق مباشر دون تصفيات",
+                    descEn: "Single 2-team match format"
+                  },
+                  {
+                    id: "league",
+                    titleAr: "🏆 دوري مجموعات (Round Robin)",
+                    titleEn: "🏆 League Format",
+                    descAr: "جدول مباريات يتواجه فيه كل فريق ضد الآخر",
+                    descEn: "All teams play against each other"
+                  },
+                  {
+                    id: "knockout",
+                    titleAr: "⚔️ كأس خروج المغلوب (Knockout)",
+                    titleEn: "⚔️ Knockout Tournament",
+                    descAr: "خروج المغلوب مباشرة للتأهل للنهائي",
+                    descEn: "Single elimination bracket format"
+                  },
+                  {
+                    id: "winner_stays",
+                    titleAr: "👑 الكسبان يستمر (Winner Stays On)",
+                    titleEn: "👑 Winner Stays On (Rotation)",
+                    descAr: "الفائز في كل شوط يستمر بالملعب والخاسر يخرج للدكة",
+                    descEn: "Winner stays on pitch, loser rotates to bench"
+                  },
+                ].map(fmt => (
+                  <button
+                    key={fmt.id}
+                    onClick={() => handleApplyFormatChange(fmt.id as any)}
+                    className={`w-full text-start p-4 rounded-2xl border transition-all ${
+                      selectedFormat === fmt.id
+                        ? "bg-amber-500/15 border-amber-500/50 text-amber-300 font-bold shadow-lg"
+                        : "bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700"
+                    }`}
+                  >
+                    <div className="font-extrabold text-sm text-white">
+                      {isAr ? fmt.titleAr : fmt.titleEn}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-1 font-medium">
+                      {isAr ? fmt.descAr : fmt.descEn}
+                    </div>
+                  </button>
+                ))}
               </div>
             </motion.div>
           </div>

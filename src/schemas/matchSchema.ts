@@ -3,6 +3,8 @@ import { z } from "zod";
 export const matchConfigSchema = z.object({
   date: z.string().optional(),
   time: z.string().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
   location: z.string().max(100, "Location is too long").optional(),
   cost: z.string().optional(),
   notes: z.string().max(500, "Notes are too long").optional(),

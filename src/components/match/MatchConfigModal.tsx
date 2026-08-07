@@ -14,6 +14,8 @@ import { call11AIChat } from '@/lib/aiService';
 export interface MatchConfig {
   date: string;
   time: string;
+  startTime?: string; // e.g. "20:00"
+  endTime?: string;   // e.g. "22:00"
   location: string;
   cost: string;
   notes: string;
