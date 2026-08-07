@@ -9,6 +9,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import FormIcon from "@/components/ui/FormIcon";
 import { SKILLS } from "@/components/player/SkillsChecklist";
+import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 
 interface PlayerComparisonModalProps {
   isOpen: boolean;
@@ -241,52 +242,22 @@ export default function PlayerComparisonModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 overflow-hidden border-2 border-cyan-500/50 shadow-lg shrink-0 relative flex items-center justify-center font-black text-xl text-white">
-                          {playerA.photoUrl ? (
-                            <Image src={playerA.photoUrl} alt="" fill sizes="80px" className="object-cover" />
-                          ) : (
-                            playerA.cardName?.charAt(0) || "?"
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-lg sm:text-xl font-black text-white">{playerA.cardName || playerA.fullName}</h4>
-                            {playerA.form && <FormIcon form={playerA.form} className="w-4 h-4" />}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 font-black text-xs border border-cyan-500/30">
-                              {playerA.primaryPosition}
-                            </span>
-                            {playerA.playStyle && (
-                              <span className="text-xs font-bold text-slate-400">
-                                {playerA.playStyle.replace(/_/g, " ")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                          {ovrA}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setIsSelectingA(true)}
-                            className="text-[11px] font-bold text-cyan-400 hover:underline"
-                          >
-                            {isAr ? "تغيير" : "Change"}
-                          </button>
-                          <span className="text-slate-600 text-[11px]">•</span>
-                          <button
-                            onClick={removeA}
-                            className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-0.5"
-                          >
-                            <UserX className="w-3 h-3" />
-                            {isAr ? "إزالة" : "Remove"}
-                          </button>
-                        </div>
+                    <div className="flex flex-col items-stretch justify-center h-full gap-3">
+                      <PlayerCardCompact player={playerA} />
+                      <div className="flex justify-end gap-2 bg-slate-900/50 p-2 rounded-xl">
+                        <button
+                          onClick={() => setIsSelectingA(true)}
+                          className="text-[11px] font-bold text-cyan-400 hover:underline bg-cyan-500/10 px-3 py-1 rounded-lg"
+                        >
+                          {isAr ? "تغيير" : "Change"}
+                        </button>
+                        <button
+                          onClick={removeA}
+                          className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-1 bg-red-500/10 px-3 py-1 rounded-lg"
+                        >
+                          <UserX className="w-3 h-3" />
+                          {isAr ? "إزالة" : "Remove"}
+                        </button>
                       </div>
                     </div>
                   )}
@@ -325,52 +296,22 @@ export default function PlayerComparisonModal({
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-900 overflow-hidden border-2 border-amber-500/50 shadow-lg shrink-0 relative flex items-center justify-center font-black text-xl text-white">
-                          {playerB.photoUrl ? (
-                            <Image src={playerB.photoUrl} alt="" fill sizes="80px" className="object-cover" />
-                          ) : (
-                            playerB.cardName?.charAt(0) || "?"
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-lg sm:text-xl font-black text-white">{playerB.cardName || playerB.fullName}</h4>
-                            {playerB.form && <FormIcon form={playerB.form} className="w-4 h-4" />}
-                          </div>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 text-amber-400 font-black text-xs border border-amber-500/30">
-                              {playerB.primaryPosition}
-                            </span>
-                            {playerB.playStyle && (
-                              <span className="text-xs font-bold text-slate-400">
-                                {playerB.playStyle.replace(/_/g, " ")}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                          {ovrB}
-                        </div>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setIsSelectingB(true)}
-                            className="text-[11px] font-bold text-amber-400 hover:underline"
-                          >
-                            {isAr ? "تغيير" : "Change"}
-                          </button>
-                          <span className="text-slate-600 text-[11px]">•</span>
-                          <button
-                            onClick={removeB}
-                            className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-0.5"
-                          >
-                            <UserX className="w-3 h-3" />
-                            {isAr ? "إزالة" : "Remove"}
-                          </button>
-                        </div>
+                    <div className="flex flex-col items-stretch justify-center h-full gap-3">
+                      <PlayerCardCompact player={playerB} />
+                      <div className="flex justify-end gap-2 bg-slate-900/50 p-2 rounded-xl">
+                        <button
+                          onClick={() => setIsSelectingB(true)}
+                          className="text-[11px] font-bold text-amber-400 hover:underline bg-amber-500/10 px-3 py-1 rounded-lg"
+                        >
+                          {isAr ? "تغيير" : "Change"}
+                        </button>
+                        <button
+                          onClick={removeB}
+                          className="text-[11px] font-bold text-red-400 hover:underline flex items-center gap-1 bg-red-500/10 px-3 py-1 rounded-lg"
+                        >
+                          <UserX className="w-3 h-3" />
+                          {isAr ? "إزالة" : "Remove"}
+                        </button>
                       </div>
                     </div>
                   )}

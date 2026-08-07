@@ -5,6 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { CheckCircle2, UserPlus, Users, Loader2, Sparkles } from "lucide-react";
 import { PlayerProfile } from "@/types";
+import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 
 interface RegistrationPanelProps {
   matchData: any;
@@ -120,32 +121,9 @@ export default function RegistrationPanel({
             {isAr ? "لم يقم أحد بتسجيل الحضور بعد. كن أول المسجلين!" : "No players checked in yet. Be the first!"}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {signedUpPlayers.map((p) => (
-              <div
-                key={p.uid}
-                className="flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700/60"
-              >
-                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-700 shrink-0">
-                  {p.photoUrl || p.googlePic ? (
-                    <Image
-                      src={(p.photoUrl || p.googlePic)!}
-                      alt={p.cardName || p.fullName}
-                      fill
-                      sizes="32px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <span className="text-xs font-bold text-slate-300 flex items-center justify-center h-full">
-                      {(p.cardName || p.fullName || "?").charAt(0)}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-white truncate">{p.cardName || p.fullName}</p>
-                  <span className="text-[10px] text-emerald-400 font-semibold">{p.primaryPosition}</span>
-                </div>
-              </div>
+              <PlayerCardCompact key={p.uid} player={p} currentUserId={user?.uid} />
             ))}
           </div>
         )}

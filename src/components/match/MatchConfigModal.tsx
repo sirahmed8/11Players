@@ -590,29 +590,29 @@ function generateBilingualManagerAdvices(
   const squadDiff = squadAvgA - squadAvgB;
   if (Math.abs(squadDiff) <= 1) {
     advices.push({
-      icon: '⚖️',
-      title: isAr ? 'توازن كامل بين القائمتين (أساسي + دكة)' : 'Complete Squad Balance (Starters + Bench)',
+      icon: '⚔️',
+      title: isAr ? 'حرب الاستنزاف والتكافؤ المطلق' : 'Absolute Parity & Attrition War',
       body: isAr
-        ? `الفريقان متعادلان تماماً في المعدل الشامل للقائمة (الفريق أ ${squadAvgA} - الفريق ب ${squadAvgB}). القوة البدنية وتبديلات الشوط الثاني هي الحاسمة.`
-        : `Both squads are evenly matched in total squad rating (${squadAvgA} vs ${squadAvgB}). Bench depth and 2nd-half stamina will determine the outcome.`,
+        ? `الفريقان على نفس المسافة الفنية (معدل ${squadAvgA} ضد ${squadAvgB}). المعركة ستُحسم في تفاصيل خط الوسط والتمركز الدفاعي (Low Block). المخزون البدني وتبديلات الشوط الثاني هي طوق النجاة.`
+        : `Both squads share identical technical weight (${squadAvgA} vs ${squadAvgB}). The battle demands surgical midfield precision and structured low-block defending. Stamina dictates the final whistle.`,
       type: 'tactical_tip',
     });
   } else if (squadDiff > 1) {
     advices.push({
       icon: '💎',
-      title: isAr ? 'عمق فني أعلى لصالح الفريق أ' : 'Team A Squad Depth Advantage',
+      title: isAr ? 'الهيمنة الفنية والعمق الاستراتيجي (الفريق أ)' : 'Technical Dominance: Team A',
       body: isAr
-        ? `يمتلك الفريق أ معدلاً شاملاً أكبر (${squadAvgA} مقابل ${squadAvgB}). يتطلب من الفريق ب تنظيم خطوطه وتقليل المساحات بين الدفاع والوسط.`
-        : `Team A holds a overall squad rating advantage (${squadAvgA} vs ${squadAvgB}). Team B must compress central lanes to stay competitive.`,
+        ? `كتيبة الفريق (أ) تمتلك أفضلية ملموسة بالعمق والمعدل (${squadAvgA} ضد ${squadAvgB}). يُنصح الفريق (أ) بتطبيق استحواذ إيجابي (Tiki-Taka)، بينما يجب على الفريق (ب) تضييق المساحات والاعتماد على التحولات السريعة (Counter-Attacks).`
+        : `Team A boasts a heavier technical arsenal (${squadAvgA} vs ${squadAvgB}). Team A should enforce possession (Tiki-Taka), forcing Team B into compact lines and rapid counter-attacking transitions.`,
       type: 'key_battle',
     });
   } else {
     advices.push({
       icon: '🛡️',
-      title: isAr ? 'عمق فني أعلى لصالح الفريق ب' : 'Team B Squad Depth Advantage',
+      title: isAr ? 'الهيمنة الفنية والعمق الاستراتيجي (الفريق ب)' : 'Technical Dominance: Team B',
       body: isAr
-        ? `يمتلك الفريق ب معدلاً شاملاً أكبر (${squadAvgB} مقابل ${squadAvgA}). يجب على الفريق أ الضغط العالي لاستخلاص الكرات بسرعة.`
-        : `Team B holds a total squad rating advantage (${squadAvgB} vs ${squadAvgA}). Team A needs aggressive high pressing to break rhythm.`,
+        ? `أفضلية الأرقام والعمق التكتيكي تميل لصالح الفريق (ب) (${squadAvgB} ضد ${squadAvgA}). الفريق (أ) يحتاج لتبني أسلوب الضغط العكسي (Gegenpressing) لكسر الإيقاع وخطف الكرات في الثلث الأخير.`
+        : `Team B holds the statistical high ground (${squadAvgB} vs ${squadAvgA}). Team A must weaponise aggressive Gegenpressing to disrupt build-up play and force critical turnovers in the final third.`,
       type: 'key_battle',
     });
   }
@@ -622,10 +622,10 @@ function generateBilingualManagerAdvices(
     const topSubA = [...benchA].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70))[0];
     advices.push({
       icon: '⚡',
-      title: isAr ? 'ورقة جوكر على دكة الفريق أ' : 'Team A Super-Sub Weapon',
+      title: isAr ? 'دكة البدلاء: ورقة الفريق أ الرابحة' : 'Team A: Super-Sub Impact',
       body: isAr
-        ? `دكة الفريق أ تمتلك لاعباً مميزاً (${topSubA?.fullName || topSubA?.cardName || 'لاعب بديل'} بتقييم ${topSubA?.overallRating || 70}). نزوله في الشوط الثاني سيعطي طاقة هجومية هائلة.`
-        : `Team A has top quality reserve (${topSubA?.fullName || topSubA?.cardName || 'Reserve'} OVR ${topSubA?.overallRating || 70}). A 2nd-half substitution will inject high energy.`,
+        ? `يمتلك الفريق (أ) الجوكر التكتيكي (${topSubA?.cardName || topSubA?.fullName} بـ OVR ${topSubA?.overallRating || 70}) على مقاعد البدلاء. إقحامه في الـ 15 دقيقة الأخيرة سيحدث فوضى في دفاعات الخصم المرهقة.`
+        : `Team A holds a lethal Super-Sub (${topSubA?.cardName || topSubA?.fullName} OVR ${topSubA?.overallRating || 70}). Deploying him against fatigued legs in the dying minutes will shatter defensive blocks.`,
       type: 'strength',
     });
   }
@@ -634,10 +634,10 @@ function generateBilingualManagerAdvices(
     const topSubB = [...benchB].sort((a, b) => (b.overallRating || 70) - (a.overallRating || 70))[0];
     advices.push({
       icon: '🔥',
-      title: isAr ? 'ورقة جوكر على دكة الفريق ب' : 'Team B Super-Sub Weapon',
+      title: isAr ? 'دكة البدلاء: السلاح السري للفريق ب' : 'Team B: Secret Weapon',
       body: isAr
-        ? `دكة الفريق ب تملك بديلاً استراتيجياً (${topSubB?.fullName || topSubB?.cardName || 'لاعب بديل'} بتقييم ${topSubB?.overallRating || 70}). استخدامه مبكراً سيزيد الخيارات التكتيكية.`
-        : `Team B holds strong bench impact with (${topSubB?.fullName || topSubB?.cardName || 'Reserve'} OVR ${topSubB?.overallRating || 70}). Tactical introduction will stretch the opponent.`,
+        ? `الجودة الكامنة على دكة الفريق (ب) ممثلة في (${topSubB?.cardName || topSubB?.fullName} بـ OVR ${topSubB?.overallRating || 70}) تمنح مرونة تكتيكية عالية. دخوله المبكر قد يقلب موازين الاستحواذ.`
+        : `Team B's bench quality is anchored by (${topSubB?.cardName || topSubB?.fullName} OVR ${topSubB?.overallRating || 70}). A tactical early substitution could completely hijack possession momentum.`,
       type: 'strength',
     });
   }
@@ -651,8 +651,8 @@ function generateBilingualManagerAdvices(
       icon: '⭐',
       title: isAr ? 'صراع النجوم والمحركات الرئيسية' : 'Marquee Key Player Battle',
       body: isAr
-        ? `مواجهة مباشرة بين نجم الفريق أ (${starA.cardName || starA.fullName} - ${starA.assignedPosition || starA.primaryPosition} OVR ${starA.overallRating || 70}) ونجم الفريق ب (${starB.cardName || starB.fullName} - ${starB.assignedPosition || starB.primaryPosition} OVR ${starB.overallRating || 70}).`
-        : `Head-to-head spotlight: Team A leader (${starA.cardName || starA.fullName} OVR ${starA.overallRating || 70}) vs Team B leader (${starB.cardName || starB.fullName} OVR ${starB.overallRating || 70}).`,
+        ? `مواجهة كسر العظام بين مايسترو الفريق أ (${starA.cardName || starA.fullName} - OVR ${starA.overallRating || 70}) ودبابة الفريق ب (${starB.cardName || starB.fullName} - OVR ${starB.overallRating || 70}). من يفرض إيقاعه، يسيطر على المباراة.`
+        : `Heavyweight clash: Team A's maestro (${starA.cardName || starA.fullName} OVR ${starA.overallRating || 70}) vs Team B's juggernaut (${starB.cardName || starB.fullName} OVR ${starB.overallRating || 70}). Dictating this duel dictates the game.`,
       type: 'key_battle',
     });
   }
@@ -661,19 +661,19 @@ function generateBilingualManagerAdvices(
   if ((formationA.includes('4-3-3') && formationB.includes('4-2-3-1')) || (formationB.includes('4-3-3') && formationA.includes('4-2-3-1'))) {
     advices.push({
       icon: '⚔️',
-      title: isAr ? 'صراع التكتيك: 4-3-3 ضد 4-2-3-1' : 'Tactical Clash: 4-3-3 vs 4-2-3-1',
+      title: isAr ? 'صراع الرقعة: 4-3-3 ضد 4-2-3-1' : 'Tactical Clash: 4-3-3 vs 4-2-3-1',
       body: isAr
-        ? `معركة خط الوسط حامية: صانع ألعاب الـ 4-2-3-1 سيحاول التحرك خلف خط وسط الـ 4-3-3. مفتاح الحسم هو سرعة افتراض الكرات الثنائية.`
-        : `Midfield battle: 4-2-3-1 playmaker will operate between lines against 4-3-3 pivot. Winning 2nd balls will decide possession control.`,
+        ? `حرب تكتيكية في منطقة المناورات (Half-Spaces). صانع ألعاب الـ 4-2-3-1 سيبحث عن الفجوات خلف ارتكاز الـ 4-3-3. الفوز بالكرات الثانية (Second Balls) هو مفتاح الانتصار.`
+        : `Midfield trench warfare: The 4-2-3-1 playmaker will hunt for half-spaces behind the 4-3-3 pivot. Winning 2nd balls and rapid transition is the absolute key to dominance.`,
       type: 'tactical_tip',
     });
   } else if (formationA.includes('3-') || formationB.includes('3-') || formationA.includes('5-') || formationB.includes('5-')) {
     advices.push({
       icon: '🚀',
-      title: isAr ? 'استغلال أجنحة وأظهيرة الملعب' : 'Flank Overloads & Wing Play',
+      title: isAr ? 'استغلال الأطراف والاختراق القطري' : 'Flank Overloads & Diagonal Penetration',
       body: isAr
-        ? `وجود 3 مدافعين يخلق مساحات خلف الأطراف. التمريرات الطولية السريعة للأجنحة ستضع المهاجمين في وضعيات 1 ضد 1.`
-        : `3/5-back setups yield spaces behind wing-backs. Quick diagonal balls to isolation wingers will create high-probability chances.`,
+        ? `أنظمة الـ 3/5 مدافعين تترك مساحات قاتلة خلف الأظهرة الطائرة (Wing-backs). التحولات القطرية الطويلة ستضع الأجنحة في مواجهات عزل 1-ضد-1 قاتلة.`
+        : `3/5-back systems expose lethal pockets behind advanced wing-backs. Rapid diagonal switches will isolate wingers into deadly 1-v-1 scenarios.`,
       type: 'tactical_tip',
     });
   } else if (formationA.includes('4-2-2-2') || formationB.includes('4-2-2-2') || formationA.includes('4-2-4') || formationB.includes('4-2-4')) {
@@ -881,26 +881,49 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
           return `• ${name} (${isAr ? 'معدل' : 'OVR'} ${avg}): ${playerList}`;
         }).join('\n');
 
-        prompt = `أنت 11AI المحلل التكتيكي الكروي الاحترافي لمنصة 11Players.
-يوجد حجز كورة يحتوي على ${previewData.turfResult.teams.length} فرق مشاركة:
+        prompt = `أنت 11AI، المدير الفني والمحلل التكتيكي النخبوي لمنصة 11Players.
+يوجد حجز كروي "خماسي/سداسي/إلخ" يحتوي على ${previewData.turfResult.teams.length} فرق مشاركة:
 ${teamsInfo}
 
-المطلوب:
-1. قدم تحليلاً تكتيكياً عادلاً ومتوازناً باللغة العربية الفصحى بدون انحياز لأي فريق.
-2. اعطِ كل فريق خطة تكتيكية وتوصية مخصصة للعب والتمركز بشكل متوازن.
-3. ممنوع نهائياً توقع فائز أو الجزم بفوز فريق معين! اجعل الخلاصة تركّز على مفاتيح حسم التكافؤ والعوامل التكتيكية المؤثرة على جميع الفرق بشكل متساوي وعدل.`;
+المطلوب منك كتابة تقرير تكتيكي عميق، احترافي، وشامل باللغة العربية الفصحى بصيغة Markdown، مع استخدام الرموز التعبيرية (Emojis) المناسبة.
+
+### هيكل التقرير المطلوب:
+1. ### 🔍 النظرة التكتيكية الشاملة
+(تحليل عام للفرق المشاركة، ومن يمتلك الكفة البدنية أو الفنية بناءً على المعدلات (OVR))
+2. ### 🛡️ الأساليب والخطط المقترحة
+(قم بتسمية كل فريق واعطه خطة لعب تناسب لاعبيه (مثلاً لعب مرتدات، استحواذ، ضغط عالي) مع ذكر أسماء بعض اللاعبين كنقاط قوة)
+3. ### ⚔️ مفاتيح الحسم والصراع
+(أين ستكون المعركة الأشرس في الملعب؟ ومن سيصنع الفارق؟)
+
+**شروط صارمة جدًا:**
+- ممنوع نهائياً توقع فائز أو الجزم بفوز فريق معين! اجعل الخلاصة تركّز على التكافؤ.
+- استخدم التنسيق المكتوب (###) للعناوين كما هو مطلوب.
+- اجعل لغتك قوية وحماسية كأنك جوزيه مورينيو أو بيب جوارديولا يحلل مباراة!`;
       } else {
         const teamNamesA = (previewData.teamA || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
         const teamNamesB = (previewData.teamB || []).map((p: any) => `${p.fullName || p.cardName} (${p.assignedPosition || p.primaryPosition || 'MID'}, OVR ${p.overallRating || 70})`).join(', ');
 
-        prompt = `أنت 11AI المحلل التكتيكي الكروي الاحترافي لمنصة 11Players. قم بتحليل متكافئ وعادل لمباراة الفريق (أ) ضد الفريق (ب):
+        prompt = `أنت 11AI، المدير الفني والمحلل التكتيكي النخبوي لمنصة 11Players.
+هذه مباراة نارية مرتقبة بين الفريق (أ) والفريق (ب).
 الفريق أ (متوسط ${previewData.metrics?.teamAAvg || calculateTeamAvg(previewData.teamA || [])}): ${teamNamesA}
 الفريق ب (متوسط ${previewData.metrics?.teamBAvg || calculateTeamAvg(previewData.teamB || [])}): ${teamNamesB}
 
-المطلوب:
-1. خطة تكتيكية وتوصيات موجهة لكل من الفريق (أ) والفريق (ب) بأسلوب كروي راقٍ وعادل.
-2. مفاتيح الحسم التكتيكية للطرفين والصراع المتكافئ في الملعب.
-3. ممنوع نهائياً توقع فائز أو الجزم بتفوق فريق على الآخر! ركّز على التكافؤ والتوازن التكتيكي بين الفريقين.`;
+المطلوب منك كتابة تقرير تكتيكي عميق، احترافي، وشامل باللغة العربية الفصحى بصيغة Markdown، مع استخدام الرموز التعبيرية (Emojis).
+
+### هيكل التقرير المطلوب:
+1. ### 🔍 التحليل الفني الشامل
+(قراءة لمتوسط القوة (OVR)، التكافؤ البدني والفني بين الفريقين)
+2. ### 🛡️ الجدار التكتيكي للفريق (أ)
+(خطة اللعب المقترحة، اللاعبين المفاتيح، وكيفية اختراق دفاع الفريق ب)
+3. ### ⚔️ الأسلحة المضادة للفريق (ب)
+(خطة اللعب المقترحة، اللاعبين المفاتيح، وكيفية إيقاف خطورة الفريق أ)
+4. ### 🔥 معركة خط الوسط ومفاتيح الحسم
+(أين سيكون الصراع الأكبر؟ وما هي التفاصيل الصغيرة التي قد تحسم التعادل؟)
+
+**شروط صارمة جدًا:**
+- ممنوع نهائياً توقع فائز أو الجزم بتفوق فريق على الآخر! ركّز على التكافؤ التام والصراع التكتيكي.
+- استخدم التنسيق المكتوب (###) للعناوين كما هو مطلوب.
+- اجعل لغتك حماسية، قوية، وراقية كأنك محلل كروي عالمي!`;
       }
 
       const data = await call11AIChat({
@@ -1418,21 +1441,23 @@ ${teamsInfo}
                   {/* 11AI Match Tactical Analysis Report Box */}
                   {aiTacticalReport && (
                     <motion.div
+                      dir="auto"
                       initial={{ opacity: 0, y: -6 }}
                       animate={{ opacity: 1, y: 0 }}
                       className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/40 text-xs leading-relaxed text-slate-200 shadow-xl space-y-2"
                     >
-                      <div className="flex items-center gap-2 text-emerald-400 font-black">
+                      <div className="flex items-center gap-2 text-emerald-400 font-black mb-3 pb-2 border-b border-emerald-500/20">
                         <Brain className="w-4 h-4 text-emerald-400" />
                         <span>{isAr ? "تحليل 11AI التكتيكي للمباراة" : "11AI Tactical Match Analysis"}</span>
                       </div>
-                      <div className="space-y-1.5 text-slate-300 font-medium text-xs leading-relaxed">
+                      <div className="space-y-2 text-slate-300 font-medium text-xs leading-relaxed">
                         {aiTacticalReport.split('\n').map((line, idx) => {
                           const trimmed = line.trim();
                           if (!trimmed) return <div key={idx} className="h-1" />;
 
-                          const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* ');
-                          const cleanText = isBullet ? trimmed.replace(/^[-•*]\s*/, '') : trimmed;
+                          const isHeading = trimmed.startsWith('###');
+                          const isBullet = !isHeading && (trimmed.startsWith('- ') || trimmed.startsWith('• ') || trimmed.startsWith('* '));
+                          const cleanText = isHeading ? trimmed.replace(/^###\s*/, '') : isBullet ? trimmed.replace(/^[-•*]\s*/, '') : trimmed;
 
                           const parts = cleanText.split(/(\*\*.*?\*\*)/g);
                           const formatted = parts.map((part, pIdx) => {
@@ -1442,15 +1467,23 @@ ${teamsInfo}
                             return part;
                           });
 
+                          if (isHeading) {
+                            return (
+                              <h3 key={idx} className="font-black text-sm text-white mt-4 mb-1.5 flex items-center gap-2">
+                                {formatted}
+                              </h3>
+                            );
+                          }
+
                           if (isBullet) {
                             return (
-                              <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1">
-                                <span className="text-emerald-400 font-bold shrink-0">•</span>
-                                <span>{formatted}</span>
+                              <div key={idx} className="flex items-start gap-1.5 pl-1 rtl:pl-0 rtl:pr-1 mb-1">
+                                <span className="text-emerald-500 font-bold shrink-0 mt-0.5">•</span>
+                                <span className="leading-relaxed opacity-90">{formatted}</span>
                               </div>
                             );
                           }
-                          return <p key={idx}>{formatted}</p>;
+                          return <p key={idx} className="mb-2 opacity-90 leading-relaxed">{formatted}</p>;
                         })}
                       </div>
                     </motion.div>

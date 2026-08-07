@@ -124,7 +124,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
 
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveUid, user?.uid, router]);
+  }, [effectiveUid, user?.uid, router, activeCommunityId, isViewingOwnProfile, rawUid]);
 
   return { player, setPlayer, loading, setLoading };
 }

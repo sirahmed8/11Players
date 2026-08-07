@@ -8,6 +8,7 @@ import { Users, RotateCw, Trophy, Timer, ChevronDown, ChevronUp, RefreshCw, Bot,
 import type { TurfMatchmakingResult, TurfTeam } from '@/lib/engine';
 import { renderMiniPitch } from './shared/PitchRenderer';
 import { OVR_BADGE } from './shared/PlayerBadge';
+import PlayerCardCompact from '@/components/player/PlayerCardCompact';
 
 interface TurfMatchDisplayProps {
   turfResult: TurfMatchmakingResult;
@@ -122,84 +123,41 @@ const TeamCard = ({
               ? team.gkOrder[0]?.uid === player.uid // First in rotation is current GK
               : (team.fixedGkUid === player.uid || (!team.fixedGkUid && idx === team.players.length - 1)); // Fixed GK picked or fallback to last
 
-            const ovr = Math.round(
-              Object.values(player.attributes || {}).reduce((a: number, b: number) => a + b, 0) / 
-              Math.max(1, Object.values(player.attributes || {}).length)
-            );
-
-            const isCaptain = player.uid === topCaptainUid && (voteCounts[player.uid] || 0) > 0;
+            const isCaptain = topCaptainUid === player.uid;
+            
+            const isVotedByMe = currentUserUid && captainVotes[currentUserUid] === player.uid;
             const voteCount = voteCounts[player.uid] || 0;
-            const canVote = Boolean(currentUserUid && currentUserUid !== player.uid);
-            const isVotedByMe = Boolean(currentUserUid && captainVotes && captainVotes[currentUserUid] === player.uid);
+            const canVote = !!currentUserUid && currentUserUid !== player.uid;
 
             return (
-              <div
+              <motion.div
+                layout
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
                 key={player.uid}
-                className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl"
+                className="w-full relative"
               >
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700 shrink-0">
-                  {player.photoUrl ? (
-                    <Image src={player.photoUrl} alt={player.fullName} width={32} height={32} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-sm font-black text-slate-500">
-                      {(player.cardName || player.fullName || '?').charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                      {player.cardName || player.fullName}
-                    </span>
-                    {isCaptain && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-black rounded-md shadow-sm">
-                        ©️ {isAr ? 'الكابتن' : 'Captain'}
-                      </span>
-                    )}
-                    {isGk && (
-                      <span className="px-1.5 py-0.5 text-[9px] font-black bg-amber-500/20 text-amber-700 dark:text-amber-400 rounded-md">
-                        🥅 GK
-                      </span>
-                    )}
-                    {player.stats?.isSuspended && (
-                      <span title={isAr ? 'موقوف عن اللعب (كرت أحمر)' : 'Suspended (Red Card)'} className="px-1.5 py-0.5 text-[9px] font-black bg-red-600 text-white rounded-md shadow-sm">
-                        🚫 {isAr ? 'موقوف' : 'Suspended'}
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
-                    {player.primaryPosition}
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {onVoteCaptain && (
+                <PlayerCardCompact
+                  player={player}
+                  currentUserId={currentUserUid}
+                  isMatchCaptain={isCaptain}
+                  isMatchGK={isGk}
+                  isMatchSuspended={player.stats?.isSuspended}
+                  matchVoteCount={voteCount > 0 ? voteCount : undefined}
+                  onVoteCaptain={canVote ? onVoteCaptain : undefined}
+                  rightActionSlot={
                     <button
-                      type="button"
-                      onClick={() => canVote && onVoteCaptain(player.uid)}
-                      disabled={!canVote}
-                      title={!canVote ? (isAr ? 'لا يمكنك التصويت لنفسك' : 'Cannot vote for yourself') : (isVotedByMe ? (isAr ? 'إلغاء التصويت' : 'Remove vote') : (isAr ? 'صوت ككابتن' : 'Vote Captain'))}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all shadow-sm ${
-                        isVotedByMe
-                          ? 'bg-gradient-to-r from-emerald-500 to-teal-400 text-white ring-2 ring-emerald-300 scale-105 animate-pulse cursor-pointer'
-                          : canVote
-                            ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-black cursor-pointer'
-                            : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                      }`}
+                      onClick={() => onSubstitute(team.id, player.uid)}
+                      title={isAr ? "تبديل لاعب" : "Substitute Player"}
+                      className="p-2 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-xl transition-all shadow-sm bg-slate-900/50 border border-slate-700 hover:border-amber-500/50 group"
                     >
-                      👑 {voteCount > 0 ? `${voteCount} ${isVotedByMe ? (isAr ? 'صوتك' : 'Voted') : ''}` : (isAr ? '+1 تصويت' : '+1 Vote')}
+                      <RefreshCw className="w-4 h-4 group-active:rotate-180 transition-transform duration-300" />
                     </button>
-                  )}
-                  <OVR_BADGE ovr={ovr || 60} />
-                  <button
-                    onClick={() => onSubstitute(team.id, player.uid)}
-                    title={isAr ? "تبديل لاعب" : "Substitute Player"}
-                    className="p-1.5 text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-slate-700 rounded-lg transition-colors"
-                  >
-                    <RefreshCw className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+                  }
+                />
+              </motion.div>
             );
           })}
         </div>

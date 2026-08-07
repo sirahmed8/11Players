@@ -157,6 +157,20 @@ export default function NotificationsPage() {
       });
       localStorage.setItem("11players_deleted_notifs", JSON.stringify(deletedIds));
 
+      // Batch delete from Firestore to fix ghost dot in Sidebar
+      const personalNotifs = notifications.filter((n) => !n.id.startsWith("ann_notif_"));
+      if (personalNotifs.length > 0) {
+        const chunkSize = 400;
+        for (let i = 0; i < personalNotifs.length; i += chunkSize) {
+          const batch = writeBatch(db);
+          const chunk = personalNotifs.slice(i, i + chunkSize);
+          chunk.forEach((n) => {
+            batch.delete(doc(db, "users", user.uid, "notifications", n.id));
+          });
+          await batch.commit();
+        }
+      }
+
       setNotifications((prev) => prev.filter((n) => n.isPublicBroadcast));
       setConfirmDeleteAll(false);
       toast.success(isAr ? "تم مسح جميع التنبيهات بنجاح 🔔" : "All notifications cleared 🔔");

@@ -1839,9 +1839,13 @@ export function generateTurfMatch(
     });
   }
 
-  // Distribute leftover reserve players to each team's own dedicated bench
+  // Distribute leftover reserve players using serpentine draft to balance bench power
   leftoverPlayers.forEach((player, idx) => {
-    const targetTeamIdx = idx % teams.length;
+    const round = Math.floor(idx / teams.length);
+    let targetTeamIdx = idx % teams.length;
+    if (round % 2 !== 0) {
+      targetTeamIdx = teams.length - 1 - targetTeamIdx; // Reverse for serpentine
+    }
     if (!teams[targetTeamIdx].bench) {
       teams[targetTeamIdx].bench = [];
     }

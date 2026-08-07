@@ -79,7 +79,7 @@ function SidebarContent() {
         container.scrollTo({ top: Math.max(0, offsetTop), behavior: "smooth" });
       }
     }
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);
 

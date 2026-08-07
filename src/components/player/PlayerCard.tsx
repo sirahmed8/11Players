@@ -20,6 +20,11 @@ export interface PlayerCardProps {
   onVoteCaptain?: (uid: string) => void;
   onCompare?: (player: PlayerProfile) => void;
   currentUserId?: string;
+  isMatchCaptain?: boolean;
+  isMatchGK?: boolean;
+  isMatchSuspended?: boolean;
+  matchVoteCount?: number;
+  rightActionSlot?: React.ReactNode;
 }
 
 function getAttributeColor(value: number): string {
@@ -50,6 +55,11 @@ const PlayerCard = React.memo(function PlayerCard({
   onVoteCaptain,
   onCompare,
   currentUserId,
+  isMatchCaptain,
+  isMatchGK,
+  isMatchSuspended,
+  matchVoteCount,
+  rightActionSlot,
 }: PlayerCardProps) {
   const { locale } = useLocale();
   const isAr = locale === 'ar';
@@ -168,7 +178,7 @@ const PlayerCard = React.memo(function PlayerCard({
             </span>
           </div>
 
-          <div className="p-4 flex items-start gap-3.5 pr-20 rtl:pr-4 rtl:pl-20">
+          <div className="p-4 flex items-center gap-3.5 pr-20 rtl:pr-4 rtl:pl-20">
             {/* Avatar */}
             <div className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden flex-shrink-0 border-2 bg-slate-950 ${
               isCurrentUser ? 'border-emerald-500 shadow-md' : 'border-slate-700'
@@ -203,12 +213,27 @@ const PlayerCard = React.memo(function PlayerCard({
                 <span className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                   {player.primaryPosition}
                 </span>
-                {player.secondaryPosition && (
+                {isMatchCaptain && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-black bg-gradient-to-r from-amber-400 to-yellow-500 text-black rounded-md shadow-sm">
+                    ©️ {isAr ? 'الكابتن' : 'Captain'}
+                  </span>
+                )}
+                {isMatchGK && (
+                  <span className="px-1.5 py-0.5 text-[10px] font-black bg-amber-500/20 text-amber-400 rounded-md">
+                    🥅 GK
+                  </span>
+                )}
+                {isMatchSuspended && (
+                  <span title={isAr ? 'موقوف عن اللعب (كرت أحمر)' : 'Suspended (Red Card)'} className="px-1.5 py-0.5 text-[10px] font-black bg-red-600 text-white rounded-md shadow-sm">
+                    🚫 {isAr ? 'موقوف' : 'Suspended'}
+                  </span>
+                )}
+                {!isMatchCaptain && !isMatchGK && !isMatchSuspended && player.secondaryPosition && (
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30">
                     {player.secondaryPosition}
                   </span>
                 )}
-                {player.tertiaryPosition && (
+                {!isMatchCaptain && !isMatchGK && !isMatchSuspended && player.tertiaryPosition && (
                   <span className="text-[11px] font-medium px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700">
                     {player.tertiaryPosition}
                   </span>
@@ -235,6 +260,13 @@ const PlayerCard = React.memo(function PlayerCard({
                 )}
               </div>
             </div>
+
+            {/* Custom Right Action Slot */}
+            {rightActionSlot && (
+              <div className="ml-auto rtl:ml-0 rtl:mr-auto pl-2 rtl:pl-0 rtl:pr-2 flex items-center justify-center relative z-20" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>
+                {rightActionSlot}
+              </div>
+            )}
           </div>
 
           {/* Action Buttons Row */}
