@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback, useRef, useId } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PESPosition, PlayerProfile } from '@/types';
 import { calculateTeamMetrics, calculatePSI } from '@/lib/engine';
@@ -248,12 +249,12 @@ export const CaptainDraftRoom: React.FC<CaptainDraftRoomProps> = ({
             The Captain Draft Room requires at least 4 registered players in your community. Add players first, then come back to start the draft.
           </p>
         </div>
-        <a
+        <Link
           href="/community"
           className="px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black rounded-2xl shadow-lg shadow-emerald-500/20 transition-all"
         >
           Go to Player Directory
-        </a>
+        </Link>
       </div>
     );
   }

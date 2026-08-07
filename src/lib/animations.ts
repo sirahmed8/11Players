@@ -34,32 +34,38 @@ export const modalOverlayVariants: Variants = {
 };
 
 export const modalContentVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.95, y: 15 },
+  hidden: { opacity: 0, scale: 0.9, y: 20, filter: 'blur(8px)' },
   visible: {
     opacity: 1,
     scale: 1,
     y: 0,
-    transition: { type: 'spring', stiffness: 380, damping: 28 },
+    filter: 'blur(0px)',
+    transition: { type: 'spring', stiffness: 400, damping: 30, mass: 0.8 },
   },
   exit: {
     opacity: 0,
-    scale: 0.96,
-    y: 10,
-    transition: { duration: 0.18, ease: 'easeIn' },
+    scale: 0.95,
+    y: -10,
+    filter: 'blur(4px)',
+    transition: { duration: 0.2, ease: 'easeIn' },
   },
 };
 
 export const pageTransitionVariants: Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 15, scale: 0.98, filter: 'blur(4px)' },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { type: 'spring', stiffness: 350, damping: 30, mass: 0.8 },
   },
   exit: {
     opacity: 0,
-    y: -6,
-    transition: { duration: 0.18, ease: 'easeIn' },
+    y: -10,
+    scale: 0.99,
+    filter: 'blur(2px)',
+    transition: { duration: 0.2, ease: 'easeIn' },
   },
 };
 
@@ -71,8 +77,16 @@ const springRowTransition: Transition = { type: 'spring', stiffness: 380, dampin
  * Micro-Spring Physics Props for interactive buttons, cards, tabs, and pills.
  */
 export const microSpringProps = {
-  whileHover: { scale: 1.02, y: -2 },
-  whileTap: { scale: 0.97 },
+  whileHover: { scale: 1.025, y: -2, transition: { type: 'spring' as const, stiffness: 400, damping: 25 } },
+  whileTap: { scale: 0.96, transition: { type: 'spring' as const, stiffness: 400, damping: 25 } },
+  transition: springTransition,
+};
+
+/**
+ * Drag Physics Props for draggable elements (like the pitch builder).
+ */
+export const microSpringDragProps = {
+  whileDrag: { scale: 1.05, cursor: 'grabbing', zIndex: 50 },
   transition: springTransition,
 };
 

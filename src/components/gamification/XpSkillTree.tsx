@@ -201,8 +201,8 @@ export function evaluateBadgeUnlockStatus(
   }
 
   const xpReqMet = userXp >= node.requirements.minXp;
-  // Unlock if XP requirements or stat attributes are met
-  const unlocked = xpReqMet || statReqMet;
+  // Unlock only if BOTH XP requirements and stat attribute requirements are met
+  const unlocked = xpReqMet && statReqMet;
 
   if (!unlocked) {
     const progress = Math.min(100, Math.round((userXp / node.requirements.minXp) * 100));

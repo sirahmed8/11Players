@@ -161,12 +161,7 @@ export default function CommunityPage() {
   if (loading) {
     return (
       <ProtectedRoute requireCommunity>
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-8">
-          <div className="flex items-center gap-3 bg-slate-900 px-6 py-4 rounded-2xl border border-slate-800 shadow-xl">
-            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm font-bold text-slate-300">Loading Community Squad...</span>
-          </div>
-        </div>
+        <SiteSkeletonLoader variant="community" />
       </ProtectedRoute>
     );
   }

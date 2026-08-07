@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProSubscription } from "@/contexts/ProSubscriptionContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { PlayerProfile } from "@/types";
 import { useLocale } from "@/components/ui/ThemeProvider";
@@ -15,7 +16,10 @@ import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import FormIcon from "@/components/ui/FormIcon";
 import { motion, AnimatePresence } from "framer-motion";
 import { staggerContainerVariants, staggerItemVariants, microSpringProps, microSpringRowProps } from "@/lib/animations";
-import LeagueTiersWidget from "@/components/leaderboard/LeagueTiersWidget";
+import dynamic from "next/dynamic";
+const LeagueTiersWidget = dynamic(() => import("@/components/leaderboard/LeagueTiersWidget"), { 
+  loading: () => <div className="h-64 rounded-3xl skeleton" />
+});
 
 // ─── Avatar ─────────────────────────────────────────────────────────────────
 function PlayerAvatar({
@@ -487,10 +491,11 @@ const POS_GROUPS = [
 ];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
-export default function StatsPage() {
+export default function StatsDashboard() {
   const { players, loading } = usePlayers();
-  const { locale } = useLocale();
   const { user } = useAuth();
+  const { hasProAccess } = useProSubscription();
+  const { locale } = useLocale();
   const isAr = locale === "ar";
   const [selectedPos, setSelectedPos] = React.useState("ALL");
   const [isPosDropdownOpen, setIsPosDropdownOpen] = React.useState(false);
@@ -903,13 +908,37 @@ export default function StatsPage() {
                 </div>
 
                 {/* 3-col grid for remaining tables */}
-                <motion.div
-                  variants={staggerContainerVariants}
-                  initial="hidden"
-                  whileInView="visible"
-                  viewport={{ once: true }}
-                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-                >
+                <div className="relative">
+                  {!hasProAccess && (
+                    <div className="absolute inset-0 z-20 backdrop-blur-md bg-slate-900/40 rounded-3xl flex flex-col items-center justify-center p-6 border border-slate-700">
+                      <div className="bg-slate-900 p-4 rounded-full border border-slate-700 shadow-xl mb-4">
+                        <Crown className="w-8 h-8 text-amber-500" />
+                      </div>
+                      <h3 className="text-xl font-black text-white mb-2">
+                        {isAr ? "إحصائيات متقدمة" : "Advanced Stats"}
+                      </h3>
+                      <p className="text-slate-300 text-sm text-center max-w-sm mb-6">
+                        {isAr
+                          ? "قم بالترقية إلى برو لفتح جميع الإحصائيات وترتيبات اللاعبين."
+                          : "Upgrade to Pro to unlock full analytics and deep player rankings."}
+                      </p>
+                      <Link
+                        href="/pro-pass"
+                        className="px-6 py-2.5 rounded-full bg-gradient-to-r from-emerald-500 to-emerald-600 font-bold text-white shadow-lg hover:shadow-emerald-500/25 transition-all active:scale-95"
+                      >
+                        {isAr ? "افتح برو الآن" : "Unlock Pro"}
+                      </Link>
+                    </div>
+                  )}
+                  <motion.div
+                    variants={staggerContainerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ${
+                      !hasProAccess ? "opacity-30 pointer-events-none select-none" : ""
+                    }`}
+                  >
                   <motion.div variants={staggerItemVariants}>
                     <LeaderboardTable
                       tableId="goals"
@@ -971,7 +1000,8 @@ export default function StatsPage() {
                       icon={<Flame className="w-4 h-4 text-orange-500" />}
                     />
                   </motion.div>
-                </motion.div>
+                  </motion.div>
+                </div>
               </section>
             </>
           )}

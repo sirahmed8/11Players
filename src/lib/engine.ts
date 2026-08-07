@@ -442,11 +442,19 @@ export function getPositionFamiliarityMultiplier(player: PlayerProfile, targetPo
   return 0.20;
 }
 
+const psiCache = new Map<string, number>();
+
 export function calculatePSI(player: PlayerProfile, position: PESPosition): number {
   const activeAttributes = player?.approvedAttributes || player?.attributes;
   if (!activeAttributes) {
     throw new Error(`calculatePSI: player "${player?.uid ?? 'unknown'}" has no attributes`);
   }
+
+  const cacheKey = `${player.uid}_${position}`;
+  if (psiCache.has(cacheKey)) {
+    return psiCache.get(cacheKey)!;
+  }
+
 
   const weights = PSI_WEIGHTS[position];
   if (!weights) {
@@ -548,6 +556,7 @@ export function calculatePSI(player: PlayerProfile, position: PESPosition): numb
     }
   }
 
+  psiCache.set(cacheKey, psi);
   return psi;
 }
 

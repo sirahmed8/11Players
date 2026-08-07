@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useCommunity } from "@/contexts/CommunityContext";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
+import Link from "next/link";
 import AdminTable from "@/components/admin/AdminTable";
 import { motion, AnimatePresence } from "framer-motion";
 import { generateMasterBulkPDF } from "@/lib/pdf";
@@ -266,12 +267,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <ProtectedRoute adminOnly requireCommunity={false}>
-        <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-8">
-          <div className="flex items-center gap-3 bg-slate-900 px-6 py-4 rounded-2xl border border-slate-800 shadow-xl">
-            <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm font-bold text-slate-300">Loading Command Center...</span>
-          </div>
-        </div>
+        <SiteSkeletonLoader variant="admin" />
       </ProtectedRoute>
     );
   }
@@ -291,9 +287,9 @@ export default function AdminPage() {
               <p className="text-xs text-slate-400 max-w-md mb-6 font-medium">
                 {isAr ? "يرجى تحديد مجتمع من قائمة المجتمعات للوصول إلى لوحة التحكم." : "Please select a community to access executive controls."}
               </p>
-              <a href="/communities" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl transition-all shadow-lg shadow-emerald-600/30">
+              <Link href="/communities" className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl transition-all shadow-lg shadow-emerald-600/30">
                 {isAr ? "الذهاب للمجتمعات" : "Go to Communities"}
-              </a>
+              </Link>
             </div>
           ) : (
             <>
