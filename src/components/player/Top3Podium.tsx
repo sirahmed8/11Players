@@ -75,6 +75,8 @@ export default function Top3Podium({ players, isAr, onSelectPlayer }: Top3Podium
         onClick={() => onSelectPlayer?.(player)}
         className={`relative flex flex-col items-center cursor-pointer group ${config.order} ${config.scale} flex-1 max-w-[260px]`}
       >
+        {/* Glow backdrop behind the avatar */}
+        <div className={`absolute top-10 w-[140%] aspect-square rounded-full blur-[40px] opacity-20 -z-10 transition-opacity duration-500 group-hover:opacity-40 ${config.accent}`} />
         {/* Crown / Trophy icon floating above */}
         <div className="mb-2">{config.crown}</div>
 
@@ -113,10 +115,16 @@ export default function Top3Podium({ players, isAr, onSelectPlayer }: Top3Podium
         </div>
 
         {/* Podium Base */}
-        <div className={`w-full ${config.height} rounded-t-3xl bg-slate-900 border ${config.border} p-4 flex flex-col items-center justify-between shadow-2xl relative overflow-hidden`}>
+        <div
+          className={`w-full ${config.height} mt-2 rounded-t-3xl border-t-2 border-x-2 ${config.border} bg-slate-900/60 backdrop-blur-md relative overflow-hidden flex flex-col items-center pt-5 shadow-2xl transition-all duration-300 group-hover:bg-slate-900/80 group-hover:-translate-y-1`}
+        >
+          {/* Glass reflections & inner glow */}
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+          <div className={`absolute top-0 w-full h-px ${config.accent} opacity-50`} />
           <span className={`text-[10px] uppercase tracking-widest font-black px-3 py-1 rounded-full ${config.badgeBg} shadow-md`}>
             {config.label}
           </span>
+          <div className="flex-1" />
 
           <div className="text-center space-y-1">
             <span className="text-3xl font-black text-white leading-none block">

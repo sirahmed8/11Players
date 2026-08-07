@@ -329,11 +329,10 @@ const PlayerCard = React.memo(function PlayerCard({
   }
 
   // --- Full FUT Card Variant ---
-  const CardWrapper = player.uid === 'preview' ? 'div' : Link;
-  const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
+  const profileUrl = player.uid === 'preview' ? '' : `/profile?uid=${player.uid}`;
 
   return (
-    <CardWrapper {...wrapperProps as any} className="block w-fit perspective-1000" style={{ perspective: 1000 }}>
+    <div className="block w-fit perspective-1000" style={{ perspective: 1000 }}>
       <motion.div
         ref={cardRef}
         onMouseMove={handleMouseMove}
@@ -342,8 +341,12 @@ const PlayerCard = React.memo(function PlayerCard({
         whileTap={{ scale: 0.96 }}
         style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        className={`w-72 sm:w-80 rounded-3xl backdrop-blur-xl ${theme.cardBg} ${theme.border} hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] overflow-hidden cursor-pointer relative shadow-2xl flex flex-col justify-between transition-colors duration-300`}
+        className={`w-72 sm:w-80 rounded-3xl backdrop-blur-xl ${theme.cardBg} ${theme.border} hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] overflow-hidden relative shadow-2xl flex flex-col justify-between transition-colors duration-300`}
       >
+        {/* Invisible Link for full card navigation */}
+        {profileUrl && (
+          <Link href={profileUrl} className="absolute inset-0 z-0 cursor-pointer" aria-label={`View ${player.cardName || player.fullName}'s profile`} />
+        )}
         {/* Holographic Glossy Top Shine Effect */}
         <motion.div 
           className="pointer-events-none absolute inset-0 z-10 opacity-60"
@@ -518,7 +521,7 @@ const PlayerCard = React.memo(function PlayerCard({
           </button>
         </div>
       </motion.div>
-    </CardWrapper>
+    </div>
   );
 });
 

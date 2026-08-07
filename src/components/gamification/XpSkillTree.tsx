@@ -425,13 +425,57 @@ export default function XpSkillTree() {
       {/* Skill Tree Nodes Grid & Details Inspector */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Grid: Skill Tree Nodes Graph */}
-        <div className="lg:col-span-7 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 backdrop-blur-md space-y-6 relative overflow-hidden">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
+        <div className="lg:col-span-7 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 backdrop-blur-md space-y-6 relative overflow-hidden z-0">
+          
+          {/* Animated Background Connection Lines (Circuit/Tree pattern) */}
+          <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10 opacity-30" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="glow-line-1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
+                <stop offset="50%" stopColor="#10b981" stopOpacity="1" />
+                <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="glow-line-2" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0" />
+                <stop offset="50%" stopColor="#06b6d4" stopOpacity="1" />
+                <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <motion.path 
+              d="M 10 50 Q 50 50, 50 150 T 90 250 T 150 250" 
+              fill="none" 
+              stroke="url(#glow-line-1)" 
+              strokeWidth="2"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+            />
+            <motion.path 
+              d="M 90 10 Q 90 100, 150 100 T 250 150 T 350 150" 
+              fill="none" 
+              stroke="url(#glow-line-2)" 
+              strokeWidth="2"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 1 }}
+            />
+            <motion.path 
+              d="M 300 10 Q 300 200, 200 250 T 100 350 T 50 350" 
+              fill="none" 
+              stroke="url(#glow-line-1)" 
+              strokeWidth="2"
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{ duration: 3.5, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 2 }}
+            />
+          </svg>
+
+          <h2 className="text-lg font-bold text-white flex items-center gap-2 relative z-10">
             <Star className="w-5 h-5 text-amber-400" />
             {isAr ? "خريطة الأوسمة المتاحة" : "Skill Badge Matrix"}
           </h2>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 relative z-10">
             {useMemo(() => DEFAULT_SKILL_NODES.map((node) => {
               const status = evaluateBadgeUnlockStatus(node.id, playerStats, totalXp);
               const isSelected = node.id === selectedNodeId;

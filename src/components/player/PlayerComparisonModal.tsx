@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search, Zap, ArrowRightLeft, UserX, Trophy, Flame, Shield, Activity, Crown, Sparkles } from "lucide-react";
@@ -168,7 +169,12 @@ export default function PlayerComparisonModal({
     return { winsA, winsB, ties };
   }, [playerA, playerB]);
 
-  return (
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div
@@ -577,6 +583,7 @@ export default function PlayerComparisonModal({
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

@@ -7,6 +7,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import PlayerCardCompact from "@/components/player/PlayerCardCompact";
 import Top3Podium from "@/components/player/Top3Podium";
+import GlobalLiveTicker from "@/components/gamification/GlobalLiveTicker";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { useAuth } from "@/contexts/AuthContext";
@@ -98,6 +99,8 @@ export default function GlobalLeaderboardPage() {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full bg-amber-500/5 blur-[120px]" />
         <div className="absolute top-1/3 right-0 w-[500px] h-[400px] rounded-full bg-emerald-500/4 blur-[100px]" />
       </div>
+
+      <GlobalLiveTicker />
 
       <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
         

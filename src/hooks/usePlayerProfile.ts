@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { doc, getDocs, collection, query, where, setDoc, onSnapshot, getDoc } from "firebase/firestore";
+import { doc, getDocs, collection, query, where, onSnapshot, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { PlayerProfile } from "@/types";
 import { useRouter } from "next/navigation";
@@ -7,19 +7,82 @@ import { useRouter } from "next/navigation";
 export function usePlayerProfile(effectiveUid: string | null | undefined, user: any, isViewingOwnProfile: boolean, rawUid: string | null, activeCommunityId?: string | null) {
   const [player, setPlayer] = useState<PlayerProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [resolvedUid, setResolvedUid] = useState<string | null>(null);
   const router = useRouter();
 
+  // Step 1: Resolve the effectiveUid to a real Firestore UID
   useEffect(() => {
     if (!effectiveUid) {
+      setResolvedUid(null);
       return;
     }
+
+    const resolveUid = async () => {
+      try {
+        // Try direct fetch first to see if it's a valid UID
+        const docSnap = await getDoc(doc(db, "players", effectiveUid));
+        if (docSnap.exists()) {
+          setResolvedUid(effectiveUid);
+          return;
+        }
+
+        // If not found, it might be a username or card name
+        const cleanHandle = effectiveUid.toLowerCase().replace(/^@+/, "");
+        
+        const uQuery = query(collection(db, "players"), where("username", "==", cleanHandle));
+        const uSnap = await getDocs(uQuery);
+        if (!uSnap.empty) {
+          setResolvedUid(uSnap.docs[0].id);
+          return;
+        }
+
+        const cQuery = query(collection(db, "players"), where("cardName", "==", cleanHandle.toUpperCase()));
+        const cSnap = await getDocs(cQuery);
+        if (!cSnap.empty) {
+          setResolvedUid(cSnap.docs[0].id);
+          return;
+        }
+
+        // Check if player exists in active community before giving up
+        const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
+        if (activeCommId) {
+          const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
+          if (commSnap.exists()) {
+            setResolvedUid(commSnap.id);
+            return;
+          }
+        }
+
+        if (user?.email && isViewingOwnProfile) {
+          const q = query(collection(db, "players"), where("email", "==", user.email));
+          const querySnap = await getDocs(q);
+          if (!querySnap.empty) {
+            setResolvedUid(querySnap.docs[0].id);
+            return;
+          }
+        }
+
+        // If all fails, trigger the subscriber which will handle the null/404 state
+        setResolvedUid(effectiveUid);
+      } catch (err) {
+        console.warn("UID resolution error:", err);
+        setResolvedUid(effectiveUid);
+      }
+    };
+
+    resolveUid();
+  }, [effectiveUid, activeCommunityId, isViewingOwnProfile, user?.email]);
+
+  // Step 2: Subscribe to the resolved UID
+  useEffect(() => {
+    if (!resolvedUid) return;
 
     if (!player) {
       setLoading(true);
     }
     
     const unsub = onSnapshot(
-      doc(db, "players", effectiveUid),
+      doc(db, "players", resolvedUid),
       async (snap) => {
         if (snap.exists()) {
           const d = snap.data();
@@ -30,7 +93,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
             const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
             if (activeCommId) {
               try {
-                const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
+                const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", resolvedUid));
                 if (commSnap.exists()) {
                   const cd = commSnap.data();
                   finalPlayer = {
@@ -49,65 +112,6 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
           setPlayer(finalPlayer);
           setLoading(false);
         } else {
-          // Check if effectiveUid is actually a username handle or card name
-          try {
-            const cleanHandle = effectiveUid.toLowerCase().replace(/^@+/, "");
-            const uQuery = query(collection(db, "players"), where("username", "==", cleanHandle));
-            const uSnap = await getDocs(uQuery);
-            if (!uSnap.empty) {
-              const uDoc = uSnap.docs[0];
-              const ud = uDoc.data();
-              setPlayer({ uid: uDoc.id, ...ud, attributes: ud.attributes || {}, stats: ud.stats || {} } as PlayerProfile);
-              setLoading(false);
-              return;
-            }
-
-            // Secondary check by upper case cardName or fullName
-            const cQuery = query(collection(db, "players"), where("cardName", "==", cleanHandle.toUpperCase()));
-            const cSnap = await getDocs(cQuery);
-            if (!cSnap.empty) {
-              const cDoc = cSnap.docs[0];
-              const cd = cDoc.data();
-              setPlayer({ uid: cDoc.id, ...cd, attributes: cd.attributes || {}, stats: cd.stats || {} } as PlayerProfile);
-              setLoading(false);
-              return;
-            }
-          } catch (err) {
-            console.warn("Username/CardName query lookup error:", err);
-          }
-
-          // Check if player exists in active community before giving up
-          const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
-          if (activeCommId) {
-            try {
-              const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
-              if (commSnap.exists()) {
-                const cd = commSnap.data();
-                setPlayer({ uid: commSnap.id, ...cd, attributes: cd.attributes || {}, stats: cd.stats || {} } as PlayerProfile);
-                setLoading(false);
-                return;
-              }
-            } catch (e) {
-              console.error("Fallback community profile lookup failed:", e);
-            }
-          }
-
-          if (user?.email && isViewingOwnProfile) {
-            try {
-              const q = query(collection(db, "players"), where("email", "==", user.email));
-              const querySnap = await getDocs(q);
-              if (!querySnap.empty) {
-                const existingData = querySnap.docs[0].data();
-                const matchedUid = querySnap.docs[0].id;
-                setPlayer({ uid: matchedUid, ...existingData, attributes: existingData.attributes || {}, stats: existingData.stats || {} } as PlayerProfile);
-                setLoading(false);
-                return;
-              }
-            } catch (e) {
-              console.error("Profile sync by email error:", e);
-            }
-          }
-
           setPlayer(null);
           setLoading(false);
           // Only redirect to onboarding if the user navigated to their OWN profile directly without param
@@ -124,7 +128,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
 
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [effectiveUid, user?.uid, router, activeCommunityId, isViewingOwnProfile, rawUid]);
+  }, [resolvedUid, activeCommunityId, isViewingOwnProfile, rawUid, router]);
 
   return { player, setPlayer, loading, setLoading };
 }

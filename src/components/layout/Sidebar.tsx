@@ -14,6 +14,7 @@ import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import toast from "react-hot-toast";
+import { useNotifications } from "@/hooks/useNotifications";
 import QuickMatchGeneratorModal from "@/components/match/QuickMatchGeneratorModal";
 import CommandPaletteModal from "@/components/ui/CommandPaletteModal";
 
@@ -88,18 +89,14 @@ function SidebarContent() {
     pathnameRef.current = pathname;
   }, [pathname]);
 
-  // Listen for Personal Notifications (updates unread count badge; AdviceNotification.tsx handles the live toast popups)
-  useEffect(() => {
-    if (!user) return;
-    const q = query(collection(db, "users", user.uid, "notifications"), where("read", "==", false));
-    const unsub = onSnapshot(q, (snap) => {
-      setUnreadNotifsCount(snap.docs.length);
-    }, (err) => {
-      if (err?.code !== 'permission-denied') console.warn("Sidebar notifications snapshot warning:", err);
-    });
-    return () => unsub();
-  }, [user]);
+  // Load centralized notifications to correctly compute unread badge (including globals and localStorage)
+  const { notifications } = useNotifications(user);
 
+  useEffect(() => {
+    if (notifications) {
+      setUnreadNotifsCount(notifications.filter(n => !n.read).length);
+    }
+  }, [notifications]);
   // Listen for Global Chat Notifications (Admin/Moderator Inbox)
   useEffect(() => {
     if (!user || (!isOwner && !isGlobalModerator)) return;

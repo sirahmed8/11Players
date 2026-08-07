@@ -87,7 +87,8 @@ export default function NotificationsPage() {
       }
 
       // 3. Background Firestore update for personal items
-      if (!id.startsWith("ann_notif_")) {
+      const notif = notifications.find(n => n.id === id);
+      if (notif && !id.startsWith("ann_notif_") && !notif.isTopLevel && !notif.isPublicBroadcast) {
         updateDoc(doc(db, "users", user.uid, "notifications", id), { read: true }).catch(() => {});
       }
     } catch (error) {
@@ -110,7 +111,7 @@ export default function NotificationsPage() {
       localStorage.setItem("11players_read_notifs", JSON.stringify(readIds));
 
       // 3. Background Firestore updates for unread personal items
-      const unreadPersonal = notifications.filter((n) => !n.read && !n.id.startsWith("ann_notif_"));
+      const unreadPersonal = notifications.filter((n) => !n.read && !n.id.startsWith("ann_notif_") && !n.isTopLevel && !n.isPublicBroadcast);
       if (unreadPersonal.length > 0) {
         const chunkSize = 400;
         for (let i = 0; i < unreadPersonal.length; i += chunkSize) {
@@ -138,7 +139,8 @@ export default function NotificationsPage() {
         deletedIds.push(id);
         localStorage.setItem("11players_deleted_notifs", JSON.stringify(deletedIds));
       }
-      if (!id.startsWith("ann_notif_")) {
+      const notif = notifications.find(n => n.id === id);
+      if (notif && !id.startsWith("ann_notif_") && !notif.isTopLevel && !notif.isPublicBroadcast) {
         deleteDoc(doc(db, "users", user.uid, "notifications", id)).catch(() => {});
       }
       toast.success(isAr ? "تم حذف الإشعار" : "Notification deleted");

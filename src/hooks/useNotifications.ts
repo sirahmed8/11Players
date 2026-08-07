@@ -17,6 +17,7 @@ export interface UserNotification {
   type: NotificationType;
   link?: string;
   isPublicBroadcast?: boolean;
+  isTopLevel?: boolean;
 }
 
 export const INITIAL_PLATFORM_NOTIFICATIONS: Omit<UserNotification, "id" | "read">[] = [
@@ -125,18 +126,29 @@ export function useNotifications(user: any) {
         return timeB - timeA;
       });
 
-      // Auto-seed initial platform notifications & advices if user has no personal notifications
-      if (userNotifs.length < 3 && user?.uid) {
-        INITIAL_PLATFORM_NOTIFICATIONS.forEach((initNotif) => {
-          const key = (initNotif.titleEn + "___" + initNotif.bodyEn).toLowerCase().trim();
-          if (!seenKeys.has(key)) {
-            try {
-              addDoc(collection(db, "users", user.uid, "notifications"), {
+      // Auto-seed initial platform notifications locally so they have static IDs and persist read status in localStorage
+      if (combined.length < 5) {
+        INITIAL_PLATFORM_NOTIFICATIONS.forEach((initNotif, idx) => {
+          const staticId = `sys_notif_seed_${idx}`;
+          if (!deletedIds.includes(staticId)) {
+            const key = (initNotif.titleEn + "___" + initNotif.bodyEn).toLowerCase().trim();
+            if (!seenKeys.has(key)) {
+              combined.push({
                 ...initNotif,
-                read: false,
-              }).catch(() => {});
-            } catch (e) {}
+                id: staticId,
+                read: readIds.includes(staticId),
+                isTopLevel: true, // Prevents trying to update a missing Firestore doc if marked read
+              });
+              seenKeys.add(key);
+            }
           }
+        });
+        
+        // Re-sort after adding local seeds
+        combined.sort((a, b) => {
+          const timeA = a.createdAt?.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt || 0).getTime();
+          const timeB = b.createdAt?.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt || 0).getTime();
+          return timeB - timeA;
         });
       }
 
@@ -193,7 +205,7 @@ export function useNotifications(user: any) {
     const unsubTop = onSnapshot(
       qTop,
       (snapshot) => {
-        topLevelNotifs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() } as UserNotification));
+        topLevelNotifs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data(), isTopLevel: true } as UserNotification));
         mergeNotifications();
       },
       (err) => console.warn("Error fetching top notifications:", err)
