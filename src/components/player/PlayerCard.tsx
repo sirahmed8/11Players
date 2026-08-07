@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { PlayerProfile } from '@/types';
 import FormIcon from '@/components/ui/FormIcon';
 import { getPlayerOverall } from '@/lib/playerUtils';
@@ -56,6 +56,33 @@ const PlayerCard = React.memo(function PlayerCard({
   const activeAttributes = player.approvedAttributes || player.attributes || {};
   const overall = getPlayerOverall(player);
   const [imgError, setImgError] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // 3D Motion Perspective
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-150, 150], [15, -15]);
+  const rotateYRaw = useTransform(x, [-150, 150], [-15, 15]);
+  const sheenXRaw = useTransform(x, [-150, 150], ["0%", "100%"]);
+  const sheenYRaw = useTransform(y, [-150, 150], ["0%", "100%"]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (variant === 'compact' || !cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    x.set(e.clientX - centerX);
+    y.set(e.clientY - centerY);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
 
   const displayPhoto = player.photoUrl || (player as any).photoURL || player.googlePic || (player as any).userPic || '';
 
@@ -274,14 +301,24 @@ const PlayerCard = React.memo(function PlayerCard({
   const wrapperProps = player.uid === 'preview' ? {} : { href: `/profile?uid=${player.uid}` };
 
   return (
-    <CardWrapper {...wrapperProps as any} className="block w-fit">
+    <CardWrapper {...wrapperProps as any} className="block w-fit perspective-1000" style={{ perspective: 1000 }}>
       <motion.div
-        whileHover={{ scale: 1.025, y: -2 }}
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        whileHover={{ scale: 1.025 }}
         whileTap={{ scale: 0.96 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
         transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-        className={`w-72 sm:w-80 rounded-3xl backdrop-blur-xl ${theme.cardBg} ${theme.border} hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] overflow-hidden cursor-pointer relative shadow-2xl flex flex-col justify-between transition-all duration-300`}
+        className={`w-72 sm:w-80 rounded-3xl backdrop-blur-xl ${theme.cardBg} ${theme.border} hover:border-emerald-500/50 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] overflow-hidden cursor-pointer relative shadow-2xl flex flex-col justify-between transition-colors duration-300`}
       >
         {/* Holographic Glossy Top Shine Effect */}
+        <motion.div 
+          className="pointer-events-none absolute inset-0 z-10 opacity-60"
+          style={{
+            background: `radial-gradient(circle at ${sheenXRaw} ${sheenYRaw}, rgba(255,255,255,0.15), transparent 60%)`
+          }}
+        />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent z-10" />
 
         {/* --- Card Top Header --- */}

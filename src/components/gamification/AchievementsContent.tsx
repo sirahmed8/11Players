@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { db } from "@/lib/firebase";
@@ -11,7 +11,7 @@ import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   Trophy, Target, Handshake, Star, Sparkles, Zap, Shield, Lock,
   CheckCircle2, BarChart3, TrendingUp, Award, Medal, Crown, Filter, ChevronRight, Share2
@@ -32,11 +32,35 @@ function getAchievementRarity(achievement: any): "gold" | "silver" | "bronze" | 
 }
 
 function StatTile({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string | number; sub?: string }) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-100, 100], [10, -10]);
+  const rotateYRaw = useTransform(x, [-100, 100], [-10, 10]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
   return (
-    <motion.div
-      whileHover={{ y: -2 }}
-      className="relative overflow-hidden rounded-3xl border border-slate-800 p-5 bg-slate-900 shadow-xl flex flex-col justify-between"
-    >
+    <div style={{ perspective: 1000 }} className="block w-full">
+      <motion.div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        whileHover={{ y: -2, scale: 1.02 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className="relative overflow-hidden rounded-3xl border border-slate-800 p-5 bg-slate-900 shadow-xl flex flex-col justify-between"
+      >
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="w-10 h-10 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0 shadow-inner">
           {icon}
@@ -48,6 +72,7 @@ function StatTile({ icon, label, value, sub }: { icon: React.ReactNode; label: s
         {sub && <p className="text-[10px] font-bold text-slate-500 truncate mt-0.5">{sub}</p>}
       </div>
     </motion.div>
+    </div>
   );
 }
 
@@ -85,20 +110,52 @@ function AchievementCard({ achievement, isAr, player }: { achievement: any; isAr
   const isEarned = achievement.earned;
   const isAllCompleted = achievement.isAllCompleted;
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-150, 150], [8, -8]);
+  const rotateYRaw = useTransform(x, [-150, 150], [-8, 8]);
+  const sheenXRaw = useTransform(x, [-150, 150], ["0%", "100%"]);
+  const sheenYRaw = useTransform(y, [-150, 150], ["0%", "100%"]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
   return (
-    <motion.div
-      variants={staggerItemVariants}
-      whileHover={microSpringProps.whileHover}
-      whileTap={microSpringProps.whileTap}
-      transition={microSpringProps.transition}
-      className={`relative rounded-3xl border backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] ${
-        isAllCompleted
-          ? "border-amber-500/80 bg-gradient-to-b from-amber-950/20 via-slate-900/90 to-slate-950/90 shadow-amber-500/10"
-          : isEarned
-          ? "border-emerald-500/60 bg-slate-900/80 shadow-emerald-500/10"
-          : "border-slate-800/80 bg-slate-900/80"
-      } p-5 overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer`}
-    >
+    <div style={{ perspective: 1000 }} className="block w-full">
+      <motion.div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        variants={staggerItemVariants}
+        whileHover={{ scale: 1.025 }}
+        whileTap={{ scale: 0.96 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        transition={microSpringProps.transition}
+        className={`relative rounded-3xl border backdrop-blur-xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] ${
+          isAllCompleted
+            ? "border-amber-500/80 bg-gradient-to-b from-amber-950/20 via-slate-900/90 to-slate-950/90 shadow-amber-500/10"
+            : isEarned
+            ? "border-emerald-500/60 bg-slate-900/80 shadow-emerald-500/10"
+            : "border-slate-800/80 bg-slate-900/80"
+        } p-5 overflow-hidden shadow-xl transition-all duration-300 flex flex-col justify-between cursor-pointer`}
+      >
+        {/* Holographic Glossy Top Shine Effect */}
+        <motion.div 
+          className="pointer-events-none absolute inset-0 z-10 opacity-60"
+          style={{
+            background: `radial-gradient(circle at ${sheenXRaw} ${sheenYRaw}, rgba(255,255,255,0.1), transparent 60%)`
+          }}
+        />
       {/* Tier Badge & Status */}
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-1.5 bg-slate-950 border border-slate-800 px-3 py-1 rounded-xl text-[11px] font-black text-amber-400">
@@ -189,6 +246,7 @@ function AchievementCard({ achievement, isAr, player }: { achievement: any; isAr
         </div>
       </div>
     </motion.div>
+    </div>
   );
 }
 

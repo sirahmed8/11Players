@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useMemo, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Award, Zap, Shield, Target, Activity, Flame, Lock, CheckCircle2, ChevronRight, Sparkles, Star } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
@@ -250,6 +250,75 @@ export function getSkillTreeNodes(): SkillNodeDefinition[] {
   return DEFAULT_SKILL_NODES;
 }
 
+function SkillNodeCard({ 
+  node, 
+  status, 
+  isSelected, 
+  isAr, 
+  onClick, 
+  unlockedEffect, 
+  getRankBadgeClass, 
+  renderIcon 
+}: any) {
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-100, 100], [10, -10]);
+  const rotateYRaw = useTransform(x, [-100, 100], [-10, 10]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
+  return (
+    <div style={{ perspective: 1000 }} className="block w-full">
+      <motion.div
+        ref={cardRef}
+        onClick={onClick}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        whileHover={{ scale: 1.04 }}
+        whileTap={{ scale: 0.96 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className={`relative p-4 rounded-2xl border cursor-pointer transition-all flex flex-col items-center text-center gap-3 ${
+          isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
+        } ${getRankBadgeClass(status.currentRank)}`}
+      >
+        {unlockedEffect === node.id && (
+          <motion.div
+            initial={{ scale: 0.5, opacity: 1 }}
+            animate={{ scale: 1.6, opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 rounded-2xl bg-amber-400/40 pointer-events-none z-20"
+          />
+        )}
+
+        <div className={`p-3 rounded-full border shadow-inner ${status.unlocked ? "bg-amber-400/20 border-amber-300 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
+          {status.unlocked ? renderIcon(node.iconName) : <Lock className="w-6 h-6 text-slate-500" />}
+        </div>
+
+        <div>
+          <h3 className="font-bold text-sm text-white">{node.name[isAr ? "ar" : "en"]}</h3>
+          <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">{node.category}</span>
+        </div>
+
+        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border ${status.unlocked ? "bg-black/40 border-amber-400/40 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
+          {status.currentRank}
+        </span>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function XpSkillTree() {
   const { user } = useAuth();
   const { userProfile: profile } = useAuthProfile(user);
@@ -368,40 +437,17 @@ export default function XpSkillTree() {
               const isSelected = node.id === selectedNodeId;
 
               return (
-                <motion.div
+                <SkillNodeCard 
                   key={node.id}
+                  node={node}
+                  status={status}
+                  isSelected={isSelected}
+                  isAr={isAr}
                   onClick={() => handleNodeClick(node.id)}
-                  whileHover={{ scale: 1.04 }}
-                  whileTap={{ scale: 0.96 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className={`relative p-4 rounded-2xl border cursor-pointer transition-all flex flex-col items-center text-center gap-3 ${
-                    isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
-                  } ${getRankBadgeClass(status.currentRank)}`}
-                >
-                  {/* Framer Motion Unlock Particle Burst */}
-                  {unlockedEffect === node.id && (
-                    <motion.div
-                      initial={{ scale: 0.5, opacity: 1 }}
-                      animate={{ scale: 1.6, opacity: 0 }}
-                      transition={{ duration: 0.8 }}
-                      className="absolute inset-0 rounded-2xl bg-amber-400/40 pointer-events-none z-20"
-                    />
-                  )}
-
-                  <div className={`p-3 rounded-full border shadow-inner ${status.unlocked ? "bg-amber-400/20 border-amber-300 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
-                    {status.unlocked ? renderIcon(node.iconName) : <Lock className="w-6 h-6 text-slate-500" />}
-                  </div>
-
-                  <div>
-                    <h3 className="font-bold text-sm text-white">{node.name[isAr ? "ar" : "en"]}</h3>
-                    <span className="text-[10px] font-semibold text-slate-400 block mt-0.5">{node.category}</span>
-                  </div>
-
-                  {/* Rank Tag */}
-                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase border ${status.unlocked ? "bg-black/40 border-amber-400/40 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
-                    {status.currentRank}
-                  </span>
-                </motion.div>
+                  unlockedEffect={unlockedEffect}
+                  getRankBadgeClass={getRankBadgeClass}
+                  renderIcon={renderIcon}
+                />
               );
             }), [playerStats, totalXp, selectedNodeId, unlockedEffect])}
           </div>

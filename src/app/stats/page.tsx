@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePlayers } from "@/contexts/PlayersContext";
@@ -14,7 +14,7 @@ import { toast } from "react-hot-toast";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import FormIcon from "@/components/ui/FormIcon";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { staggerContainerVariants, staggerItemVariants, microSpringProps, microSpringRowProps } from "@/lib/animations";
 import dynamic from "next/dynamic";
 const LeagueTiersWidget = dynamic(() => import("@/components/leaderboard/LeagueTiersWidget"), { 
@@ -122,17 +122,49 @@ function PodiumCard({
     ? player.photoUrl || player.googlePic || (player as any).photoURL || ""
     : "";
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-100, 100], [15, -15]);
+  const rotateYRaw = useTransform(x, [-100, 100], [-15, 15]);
+  const sheenXRaw = useTransform(x, [-100, 100], ["0%", "100%"]);
+  const sheenYRaw = useTransform(y, [-100, 100], ["0%", "100%"]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-      className={`flex flex-col items-center gap-3 ${cfg.order}`}
+      className={`flex flex-col items-center gap-3 ${cfg.order} perspective-1000`}
+      style={{ perspective: 1000 }}
     >
       {/* Player card */}
-      <div
-        className={`relative px-4 py-4 rounded-2xl border ${cfg.border} ${cfg.bg} flex flex-col items-center gap-2 shadow-xl ${cfg.shadow} w-full`}
+      <motion.div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
+        className={`relative px-4 py-4 rounded-2xl border ${cfg.border} ${cfg.bg} flex flex-col items-center gap-2 shadow-xl ${cfg.shadow} w-full overflow-hidden`}
       >
+        <motion.div 
+          className="pointer-events-none absolute inset-0 z-0 opacity-40"
+          style={{ background: `radial-gradient(circle at ${sheenXRaw} ${sheenYRaw}, rgba(255,255,255,0.4), transparent 70%)` }}
+        />
+        <div className="relative z-10 flex flex-col items-center w-full gap-2">
         {/* Crown for #1 */}
         {rank === 1 && (
           <motion.div
@@ -173,7 +205,8 @@ function PodiumCard({
 
         <div className={`font-black text-2xl ${cfg.text}`}>{value}</div>
         <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</div>
-      </div>
+        </div>
+      </motion.div>
 
       {/* Podium bar */}
       <div
@@ -207,14 +240,43 @@ function AwardCard({
     ? player.photoUrl || player.googlePic || (player as any).photoURL || ""
     : "";
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-100, 100], [8, -8]);
+  const rotateYRaw = useTransform(x, [-100, 100], [-8, 8]);
+  const sheenXRaw = useTransform(x, [-100, 100], ["0%", "100%"]);
+  const sheenYRaw = useTransform(y, [-100, 100], ["0%", "100%"]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
   return (
+    <div style={{ perspective: 1000 }} className="block w-full">
     <motion.div
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       variants={staggerItemVariants}
-      whileHover={microSpringProps.whileHover}
-      whileTap={microSpringProps.whileTap}
+      whileHover={{ scale: 1.025 }}
+      whileTap={{ scale: 0.98 }}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       transition={microSpringProps.transition}
       className="relative backdrop-blur-xl bg-slate-900/80 border border-slate-800/80 rounded-3xl p-5 shadow-xl hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] transition-all duration-300 flex flex-col gap-3 overflow-hidden text-white cursor-pointer"
     >
+      <motion.div 
+        className="pointer-events-none absolute inset-0 z-0 opacity-40"
+        style={{ background: `radial-gradient(circle at ${sheenXRaw} ${sheenYRaw}, rgba(255,255,255,0.1), transparent 60%)` }}
+      />
       <div className="flex items-center justify-between relative z-10">
         <div className="p-2.5 bg-slate-950/80 rounded-xl border border-slate-800">{icon}</div>
         <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
@@ -241,6 +303,7 @@ function AwardCard({
         )}
       </div>
     </motion.div>
+    </div>
   );
 }
 
@@ -270,18 +333,47 @@ function LeaderboardRow({
       ? "bg-gradient-to-br from-amber-600 to-orange-700 text-white border-amber-700"
       : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700";
 
+  const cardRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const rotateXRaw = useTransform(y, [-50, 50], [5, -5]);
+  const rotateYRaw = useTransform(x, [-150, 150], [-5, 5]);
+  const sheenXRaw = useTransform(x, [-150, 150], ["0%", "100%"]);
+  const sheenYRaw = useTransform(y, [-50, 50], ["0%", "100%"]);
+
+  const rotateX = useSpring(rotateXRaw, { stiffness: 400, damping: 25 });
+  const rotateY = useSpring(rotateYRaw, { stiffness: 400, damping: 25 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set(e.clientX - (rect.left + rect.width / 2));
+    y.set(e.clientY - (rect.top + rect.height / 2));
+  };
+  const handleMouseLeave = () => { x.set(0); y.set(0); };
+
   return (
+    <div style={{ perspective: 1000 }} className="block w-full">
     <motion.div
-      whileHover={microSpringRowProps.whileHover}
-      whileTap={microSpringRowProps.whileTap}
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      whileHover={{ scale: 1.01, y: -2 }}
+      whileTap={{ scale: 0.99 }}
+      style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
       transition={microSpringRowProps.transition}
-      className={`flex items-center justify-between px-4 py-3 transition-colors duration-150 rounded-xl cursor-pointer ${
+      className={`relative overflow-hidden flex items-center justify-between px-4 py-3 transition-colors duration-150 rounded-xl cursor-pointer ${
         isCurrentUser
-          ? "bg-emerald-950/40 border-s-2 border-emerald-500"
-          : "hover:bg-slate-800/60"
+          ? "bg-emerald-950/40 border-s-2 border-emerald-500 shadow-lg shadow-emerald-500/10"
+          : "hover:bg-slate-800/80 hover:shadow-lg"
       }`}
     >
-      <div className="flex items-center gap-3">
+      <motion.div 
+        className="pointer-events-none absolute inset-0 z-0 opacity-40"
+        style={{ background: `radial-gradient(ellipse at ${sheenXRaw} ${sheenYRaw}, rgba(255,255,255,0.08), transparent 70%)` }}
+      />
+      <div className="flex items-center gap-3 relative z-10">
         {/* Rank badge */}
         <div
           className={`font-black w-8 h-8 rounded-full flex items-center justify-center border-2 text-sm flex-shrink-0 ${rankBadge}`}
@@ -327,7 +419,7 @@ function LeaderboardRow({
 
       {/* Value */}
       <div
-        className={`font-black text-xl tabular-nums ${
+        className={`font-black text-xl tabular-nums relative z-10 ${
           isCurrentUser
             ? "text-emerald-400"
             : rank <= 3
@@ -338,6 +430,7 @@ function LeaderboardRow({
         {value}
       </div>
     </motion.div>
+    </div>
   );
 }
 
