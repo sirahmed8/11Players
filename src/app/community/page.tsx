@@ -12,7 +12,7 @@ import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles, Shirt, MessageSquare, Settings, Swords, Globe, Share2 } from "lucide-react";
+import { Search, ChevronDown, LogOut, Users, Activity, HelpCircle, ArrowRightLeft, Shield, SlidersHorizontal, Sparkles, Shirt, MessageSquare, Settings, Swords, Globe, Share2, Trophy } from "lucide-react";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import CommunityPulseFeed from "@/components/community/CommunityPulseFeed";
 import { getPlayerOverall } from "@/lib/playerUtils";
@@ -207,11 +207,11 @@ export default function CommunityPage() {
                 </Link>
 
                 <Link
-                  href="/global"
+                  href="/leaderboard"
                   className="flex-1 min-w-[140px] px-3.5 py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 hover:border-blue-500/60 flex items-center justify-center gap-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-all hover:scale-[1.02]"
                 >
-                  <Globe className="w-4 h-4" />
-                  <span>{isAr ? "الترتيب العالمي" : "Global Board"}</span>
+                  <Trophy className="w-4 h-4" />
+                  <span>{isAr ? "لوحة المتصدرين" : "Leaderboard"}</span>
                 </Link>
 
                 <button

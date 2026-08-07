@@ -1,60 +1,86 @@
 "use client";
 import React from "react";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { ShieldCheck, Lock, Eye, Database, Server, UserCheck } from "lucide-react";
 
 export default function PrivacyPage() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white pt-24 pb-12" dir={isAr ? "rtl" : "ltr"}>
-      <main className="max-w-4xl mx-auto px-4">
-        <h1 className="text-4xl font-black text-emerald-500 mb-8">{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</h1>
-        
-        <div className="space-y-8 text-slate-700 dark:text-slate-300 leading-relaxed bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800">
-          <p className="text-sm text-slate-500">
-            {isAr ? "آخر تحديث: يوليو 2026" : "Last Updated: July 2026"}
+    <div className="min-h-screen bg-slate-950 text-white pt-24 pb-16 px-4 sm:px-6" dir={isAr ? "rtl" : "ltr"}>
+      <main className="max-w-4xl mx-auto space-y-8">
+        <div className="text-center space-y-4">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+            <ShieldCheck className="w-4 h-4" />
+            <span>{isAr ? "حماية البيانات والخصوصية" : "Data Protection & Privacy"}</span>
+          </div>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white">
+            {isAr ? "سياسة الخصوصية الرسمية" : "Official Privacy Policy"}
+          </h1>
+          <p className="text-slate-400 text-sm font-medium max-w-xl mx-auto">
+            {isAr 
+              ? "نحن نأخذ خصوصية بياناتك الرياضية وشخصيتك بأقصى درجات الجدية والأمان."
+              : "We prioritize the security, privacy, and integrity of your personal and sports data."}
           </p>
+        </div>
 
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{isAr ? "1. جمع المعلومات" : "1. Information Collection"}</h2>
-            <p className="mb-2">
-              {isAr ? "نقوم بجمع المعلومات التي تقدمها لنا مباشرة لتمكين ميزات المنصة (الإحصائيات، النصائح والميزات). يشمل ذلك:" : "We collect information you provide directly to us to enable platform features (stats, advices, and features). This includes:"}
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl">
+          <div className="flex items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400">
+            <span>{isAr ? "منصة: 11Players (Hagoozat Elite)" : "Platform: 11Players (Hagoozat Elite)"}</span>
+            <span>{isAr ? "آخر تحديث: أغسطس 2026" : "Last Updated: August 2026"}</span>
+          </div>
+
+          <section className="space-y-3">
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <Database className="w-5 h-5 text-emerald-400" />
+              <span>{isAr ? "1. البيانات التي نجمعها" : "1. Information We Collect"}</span>
+            </h2>
+            <p className="text-sm text-slate-400">
+              {isAr 
+                ? "لتقديم أفضل تجربة موازنة فرق وتقييم واقعي للاعبين، نقوم بجمع البيانات التالية فقط:"
+                : "To deliver accurate matchmaking, player ratings, and stats, we process the following data:"}
             </p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>{isAr ? "معلومات الحساب: الاسم، البريد الإلكتروني، والصورة عبر تسجيل الدخول بحساب Google." : "Account Information: Name, email, and photo via Google authentication."}</li>
-              <li>{isAr ? "بيانات اللاعب: الطول، الوزن، العمر، والقدم المفضلة لبناء تقييمات واقعية للإحصائيات الخاصة بك." : "Player Data: Height, weight, age, and preferred foot to build realistic stats and ratings."}</li>
-              <li>{isAr ? "بيانات اللعب: التقييمات عبر مراجعات الأقران (Peer Reviews)، الأهداف، التمريرات، وحالة المزاج الخاصة بك." : "Gameplay Data: Ratings via peer reviews, goals, assists, and mood/form status."}</li>
+            <ul className="list-disc list-inside space-y-2 text-sm text-slate-300 pl-4 rtl:pr-4">
+              <li><strong>{isAr ? "معلومات الحساب" : "Account Identifiers"}:</strong> {isAr ? "الاسم الكامل، البريد الإلكتروني، وصورة الحساب المزامنة عبر Google Authentication." : "Full name, email address, and profile photo synchronized via Google Auth."}</li>
+              <li><strong>{isAr ? "البيانات الرياضية البدنية" : "Physical Attributes"}:</strong> {isAr ? "الطول، الوزن، العمر المتقدر، القدم المفضلة، والمراكز الأساسية/الثانوية لتحديد خوارزمية التقييم العام (OVR)." : "Height, weight, calculated age, preferred foot, and positions to drive the Positional Suitability Index (PSI)."}</li>
+              <li><strong>{isAr ? "إحصائيات اللعب" : "Match & Performance Stats"}:</strong> {isAr ? "الأهداف، الصناعة، التمريرات، عدد المباريات، وتقييمات الأقران (Peer Reviews) في مجتمعاتك." : "Goals, assists, matches played, MVPs, and community peer review ratings."}</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{isAr ? "2. كيف نستخدم معلوماتك" : "2. How We Use Your Information"}</h2>
-            <p className="mb-2">
-              {isAr ? "تستخدم 11Players هذه البيانات لتوفير تجربة لا مثيل لها في تنظيم المباريات:" : "11Players uses this data to provide an unmatched matchmaking experience:"}
-            </p>
-            <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>{isAr ? "خوارزمية صناعة المباريات: نستخدم طاقاتك لتقسيم الفرق بشكل عادل لضمان تنافسية المباريات." : "Matchmaking Algorithm: We use your attributes to divide teams fairly to ensure competitive matches."}</li>
-              <li>{isAr ? "تتبع الإحصائيات (Stats): تتبع تاريخك وإنجازاتك في المجتمع لعرض جوائز نهاية الموسم." : "Stats Tracking: Tracking your history and achievements to display end-of-season trophies."}</li>
-              <li>{isAr ? "نظام النصائح والإشعارات (Advices): لتقديم نصائح شخصية وتحديثات هامة لمجتمعك." : "Advices & Notifications: To provide personalized advices and important updates for your community."}</li>
+          <section className="space-y-3">
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <Eye className="w-5 h-5 text-emerald-400" />
+              <span>{isAr ? "2. استخدام وتوظيف البيانات" : "2. How We Utilize Your Data"}</span>
+            </h2>
+            <ul className="list-disc list-inside space-y-2 text-sm text-slate-300 pl-4 rtl:pr-4">
+              <li>{isAr ? "توزيع الفرق العادل: استخدام سماتك وحساب الـ OVR لضمان عدم انحياز أي فريق في المباريات." : "Deterministic Matchmaking: Utilizing attributes and OVR to auto-generate balanced squads."}</li>
+              <li>{isAr ? "التوصيات التكتيكية من 11AI: تقديم مقترحات الملاءمة للمراكز وأسلوب اللعب بناءً على البنية البدنية." : "11AI Tactical Coaching: Recommending best positions and playstyles tailored to your build."}</li>
+              <li>{isAr ? "عرض الإنجازات والجوائز: احتساب الأوسمة وتصنيفات الأداء في لوحة المتصدرين للمجتمع." : "Leaderboard & Skill Tree: Granting badges and tracking season trophy standings."}</li>
             </ul>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{isAr ? "3. مشاركة المعلومات وحمايتها" : "3. Information Sharing and Security"}</h2>
-            <p className="mb-2">
+          <section className="space-y-3">
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <Lock className="w-5 h-5 text-emerald-400" />
+              <span>{isAr ? "3. الأمان وعدم بيع البيانات" : "3. Security & Zero Commercial Sharing"}</span>
+            </h2>
+            <p className="text-sm text-slate-300">
               {isAr 
-                ? "خصوصيتك محمية بالكامل. لا نشارك بياناتك مع معلنين أو أطراف ثالثة خارجية. داخل المنصة، إحصائياتك وتقييماتك (Stats & Features) تكون مرئية لأعضاء مجتمعك لتسهيل تنظيم المباريات. يتم تخزين البيانات بشكل آمن على خوادم Firebase المشفرة."
-                : "Your privacy is fully protected. We do not share your data with advertisers or external third parties. Within the platform, your stats and ratings (Stats & Features) are visible to your community members to facilitate match organization. Data is securely stored on encrypted Firebase servers."}
+                ? "نحن نلتزم بشرط صارم: لا يتم بيع، أو تأجير، أو مشاركة أي من بياناتك الشخصية مع أي جهات إعلانية أو أطراف ثالثة خارجية على الإطلاق. يتم مشفر وتخزين جميع البيانات عبر خوادم Firebase الموثوقة."
+                : "We enforce a strict zero commercial sharing policy. Your private data is never sold, rented, or distributed to advertising networks. All transactions are securely stored on encrypted Firebase cloud infrastructure."}
             </p>
           </section>
 
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{isAr ? "4. حقوقك" : "4. Your Rights"}</h2>
-            <p>
+          <section className="space-y-3">
+            <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+              <UserCheck className="w-5 h-5 text-emerald-400" />
+              <span>{isAr ? "4. حقوق الحذف والتعديل" : "4. Control, Modifications & Deletion"}</span>
+            </h2>
+            <p className="text-sm text-slate-300">
               {isAr 
-                ? "لك كامل الحق في تعديل بياناتك الشخصية في أي وقت من خلال ملفك الشخصي. في حال رغبتك بحذف بياناتك بالكامل، يمكنك التواصل مع مسؤول المجتمع أو مسؤول النظام لإزالة حسابك نهائياً." 
-                : "You have the full right to modify your personal data at any time through your profile. If you wish to completely delete your data, you can contact your community admin or the system administrator to permanently remove your account."}
+                ? "يمكنك تعديل بياناتك الشخصية في أي وقت عبر زر 'تعديل الملف الشخصي'. إذا رغبت في حذف حسابك وبياناتك نهائياً من قاعدة البيانات، يمكنك طلب ذلك مباشرة من مدير مجتمعك أو التواصل معنا."
+                : "You maintain full ownership of your data. You can edit your attributes at any time via 'Edit Profile'. Permanent deletion requests can be initiated directly through your community admin or support."}
             </p>
           </section>
         </div>
