@@ -448,7 +448,7 @@ const PlayerCard = React.memo(function PlayerCard({
         </div>
 
         {/* --- Stats Footer Grid --- */}
-        <div className="grid grid-cols-4 border-t border-slate-800/80 bg-slate-950/90 text-center py-2.5 px-2 z-20">
+        <div className="relative z-20 grid grid-cols-4 border-t border-slate-800/80 bg-slate-950/90 text-center py-2.5 px-2">
           {[
             { label: 'G', value: player.stats?.goals || 0 },
             { label: 'A', value: player.stats?.assists || 0 },
@@ -468,13 +468,13 @@ const PlayerCard = React.memo(function PlayerCard({
 
         {/* --- OVR Rating Growth History --- */}
         {variant === 'full' && (
-          <div className="p-3 bg-slate-950 border-t border-slate-800 z-20">
+          <div className="relative z-20 p-3 bg-slate-950 border-t border-slate-800">
             <OVRHistoryChart currentOVR={overall} initialOVR={Math.max(50, overall - 8)} isAr={isAr} />
           </div>
         )}
 
         {/* --- Action Buttons (Captain Vote / Compare / Share) --- */}
-        <div className="flex items-center gap-2 p-3 bg-slate-950 border-t border-slate-800 z-20">
+        <div className="relative z-20 flex items-center gap-2 p-3 bg-slate-950 border-t border-slate-800">
           {onVoteCaptain && (
             <button
               type="button"

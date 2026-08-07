@@ -142,7 +142,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
     playStyle: normalizePlayStyleId(player.playStyle),
     preferredFoot: player.preferredFoot || 'Right',
     photoUrl: player.photoUrl || '',
-    homeCommunityId: player.homeCommunityId || ''
+    homeCommunityId: player.homeCommunityId || '',
+    form: player.form || '➡️'
   });
   
   // Merge player attributes with defaults so every key has a value (min 40)
@@ -189,7 +190,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
         playStyle: normalizePlayStyleId(player.playStyle),
         preferredFoot: player.preferredFoot || 'Right',
         photoUrl: player.photoUrl || '',
-        homeCommunityId: player.homeCommunityId || ''
+        homeCommunityId: player.homeCommunityId || '',
+        form: player.form || '➡️'
       });
       setAttributes({ ...DEFAULT_ATTRIBUTES, ...(player.attributes || {}) });
       setSpecialSkills(player.specialSkills || []);
@@ -242,6 +244,7 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           tertiaryPosition: formData.tertiaryPosition || null,
           playStyle: formData.playStyle,
           photoUrl: formData.photoUrl || null,
+          form: formData.form
         });
       } catch (e: any) {
         const fieldError = e?.issues?.[0]?.message || e?.errors?.[0]?.message || 'Validation failed. Please check all fields.';
@@ -345,7 +348,8 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
           attributes,
           stats,
           specialSkills,
-          playStyle: formData.playStyle
+          playStyle: formData.playStyle,
+          form: formData.form
         };
 
         const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
@@ -466,10 +470,10 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
   if (!isOpen) return null;
 
-  // Calculate home community lock
+  // Calculate home community lock (Owners & Admins are never locked out)
   let isHomeLocked = false;
   let homeLockDaysLeft = 0;
-  if (player.homeCommunityId !== 'unlocked' && player.homeCommunityUpdatedAt) {
+  if (!isOwner && !isAdmin && player.homeCommunityId !== 'unlocked' && player.homeCommunityUpdatedAt) {
     const daysSince = (Date.now() - new Date(player.homeCommunityUpdatedAt).getTime()) / (1000 * 60 * 60 * 24);
     if (daysSince < 30) {
       isHomeLocked = true;
@@ -479,12 +483,12 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl custom-scrollbar"
+          className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-2xl custom-scrollbar relative z-10"
           dir={isRTL ? 'rtl' : 'ltr'}
         >
           <h2 className="mb-4 text-xl font-bold text-emerald-600 dark:text-emerald-400">
@@ -516,25 +520,40 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الاسم الكامل" : "Full Name"}</label>
-                  <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder={isRTL ? "الاسم الحقيقي" : "Real Name"} />
+                  <input type="text" value={formData.fullName} onChange={(e) => handleChange('fullName', e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white appearance-none outline-none focus:outline-none focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder={isRTL ? "الاسم الحقيقي" : "Real Name"} />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الاسم على البطاقة" : "Card Name"}</label>
-                  <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder={isRTL ? "الاسم المعروف" : "Nickname"} />
+                  <input type="text" value={formData.cardName} onChange={(e) => handleChange('cardName', e.target.value)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white appearance-none outline-none focus:outline-none focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder={isRTL ? "الاسم المعروف" : "Nickname"} />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "اسم المستخدم (@username)" : "Username (@username)"}</label>
-                  <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus-within:ring-2 focus-within:ring-emerald-500/30 focus-within:border-emerald-500 transition-all duration-300">
+                  <div className="relative flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus-within:border-emerald-500 transition-all duration-300">
                     <span className="text-emerald-500 font-bold text-sm pl-3 rtl:pl-0 rtl:pr-3 select-none">@</span>
                     <input
                       type="text"
                       value={formData.username}
                       onChange={(e) => handleChange('username', cleanUsername(e.target.value))}
-                      className="w-full bg-transparent px-2 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none placeholder-slate-400 dark:placeholder-slate-500"
+                      className="w-full bg-transparent px-2 py-2.5 text-sm font-bold text-slate-900 dark:text-white appearance-none outline-none focus:outline-none border-none placeholder-slate-400 dark:placeholder-slate-500"
                       placeholder="e.g. omda_7"
                       dir="ltr"
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الحالة المزاجية (الفورمة)" : "Current Mood (Form)"}</label>
+                  <CustomSelect
+                    value={formData.form || "➡️"}
+                    onChange={(v) => handleChange('form', v)}
+                    placeholder={isRTL ? "اختر الحالة" : "Select Form"}
+                    options={[
+                      { value: "⬆️", label: isRTL ? "⬆️ ممتاز (على النار)" : "⬆️ Excellent (On Fire)" },
+                      { value: "↗️", label: isRTL ? "↗️ جيد" : "↗️ Good" },
+                      { value: "➡️", label: isRTL ? "➡️ طبيعي" : "➡️ Normal" },
+                      { value: "↘️", label: isRTL ? "↘️ سيء" : "↘️ Poor" },
+                      { value: "⬇️", label: isRTL ? "⬇️ سيء جداً" : "⬇️ Terrible" }
+                    ]}
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "تاريخ الميلاد" : "Date of Birth"}</label>
@@ -571,37 +590,13 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الطول (سم)" : "Height (cm)"}</label>
-                    <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder="175" />
+                    <input type="number" value={formData.height} onChange={(e) => handleChange('height', parseInt(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white appearance-none outline-none focus:outline-none focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder="175" />
                   </div>
                   <div>
                     <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "الوزن (كجم)" : "Weight (kg)"}</label>
-                    <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder="70" />
+                    <input type="number" value={formData.weight} onChange={(e) => handleChange('weight', parseInt(e.target.value) || 0)} className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-900 dark:text-white appearance-none outline-none focus:outline-none focus:border-emerald-500 transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500" placeholder="70" />
                   </div>
                 </div>
-
-                <div className="md:col-span-2 my-4">
-                  <TacticalSuggestionsCard
-                    attributes={attributes}
-                    height={formData.height}
-                    weight={formData.weight}
-                    preferredFoot={formData.preferredFoot}
-                    playerProfile={player}
-                    isOwnProfile={true}
-                    currentPrimaryPosition={formData.primaryPosition}
-                    currentPlayStyle={formData.playStyle}
-                    onApplySuggestions={(positions, playStyle) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        primaryPosition: positions.primary,
-                        secondaryPosition: positions.secondary,
-                        tertiaryPosition: positions.tertiary,
-                        playStyle: playStyle
-                      }));
-                      toast.success(isRTL ? 'تم تطبيق المراكز وأسلوب اللعب المقترح من الذكاء الاصطناعي بنجاح!' : 'AI recommended positions and play style applied!');
-                    }}
-                  />
-                </div>
-
 
                 <div>
                   <label className="mb-1 block text-sm font-bold text-slate-700 dark:text-slate-300">{isRTL ? "المركز الأساسي" : "Primary Position"}</label>
@@ -662,9 +657,13 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                   <div className="md:col-span-2">
                     <label className="mb-1 flex items-center justify-between text-sm font-bold text-slate-700 dark:text-slate-300">
                       <span>{isRTL ? "المجتمع الأساسي (صلاحية التعديل)" : "Home Community (Edit Lock)"}</span>
-                      {isHomeLocked && (
+                      {isHomeLocked ? (
                         <span className="text-xs font-medium text-orange-600 bg-orange-100 px-2 py-0.5 rounded-full">
                           {isRTL ? `مغلق لـ ${homeLockDaysLeft} يوم` : `Locked for ${homeLockDaysLeft}d`}
+                        </span>
+                      ) : (isOwner || isAdmin) && (
+                        <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full">
+                          {isRTL ? "صلاحيات المالك/الأدمن 👑" : "Owner/Admin Rights 👑"}
                         </span>
                       )}
                     </label>
@@ -682,7 +681,9 @@ export default function EditProfileModal({ player, isOpen, onClose, onRefresh }:
                       />
                     )}
                     <p className="mt-1 text-xs text-slate-500">
-                      {isRTL ? "أدمن هذا المجتمع فقط من يمكنه تعديل طاقاتك. تغييره سيغلقه لمدة 30 يوماً." : "Only the admin of this community can edit your attributes. Changing this locks it for 30 days."}
+                      {isOwner || isAdmin 
+                        ? (isRTL ? "بصفتك مالك/أدمن، يمكنك التحكم وتعديل المجتمع الأساسي والطاقات بدون قيود." : "As owner/admin, you can modify home community & player stats without lock restrictions.")
+                        : (isRTL ? "أدمن هذا المجتمع فقط من يمكنه تعديل طاقاتك. تغييره سيغلقه لمدة 30 يوماً." : "Only the admin of this community can edit your attributes. Changing this locks it for 30 days.")}
                     </p>
                   </div>
                 )}

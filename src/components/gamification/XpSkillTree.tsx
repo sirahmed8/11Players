@@ -383,29 +383,30 @@ export default function XpSkillTree() {
   const getRankBadgeClass = (rank: BadgeRank) => {
     switch (rank) {
       case "Diamond":
-        return "bg-cyan-950 border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(34,211,238,0.5)]";
+        return "bg-cyan-950/80 border-cyan-400 text-cyan-200 shadow-[0_0_30px_rgba(34,211,238,0.8)]";
       case "Gold":
-        return "bg-amber-950 border-amber-400 text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.5)]";
+        return "bg-amber-950/80 border-amber-400 text-amber-200 shadow-[0_0_30px_rgba(245,158,11,0.8)]";
       case "Silver":
-        return "bg-slate-800 border-slate-400 text-slate-100 shadow-[0_0_10px_rgba(203,213,225,0.4)]";
+        return "bg-slate-800/80 border-slate-400 text-slate-100 shadow-[0_0_20px_rgba(203,213,225,0.6)]";
       case "Bronze":
-        return "bg-amber-900/60 border-amber-600 text-amber-300";
+        return "bg-orange-950/80 border-orange-600 text-orange-300 shadow-[0_0_15px_rgba(234,88,12,0.5)]";
       case "Locked":
       default:
-        return "bg-slate-950 border-slate-800 text-slate-500 opacity-60";
+        return "bg-slate-950 border-slate-800 text-slate-500 opacity-50";
     }
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 select-none">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 select-none relative">
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-5 sm:p-6 rounded-3xl border border-slate-800 backdrop-blur-md overflow-hidden">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3">
-            <Award className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 shrink-0" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-900/80 p-5 sm:p-6 rounded-3xl border border-slate-800 backdrop-blur-md overflow-hidden relative z-10 shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 blur-[80px] rounded-full pointer-events-none" />
+        <div className="min-w-0 flex-1 relative z-10">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white flex items-center gap-3 drop-shadow-md">
+            <Award className="w-7 h-7 sm:w-8 sm:h-8 text-amber-400 shrink-0 drop-shadow-[0_0_10px_rgba(251,191,36,0.6)]" />
             <span>{isAr ? "شجرة المهارات والأوسمة (XP Skill Tree)" : "XP Playstyle Skill Tree"}</span>
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1 leading-relaxed max-w-2xl">
             {isAr
               ? "افتح أوسمة أسلوب اللعب وارتقِ برتبتك من البرونزي إلى الماسي بزيادة نقاط الخبرة والأداء."
               : "Unlock playstyle badges, gain XP through matches & stats, and promote rank tiers."}
@@ -413,61 +414,71 @@ export default function XpSkillTree() {
         </div>
 
         {/* Total XP Counter */}
-        <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-400/40 p-4 rounded-2xl flex items-center gap-3">
-          <Sparkles className="w-8 h-8 text-amber-400 animate-pulse" />
+        <div className="bg-gradient-to-r from-amber-500/20 to-amber-600/10 border border-amber-400/40 p-4 rounded-2xl flex items-center gap-3 relative z-10 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+          <Sparkles className="w-8 h-8 text-amber-400 animate-pulse drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]" />
           <div>
-            <div className="text-xs font-semibold text-amber-300 uppercase">{isAr ? "نقاط الخبرة الحالية" : "Total Player XP"}</div>
-            <div className="text-2xl font-black text-white font-mono">{totalXp.toLocaleString()} XP</div>
+            <div className="text-xs font-semibold text-amber-300 uppercase tracking-widest">{isAr ? "نقاط الخبرة الحالية" : "Total Player XP"}</div>
+            <div className="text-2xl font-black text-white font-mono drop-shadow-md">{totalXp.toLocaleString()} XP</div>
           </div>
         </div>
       </div>
 
       {/* Skill Tree Nodes Grid & Details Inspector */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
         {/* Left Grid: Skill Tree Nodes Graph */}
-        <div className="lg:col-span-7 bg-slate-900/60 p-6 rounded-3xl border border-slate-800 backdrop-blur-md space-y-6 relative overflow-hidden z-0">
+        <div className="lg:col-span-7 bg-slate-900/40 p-6 sm:p-8 rounded-3xl border border-slate-800/60 backdrop-blur-xl space-y-6 relative overflow-hidden z-0 shadow-2xl">
           
           {/* Animated Background Connection Lines (Circuit/Tree pattern) */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10 opacity-30" preserveAspectRatio="none">
+          <svg className="absolute inset-0 w-full h-full pointer-events-none -z-10 opacity-60" preserveAspectRatio="none">
             <defs>
-              <linearGradient id="glow-line-1" x1="0" y1="0" x2="1" y2="1">
+              <linearGradient id="glow-emerald" x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
                 <stop offset="50%" stopColor="#10b981" stopOpacity="1" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="glow-amber" x1="1" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0" />
+                <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
                 <stop offset="100%" stopColor="#f59e0b" stopOpacity="0" />
               </linearGradient>
-              <linearGradient id="glow-line-2" x1="1" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#f59e0b" stopOpacity="0" />
+              <linearGradient id="glow-cyan" x1="0" y1="1" x2="1" y2="0">
+                <stop offset="0%" stopColor="#06b6d4" stopOpacity="0" />
                 <stop offset="50%" stopColor="#06b6d4" stopOpacity="1" />
                 <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
               </linearGradient>
+              <filter id="neon-glow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
             </defs>
-            <motion.path 
-              d="M 10 50 Q 50 50, 50 150 T 90 250 T 150 250" 
-              fill="none" 
-              stroke="url(#glow-line-1)" 
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear", repeatType: "loop" }}
-            />
-            <motion.path 
-              d="M 90 10 Q 90 100, 150 100 T 250 150 T 350 150" 
-              fill="none" 
-              stroke="url(#glow-line-2)" 
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 1 }}
-            />
-            <motion.path 
-              d="M 300 10 Q 300 200, 200 250 T 100 350 T 50 350" 
-              fill="none" 
-              stroke="url(#glow-line-1)" 
-              strokeWidth="2"
-              initial={{ pathLength: 0, opacity: 0 }}
-              animate={{ pathLength: 1, opacity: 1 }}
-              transition={{ duration: 3.5, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 2 }}
-            />
+
+            {/* Glowing Energy Paths */}
+            <g filter="url(#neon-glow)">
+              <motion.path 
+                d="M 10 20 Q 25 15, 30 40 T 40 60 T 50 80 Q 75 90, 80 50 T 90 20 T 100 40" 
+                fill="none" stroke="url(#glow-emerald)" strokeWidth="2.5"
+                initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatType: "loop" }}
+                transform="scale(3, 4)"
+              />
+              <motion.path 
+                d="M 90 90 Q 75 85, 60 70 T 40 50 T 20 40 Q 15 25, 20 10" 
+                fill="none" stroke="url(#glow-amber)" strokeWidth="2.5"
+                initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 1 }}
+                transform="scale(4, 5)"
+              />
+              <motion.path 
+                d="M 50 10 Q 60 40, 40 60 T 30 80 T 50 90 Q 80 80, 70 60 T 80 30" 
+                fill="none" stroke="url(#glow-cyan)" strokeWidth="2.5"
+                initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "linear", repeatType: "loop", delay: 2 }}
+                transform="scale(3.5, 4.5)"
+              />
+            </g>
           </svg>
 
           <h2 className="text-lg font-bold text-white flex items-center gap-2 relative z-10">

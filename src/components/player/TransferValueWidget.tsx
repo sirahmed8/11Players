@@ -65,15 +65,25 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
     // Add minor boost for raw MVPs
     statsMultiplier += (mvps * 0.05);
 
-    // 4. Form Factor (Current Momentum)
-    let formMultiplier = 1.0;
-    if (player.form === "⬆️") formMultiplier = 1.2;
-    else if (player.form === "↗️") formMultiplier = 1.08;
-    else if (player.form === "↘️") formMultiplier = 0.92;
-    else if (player.form === "⬇️") formMultiplier = 0.8;
+    // 4. Physical Factor
+    const height = player.height || 175;
+    const weight = player.weight || 70;
+    let physicalMultiplier = 1.0;
+    const pos = player.primaryPosition || "CMF";
+    // Taller GKs and CBs get a slight market premium
+    if (["GK", "CB"].includes(pos) && height >= 185) physicalMultiplier = 1.05;
+    // Shorter/lighter Wingers get a slight agility premium
+    else if (["LWF", "RWF"].includes(pos) && height < 175 && weight < 75) physicalMultiplier = 1.03;
+
+    // 5. Playstyle Factor
+    let playstyleMultiplier = 1.0;
+    if (player.playStyle && player.playStyle.trim() !== "") {
+       // Having a specialized role adds value
+       playstyleMultiplier = 1.08;
+    }
 
     // Combine all factors
-    let finalValue = baseValue * ageMultiplier * statsMultiplier * formMultiplier;
+    let finalValue = baseValue * ageMultiplier * statsMultiplier * physicalMultiplier * playstyleMultiplier;
     
     // Minimum market value floor
     if (finalValue < 150000) finalValue = 150000 + (Math.random() * 50000);
@@ -120,9 +130,6 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
     return `€${(val / 1000).toFixed(0)}K`;
   };
 
-  const isUp = player.form === "⬆️" || player.form === "↗️" || player.form === "➡️" || !player.form;
-  const isDown = player.form === "⬇️" || player.form === "↘️";
-
   const ovr = getPlayerOverall(player);
   const age = player.calculatedAge || 25;
 
@@ -151,17 +158,6 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
             <Activity className="w-4 h-4 text-emerald-400" />
             {isAr ? "القيمة السوقية (تقديرية)" : "Est. Market Value"}
           </h3>
-          {isUp ? (
-            <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
-              <TrendingUp className="w-3 h-3" />
-              <span className="text-[10px] font-bold tracking-wider">UP</span>
-            </div>
-          ) : isDown ? (
-            <div className="flex items-center gap-1 text-red-400 bg-red-500/10 px-2 py-1 rounded-lg border border-red-500/20">
-              <TrendingDown className="w-3 h-3" />
-              <span className="text-[10px] font-bold tracking-wider">DOWN</span>
-            </div>
-          ) : null}
         </div>
 
         {/* Main value display */}
@@ -186,7 +182,7 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
                 initial={{ width: 0 }}
                 animate={{ width: `${ovrBarWidth}%` }}
                 transition={{ duration: 1.5, delay: 0.1, ease: "easeOut" }}
-                className={`h-full rounded-full ${isDown ? "bg-red-500" : "bg-emerald-500"} shadow-[0_0_8px_rgba(16,185,129,0.5)]`}
+                className="h-full rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
               />
             </div>
             <span className="text-[11px] font-black text-emerald-400 w-8 text-right">{ovr}</span>
@@ -206,11 +202,19 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
               <span className="text-[10px] font-bold text-blue-300">{player.primaryPosition || "—"}</span>
             </div>
 
-            {/* Form Pill */}
-            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border ${isDown ? "bg-red-500/10 border-red-500/20" : "bg-emerald-500/10 border-emerald-500/20"}`}>
-              <span className={`text-[10px] font-black ${isDown ? "text-red-400" : "text-emerald-400"}`}>{isAr ? "الفورم:" : "Form:"}</span>
-              <span className="text-[10px] font-bold text-slate-300">{player.form || "➡️"}</span>
+            {/* Height/Weight Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+              <span className="text-[10px] font-black text-emerald-400">{isAr ? "بدني:" : "Physical:"}</span>
+              <span className="text-[10px] font-bold text-emerald-300">{player.height || 175}cm / {player.weight || 70}kg</span>
             </div>
+
+            {/* Playstyle Pill */}
+            {player.playStyle && player.playStyle.trim() !== "" && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                <span className="text-[10px] font-black text-purple-400">{isAr ? "أسلوب:" : "Style:"}</span>
+                <span className="text-[10px] font-bold text-purple-300">{player.playStyle}</span>
+              </div>
+            )}
           </div>
         </div>
 

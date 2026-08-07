@@ -102,6 +102,15 @@ export default function FloatingChatWidget() {
 
   useEffect(() => {
     setMounted(true);
+    const handleOpenEvent = (e: Event) => {
+      setIsOpen(true);
+      const custom = e as CustomEvent;
+      if (custom.detail?.tab) {
+        setActiveTab(custom.detail.tab);
+      }
+    };
+    window.addEventListener('open-11ai-chat', handleOpenEvent);
+    return () => window.removeEventListener('open-11ai-chat', handleOpenEvent);
   }, []);
 
   // Dynamic Resize Dimensions State

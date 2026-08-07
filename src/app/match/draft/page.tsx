@@ -1,89 +1,21 @@
-'use client';
+"use client";
 
-import React from 'react';
-import CaptainDraftRoom from '@/components/draft/CaptainDraftRoom';
-import { usePlayers } from '@/contexts/PlayersContext';
-import { useAuth } from '@/contexts/AuthContext';
-import ProtectedRoute from '@/components/auth/ProtectedRoute';
-import ProGate from '@/components/ui/ProGate';
-import { Swords, Calendar, ArrowRight, ShieldCheck } from 'lucide-react';
-import Link from 'next/link';
-
-import MatchActionHubBar from '@/components/match/MatchActionHubBar';
-
-function DraftContent() {
-  const { players } = usePlayers();
-  const { user } = useAuth();
-
-  const handleMatchLaunch = (teamA: any[], teamB: any[]) => {
-    console.log('Match Launched with Teams:', { teamA, teamB });
-    if (typeof window !== 'undefined') {
-      window.location.href = '/match/live';
-    }
-  };
-
-  const hasEnoughPlayers = players && players.length >= 2;
-
-  return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto">
-        <MatchActionHubBar />
-      </div>
-      {!hasEnoughPlayers ? (
-        <div className="max-w-xl mx-auto py-16 text-center space-y-6">
-          <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center mx-auto text-emerald-400">
-            <Swords className="w-8 h-8 animate-pulse" />
-          </div>
-
-          <div className="space-y-2">
-            <h1 className="text-2xl font-black text-white">Captain Draft Room Inactive</h1>
-            <p className="text-sm text-slate-400 max-w-md mx-auto font-medium">
-              The Captain Draft Room activates during match preparation when team captains pick squads from available registered community players.
-            </p>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/80 border border-slate-800 text-left space-y-3 text-xs text-slate-300">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold uppercase tracking-wider text-[11px]">
-              <ShieldCheck className="w-4 h-4" />
-              <span>How Squad Drafting Works</span>
-            </div>
-            <ul className="space-y-2 list-disc list-inside text-slate-400">
-              <li>Captains alternate picks in real-time (Classic / Snake Draft).</li>
-              <li>OVR & Positional Suitability Index (PSI) balance meters auto-update after each pick.</li>
-              <li>Once balanced squads are selected, captains launch the live match.</li>
-            </ul>
-          </div>
-
-          <Link
-            href="/matches"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-extrabold text-sm hover:scale-[1.02] transition-transform shadow-lg shadow-emerald-500/25"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Go to Matches Hub</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-        </div>
-      ) : (
-        <CaptainDraftRoom
-          initialPlayers={players}
-          captain1Uid={user?.uid}
-          onMatchLaunch={handleMatchLaunch}
-        />
-      )}
-    </main>
-  );
-}
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function DraftPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/matches');
+  }, [router]);
+
   return (
-    <ProtectedRoute requireCommunity>
-      <ProGate
-        requiredPlan="pro_captain"
-        featureNameEn="Captain Draft Room"
-        featureNameAr="غرفة اختيار الكبتن"
-      >
-        <DraftContent />
-      </ProGate>
-    </ProtectedRoute>
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
+      <div className="flex items-center gap-3">
+        <div className="w-5 h-5 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
+        <span className="text-sm font-bold">Redirecting...</span>
+      </div>
+    </div>
   );
 }

@@ -11,14 +11,11 @@ export default function SupportRedirectPage() {
   const isAr = locale === "ar";
 
   useEffect(() => {
-    toast(
-      isAr
-        ? "🎧 الدعم الفني متوفر الآن دائماً عبر الزر العائم (11AI) أسفل الشاشة!"
-        : "🎧 Support Desk is now always available via the 11AI floating widget at the bottom corner!",
-      { icon: "🤖", duration: 5000 }
-    );
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("open-11ai-chat", { detail: { tab: "ai" } }));
+    }
     router.replace("/community");
-  }, [router, isAr]);
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">

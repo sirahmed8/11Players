@@ -38,7 +38,6 @@ export function calculateAge(birthDate: Date | string | number | undefined | nul
  */
 export function getPlayerOverall(player: Partial<PlayerProfile>): number {
   if (!player) return 72;
-  if (player.overallRating && player.overallRating > 40) return player.overallRating;
 
   const defaultAttrs = {
     offensiveAwareness: 70, ballControl: 70, dribbling: 70, lowPass: 70, loftedPass: 70,

@@ -519,7 +519,7 @@ function SidebarContent() {
           </div>
 
           {/* Categorized Links */}
-          <div ref={scrollContainerRef} className="py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
+          <div ref={scrollContainerRef} className="relative py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
             {linkGroups.map((group, gIdx) => {
               if (group.items.length === 0) return null;
               return (
