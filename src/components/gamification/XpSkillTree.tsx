@@ -278,6 +278,17 @@ function SkillNodeCard({
   };
   const handleMouseLeave = () => { x.set(0); y.set(0); };
 
+  // Determine glow color based on rank for unlocked nodes
+  const glowColor = status.unlocked
+    ? status.currentRank === "legendary"
+      ? "rgba(251,191,36,0.7)"
+      : status.currentRank === "elite"
+      ? "rgba(139,92,246,0.7)"
+      : status.currentRank === "pro"
+      ? "rgba(59,130,246,0.7)"
+      : "rgba(16,185,129,0.6)"
+    : "transparent";
+
   return (
     <div style={{ perspective: 1000 }} className="block w-full">
       <motion.div
@@ -287,10 +298,32 @@ function SkillNodeCard({
         onMouseLeave={handleMouseLeave}
         whileHover={{ scale: 1.04 }}
         whileTap={{ scale: 0.96 }}
-        style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-        transition={{ type: "spring", stiffness: 400, damping: 25 }}
-        className={`relative p-4 rounded-2xl border cursor-pointer transition-all flex flex-col items-center text-center gap-3 ${
-          isSelected ? "ring-2 ring-amber-400 shadow-xl" : ""
+        style={{
+          rotateX,
+          rotateY,
+          transformStyle: "preserve-3d",
+          boxShadow: status.unlocked
+            ? `0 0 18px 4px ${glowColor}, 0 0 40px 8px ${glowColor.replace("0.7", "0.25").replace("0.6", "0.2")}, inset 0 1px 0 rgba(255,255,255,0.08)`
+            : undefined,
+        }}
+        animate={
+          status.unlocked && !isSelected
+            ? {
+                boxShadow: [
+                  `0 0 12px 2px ${glowColor.replace("0.7", "0.4").replace("0.6", "0.35")}`,
+                  `0 0 28px 6px ${glowColor.replace("0.7", "0.7").replace("0.6", "0.6")}`,
+                  `0 0 12px 2px ${glowColor.replace("0.7", "0.4").replace("0.6", "0.35")}`,
+                ],
+              }
+            : {}
+        }
+        transition={
+          status.unlocked && !isSelected
+            ? { duration: 2.5, repeat: Infinity, ease: "easeInOut" }
+            : { type: "spring", stiffness: 400, damping: 25 }
+        }
+        className={`relative p-4 rounded-2xl border cursor-pointer transition-colors flex flex-col items-center text-center gap-3 ${
+          isSelected ? "ring-2 ring-amber-400" : ""
         } ${getRankBadgeClass(status.currentRank)}`}
       >
         {unlockedEffect === node.id && (
@@ -302,8 +335,19 @@ function SkillNodeCard({
           />
         )}
 
-        <div className={`p-3 rounded-full border shadow-inner ${status.unlocked ? "bg-amber-400/20 border-amber-300 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
-          {status.unlocked ? renderIcon(node.iconName) : <Lock className="w-6 h-6 text-slate-500" />}
+        {/* Glow aura behind icon for unlocked nodes */}
+        <div className="relative">
+          {status.unlocked && (
+            <motion.div
+              className="absolute inset-0 rounded-full blur-md pointer-events-none"
+              style={{ backgroundColor: glowColor }}
+              animate={{ opacity: [0.5, 1, 0.5], scale: [0.9, 1.2, 0.9] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+          <div className={`relative p-3 rounded-full border shadow-inner ${status.unlocked ? "bg-amber-400/20 border-amber-300 text-amber-300" : "bg-slate-900 border-slate-800 text-slate-600"}`}>
+            {status.unlocked ? renderIcon(node.iconName) : <Lock className="w-6 h-6 text-slate-500" />}
+          </div>
         </div>
 
         <div>
