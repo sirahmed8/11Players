@@ -76,17 +76,12 @@ function SidebarContent() {
 
   // Auto-scroll active link inside sidebar container ONLY (does NOT scroll document window)
   useEffect(() => {
-    if (activeLinkRef.current && scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const element = activeLinkRef.current;
-      const containerRect = container.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-
-      if (elementRect.top < containerRect.top || elementRect.bottom > containerRect.bottom) {
-        const offsetTop = element.offsetTop - container.offsetTop - (container.clientHeight / 2) + (element.clientHeight / 2);
-        container.scrollTo({ top: Math.max(0, offsetTop), behavior: "smooth" });
+    const timer = setTimeout(() => {
+      if (activeLinkRef.current && scrollContainerRef.current) {
+        activeLinkRef.current.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
       }
-    }
+    }, 120);
+    return () => clearTimeout(timer);
   }, [pathname, searchParams]);
 
   const toggleSidebar = () => setIsOpen(!isOpen);

@@ -295,33 +295,85 @@ export default function KitBadgeBuilder() {
     ctx.fillStyle = bodyShadow;
     ctx.fillRect(0, 0, w, h);
 
-    // 6. Collar Construction (Stays 100% inside neck seam!)
-    ctx.strokeStyle = config.accentColor;
-    ctx.lineWidth = 7;
-    ctx.fillStyle = config.accentColor;
-
+    // 6. Collar Construction & Photorealistic Inner Neck Cutout
     if (config.collarStyle === "V-Neck") {
+      // Inner Neck Fabric Hole
+      ctx.fillStyle = "#0f172a";
       ctx.beginPath();
-      ctx.moveTo(w * 0.34, h * 0.12);
+      ctx.moveTo(w * 0.32, h * 0.12);
       ctx.lineTo(w * 0.5, h * 0.24);
-      ctx.lineTo(w * 0.66, h * 0.12);
+      ctx.lineTo(w * 0.68, h * 0.12);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.08, w * 0.32, h * 0.12);
+      ctx.closePath();
+      ctx.fill();
+
+      // V-Neck Trim Band
+      ctx.strokeStyle = config.accentColor;
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(w * 0.32, h * 0.12);
+      ctx.lineTo(w * 0.5, h * 0.24);
+      ctx.lineTo(w * 0.68, h * 0.12);
       ctx.stroke();
     } else if (config.collarStyle === "Crew Neck") {
+      // Inner Neck Fabric Hole
+      ctx.fillStyle = "#0f172a";
       ctx.beginPath();
-      ctx.arc(w * 0.5, h * 0.12, w * 0.14, 0, Math.PI);
+      ctx.arc(w * 0.5, h * 0.11, w * 0.17, 0, Math.PI);
+      ctx.closePath();
+      ctx.fill();
+
+      // Crew Neck Ribbed Band
+      ctx.strokeStyle = config.accentColor;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(w * 0.5, h * 0.11, w * 0.17, 0, Math.PI);
       ctx.stroke();
     } else if (config.collarStyle === "Polo Collar") {
+      // Inner Neck Fabric Hole
+      ctx.fillStyle = "#0f172a";
       ctx.beginPath();
       ctx.moveTo(w * 0.32, h * 0.12);
-      ctx.lineTo(w * 0.47, h * 0.22);
-      ctx.lineTo(w * 0.53, h * 0.22);
+      ctx.lineTo(w * 0.5, h * 0.22);
       ctx.lineTo(w * 0.68, h * 0.12);
-      ctx.stroke();
-      ctx.fillRect(w * 0.47, h * 0.22, 12, 20);
+      ctx.closePath();
+      ctx.fill();
+
+      // Polo Collar Flaps
+      ctx.fillStyle = config.accentColor;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.32, h * 0.12);
+      ctx.lineTo(w * 0.44, h * 0.22);
+      ctx.lineTo(w * 0.48, h * 0.15);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(w * 0.68, h * 0.12);
+      ctx.lineTo(w * 0.56, h * 0.22);
+      ctx.lineTo(w * 0.52, h * 0.15);
+      ctx.closePath();
+      ctx.fill();
+
+      // Placket
+      ctx.fillStyle = config.accentColor;
+      ctx.fillRect(w * 0.48, h * 0.22, 9, 20);
     } else {
+      // Athletic Ribbed Collar
+      ctx.fillStyle = "#0f172a";
       ctx.beginPath();
       ctx.moveTo(w * 0.32, h * 0.12);
-      ctx.lineTo(w * 0.68, h * 0.12);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.20, w * 0.68, h * 0.12);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.08, w * 0.32, h * 0.12);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = config.accentColor;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.moveTo(w * 0.32, h * 0.12);
+      ctx.quadraticCurveTo(w * 0.5, h * 0.20, w * 0.68, h * 0.12);
       ctx.stroke();
     }
 
@@ -366,41 +418,48 @@ export default function KitBadgeBuilder() {
       ctx.fillText("👑", 60, 65);
       ctx.restore();
 
-      // Right Chest (Viewer's Right): 11P Logo & Small Front Squad Number
-      ctx.fillStyle = config.accentColor;
-      ctx.font = "black 18px monospace";
+      // Right Chest: Front Squad Number
+      ctx.font = "bold 16px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText(config.squadNumber.toString(), w * 0.68, h * 0.31);
+      ctx.strokeStyle = "rgba(0,0,0,0.9)";
+      ctx.lineWidth = 3;
+      ctx.lineJoin = "round";
+      ctx.strokeText(config.squadNumber.toString(), w * 0.65, h * 0.30);
+      ctx.fillStyle = config.accentColor || "#ffffff";
+      ctx.fillText(config.squadNumber.toString(), w * 0.65, h * 0.30);
 
-      // CENTER CHEST SPONSOR LOGO (High Contrast Chest Level Y: h * 0.48 = 230px!)
+      // CENTER CHEST SPONSOR LOGO (High Contrast)
       const sponsorStr = (config.sponsorText || "11PLAYERS PRO").toUpperCase();
-      ctx.font = "black 20px sans-serif";
+      ctx.font = "bold 20px sans-serif";
       ctx.textAlign = "center";
+      ctx.strokeStyle = "rgba(0,0,0,0.95)";
+      ctx.lineWidth = 4.5;
+      ctx.lineJoin = "round";
+      ctx.strokeText(sponsorStr, w * 0.5, h * 0.48);
 
-      // Shadow
-      ctx.fillStyle = "#000000";
-      ctx.fillText(sponsorStr, w * 0.5 + 2, h * 0.48 + 2);
-
-      // High-Contrast Main Text Color (Accent or Bright White)
       ctx.fillStyle = config.accentColor || "#ffffff";
       ctx.fillText(sponsorStr, w * 0.5, h * 0.48);
 
     } else {
-      // BACK VIEW - Player Name Curved & Massive Varsity Squad Number
+      // BACK VIEW - Player Name & Squad Number
       const nameStr = (config.playerName || "CAPTAIN 11").toUpperCase();
-      ctx.font = "black 20px sans-serif";
+      ctx.font = "bold 20px sans-serif";
       ctx.textAlign = "center";
 
-      ctx.fillStyle = "#000000";
-      ctx.fillText(nameStr, w * 0.5 + 2, h * 0.32 + 2);
+      ctx.strokeStyle = "rgba(0,0,0,0.95)";
+      ctx.lineWidth = 4.5;
+      ctx.lineJoin = "round";
+      ctx.strokeText(nameStr, w * 0.5, h * 0.32);
 
       ctx.fillStyle = config.accentColor || "#ffffff";
       ctx.fillText(nameStr, w * 0.5, h * 0.32);
 
-      // Massive Back Squad Number (High-Impact 3D Shadow)
-      ctx.fillStyle = "#000000";
-      ctx.font = "black 90px monospace";
-      ctx.fillText(config.squadNumber.toString(), w * 0.5 + 4, h * 0.62 + 4);
+      // Massive Back Squad Number
+      ctx.font = "bold 88px sans-serif";
+      ctx.strokeStyle = "rgba(0,0,0,0.95)";
+      ctx.lineWidth = 8;
+      ctx.lineJoin = "round";
+      ctx.strokeText(config.squadNumber.toString(), w * 0.5, h * 0.62);
 
       ctx.fillStyle = config.accentColor || "#ffffff";
       ctx.fillText(config.squadNumber.toString(), w * 0.5, h * 0.62);

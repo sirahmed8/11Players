@@ -17,16 +17,15 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
       return;
     }
 
+    // Instant resolution for standard UIDs (eliminates 1.5s network lag)
+    const isStandardUid = Boolean(effectiveUid && (effectiveUid.length >= 15 || effectiveUid === user?.uid));
+    if (isStandardUid) {
+      setResolvedUid(effectiveUid);
+      return;
+    }
+
     const resolveUid = async () => {
       try {
-        // Try direct fetch first to see if it's a valid UID
-        const docSnap = await getDoc(doc(db, "players", effectiveUid));
-        if (docSnap.exists()) {
-          setResolvedUid(effectiveUid);
-          return;
-        }
-
-        // If not found, it might be a username or card name
         const cleanHandle = effectiveUid.toLowerCase().replace(/^@+/, "");
         
         const uQuery = query(collection(db, "players"), where("username", "==", cleanHandle));
@@ -43,26 +42,6 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
           return;
         }
 
-        // Check if player exists in active community before giving up
-        const activeCommId = activeCommunityId || (typeof window !== 'undefined' ? localStorage.getItem('activeCommunityId') : null);
-        if (activeCommId) {
-          const commSnap = await getDoc(doc(db, "communities", activeCommId, "players", effectiveUid));
-          if (commSnap.exists()) {
-            setResolvedUid(commSnap.id);
-            return;
-          }
-        }
-
-        if (user?.email && isViewingOwnProfile) {
-          const q = query(collection(db, "players"), where("email", "==", user.email));
-          const querySnap = await getDocs(q);
-          if (!querySnap.empty) {
-            setResolvedUid(querySnap.docs[0].id);
-            return;
-          }
-        }
-
-        // If all fails, trigger the subscriber which will handle the null/404 state
         setResolvedUid(effectiveUid);
       } catch (err) {
         console.warn("UID resolution error:", err);
@@ -71,7 +50,7 @@ export function usePlayerProfile(effectiveUid: string | null | undefined, user: 
     };
 
     resolveUid();
-  }, [effectiveUid, activeCommunityId, isViewingOwnProfile, user?.email]);
+  }, [effectiveUid, user?.uid]);
 
   // Step 2: Subscribe to the resolved UID
   useEffect(() => {

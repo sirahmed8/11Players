@@ -215,6 +215,35 @@ const PLAY_STYLE_LABELS: Record<string, { en: string; ar: string }> = {
   defensive_goalkeeper: { en: 'Defensive GK (Wall)', ar: 'حارس جداري 🧱' },
 };
 
+function addHoursTo12hTime(start: string, hoursToAdd: number): string {
+  if (!start) return "";
+  const parts = start.trim().split(" ");
+  if (parts.length !== 2) return start;
+  let [timePart, period] = parts;
+  let [hStr, mStr] = timePart.split(":");
+  let h = parseInt(hStr, 10);
+  const m = parseInt(mStr, 10);
+
+  if (period === "PM" && h < 12) h += 12;
+  if (period === "AM" && h === 12) h = 0;
+
+  const totalMins = h * 60 + m + Math.round(hoursToAdd * 60);
+  let newH = Math.floor(totalMins / 60) % 24;
+  const newM = totalMins % 60;
+
+  let newPeriod = "AM";
+  if (newH >= 12) {
+    newPeriod = "PM";
+    if (newH > 12) newH -= 12;
+  } else if (newH === 0) {
+    newH = 12;
+  }
+
+  const newHStr = newH.toString().padStart(2, "0");
+  const newMStr = newM.toString().padStart(2, "0");
+  return `${newHStr}:${newMStr} ${newPeriod}`;
+}
+
 function getDisplayPlayStyle(p: any, isAr: boolean): string {
   const rawStyle = (p.preferredPlayStyle || p.playStyle || p.mood || '').toString();
   const styleKey = rawStyle.toLowerCase().replace(/[\s-]/g, '_').replace(/^the_/, '');
@@ -2059,85 +2088,120 @@ ${teamsInfo}
                         </AnimatePresence>
                       </div>
 
-                      {/* Time Picker */}
-                      <div className="relative" ref={timePickerRef}>
-                        <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'وقت المباراة' : 'Match Time'}</label>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowTimePicker(!showTimePicker);
-                            setShowDatePicker(false);
-                          }}
-                          className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 flex items-center justify-between group shadow-inner"
-                        >
-                          <span className={config.time ? "font-bold text-white" : "text-slate-500 font-medium"}>
-                            {config.time || "--:-- --"}
-                          </span>
-                          <span className="text-slate-400 group-hover:text-emerald-400 transition-colors">⏰</span>
-                        </button>
+                      {/* Time Picker & Time Range */}
+                      <div className="space-y-2">
+                        <div className="relative" ref={timePickerRef}>
+                          <label className="block text-xs font-black text-slate-300 mb-1.5 uppercase tracking-wider">{isAr ? 'وقت وتوقيت المباراة' : 'Match Time'}</label>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowTimePicker(!showTimePicker);
+                              setShowDatePicker(false);
+                            }}
+                            className="w-full text-left rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-white outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 transition-all duration-300 flex items-center justify-between group shadow-inner"
+                          >
+                            <span className={config.time ? "font-bold text-white text-xs sm:text-sm" : "text-slate-500 font-medium text-xs"}>
+                              {config.time || (config.startTime && config.endTime ? `${config.startTime} - ${config.endTime}` : "--:-- --")}
+                            </span>
+                            <span className="text-slate-400 group-hover:text-emerald-400 transition-colors">⏰</span>
+                          </button>
 
-                        <AnimatePresence>
-                          {showTimePicker && (
-                            <motion.div
-                              initial={{ opacity: 0, y: -8, scale: 0.98 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: -8, scale: 0.98 }}
-                              transition={{ duration: 0.15 }}
-                              className="absolute right-0 left-auto top-full mt-2 z-50 w-72 p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl"
-                            >
-                              <div className="mb-3">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                                  {isAr ? 'أوقات شائعة' : 'Popular Presets'}
-                                </span>
-                                <div className="grid grid-cols-3 gap-1.5">
-                                  {["06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"].map(t => (
-                                    <button key={t} type="button" onClick={() => handlePresetTime(t)} className={`px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${config.time === t ? "bg-emerald-600 text-white font-black shadow-md" : "bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800"}`}>
-                                      {t}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div className="border-t border-slate-800 my-3 pt-3">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
-                                  {isAr ? 'وقت مخصص' : 'Custom Time'}
-                                </span>
-                                <div className="flex items-center gap-1.5">
-                                  <div className="flex-1">
-                                    <CustomDropdown
-                                      value={selectedHour}
-                                      onChange={(val) => handleTimeUpdate(val, selectedMinute, selectedPeriod)}
-                                      isAr={isAr}
-                                      options={["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => ({
-                                        value: h,
-                                        label: h
-                                      }))}
-                                    />
-                                  </div>
-                                  <span className="font-bold text-slate-400">:</span>
-                                  <div className="flex-1">
-                                    <CustomDropdown
-                                      value={selectedMinute}
-                                      onChange={(val) => handleTimeUpdate(selectedHour, val, selectedPeriod)}
-                                      isAr={isAr}
-                                      options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => ({
-                                        value: m,
-                                        label: m
-                                      }))}
-                                    />
-                                  </div>
-                                  <div className="flex rounded-xl bg-slate-950 p-0.5 border border-slate-800">
-                                    {["AM", "PM"].map((p) => (
-                                      <button key={p} type="button" onClick={() => handleTimeUpdate(selectedHour, selectedMinute, p)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedPeriod === p ? "bg-emerald-600 text-white font-black shadow-sm" : "text-slate-400 hover:text-white"}`}>
-                                        {p}
+                          <AnimatePresence>
+                            {showTimePicker && (
+                              <motion.div
+                                initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute right-0 left-auto top-full mt-2 z-50 w-72 p-4 rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl"
+                              >
+                                <div className="mb-3">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                                    {isAr ? 'أوقات شائعة' : 'Popular Presets'}
+                                  </span>
+                                  <div className="grid grid-cols-3 gap-1.5">
+                                    {["06:00 PM", "07:00 PM", "08:00 PM", "09:00 PM", "10:00 PM", "11:00 PM"].map(t => (
+                                      <button key={t} type="button" onClick={() => handlePresetTime(t)} className={`px-2 py-1.5 rounded-xl text-xs font-bold transition-all ${config.time === t ? "bg-emerald-600 text-white font-black shadow-md" : "bg-slate-950 hover:bg-slate-800 text-slate-300 border border-slate-800"}`}>
+                                        {t}
                                       </button>
                                     ))}
                                   </div>
                                 </div>
-                              </div>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+
+                                <div className="border-t border-slate-800 my-3 pt-3">
+                                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                                    {isAr ? 'وقت مخصص' : 'Custom Time'}
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="flex-1">
+                                      <CustomDropdown
+                                        value={selectedHour}
+                                        onChange={(val) => handleTimeUpdate(val, selectedMinute, selectedPeriod)}
+                                        isAr={isAr}
+                                        options={["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"].map(h => ({
+                                          value: h,
+                                          label: h
+                                        }))}
+                                      />
+                                    </div>
+                                    <span className="font-bold text-slate-400">:</span>
+                                    <div className="flex-1">
+                                      <CustomDropdown
+                                        value={selectedMinute}
+                                        onChange={(val) => handleTimeUpdate(selectedHour, val, selectedPeriod)}
+                                        isAr={isAr}
+                                        options={["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(m => ({
+                                          value: m,
+                                          label: m
+                                        }))}
+                                      />
+                                    </div>
+                                    <div className="flex rounded-xl bg-slate-950 p-0.5 border border-slate-800">
+                                      {["AM", "PM"].map((p) => (
+                                        <button key={p} type="button" onClick={() => handleTimeUpdate(selectedHour, selectedMinute, p)} className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${selectedPeriod === p ? "bg-emerald-600 text-white font-black shadow-sm" : "text-slate-400 hover:text-white"}`}>
+                                          {p}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </div>
+
+                        {/* Quick Hagaz Duration Chips */}
+                        <div className="pt-1">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                            {isAr ? 'مدة الحجز السريعة' : 'Quick Duration'}
+                          </span>
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { hours: 1, labelAr: 'ساعة', labelEn: '1 Hour' },
+                              { hours: 1.5, labelAr: 'ساعة ونصف', labelEn: '1.5 Hrs' },
+                              { hours: 2, labelAr: 'ساعتين', labelEn: '2 Hours' },
+                              { hours: 3, labelAr: '3 ساعات', labelEn: '3 Hours' },
+                            ].map(d => (
+                              <button
+                                key={d.hours}
+                                type="button"
+                                onClick={() => {
+                                  const start = config.startTime || config.time || '08:00 PM';
+                                  const end = addHoursTo12hTime(start, d.hours);
+                                  setConfig(prev => ({
+                                    ...prev,
+                                    startTime: start,
+                                    endTime: end,
+                                    time: `${start} - ${end}`
+                                  }));
+                                }}
+                                className="px-2 py-1.5 bg-slate-950 hover:bg-emerald-600 hover:text-white border border-slate-800 rounded-xl text-[11px] font-bold text-slate-300 transition-all text-center"
+                              >
+                                {isAr ? d.labelAr : d.labelEn}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 

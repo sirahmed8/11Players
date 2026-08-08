@@ -6,6 +6,40 @@ import { TrendingUp, TrendingDown, DollarSign, Activity } from "lucide-react";
 import { PlayerProfile } from "@/types";
 import { getPlayerOverall } from "@/lib/playerUtils";
 
+export function formatPlaystyle(style?: string): string {
+  if (!style) return '';
+  const s = style.trim();
+  const map: Record<string, string> = {
+    box_to_box: 'Box-to-Box',
+    goal_poacher: 'Goal Poacher',
+    target_man: 'Target Man',
+    creative_playmaker: 'Creative Playmaker',
+    deep_lying_playmaker: 'Deep-Lying Playmaker',
+    prolific_winger: 'Prolific Winger',
+    roaming_flank: 'Roaming Flank',
+    anchor_man: 'Anchor Man',
+    destroyer: 'Destroyer',
+    build_up: 'Build Up',
+    extra_attacker: 'Extra Attacker',
+    offensive_fullback: 'Offensive Fullback',
+    defensive_fullback: 'Defensive Fullback',
+    fullback_finisher: 'Fullback Finisher',
+    offensive_goalkeeper: 'Offensive Goalkeeper',
+    defensive_goalkeeper: 'Defensive Goalkeeper',
+    fox_in_the_box: 'Fox in the Box',
+    hole_player: 'Hole Player',
+    classic_no_10: 'Classic No. 10',
+    cross_specialist: 'Cross Specialist',
+  };
+  if (map[s.toLowerCase()]) return map[s.toLowerCase()];
+  return s
+    .replace(/_/g, ' ')
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 interface TransferValueWidgetProps {
   player: PlayerProfile;
   isAr: boolean;
@@ -212,7 +246,7 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
             {player.playStyle && player.playStyle.trim() !== "" && (
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 rounded-lg">
                 <span className="text-[10px] font-black text-purple-400">{isAr ? "أسلوب:" : "Style:"}</span>
-                <span className="text-[10px] font-bold text-purple-300">{player.playStyle}</span>
+                <span className="text-[10px] font-bold text-purple-300">{formatPlaystyle(player.playStyle)}</span>
               </div>
             )}
           </div>

@@ -18,6 +18,7 @@ import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, Share2 } from "lucide-react";
 import toast from "react-hot-toast";
+import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/player/OvrExplanationModal";
 import SuggestPeerRatingModal from "@/components/player/SuggestPeerRatingModal";
 import PlayerComparisonModal from "@/components/player/PlayerComparisonModal";
@@ -93,7 +94,7 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
   const canExport = user?.uid === effectiveUid || isAdmin;
 
   if (loading) {
-    return null;
+    return <SiteSkeletonLoader variant="profile" />;
   }
 
   if (!player) {
