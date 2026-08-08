@@ -886,7 +886,8 @@ export default function MatchConfigModal({ isOpen, onClose, onGenerate, communit
     setSelectedHour(hour);
     setSelectedMinute(minute);
     setSelectedPeriod(period);
-    setConfig(prev => ({ ...prev, time: `${hour}:${minute} ${period}` }));
+    // Clear startTime/endTime so duration chips recalculate from the new time
+    setConfig(prev => ({ ...prev, time: `${hour}:${minute} ${period}`, startTime: undefined, endTime: undefined }));
   };
 
   const [aiTacticalReport, setAiTacticalReport] = useState<string | null>(null);
@@ -980,7 +981,8 @@ ${teamsInfo}
     setSelectedHour(h);
     setSelectedMinute(m);
     setSelectedPeriod(period);
-    setConfig(prev => ({ ...prev, time: preset }));
+    // Clear startTime/endTime so duration chips recalculate from this fresh preset
+    setConfig(prev => ({ ...prev, time: preset, startTime: undefined, endTime: undefined }));
     setShowTimePicker(false);
   };
 
@@ -2186,14 +2188,19 @@ ${teamsInfo}
                                 key={d.hours}
                                 type="button"
                                 onClick={() => {
-                                  const start = config.startTime || config.time || '08:00 PM';
-                                  const end = addHoursTo12hTime(start, d.hours);
-                                  setConfig(prev => ({
-                                    ...prev,
-                                    startTime: start,
-                                    endTime: end,
-                                    time: `${start} - ${end}`
-                                  }));
+                                  // Use functional updater so we always read the LATEST config state
+                                  setConfig(prev => {
+                                    const start = prev.time && !prev.time.includes(' - ')
+                                      ? prev.time
+                                      : prev.startTime || '08:00 PM';
+                                    const end = addHoursTo12hTime(start, d.hours);
+                                    return {
+                                      ...prev,
+                                      startTime: start,
+                                      endTime: end,
+                                      time: `${start} - ${end}`
+                                    };
+                                  });
                                 }}
                                 className="px-2 py-1.5 bg-slate-950 hover:bg-emerald-600 hover:text-white border border-slate-800 rounded-xl text-[11px] font-bold text-slate-300 transition-all text-center"
                               >
