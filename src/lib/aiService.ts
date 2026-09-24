@@ -74,7 +74,7 @@ const CANDIDATE_MODELS = [
   "gemini-flash-lite-latest",
 ];
 
-const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || process.env.GEMINI_API_KEY || "";
+const API_KEY = process.env.GEMINI_API_KEY || "";
 
 // In-memory cache for notifications & career advice (TTL: 10 minutes)
 const responseCache = new Map<string, { data: AIServiceResult; expiresAt: number }>();
@@ -206,7 +206,7 @@ export async function generate11AIResponse(options: AIServiceOptions): Promise<A
   }
 
   // ── OpenRouter Secondary Fallback Engine ────────────────────────────────
-  const OPENROUTER_KEY = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY || process.env.OPENROUTER_API_KEY || "";
+  const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY || "";
   if (OPENROUTER_KEY) {
     const openRouterModels = [
       "google/gemini-2.0-flash-001",

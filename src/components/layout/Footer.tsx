@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/components/ui/ThemeProvider';
-import { ShieldCheck, FileText, Lock, ExternalLink, Sparkles, HelpCircle } from 'lucide-react';
+import { ShieldCheck, FileText, Lock, ExternalLink, Sparkles, HelpCircle, Receipt, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Footer() {
@@ -93,12 +93,21 @@ export default function Footer() {
             </Link>
             <Link href="/cookie" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
               <ShieldCheck className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-              <span suppressHydrationWarning>{isAr ? "سياسة ملفات الارتباط" : "Cookie Policy"}</span>
+              <span suppressHydrationWarning>{isAr ? "ملفات الارتباط" : "Cookies"}</span>
             </Link>
+            <Link href="/refund" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+              <Receipt className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span suppressHydrationWarning>{isAr ? "سياسة الاسترداد" : "Refund Policy"}</span>
+            </Link>
+            <a href="mailto:support@11players.com" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+              <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span>support@11players.com</span>
+            </a>
           </div>
 
-          <div className="text-xs text-slate-400 font-bold" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
-            {isAr ? `جميع الحقوق محفوظة © ${new Date().getFullYear()} 11Players.` : `© ${new Date().getFullYear()} 11Players. All rights reserved.`}
+          <div className="text-xs text-slate-400 font-bold text-center md:text-end" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
+            <div>{isAr ? "11Players للتقنيات الرياضية (حجوزات إيليت)" : "11Players Sports Technologies Ltd. (Hagoozat Elite)"}</div>
+            <div>{isAr ? `جميع الحقوق محفوظة © ${new Date().getFullYear()}` : `© ${new Date().getFullYear()} All rights reserved.`}</div>
           </div>
         </div>
       </div>

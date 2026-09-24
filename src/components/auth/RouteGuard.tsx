@@ -8,7 +8,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 
 import SiteSkeletonLoader, { getSkeletonVariantForPath } from "@/components/ui/SiteSkeletonLoader";
 
-const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie"];
+const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie", "/refund"];
 
 export default function RouteGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();

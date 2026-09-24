@@ -2,24 +2,43 @@ import { NextResponse } from "next/server";
 import { generate11AIResponse } from "@/lib/aiService";
 import { z } from "zod";
 
+// In-memory sliding window rate limiter (15 requests/minute per client IP)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW_MS = 60 * 1000;
+const MAX_REQUESTS_PER_WINDOW = 15;
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
+    return false;
+  }
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    return true;
+  }
+  record.count += 1;
+  return false;
+}
+
 const chatRequestSchema = z.object({
-  message: z.string().optional(),
+  message: z.string().max(2000).optional(),
   playerContext: z.object({
-    fullName: z.string().optional(),
-    overall: z.number().optional(),
-    primaryPosition: z.string().optional(),
+    fullName: z.string().max(100).optional(),
+    overall: z.number().min(0).max(100).optional(),
+    primaryPosition: z.string().max(10).optional(),
     goals: z.number().optional(),
     assists: z.number().optional(),
     matchesCount: z.number().optional(),
-    playStyle: z.string().optional(),
-    communityName: z.string().optional(),
+    playStyle: z.string().max(50).optional(),
+    communityName: z.string().max(100).optional(),
   }).optional(),
-  communityRoster: z.array(z.any()).optional(),
-  recentAnnouncements: z.array(z.any()).optional(),
-  history: z.array(z.any()).optional(),
+  communityRoster: z.array(z.any()).max(100).optional(),
+  recentAnnouncements: z.array(z.any()).max(20).optional(),
+  history: z.array(z.any()).max(50).optional(),
   imageInlineData: z.object({
-    mimeType: z.string(),
-    data: z.string(),
+    mimeType: z.string().max(50),
+    data: z.string().max(5000000), // ~5MB base64 cap
   }).nullable().optional(),
 });
 
@@ -55,6 +74,14 @@ function cleanPlayStyleName(style?: string): string {
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous";
+    if (isRateLimited(ip)) {
+      return NextResponse.json(
+        { error: "rate_limited", message: "Too many requests. Please wait a minute before trying again." },
+        { status: 429 }
+      );
+    }
+
     const rawBody = await req.json();
     const parsed = chatRequestSchema.safeParse(rawBody);
 

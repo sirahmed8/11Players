@@ -5,6 +5,7 @@ const BackgroundRemover = dynamic(() => import('@/components/player/BackgroundRe
 import PlayerCard from '@/components/player/PlayerCard';
 import OnboardingAIAdvisor from './OnboardingAIAdvisor';
 import { WizardState } from './types';
+import { Camera } from 'lucide-react';
 import { PlayerProfile } from '@/types';
 
 export default function Step4PhotoSubmit({
@@ -33,7 +34,10 @@ export default function Step4PhotoSubmit({
       )}
       
       <div className="text-center mb-2">
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">📸 {txt.photoTitle}</h2>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center justify-center gap-2">
+          <Camera className="w-6 h-6 text-emerald-500" />
+          <span>{txt.photoTitle}</span>
+        </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{txt.photoSubtitle}</p>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">

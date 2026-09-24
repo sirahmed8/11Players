@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md — Architectural & Technical Specification
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
-> **Last Updated**: August 7, 2026
-> **Status**: Production Full-Stack Next.js 16 Web Application (EGYPTIAN TURF HAGAZ WORKFLOW, TIME RANGE PICKER, DYNAMIC ATTENDANCE ROSTER, LIVE FORMAT SWITCHER, MID-MATCH SUBS, DEPLOYED)  
+> **Last Updated**: September 24, 2026
+> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, EGYPTIAN & GLOBAL LEGAL COMPLIANCE, ANTI-VIBE DESIGN HARMONIZED, 106/106 TESTS PASSING, DEPLOYED)  
 ---
 
 ## 1. Tech Stack Overview
@@ -92,8 +92,7 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - `/announcements` (Broadcast Center): Real-time announcements feed with 11AI Gemini text enhancer integration.
 - `/support` & `/inbox` (Support Hub): Help desk tickets, FAQ accordions, and automated AI assistance.
 - `/users` (User Roster): Platform user management directory with role filtering (Owner, Admin, Member).
-- `/owner` (Global Owner Panel): System maintenance toggles, global security controls, edge config sync, and audit logs.
-- `/guide`, `/tos`, `/privacy`, `/cookie` (Tactical Guide & Legal): PES positional suitability index guide, privacy settings, and cookie manager.
+- `/guide`, `/tos`, `/privacy`, `/cookie`, `/refund` (Tactical Guide, Legal & Compliance): PES positional suitability index guide, Egyptian Personal Data Protection Law (Law 151/2020) & GDPR-compliant Privacy Policy, Amateur Sports Physical Injury Disclaimer Terms of Service (exclusive Cairo jurisdiction), global accessible CookieConsentBanner with granular essential/all consent, and Consumer Protection Law (Law 181/2018) compliant Refund & Cancellation Policy.
 
 ---
 
@@ -501,6 +500,32 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Converted Community action tools & filter controls to responsive vertical stacking (`flex-col sm:flex-row`).
   - Added safe bottom padding (`pb-20 md:pb-6`) to `Footer.tsx` so developer links and copyright notices remain unobstructed.
   - Made Announcements search box and priority filter tabs stack cleanly on mobile viewports without placeholder text truncation.
+
+## 20. Milestone M3.3 — Firebase Hosting Recovery, Enterprise Security Hardening & Legal Compliance Infrastructure
+- **Firebase Hosting Outage Root-Cause Resolution (`firebase.json`)**:
+  - Diagnosed production 404 outage caused by missing static artifacts during manual deployments.
+  - Added `"predeploy": ["npm run build"]` hook under `"hosting"` in `firebase.json` to guarantee static HTML/JS export generation into `out/` prior to every release.
+  - Explicitly configured `"site": "an-11-players"` to resolve site targeting ambiguity.
+  - Injected enterprise HTTP security headers: `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`, `Permissions-Policy`, `Referrer-Policy: strict-origin-when-cross-origin`, `Cross-Origin-Resource-Policy: same-origin`, and `Cross-Origin-Opener-Policy: same-origin-allow-popups`.
+- **API Security Hardening & Secret Isolation (`.env.local`, `aiService.ts`, `api/ai/chat/route.ts`)**:
+  - Removed client-exposed `NEXT_PUBLIC_GEMINI_API_KEY` and `NEXT_PUBLIC_OPENROUTER_API_KEY`. Preserved server-side `GEMINI_API_KEY` and `OPENROUTER_API_KEY`.
+  - Audited `src/lib/aiService.ts` to ensure AI API keys are read exclusively from server-side environment variables.
+  - Implemented sliding-window IP rate limiter (15 requests/min per IP) and strict payload length caps (2,000 character prompts, 5MB base64 cap, bounded player attributes) on `/api/ai/chat`.
+  - Conducted git history audit confirming zero private keys or `.env` files were ever committed.
+- **Legal Compliance & Consumer Protection Infrastructure**:
+  - **Refund & Cancellation Policy (`src/app/refund/page.tsx`)**: Created comprehensive bilingual policy compliant with Egyptian Consumer Protection Law (Law 181/2018) and international digital commerce standards. Covers 7-day Pro Pass money-back guarantee, 12-hour match split cancellation window, and 5-10 business day refund processing timelines.
+  - **Privacy Policy Upgrade (`src/app/privacy/page.tsx`)**: Aligned with Egyptian Personal Data Protection Law (Law 151/2020) and GDPR. Added statutory Data Controller identity (`11Players Sports Technologies Ltd. / Hagoozat Elite`), official DPO contact (`privacy@11players.com`), 7-day response timeline, and explicit data subject rights (access, rectification, erasure, objection).
+  - **Terms of Service Upgrade (`src/app/tos/page.tsx`)**: Injected essential Amateur Sports Physical Injury & Turf Liability Disclaimer (relieving platform of liability for pitch injuries, accidents, turf conditions, and disputes), explicit Cairo, Egypt exclusive jurisdiction, and intellectual property protections.
+  - **Global Cookie Consent (`CookieConsentBanner.tsx` & `src/app/cookie/page.tsx`)**: Built accessible floating banner with granular "Accept All" and "Essential Only" consent persisting in `localStorage`, linking to dedicated `/cookie` policy.
+  - **RouteGuard & Navigation Integration (`RouteGuard.tsx`, `layout.tsx`, `Footer.tsx`)**: Added `/refund` to `PUBLIC_ROUTES` preventing unauthenticated redirects, mounted global cookie banner in root layout, and linked all legal policies in footer.
+  - **Mandatory Form Consent (`OnboardingWizard.tsx`)**: Added required legal consent checkbox linking to `/tos` and `/privacy` before allowing profile creation.
+- **Anti-Vibe-Coding Professional Design System Polish (`src/app/page.tsx`, `OnboardingWizard.tsx`, `Step4PhotoSubmit.tsx`)**:
+  - Removed fake ticker animations (`useAnimatedCounter`), counter intervals, and artificial platform metrics.
+  - Eliminated purple/violet gradients, replacing them with brand emerald, teal, blue, and dark slate surfaces.
+  - Replaced pill buttons with ergonomic `rounded-xl` buttons (`DESIGN_SYSTEM.md`).
+  - Removed emoji UI icons (`📸`, `⚡`, `🎉`, `❌`), replacing them with typed Lucide React components (`<Camera />`, `<Zap />`, `<CheckCircle2 />`, `<AlertCircle />`).
+  - Removed typographic m-dashes ("—") across page titles and stat cards.
+
 
 
 

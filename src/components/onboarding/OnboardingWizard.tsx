@@ -13,7 +13,8 @@ import Step2Positions from './Step2Positions';
 import Step3Attributes from './Step3Attributes';
 import Step4PhotoSubmit from './Step4PhotoSubmit';
 import OnboardingAIAdvisor from './OnboardingAIAdvisor';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronUp, ChevronDown, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
 import { WizardState } from './types';
 import { calculateAge } from '@/lib/playerUtils';
 import { playerProfileSchema } from '@/schemas/playerSchema';
@@ -154,6 +155,7 @@ export default function OnboardingWizard() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [hasAgreedToTerms, setHasAgreedToTerms] = useState(false);
 
   /* ── Local Storage Persistence ── */
   useEffect(() => {
@@ -521,17 +523,58 @@ export default function OnboardingWizard() {
                 <AnimatePresence>
                   {submitMessage && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={`text-center p-4 rounded-xl border text-sm font-semibold flex items-center justify-center gap-2 ${submitMessage.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-red-500/10 border-red-500/30 text-red-300'}`}>
-                      <span className="text-lg">{submitMessage.type === 'success' ? '🎉' : '❌'}</span>
-                      {submitMessage.text}
+                      {submitMessage.type === 'success' ? (
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      ) : (
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      )}
+                      <span>{submitMessage.text}</span>
                     </motion.div>
                   )}
                 </AnimatePresence>
+
+                {/* Mandatory Legal Form Consent */}
+                <div className="flex items-start gap-3 p-4 bg-slate-900/80 border border-slate-800 rounded-xl text-xs text-slate-300 leading-relaxed shadow-sm">
+                  <input
+                    type="checkbox"
+                    id="onboarding-consent-checkbox"
+                    checked={hasAgreedToTerms}
+                    onChange={(e) => setHasAgreedToTerms(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-700 bg-slate-950 cursor-pointer shrink-0"
+                  />
+                  <label htmlFor="onboarding-consent-checkbox" className="cursor-pointer">
+                    {isRTL ? (
+                      <>
+                        أوافق صراحة على{" "}
+                        <Link href="/tos" target="_blank" className="text-emerald-400 hover:underline font-bold">
+                          شروط الخدمة
+                        </Link>{" "}
+                        و{" "}
+                        <Link href="/privacy" target="_blank" className="text-emerald-400 hover:underline font-bold">
+                          سياسة الخصوصية
+                        </Link>{" "}
+                        لمنصة 11Players، وأصرح بمعالجة بياناتي الكروية والبدنية ومشاركتها مع مجتمعاتي لغرض موازنة الفرق وتقييم الأداء.
+                      </>
+                    ) : (
+                      <>
+                        I expressly agree to the{" "}
+                        <Link href="/tos" target="_blank" className="text-emerald-400 hover:underline font-bold">
+                          Terms of Service
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="/privacy" target="_blank" className="text-emerald-400 hover:underline font-bold">
+                          Privacy Policy
+                        </Link>
+                        , and consent to processing my athletic profile data for community match balancing.
+                      </>
+                    )}
+                  </label>
+                </div>
+
                 <motion.button
-                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting}
-                  className="relative group w-full py-4 px-8 rounded-2xl text-lg font-black shadow-xl shadow-emerald-500/25 transition-all overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 text-white"
+                  whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={isSubmitting || !hasAgreedToTerms}
+                  className="relative group w-full py-4 px-8 rounded-xl text-base font-bold shadow-lg shadow-emerald-500/20 transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-600 hover:bg-emerald-500 text-white"
                 >
-                  {/* Shimmer sweep */}
-                  <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out pointer-events-none" />
                   {isSubmitting ? (
                     <span className="relative flex items-center justify-center gap-3">
                       <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }} className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white" />
@@ -539,7 +582,8 @@ export default function OnboardingWizard() {
                     </span>
                   ) : (
                     <span className="relative flex items-center justify-center gap-2">
-                      <span>⚡</span> {txt.submit}
+                      <Zap className="w-5 h-5" />
+                      <span>{txt.submit}</span>
                     </span>
                   )}
                 </motion.button>

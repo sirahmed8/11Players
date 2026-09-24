@@ -8,72 +8,38 @@ import { useLocale, useTheme } from "@/components/ui/ThemeProvider";
 import { useAuth } from "@/contexts/AuthContext";
 import { doc, getDoc, collection, query, where, getDocs, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Users, ShieldCheck, Loader2, BellRing, Sparkles,
   Smartphone, Trophy, Medal, Star, MessageSquare, Repeat,
-  Goal, Timer, ArrowRight, CheckCircle2, Zap, Cookie, X,
+  Goal, Timer, ArrowRight, CheckCircle2, Zap,
   TrendingUp, BarChart3
 } from "lucide-react";
 import SettingsMenu from "@/components/layout/SettingsMenu";
 
-// ── Animated Counter Hook ─────────────────────────────────────────────────────
-function useAnimatedCounter(target: number, duration = 1400, delay = 0) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const startTime = useRef<number | null>(null);
-  const rafRef = useRef<number>(0);
 
-  const start = useCallback(() => {
-    if (started || target === 0) return;
-    setStarted(true);
-    const step = (ts: number) => {
-      if (!startTime.current) startTime.current = ts + delay;
-      const elapsed = ts - startTime.current;
-      if (elapsed < 0) { rafRef.current = requestAnimationFrame(step); return; }
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out-cubic
-      setCount(Math.floor(eased * target));
-      if (progress < 1) rafRef.current = requestAnimationFrame(step);
-      else setCount(target);
-    };
-    rafRef.current = requestAnimationFrame(step);
-  }, [target, duration, delay, started]);
-
-  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
-  return { count, start };
-}
-
-// ── Stat Card with animated counter ────────────────────────────────────────────────
-// color = a solid Tailwind bg class e.g. "bg-emerald-500"
+// ── Stat Card (Clean Authentic Metrics) ───────────────────────────────────────
 function StatCard({
   value, label, icon, color, delay, suffix = ""
 }: {
   value: number; label: string; icon: React.ReactNode;
   color: string; delay: number; suffix?: string;
 }) {
-  const { count, start } = useAnimatedCounter(value, 700, delay);
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.96 }}
-      whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, amount: 0.1 }}
-      transition={{ duration: 0.45, delay: delay / 1000, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ scale: 1.025, y: -2 }}
-      whileTap={{ scale: 0.96 }}
-      onViewportEnter={start}
-      className="relative group cursor-pointer"
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.35, delay: delay / 1000 }}
+      className="relative group"
     >
-      <div className="relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-800/80 hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] p-6 flex flex-col items-center gap-3 shadow-sm transition-all duration-300">
-        {/* Solid color top accent line */}
-        <div className={`absolute top-0 left-0 right-0 h-1 ${color} opacity-90`} />
-        {/* Subtle glow on hover */}
-        <div className={`absolute inset-0 ${color} opacity-[0.03] group-hover:opacity-[0.10] transition-opacity duration-500`} />
-        <div className={`w-13 h-13 rounded-2xl ${color} flex items-center justify-center text-white shadow-lg`}>
+      <div className="relative overflow-hidden rounded-2xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200 dark:border-slate-800 p-6 flex flex-col items-center gap-3 shadow-sm hover:border-emerald-500/40 transition-colors duration-200">
+        <div className={`absolute top-0 left-0 right-0 h-1 ${color}`} />
+        <div className={`w-12 h-12 rounded-xl ${color} flex items-center justify-center text-white shadow-md`}>
           {icon}
         </div>
-        <div className="stat-value text-3xl md:text-4xl text-slate-900 dark:text-white">
-          {count > 0 ? `${count}${suffix}` : "—"}
+        <div className="stat-value text-3xl font-extrabold text-slate-900 dark:text-white tabular-nums tracking-tight">
+          {value > 0 ? `${value}${suffix}` : "0"}
         </div>
         <div className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400 text-center leading-snug">
           {label}
@@ -83,20 +49,20 @@ function StatCard({
   );
 }
 
-// ── Feature Card ──────────────────────────────────────────────────────────────
+// ── Feature Card Colors (Brand Harmonized, Zero Purple) ──────────────────────
 const FEATURE_COLORS = [
-  "bg-emerald-500",
-  "bg-blue-500",
-  "bg-rose-500",
-  "bg-amber-500",
-  "bg-yellow-500",
-  "bg-purple-500",
-  "bg-orange-500",
-  "bg-cyan-500",
-  "bg-teal-500",
-  "bg-red-500",
-  "bg-pink-500",
-  "bg-indigo-500",
+  "bg-emerald-600",
+  "bg-teal-600",
+  "bg-slate-700",
+  "bg-blue-600",
+  "bg-amber-600",
+  "bg-cyan-600",
+  "bg-emerald-700",
+  "bg-teal-700",
+  "bg-slate-800",
+  "bg-blue-700",
+  "bg-emerald-600",
+  "bg-teal-600",
 ];
 
 function FeatureCard({
@@ -144,7 +110,6 @@ export default function Home() {
   const router = useRouter();
   const isAr = locale === "ar";
 
-  const [cookieConsent, setCookieConsent] = useState(true);
   const [loginInProgress, setLoginInProgress] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [statsLoaded, setStatsLoaded] = useState(false);
@@ -153,11 +118,6 @@ export default function Home() {
 
   // ── Ensure SSR/client hydration consistency ───────────────────────────
   useEffect(() => { setMounted(true); }, []);
-
-  // ── Parallax scroll ─────────────────────────────────────────────────────────
-  const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 500], [0, -80]);
-  const heroOpacity = useTransform(scrollY, [0, 300], [1, 0.3]);
 
   // ── Stats fetch — cached doc first, then live ───────────────────────────────
   useEffect(() => {
@@ -209,10 +169,6 @@ export default function Home() {
     return () => { mounted = false; };
   }, []);
 
-  // ── Cookie consent ──────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!localStorage.getItem("cookieConsent")) setCookieConsent(false);
-  }, []);
 
   // ── Redirect if already logged in ──────────────────────────────────────────
   useEffect(() => {
@@ -260,9 +216,9 @@ export default function Home() {
 
   // ── How it works steps ──────────────────────────────────────────────────────
   const steps = [
-    { num: "01", icon: <Users className="w-7 h-7" />, color: "from-emerald-500 to-teal-500", title: isAr ? "انضم" : "Join", desc: isAr ? "أنشئ حسابك بجوجل وأكمل ملفك الكروي في دقيقتين." : "Create your account with Google and complete your player profile in 2 minutes." },
-    { num: "02", icon: <Star className="w-7 h-7" />, color: "from-amber-500 to-orange-500", title: isAr ? "قيّم" : "Rate", desc: isAr ? "بعد كل مباراة، قيّم زملاءك لضمان دقة الإحصاءات والموازنة." : "After every match, rate teammates to keep stats accurate and fair for everyone." },
-    { num: "03", icon: <Trophy className="w-7 h-7" />, color: "from-purple-500 to-violet-500", title: isAr ? "تنافس" : "Compete", desc: isAr ? "تسلق الترتيب، احصد الجوائز، وسيطر على الموسم." : "Climb the leaderboard, win awards, and dominate your community season." },
+    { num: "01", icon: <Users className="w-7 h-7" />, color: "from-emerald-600 to-teal-600", title: isAr ? "انضم" : "Join", desc: isAr ? "أنشئ حسابك بجوجل وأكمل ملفك الكروي في دقيقتين." : "Create your account with Google and complete your player profile in 2 minutes." },
+    { num: "02", icon: <Star className="w-7 h-7" />, color: "from-amber-600 to-orange-600", title: isAr ? "قيّم" : "Rate", desc: isAr ? "بعد كل مباراة، قيّم زملاءك لضمان دقة الإحصاءات والموازنة." : "After every match, rate teammates to keep stats accurate and fair for everyone." },
+    { num: "03", icon: <Trophy className="w-7 h-7" />, color: "from-blue-600 to-cyan-600", title: isAr ? "تنافس" : "Compete", desc: isAr ? "تسلق الترتيب، احصد الجوائز، وسيطر على الموسم." : "Climb the leaderboard, win awards, and dominate your community season." },
   ];
 
   // ── Loading state ───────────────────────────────────────────────────────────
@@ -312,137 +268,87 @@ export default function Home() {
       </header>
 
       {/* ── HERO ──────────────────────────────────────────────────────────────── */}
-      <section className="relative min-h-[100svh] flex flex-col items-center justify-center text-center px-5 overflow-hidden">
-
-        {/* Background: animated pitch gradient */}
-        <motion.div
-          style={{ y: heroY, opacity: heroOpacity }}
-          className="absolute inset-0 pointer-events-none"
-        >
-          {/* Deep bg */}
+      <section className="relative min-h-[92svh] flex flex-col items-center justify-center text-center px-5 overflow-hidden">
+        {/* Pitch grid lines SVG background */}
+        <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-slate-50 dark:bg-slate-950" />
-
-          {/* Pitch grid lines SVG */}
-          <svg className="absolute inset-0 w-full h-full opacity-[0.04]" xmlns="http://www.w3.org/2000/svg">
+          <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-                <path d="M 80 0 L 0 0 0 80" fill="none" stroke="white" strokeWidth="0.5" />
+                <path d="M 80 0 L 0 0 0 80" fill="none" stroke="currentColor" strokeWidth="0.5" />
               </pattern>
             </defs>
             <rect width="100%" height="100%" fill="url(#grid)" />
-            {/* Center circle */}
-            <circle cx="50%" cy="50%" r="120" fill="none" stroke="white" strokeWidth="0.8" />
-            <circle cx="50%" cy="50%" r="5" fill="white" />
-            {/* Center line */}
-            <line x1="0" y1="50%" x2="100%" y2="50%" stroke="white" strokeWidth="0.5" />
+            <circle cx="50%" cy="50%" r="120" fill="none" stroke="currentColor" strokeWidth="0.8" />
+            <circle cx="50%" cy="50%" r="4" fill="currentColor" />
+            <line x1="0" y1="50%" x2="100%" y2="50%" stroke="currentColor" strokeWidth="0.5" />
           </svg>
-
-          {/* Floating orbs */}
-          <motion.div animate={{ y: [-12, 12, -12], x: [8, -8, 8] }} transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[20%] left-[10%] w-3 h-3 rounded-full bg-emerald-400/40 blur-sm" />
-          <motion.div animate={{ y: [10, -10, 10], x: [-6, 6, -6] }} transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", delay: 1 }} className="absolute top-[30%] right-[12%] w-2 h-2 rounded-full bg-teal-400/50 blur-sm" />
-          <motion.div animate={{ y: [-8, 8, -8] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 2 }} className="absolute bottom-[25%] left-[15%] w-4 h-4 rounded-full bg-emerald-500/25 blur-md" />
-          <motion.div animate={{ y: [6, -14, 6] }} transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 0.5 }} className="absolute bottom-[30%] right-[10%] w-2.5 h-2.5 rounded-full bg-cyan-400/40 blur-sm" />
-        </motion.div>
+        </div>
 
         {/* Hero content */}
-        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-8 pb-24">
+        <div className="relative z-10 max-w-4xl mx-auto flex flex-col items-center gap-7 pt-12 pb-20">
 
-          {/* Logo with glow rings */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="relative"
-          >
-            {/* Outer pulsing ring */}
-            <motion.div
-              animate={{ scale: [1, 1.15, 1], opacity: [0.3, 0, 0.3] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute inset-[-14px] rounded-[28px] border-2 border-emerald-500/40"
-            />
-            {/* Middle ring */}
-            <motion.div
-              animate={{ scale: [1, 1.08, 1], opacity: [0.5, 0.1, 0.5] }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
-              className="absolute inset-[-7px] rounded-[24px] border border-emerald-500/30"
-            />
-            <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-[20px] md:rounded-3xl overflow-hidden shadow-2xl shadow-emerald-500/30 border-2 border-emerald-500/40 bg-slate-100 dark:bg-slate-950">
-              <Image src="/logo.jpg" alt="11Players Logo" fill className="object-contain" priority />
-            </div>
-          </motion.div>
+          {/* Logo */}
+          <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-2xl overflow-hidden shadow-xl border-2 border-emerald-500/30 bg-slate-100 dark:bg-slate-950">
+            <Image src="/logo.jpg" alt="11Players Logo" fill className="object-contain" priority />
+          </div>
 
           {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold tracking-wide uppercase">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-              </span>
-              {isAr ? "منصة كرة القدم الأولى في مجتمعك" : "Your Community Football Platform"}
+          <div>
+            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 text-xs font-bold tracking-wide uppercase">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span>{isAr ? "منصة إدارة كرة القدم وموازنة الفرق" : "Football Matchmaking & Community Platform"}</span>
             </span>
-          </motion.div>
+          </div>
 
           {/* Main heading */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-4"
-          >
-            <h1 className="text-5xl sm:text-6xl md:text-7xl xl:text-8xl font-black tracking-tight leading-[1.05]">
+          <div className="space-y-4 max-w-3xl">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight leading-tight">
               <span className="text-slate-900 dark:text-white">
                 {isAr ? "مرحباً في" : "Welcome to"}
-              </span>
-              <br />
+              </span>{" "}
               <span className="text-emerald-600 dark:text-emerald-400">
                 11Players
               </span>
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium">
+            <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto leading-relaxed font-medium">
               {t("tagline")}
             </p>
-          </motion.div>
+          </div>
 
           {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            className="flex flex-col items-center gap-3"
-          >
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <motion.button
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <button
                 onClick={handleGoogleLogin}
                 disabled={loginInProgress}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                className="relative group inline-flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg rounded-2xl shadow-xl shadow-emerald-950/40 transition-all duration-200 disabled:opacity-60 overflow-hidden cursor-pointer"
+                className="inline-flex items-center justify-center gap-3 px-7 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-base rounded-xl shadow-lg shadow-emerald-950/20 transition-colors disabled:opacity-60 cursor-pointer min-h-[44px]"
+                aria-label={t("cta_login")}
               >
                 {loginInProgress ? <Loader2 className="w-5 h-5 animate-spin" /> : <GoogleIcon />}
-                <span className="relative">{t("cta_login")}</span>
-                {!loginInProgress && <ArrowRight className="relative w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />}
-              </motion.button>
+                <span>{t("cta_login")}</span>
+                {!loginInProgress && <ArrowRight className="w-4 h-4 rtl:rotate-180" />}
+              </button>
 
-              <Link href="/guide" className="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-base transition-all hover:border-emerald-500/50 group">
-                {isAr ? "تعرّف على المنصة" : "Learn more"}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 rtl:rotate-180 transition-transform" />
+              <Link
+                href="/guide"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-slate-300 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-bold text-base transition-colors hover:border-emerald-500/50 min-h-[44px]"
+              >
+                <span>{isAr ? "تعرّف على المنصة" : "Learn more"}</span>
+                <ArrowRight className="w-4 h-4 rtl:rotate-180" />
               </Link>
             </div>
 
             {/* Legal Agreement Disclaimer */}
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium text-center mt-1 max-w-md">
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium text-center mt-2 max-w-md">
               {isAr ? (
                 <>
                   بالمتابعة، فإنك توافق على{" "}
-                  <Link href="/tos" className="text-emerald-500 hover:underline font-semibold">
+                  <Link href="/tos" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
                     شروط الخدمة
                   </Link>{" "}
                   و{" "}
-                  <Link href="/privacy" className="text-emerald-500 hover:underline font-semibold">
+                  <Link href="/privacy" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
                     سياسة الخصوصية
                   </Link>{" "}
                   لمنصة 11Players.
@@ -450,18 +356,18 @@ export default function Home() {
               ) : (
                 <>
                   By continuing, you agree to 11Players Platform{" "}
-                  <Link href="/tos" className="text-emerald-500 hover:underline font-semibold">
+                  <Link href="/tos" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
                     Terms of Service
                   </Link>{" "}
                   and{" "}
-                  <Link href="/privacy" className="text-emerald-500 hover:underline font-semibold">
+                  <Link href="/privacy" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
                     Privacy Policy
                   </Link>
                   .
                 </>
               )}
             </p>
-          </motion.div>
+          </div>
         </div>
 
         {/* Scroll hint */}
@@ -491,7 +397,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-12"
           >
-            <span className="inline-block px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
+            <span className="inline-block px-3 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
               {isAr ? "بالأرقام" : "By the Numbers"}
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">
@@ -503,7 +409,7 @@ export default function Home() {
             <StatCard value={publicStats.players}     label={t("registered_players")} icon={<Users className="w-5 h-5" />}      color="bg-emerald-600" delay={0}   suffix="+" />
             <StatCard value={publicStats.communities} label={t("active_communities")} icon={<Zap className="w-5 h-5" />}         color="bg-blue-600"    delay={80}  suffix="" />
             <StatCard value={publicStats.avgRating}   label={t("platform_ovr_avg")}   icon={<TrendingUp className="w-5 h-5" />}  color="bg-amber-600"   delay={160} />
-            <StatCard value={publicStats.matches}     label={t("matches_recorded")}   icon={<BarChart3 className="w-5 h-5" />}   color="bg-violet-600"  delay={240} suffix="+" />
+            <StatCard value={publicStats.matches}     label={t("matches_recorded")}   icon={<BarChart3 className="w-5 h-5" />}   color="bg-slate-700"   delay={240} suffix="+" />
           </div>
         </div>
       </section>
@@ -518,7 +424,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <span className="inline-block px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
+            <span className="inline-block px-3 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
               {isAr ? "كيف تبدأ" : "How It Works"}
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white">{t("how_it_works")}</h2>
@@ -538,9 +444,9 @@ export default function Home() {
                 transition={{ duration: 0.55, delay: i * 0.15, ease: [0.22, 1, 0.36, 1] }}
                 className="relative flex flex-col items-center text-center gap-5 p-6 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 backdrop-blur-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors shadow-sm"
               >
-                <div className={`relative w-14 h-14 rounded-2xl ${step.color.includes('emerald') ? 'bg-emerald-600' : step.color.includes('blue') ? 'bg-blue-600' : 'bg-purple-600'} flex items-center justify-center shadow-xl text-white flex-shrink-0`}>
+                <div className={`relative w-14 h-14 rounded-2xl ${step.color.includes('emerald') ? 'bg-emerald-600' : step.color.includes('amber') ? 'bg-amber-600' : 'bg-blue-600'} flex items-center justify-center shadow-xl text-white flex-shrink-0`}>
                   {step.icon}
-                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-700 dark:text-slate-300">
+                  <span className="absolute -top-2 -right-2 w-6 h-6 rounded-xl bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 flex items-center justify-center text-[10px] font-black text-slate-700 dark:text-slate-300">
                     {step.num}
                   </span>
                 </div>
@@ -564,7 +470,7 @@ export default function Home() {
             transition={{ duration: 0.6 }}
             className="text-center mb-16"
           >
-            <span className="inline-block px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
+            <span className="inline-block px-3 py-1 rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700/80 text-slate-600 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-4">
               {isAr ? "المميزات" : "Features"}
             </span>
             <h2 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-4">{t("why_use_us")}</h2>
@@ -624,56 +530,7 @@ export default function Home() {
           </div>
         </motion.div>
       </section>
-
-      {/* ── COOKIE CONSENT BANNER ─────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {!cookieConsent && (
-          <motion.div
-            initial={{ opacity: 0, y: 80 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 80 }}
-            transition={{ type: "spring", stiffness: 260, damping: 28 }}
-            className="fixed bottom-4 left-4 right-4 md:left-auto md:right-6 md:max-w-sm z-[200]"
-          >
-            <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 shadow-2xl shadow-black/20 dark:shadow-black/60 backdrop-blur-xl p-5">
-              {/* Solid accent */}
-              <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-500" />
-
-              <div className="flex gap-3 mb-4">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <Cookie className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-slate-900 dark:text-white mb-0.5">{isAr ? "ملفات تعريف الارتباط" : "Cookie Notice"}</p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{t("privacy_banner")}</p>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { localStorage.setItem("cookieConsent", "true"); setCookieConsent(true); }}
-                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-xl transition-all active:scale-95"
-                >
-                  {t("accept")}
-                </button>
-                <Link
-                  href="/cookie"
-                  className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-400 hover:text-white hover:border-slate-600 font-semibold text-sm transition-all whitespace-nowrap"
-                >
-                  {isAr ? "تفاصيل" : "Details"}
-                </Link>
-                <button
-                  onClick={() => setCookieConsent(true)}
-                  className="w-9 h-9 rounded-xl border border-slate-700 flex items-center justify-center text-slate-500 hover:text-white hover:border-slate-600 transition-all flex-shrink-0"
-                  aria-label="Close"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }
+

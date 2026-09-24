@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { Cookie, Settings, EyeOff, Trash2, ToggleLeft, Info, Mail } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function CookiePage() {
   const { locale } = useLocale();
@@ -10,8 +12,13 @@ export default function CookiePage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white pt-24 pb-16 px-4 sm:px-6" dir={isAr ? "rtl" : "ltr"}>
       <main className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
             <Cookie className="w-4 h-4" />
             <span>{isAr ? "إدارة الجلسات والملفات" : "Session & Storage Policy"}</span>
           </div>
@@ -23,9 +30,14 @@ export default function CookiePage() {
               ? "تشرح هذه السياسة كيفية استخدام منصة 11Players لملفات الارتباط والتخزين المحلي وما يمكنك فعله حيال ذلك."
               : "This policy explains how 11Players uses cookies and local storage, and what choices you have regarding their use."}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 hover:border-slate-700/80 transition-colors p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl"
+        >
           <div className="flex items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400">
             <span>{isAr ? "منصة: 11Players" : "Platform: 11Players"}</span>
             <span>{isAr ? "آخر تحديث: أغسطس 2026" : "Last Updated: August 2026"}</span>
@@ -135,7 +147,25 @@ export default function CookiePage() {
                 : "We may update this policy periodically. We will notify you of any significant changes through the platform. If you have any questions about our use of cookies, please contact us via the Support page."}
             </p>
           </section>
-        </div>
+
+          {/* Cross-links */}
+          <div className="pt-4 flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-800/60">
+            <Link href="/" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1">
+              <span>{isAr ? "← العودة للرئيسية" : "← Back to Home"}</span>
+            </Link>
+            <div className="flex gap-4">
+              <Link href="/privacy" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الخصوصية" : "Privacy"}
+              </Link>
+              <Link href="/tos" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "شروط الخدمة" : "Terms"}
+              </Link>
+              <Link href="/refund" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الاسترداد" : "Refunds"}
+              </Link>
+            </div>
+          </div>
+        </motion.div>
       </main>
     </div>
   );

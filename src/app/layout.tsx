@@ -20,11 +20,12 @@ import SiteRatingModal from "@/components/ui/SiteRatingModal";
 import ToastProvider from "@/components/ui/ToastProvider";
 import SubscriptionGiftModal from "@/components/ui/SubscriptionGiftModal";
 import ClaimUsernameModal from "@/components/auth/ClaimUsernameModal";
+import CookieConsentBanner from "@/components/layout/CookieConsentBanner";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
-    default:  "11Players — Football Matchmaking & Community",
+    default:  "11Players - Football Matchmaking & Community",
     template: "%s | 11Players",
   },
   description:
@@ -130,6 +131,7 @@ export default function RootLayout({
                     </RouteGuard>
                     <FloatingChatWidget />
                     <ToastProvider />
+                    <CookieConsentBanner />
                   </PlayersProvider>
                   </ProSubscriptionProvider>
                 </AuthProvider>

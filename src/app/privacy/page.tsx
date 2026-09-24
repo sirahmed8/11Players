@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import { ShieldCheck, Lock, Eye, Database, Server, UserCheck, Trash2, Globe, Mail } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function PrivacyPage() {
   const { locale } = useLocale();
@@ -10,8 +12,13 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white pt-24 pb-16 px-4 sm:px-6" dir={isAr ? "rtl" : "ltr"}>
       <main className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
             <ShieldCheck className="w-4 h-4" />
             <span>{isAr ? "حماية البيانات والخصوصية" : "Data Protection & Privacy"}</span>
           </div>
@@ -23,12 +30,18 @@ export default function PrivacyPage() {
               ? "نحن نأخذ خصوصية بياناتك بأقصى درجات الجدية والأمان."
               : "We are committed to protecting your personal data and your right to privacy."}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl">
-          <div className="flex items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400">
-            <span>{isAr ? "منصة: 11Players" : "Platform: 11Players"}</span>
-            <span>{isAr ? "آخر تحديث: أغسطس 2026" : "Last Updated: August 2026"}</span>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 hover:border-slate-700/80 transition-colors p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400 gap-2">
+            <span>{isAr ? "الجهة المسؤولة: 11Players للتقنيات الرياضية (حجوزات إيليت)" : "Data Controller: 11Players Sports Technologies (Hagoozat Elite)"}</span>
+            <span>{isAr ? "متوافق مع قانون 151 لسنة 2020 والمعايير الأوروبية GDPR" : "Compliant with Egypt Law 151/2020 & GDPR"}</span>
+            <span>{isAr ? "آخر تحديث: سبتمبر 2026" : "Last Updated: September 2026"}</span>
           </div>
 
           {/* Section 1 */}
@@ -170,23 +183,54 @@ export default function PrivacyPage() {
           </section>
 
           {/* Section 8 */}
-          <section className="space-y-3">
+          <section className="space-y-3 border-t border-slate-800 pt-6">
             <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
               <Mail className="w-5 h-5 text-emerald-400" />
-              <span>{isAr ? "8. التواصل معنا" : "8. Contact Us"}</span>
+              <span>{isAr ? "8. مسؤول حماية البيانات والتواصل" : "8. Data Protection Officer & Inquiries"}</span>
             </h2>
             <p className="text-sm text-slate-300">
               {isAr
-                ? "إذا كان لديك أي استفسار أو طلب يتعلق بخصوصيتك أو بياناتك، يمكنك التواصل معنا عبر صفحة الدعم داخل المنصة. سنرد على طلبك خلال 7 أيام عمل."
-                : "If you have any questions or requests regarding your privacy or personal data, please contact us via the Support page within the platform. We will respond within 7 business days."}
+                ? "إذا كان لديك أي استفسار أو ترغب في ممارسة حقوقك القانونية (طلب نسخة بيانات، تصحيح، أو حذف نهائي للحساب)، يُرجى التواصل مع مسؤول حماية البيانات:"
+                : "For any inquiries or to exercise your statutory rights (data access request, correction, or permanent account erasure), please contact our Data Protection Officer:"}
             </p>
-            <p className="text-sm text-slate-400">
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+              <div className="space-y-1">
+                <p className="font-bold text-white">11Players Data Protection Office</p>
+                <p className="text-xs text-slate-400">Email: privacy@11players.com / support@11players.com</p>
+                <p className="text-xs text-slate-400">{isAr ? "القاهرة، جمهورية مصر العربية" : "Cairo, Arab Republic of Egypt"}</p>
+              </div>
+              <a
+                href="mailto:privacy@11players.com"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-colors shrink-0"
+              >
+                {isAr ? "مراسلة مسؤول الخصوصية" : "Contact DPO"}
+              </a>
+            </div>
+            <p className="text-xs text-slate-400 pt-2">
               {isAr
-                ? "باستخدامك لمنصة 11Players، فأنت توافق على الشروط المذكورة في هذه السياسة. نحتفظ بالحق في تحديث هذه السياسة في أي وقت، مع الإشعار بالتغييرات الجوهرية."
-                : "By using 11Players, you agree to the terms described in this policy. We reserve the right to update this policy at any time and will notify users of significant changes."}
+                ? "نلتزم بالرد على كافة طلبات ممارسة الحقوق خلال مهلة أقصاها 7 أيام عمل دون فرض أي رسوم."
+                : "We commit to resolving all data subject rights requests within 7 business days without charge."}
             </p>
           </section>
-        </div>
+
+          {/* Cross-links */}
+          <div className="pt-4 flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-800/60">
+            <Link href="/" className="hover:text-emerald-400 transition-colors">
+              {isAr ? "← العودة للرئيسية" : "← Back to Home"}
+            </Link>
+            <div className="flex gap-4">
+              <Link href="/tos" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "شروط الخدمة" : "Terms"}
+              </Link>
+              <Link href="/cookie" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الكوكيز" : "Cookies"}
+              </Link>
+              <Link href="/refund" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الاسترداد" : "Refunds"}
+              </Link>
+            </div>
+          </div>
+        </motion.div>
       </main>
     </div>
   );

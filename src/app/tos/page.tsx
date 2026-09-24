@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
+import Link from "next/link";
 import { useLocale } from "@/components/ui/ThemeProvider";
-import { FileText, ShieldAlert, Users, Scale, AlertTriangle, CheckCircle2, Ban, Mail, Gavel } from "lucide-react";
+import { FileText, ShieldAlert, Users, Scale, AlertTriangle, CheckCircle2, Ban, Mail, Gavel, AlertCircle } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function TosPage() {
   const { locale } = useLocale();
@@ -10,8 +12,13 @@ export default function TosPage() {
   return (
     <div className="min-h-screen bg-slate-950 text-white pt-24 pb-16 px-4 sm:px-6" dir={isAr ? "rtl" : "ltr"}>
       <main className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          className="text-center space-y-4"
+        >
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider">
             <FileText className="w-4 h-4" />
             <span>{isAr ? "القواعد والتنظيم" : "Terms & Regulations"}</span>
           </div>
@@ -23,12 +30,18 @@ export default function TosPage() {
               ? "يرجى قراءة هذه الشروط بعناية قبل استخدام المنصة. استخدامك للمنصة يُعدّ قبولاً كاملاً لهذه الشروط."
               : "Please read these Terms carefully before using the platform. Your use of 11Players constitutes your full acceptance of these Terms."}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl">
-          <div className="flex items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400">
-            <span>{isAr ? "منصة: 11Players" : "Platform: 11Players"}</span>
-            <span>{isAr ? "آخر تحديث: أغسطس 2026" : "Last Updated: August 2026"}</span>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="bg-slate-900/80 backdrop-blur-xl border border-slate-800 hover:border-slate-700/80 transition-colors p-6 sm:p-10 rounded-3xl space-y-8 text-slate-300 leading-relaxed shadow-2xl"
+        >
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-800 text-xs font-semibold text-slate-400 gap-2">
+            <span>{isAr ? "الشركة المشغلة: 11Players للتقنيات الرياضية (حجوزات إيليت)" : "Operating Entity: 11Players Sports Technologies (Hagoozat Elite)"}</span>
+            <span>{isAr ? "الولاية القضائية: جمهورية مصر العربية" : "Governing Law: Arab Republic of Egypt"}</span>
+            <span>{isAr ? "آخر تحديث: سبتمبر 2026" : "Last Updated: September 2026"}</span>
           </div>
 
           {/* Section 1 */}
@@ -117,13 +130,29 @@ export default function TosPage() {
           <section className="space-y-3">
             <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
               <ShieldAlert className="w-5 h-5 text-amber-400" />
-              <span>{isAr ? "7. إخلاء المسؤولية" : "7. Disclaimer of Warranties"}</span>
+              <span>{isAr ? "7. إخلاء المسؤولية وإصابات الملاعب" : "7. Disclaimer of Warranties & Sports Injury Liability"}</span>
             </h2>
-            <p className="text-sm text-slate-300">
-              {isAr
-                ? "تُقدَّم منصة 11Players \"كما هي\" دون أي ضمانات صريحة أو ضمنية. نحن لا نضمن أن الخدمة ستكون خالية من الأخطاء أو الانقطاعات في جميع الأوقات. لا تتحمل المنصة أي مسؤولية عن أي أضرار ناجمة عن استخدامها أو عدم القدرة على استخدامها."
-                : "11Players is provided \"as is\" without any express or implied warranties. We do not guarantee that the service will be error-free or uninterrupted at all times. The platform is not liable for any damages arising from use or inability to use the service."}
-            </p>
+            <div className="space-y-2 text-sm text-slate-300">
+              <p>
+                {isAr
+                  ? "تُقدَّم منصة 11Players كأداة تنظيمية رقمية لتنسيق الفرق وتوزيع اللاعبين. أنت تقر وتوافق صراحة على ما يلي:"
+                  : "11Players is provided strictly as a digital organizational coordination tool. You expressly acknowledge and agree that:"}
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-slate-300 pl-4 rtl:pr-4">
+                <li>
+                  <strong>{isAr ? "إخلاء مسؤولية الإصابات الرياضية:" : "Physical Injury Disclaimer:"}</strong>{" "}
+                  {isAr
+                    ? "ممارسة كرة القدم تنطوي على مخاطر بدنية واحتكاكات. لا تتحمل منصة 11Players أو مشغلوها أي مسؤولية قانونية أو مالية عن أي إصابات جسدية، حوادث، أو أضرار صحية تقع للاعبين أثناء المباريات أو داخل الملاعب أو المنشآت الرياضية."
+                    : "Football involves inherent physical risks. 11Players and its operators bear zero legal or financial liability for any bodily injuries, physical accidents, medical emergencies, or health conditions occurring during matches or at pitch facilities."}
+                </li>
+                <li>
+                  <strong>{isAr ? "مسؤولية الملاعب والمنشآت:" : "Venue Responsibility:"}</strong>{" "}
+                  {isAr
+                    ? "إدارة أرضية الملعب، الإضاءة، الأمان، والتجهيزات تقع تحت المسؤولية الحصرية لمالكي الملاعب وإداراتها ولا علاقة للمنصة بجودة أو أمان الملاعب المختارة."
+                    : "Pitch surface quality, lighting, security, and facility maintenance remain the sole responsibility of the venue owners and pitch operators."}
+                </li>
+              </ul>
+            </div>
           </section>
 
           {/* Section 8 */}
@@ -140,18 +169,52 @@ export default function TosPage() {
           </section>
 
           {/* Section 9 */}
-          <section className="space-y-3">
+          <section className="space-y-3 border-t border-slate-800 pt-6">
             <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
               <Mail className="w-5 h-5 text-emerald-400" />
-              <span>{isAr ? "9. التواصل والنزاعات" : "9. Contact & Disputes"}</span>
+              <span>{isAr ? "9. القانون الواجب التطبيق وتسوية النزاعات" : "9. Governing Law & Dispute Resolution"}</span>
             </h2>
             <p className="text-sm text-slate-300">
               {isAr
-                ? "إذا كان لديك أي شكوى أو نزاع يتعلق بهذه الشروط أو الخدمة، يُرجى التواصل معنا أولاً عبر صفحة الدعم للوصول إلى حل ودي. في حال تعذّر ذلك، يُحسم أي نزاع وفق القوانين المعمول بها في جمهورية مصر العربية."
-                : "If you have any complaints or disputes regarding these Terms or the service, please first contact us via the Support page to reach an amicable resolution. If unresolved, any dispute shall be governed by the applicable laws of the Arab Republic of Egypt."}
+                ? "تخضع هذه الشروط وتُفسر حصراً وفقاً لقوانين جمهورية مصر العربية. في حال نشوء أي نزاع يتعذر حله ودياً، يكون الاختصاص القضائي المكاني منعقداً حصرياً للمحاكم المختصة بمدينة القاهرة."
+                : "These Terms shall be exclusively governed by and construed in accordance with the laws of the Arab Republic of Egypt. In the event of any unresolved dispute, the competent courts of Cairo, Egypt shall have exclusive territorial jurisdiction."}
             </p>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+              <div className="space-y-1">
+                <p className="font-bold text-white">11Players Legal & Compliance Office</p>
+                <p className="text-xs text-slate-400">Email: legal@11players.com / support@11players.com</p>
+                <p className="text-xs text-slate-400">{isAr ? "القاهرة، جمهورية مصر العربية" : "Cairo, Arab Republic of Egypt"}</p>
+              </div>
+              <motion.a
+                href="mailto:legal@11players.com"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-colors shadow-md active:scale-95 shrink-0 inline-flex items-center gap-1.5"
+              >
+                <Mail className="w-3.5 h-3.5" />
+                <span>{isAr ? "مراسلة الشؤون القانونية" : "Contact Legal"}</span>
+              </motion.a>
+            </div>
           </section>
-        </div>
+
+          {/* Cross-links */}
+          <div className="pt-4 flex justify-between items-center text-xs font-bold text-slate-400 border-t border-slate-800/60">
+            <Link href="/" className="hover:text-emerald-400 transition-colors inline-flex items-center gap-1">
+              <span>{isAr ? "← العودة للرئيسية" : "← Back to Home"}</span>
+            </Link>
+            <div className="flex gap-4">
+              <Link href="/privacy" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الخصوصية" : "Privacy"}
+              </Link>
+              <Link href="/cookie" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الكوكيز" : "Cookies"}
+              </Link>
+              <Link href="/refund" className="hover:text-emerald-400 transition-colors">
+                {isAr ? "الاسترداد" : "Refunds"}
+              </Link>
+            </div>
+          </div>
+        </motion.div>
       </main>
     </div>
   );
