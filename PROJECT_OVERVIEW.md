@@ -524,7 +524,12 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Eliminated purple/violet gradients, replacing them with brand emerald, teal, blue, and dark slate surfaces.
   - Replaced pill buttons with ergonomic `rounded-xl` buttons (`DESIGN_SYSTEM.md`).
   - Removed emoji UI icons (`📸`, `⚡`, `🎉`, `❌`), replacing them with typed Lucide React components (`<Camera />`, `<Zap />`, `<CheckCircle2 />`, `<AlertCircle />`).
-  - Removed typographic m-dashes ("—") across page titles and stat cards.
+- **Desktop Developer App Shortcut & Silent Runner (`scripts/`, `public/11players.ico`)**:
+  - Generated high-resolution multi-size Windows icon (`11players.ico` and `favicon.ico`) from official logo (`public/logo.jpg`).
+  - Created a 1-click desktop shortcut (`C:\Users\a7med\Desktop\11Players.lnk`) executing `scripts/launch-11players.vbs` via `wscript.exe` with zero console window flash.
+  - Silent launcher checks if port 3000 is active; if running, opens browser immediately; if stopped, launches `npm run dev` in the background, waits for port readiness, and launches `http://localhost:3000`.
+  - Added clean stop runner (`scripts/stop-11players.bat`) to shut down background dev server on demand.
+
 
 
 
