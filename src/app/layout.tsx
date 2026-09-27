@@ -24,6 +24,10 @@ import CookieConsentBanner from "@/components/layout/CookieConsentBanner";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://an-11-players.web.app"),
+  alternates: {
+    canonical: "/",
+  },
   title: {
     default:  "11Players - Football Matchmaking & Community",
     template: "%s | 11Players",
@@ -103,6 +107,38 @@ export default function RootLayout({
                 } catch(e) {}
               })();
             `,
+          }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  "@id": "https://an-11-players.web.app/#organization",
+                  "name": "11Players",
+                  "alternateName": "Hagoozat Elite",
+                  "url": "https://an-11-players.web.app",
+                  "logo": "https://an-11-players.web.app/icon-512.png",
+                  "description": "Gamified football matchmaking and community management. Organize matches, rate teammates, track stats, and compete in your own football league."
+                },
+                {
+                  "@type": "WebApplication",
+                  "@id": "https://an-11-players.web.app/#webapp",
+                  "name": "11Players",
+                  "url": "https://an-11-players.web.app",
+                  "applicationCategory": "SportsApplication",
+                  "operatingSystem": "All",
+                  "description": "Gamified football matchmaking and community management.",
+                  "inLanguage": ["ar", "en"],
+                  "publisher": {
+                    "@id": "https://an-11-players.web.app/#organization"
+                  }
+                }
+              ]
+            })
           }}
         />
       </head>

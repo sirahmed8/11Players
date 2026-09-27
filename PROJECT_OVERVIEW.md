@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md — Architectural & Technical Specification
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
-> **Last Updated**: September 24, 2026
-> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, EGYPTIAN & GLOBAL LEGAL COMPLIANCE, ANTI-VIBE DESIGN HARMONIZED, 106/106 TESTS PASSING, DEPLOYED)  
+> **Last Updated**: September 27, 2026
+> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, TECHNICAL SEO & SITEMAP DEPLOYED, SCHEMA.ORG JSON-LD EMBEDDED, BESPOKE ERROR BOUNDARY & 404 INTEGRATED, 106/106 TESTS PASSING)  
 ---
 
 ## 1. Tech Stack Overview
@@ -529,6 +529,29 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Created a 1-click desktop shortcut (`C:\Users\a7med\Desktop\11Players.lnk`) executing `scripts/launch-11players.vbs` via `wscript.exe` with zero console window flash.
   - Silent launcher checks if port 3000 is active; if running, opens browser immediately; if stopped, launches `npm run dev` in the background, waits for port readiness, and launches `http://localhost:3000`.
   - Added clean stop runner (`scripts/stop-11players.bat`) to shut down background dev server on demand.
+  - Added dedicated desktop shortcut (`C:\Users\a7med\Desktop\Stop 11Players.lnk`) with official site icon for one-click termination of local server.
+
+## 21. Milestone M3.4 — Principal Engineering Standards, Technical SEO & Resilience Infrastructure
+- **Canonical Legal Route Aliases (`/terms`, `/refunds`, `/cookies`)**:
+  - Created [src/app/terms/page.tsx](file:///d:/Projects/11Players/src/app/terms/page.tsx): Canonical alias re-exporting `TosPage` from `@/app/tos/page`.
+  - Created [src/app/refunds/page.tsx](file:///d:/Projects/11Players/src/app/refunds/page.tsx): Canonical alias re-exporting `RefundPage` from `@/app/refund/page`.
+  - Created [src/app/cookies/page.tsx](file:///d:/Projects/11Players/src/app/cookies/page.tsx): Canonical alias re-exporting `CookiePage` from `@/app/cookie/page`.
+  - Updated [src/components/auth/RouteGuard.tsx](file:///d:/Projects/11Players/src/components/auth/RouteGuard.tsx): Expanded `PUBLIC_ROUTES` whitelist to include `["/", "/guide", "/privacy", "/tos", "/terms", "/cookie", "/cookies", "/refund", "/refunds"]`, preventing unauthenticated bounce loops.
+- **Technical SEO Engine & Crawling Infrastructure (`sitemap.ts`, `robots.ts`)**:
+  - Built [src/app/sitemap.ts](file:///d:/Projects/11Players/src/app/sitemap.ts): Statically exports `sitemap.xml` covering 14 public canonical routes with granular priorities (1.0 for home, 0.8 for core matchmaking/communities, 0.5 for legal).
+  - Built [src/app/robots.ts](file:///d:/Projects/11Players/src/app/robots.ts): Generates compliant `robots.txt` disallowing private administrative paths (`/api/`, `/admin/`, `/owner/`, `/inbox/`) and linking to canonical sitemap.
+- **Schema.org Structured Data & Metadata Integrity (`src/app/layout.tsx`)**:
+  - Injected `metadataBase: new URL("https://an-11-players.web.app")` and canonical alternates into RootLayout metadata.
+  - Embedded Schema.org `@graph` JSON-LD structured script with `Organization` and `WebApplication` sports category definitions for enhanced search indexing.
+- **Bespoke Error Pages & Ergonomic Resilience (`not-found.tsx`, `error.tsx`)**:
+  - Built [src/app/not-found.tsx](file:///d:/Projects/11Players/src/app/not-found.tsx): Dark-mode glassmorphic 404 page ("خارج خطوط الملعب / Offside / Out of Bounds"), zero sharp corners (`rounded-3xl` / `rounded-xl`), Doherty-compliant instant load, primary CTA back to `/`, and 3 quick-nav shortcuts (`/communities`, `/matches`, `/guide`).
+  - Built [src/app/error.tsx](file:///d:/Projects/11Players/src/app/error.tsx): Global client-side error boundary with immediate `reset()` retry CTA (<400ms recovery), diagnostic digest display, and tactical guide link.
+- **System Health Observability (`src/app/api/health/route.ts`)**:
+  - Added static-export compatible health check endpoint returning JSON payload `{ status: "healthy", service: "11players-engine", version: "1.0.0" }`.
+- **Quality Verification**:
+  - Vitest test suite: 106/106 tests passing across 10 test suites.
+  - Production build: Clean static compilation of 61 routes to `out/` with zero TypeScript or Webpack errors.
+
 
 
 
