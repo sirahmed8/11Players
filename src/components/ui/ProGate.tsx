@@ -14,7 +14,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Crown, Lock, ArrowRight, Sparkles } from "lucide-react";
+import { Crown, Lock, ArrowRight, Sparkles, Bot, Shirt, BarChart3, Receipt } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProSubscription } from "@/contexts/ProSubscriptionContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
@@ -119,18 +119,22 @@ export default function ProGate({
           {/* Feature bullets */}
           <div className="flex flex-wrap justify-center gap-2">
             {[
-              isAr ? "🤖 تقارير الذكاء الاصطناعي" : "🤖 AI Scout Reports",
-              isAr ? "🎨 مصمم الأطقم 3D" : "🎨 3D Kit Builder",
-              isAr ? "👑 الشارة الذهبية" : "👑 Golden PRO Badge",
-              isAr ? "📊 تصدير الإحصائيات" : "📊 Stats Exporter",
-            ].map((ft, i) => (
-              <span
-                key={i}
-                className="px-2 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-300"
-              >
-                {ft}
-              </span>
-            ))}
+              { icon: Bot, textEn: "AI Scout Reports", textAr: "تقارير الذكاء الاصطناعي" },
+              { icon: Shirt, textEn: "3D Kit Builder", textAr: "مصمم الأطقم 3D" },
+              { icon: Crown, textEn: "Golden PRO Badge", textAr: "الشارة الذهبية" },
+              { icon: BarChart3, textEn: "Stats Exporter", textAr: "تصدير الإحصائيات" },
+            ].map((ft, i) => {
+              const Icon = ft.icon;
+              return (
+                <span
+                  key={i}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-800/90 border border-slate-700/80 text-[10px] font-bold text-slate-300"
+                >
+                  <Icon className="w-3 h-3 text-amber-400" />
+                  <span>{isAr ? ft.textAr : ft.textEn}</span>
+                </span>
+              );
+            })}
           </div>
 
           {/* Upgrade CTA */}
@@ -139,14 +143,14 @@ export default function ProGate({
             className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all active:scale-95"
           >
             <Sparkles className="w-4 h-4" />
-            <span>{isAr ? "ترقية إلى PRO الآن" : "Upgrade to PRO"}</span>
+            <span>{isAr ? "عرض باقات PRO (ابتداءً من 25 ج.م)" : "View PRO Plans (From 25 EGP)"}</span>
             <ArrowRight className="w-4 h-4 rtl:rotate-180" />
           </Link>
 
           <p className="text-[10px] text-slate-500 font-medium">
             {isAr
-              ? "بوابة الدفع قريباً — تواصل مع المالك للتفعيل المبكر"
-              : "Payment gateway coming soon — contact owner for early access"}
+              ? "الدفع الإلكتروني قريباً — يمكن للمالك أو الآدمن تفعيل الاشتراك لك مباشرة"
+              : "Payment gateways coming soon — admin can grant access directly"}
           </p>
         </motion.div>
       </div>

@@ -1,6 +1,7 @@
 import React from "react";
 import PitchSplitBillCalculator from "@/components/billing/PitchSplitBillCalculator";
 import MatchActionHubBar from "@/components/match/MatchActionHubBar";
+import ProGate from "@/components/ui/ProGate";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -14,7 +15,14 @@ export default function SplitBillPage() {
       <div className="max-w-5xl mx-auto mb-6">
         <MatchActionHubBar />
       </div>
-      <PitchSplitBillCalculator />
+      <ProGate
+        requiredPlan="club_organizer"
+        featureNameEn="Turf Rent Split-Bill Calculator"
+        featureNameAr="حاسبة تقاسم حجز الملعب والمصروفات"
+      >
+        <PitchSplitBillCalculator />
+      </ProGate>
     </div>
   );
 }
+

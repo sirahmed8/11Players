@@ -23,7 +23,7 @@ service cloud.firestore {
     }
 
     function isProtectedPlayerField() {
-      return request.resource.data.diff(resource.data).affectedKeys().hasAny(['attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills']);
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(['subscription', 'attributes', 'approvedAttributes', 'isVerifiedByAdmin', 'hasWarning', 'isMockData', 'stats', 'overallRating', 'peerRatingAvg', 'peerRatingCount', 'photoUrl', 'primaryPosition', 'secondaryPosition', 'tertiaryPosition', 'playStyle', 'specialSkills']);
     }
 
     // ── Players Collection ──

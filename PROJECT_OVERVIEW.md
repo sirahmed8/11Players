@@ -2,7 +2,7 @@
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
 > **Last Updated**: September 27, 2026
-> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, TECHNICAL SEO & SITEMAP DEPLOYED, SCHEMA.ORG JSON-LD EMBEDDED, BESPOKE ERROR BOUNDARY & 404 INTEGRATED, 106/106 TESTS PASSING)  
+> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, EGP SUBSCRIPTION TIERS HARMONIZED, FIRESTORE SECURITY RULES PROTECTED, TECHNICAL SEO & SITEMAP DEPLOYED, 106/106 TESTS PASSING)  
 ---
 
 ## 1. Tech Stack Overview
@@ -551,6 +551,26 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Quality Verification**:
   - Vitest test suite: 106/106 tests passing across 10 test suites.
   - Production build: Clean static compilation of 61 routes to `out/` with zero TypeScript or Webpack errors.
+
+## 22. Milestone M3.5 — Egyptian Pound (EGP) Subscription Architecture, Win-Win Feature Gating & Firestore Security Rules
+- **Egyptian Pound (EGP) Pricing & Win-Win Value Proposition**:
+  - Overhauled [`src/app/pro-pass/page.tsx`](file:///d:/Projects/11Players/src/app/pro-pass/page.tsx) with tailored Egyptian sports market pricing:
+    - **Grassroots (Free / الهواة - 0 EGP)**: Permanent free tier with core features (PES 13-position squad balancer, player card & OVR, community chat, peer reviews, leaderboards) ensuring casual amateur players are never frustrated or locked out of playing football.
+    - **Match Day Pass (تذكرة المباراة الواحدة - 25 EGP flat)**: 24-hour tournament boost unlocking 1-match 11AI tactical scouting, 1-time 3D kit export, and post-match newspaper cover download.
+    - **PRO Captain Pass (اشتراك كابتن النخبة ⭐ - 59 EGP/mo, 49 EGP/mo annual)**: Full AI match scouting, unlimited 3D kit studio exports, retro newspaper cover generator, verified Golden PRO badge with holographic card sheen, priority draft slotting, PDF/Excel stats exporter, and unlimited communities.
+    - **Club & Turf Organizer (منظم الأندية والملاعب 🏟️ - 179 EGP/mo, 149 EGP/mo annual)**: All PRO Captain features, Turf Rent Split-Bill Calculator with WhatsApp payment triggers, Live Spectator Broadcaster with voice commentary, Derby & H2H rivalry engine, broadcast announcements with 11AI copy enhancer, and 24/7 organizer support.
+- **Payment Gateway Launch Status & Unclickable Action Buttons**:
+  - In direct accordance with user specification, action buttons on paid tiers display "قريباً — متاح قريباً / Coming Soon" and are set to `disabled` with `cursor-not-allowed` while official Egyptian payment gateways (InstaPay IPN, Vodafone Cash / Mobile Wallets, Fawry, Visa & Mastercard) are finalized.
+  - Added an official gateway status notice card informing players that platform admins and the owner can activate PRO passes directly from the Admin Panel.
+- **Feature Gating Harmonization (`ProGate`)**:
+  - Protected Turf Rent Split-Bill ([`src/app/match/split-bill/page.tsx`](file:///d:/Projects/11Players/src/app/match/split-bill/page.tsx)) with `<ProGate requiredPlan="club_organizer">`.
+  - Harmonized [`src/components/ui/ProGate.tsx`](file:///d:/Projects/11Players/src/components/ui/ProGate.tsx): replaced raw emoji bullet points with typed Lucide React components (`Bot`, `Shirt`, `Crown`, `BarChart3`), added EGP pricing context, and preserved blurred preview with non-intrusive upgrade CTA.
+- **Firestore Security Hardening (`firestore.rules`)**:
+  - Added `'subscription'` to `isProtectedPlayerField()` in Firestore Security Rules. Regular users cannot mutate their subscription state via client SDKs, guaranteeing complete mathematical security against tampering. Only `isAdmin()` or verified server workflows can grant active subscriptions.
+- **Quality Assurance**:
+  - Vitest test suite: All 106 tests passing across 10 test suites.
+  - Static compilation: All 61 routes compiled to `out/` with zero TypeScript or Webpack errors.
+
 
 
 

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProSubscription } from "@/contexts/ProSubscriptionContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import {
   Crown,
@@ -13,18 +14,17 @@ import {
   Bot,
   Shirt,
   Receipt,
-  CreditCard,
-  Building,
+  Building2,
   HelpCircle,
   ChevronDown,
   ArrowRight,
-  Award,
-  Globe,
-  Lock,
   ShieldCheck,
+  Ticket,
+  Clock,
+  Wallet,
+  Lock,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import toast from "react-hot-toast";
 
 interface PlanTier {
   id: string;
@@ -34,13 +34,12 @@ interface PlanTier {
   badgeAr?: string;
   popular?: boolean;
   priceMonthlyEGP: number;
-  priceAnnualEGP: number;
+  priceAnnualEGP?: number;
+  isOneTime?: boolean;
   descEn: string;
   descAr: string;
   featuresEn: string[];
   featuresAr: string[];
-  buttonTextEn: string;
-  buttonTextAr: string;
   gradient: string;
   borderColor: string;
   glowColor: string;
@@ -48,12 +47,11 @@ interface PlanTier {
 
 export default function ProPassPage() {
   const { user, isOwner, isAdmin } = useAuth();
+  const { hasProAccess, hasClubOrganizerAccess, plan: currentPlan, expiresAt } = useProSubscription();
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
   const [isAnnual, setIsAnnual] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<PlanTier | null>(null);
-  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const plans: PlanTier[] = [
@@ -62,177 +60,191 @@ export default function ProPassPage() {
       nameEn: "Grassroots (Free)",
       nameAr: "الهواة (مجاني)",
       priceMonthlyEGP: 0,
-      priceAnnualEGP: 0,
-      descEn: "Essential tools for casual local football matches and friendly squad games.",
-      descAr: "الأدوات الأساسية لمباريات كرة القدم الودية والمجموعات المحلية.",
+      descEn: "Essential tools for casual weekly pickup games and friendly squad matches.",
+      descAr: "الأدوات الأساسية لمباريات كرة القدم الودية الأسبوعية والمجموعات المحلية.",
       featuresEn: [
-        "1 Active Community limit",
+        "Up to 2 active communities",
         "Standard Player Card & OVR rating",
-        "Basic Match Generator & Lineup Picker",
-        "Community Chat & Match History",
-        "Peer Rating System",
+        "PES 13-position squad balancer",
+        "Community chat & match history",
+        "Teammate peer rating reviews",
+        "Public leaderboard rankings",
       ],
       featuresAr: [
-        "حد مجتمع نشط واحد",
+        "الانضمام إلى مجتمعين نشطين",
         "بطاقة لاعب قياسية وتقييم طاقات OVR",
-        "مولد المباريات وتشكيل الفرق الأساسي",
+        "موازن التشكيلة الذكي بـ 13 مركزاً PES",
         "محادثة المجتمع وسجل المباريات",
-        "نظام التقييم المتبادل بين اللاعبين",
+        "التقييم المتبادل بين الزملاء",
+        "تصفح قوائم صدارة اللاعبين",
       ],
-      buttonTextEn: "Free Tier Included",
-      buttonTextAr: "خطة مجانية متضمنة",
-      gradient: "from-slate-800 to-slate-900",
+      gradient: "from-slate-900 to-slate-950",
       borderColor: "border-slate-800",
       glowColor: "shadow-slate-900/50",
     },
     {
-      id: "pro_captain",
-      nameEn: "PRO Captain Pass",
-      nameAr: "اشتراك PRO الكابتن",
-      badgeEn: "MOST POPULAR ⭐",
-      badgeAr: "الأكثر طلباً ⭐",
-      popular: true,
-      priceMonthlyEGP: 149,
-      priceAnnualEGP: 119,
-      descEn: "Unlock AI Match Analytics, 3D Kit Builder, Unlimited Communities & Golden Card Badge.",
-      descAr: "افتح تحليلات الذكاء الاصطناعي، مصمم الأطقم 3D، المجتمعات المفتوحة، وشارة الكابتن الذهبية.",
+      id: "match_pass",
+      nameEn: "Match Day Pass",
+      nameAr: "تذكرة المباراة الواحدة",
+      badgeEn: "QUICK PASS",
+      badgeAr: "تذكرة سريعة",
+      isOneTime: true,
+      priceMonthlyEGP: 25,
+      descEn: "Single-match tournament boost for tactical scouting and post-match media.",
+      descAr: "تذكرة سريعة لمباراة واحدة تشمل الاستكشاف التكتيكي وتصدير ميديا المباراة.",
       featuresEn: [
-        "⭐ Unlimited Communities & Roster Joins",
-        "🤖 AI Match Scout & Tactical Analyst Reports",
-        "🎨 3D Custom Kit & Crest Builder Studio",
-        "👑 Verified Golden PRO Badge on Card & Chat",
-        "📊 PDF & Excel Season Stats Exporter",
-        "⚡ Priority Match Draft & Captain Slotting",
-        "🎥 Post-Match Newspaper & Summary Exporter",
+        "1-Match 11AI Tactical Scouting Report",
+        "1-Time 3D Kit & Crest HD PNG Export",
+        "Post-Match Newspaper Front Page Download",
+        "Valid for 24 hours on any single match",
       ],
       featuresAr: [
-        "⭐ مجتمعات غير محدودة والانضمام للفرق",
-        "🤖 تقارير الذكاء الاصطناعي للتحليل التكتيكي للمباريات",
-        "🎨 استوديو مصمم الأطقم للشعار والملابس 3D",
-        "👑 شارة PRO الذهبية الموثقة على البطاقة والمحادثة",
-        "📊 تصدير إحصائيات الموسم إلى PDF و Excel",
-        "⚡ الأولوية في مسودة خيارات المباريات والكباتن",
-        "🎥 تصدير جريدة وملخصات المباريات الممتازة",
+        "تقرير استكشاف تكتيكي 11AI لمباراة واحدة",
+        "تصدير شعار وطقم 3D عالي الدقة لمرة واحدة",
+        "تحميل صفحة جريدة المباراة الأولى بدقة HD",
+        "صلاحية كاملة لمدة 24 ساعة لأي مباراة",
       ],
-      buttonTextEn: "Upgrade to PRO Captain",
-      buttonTextAr: "الترقية إلى PRO الكابتن",
-      gradient: "from-amber-600 via-amber-500 to-yellow-400 text-slate-950",
-      borderColor: "border-amber-400",
-      glowColor: "shadow-amber-500/25",
+      gradient: "from-slate-900 via-slate-900 to-slate-950",
+      borderColor: "border-slate-700/80",
+      glowColor: "shadow-slate-800/40",
+    },
+    {
+      id: "pro_captain",
+      nameEn: "PRO Captain Pass",
+      nameAr: "اشتراك كابتن النخبة",
+      badgeEn: "MOST POPULAR",
+      badgeAr: "الأكثر طلباً ⭐",
+      popular: true,
+      priceMonthlyEGP: 59,
+      priceAnnualEGP: 49,
+      descEn: "Full tactical analytics, 3D kit studio, golden verified badge & unlimited communities.",
+      descAr: "تحليلات تكتيكية كاملة، استوديو أطقم 3D، شارة الكابتن الذهبية، ومجتمعات مفتوحة.",
+      featuresEn: [
+        "Unlimited 11AI Pre-Match Scouting Reports",
+        "Full 3D Custom Kit & Crest Builder Studio",
+        "Retro Sports Newspaper Generator ('HAGOOZAT DAILY')",
+        "Golden Verified PRO Badge on Card & Chat",
+        "Priority Match Captain Draft Slotting",
+        "PDF & Excel Season Stats Exporter",
+        "Join Unlimited Communities across Egypt",
+      ],
+      featuresAr: [
+        "تقارير استكشاف تكتيكي 11AI غير محدودة",
+        "استوديو مصمم الأطقم والشعارات 3D وتصدير مفتوح",
+        "مولد جريدة المباراة الكلاسيكية ('HAGOOZAT DAILY')",
+        "شارة PRO الذهبية الموثقة على البطاقة والمحادثات",
+        "الأولوية في مسودة اختيارات الكباتن للمباريات",
+        "تصدير إحصائيات الموسم إلى PDF و Excel",
+        "الانضمام إلى مجتمعات وملاعب غير محدودة",
+      ],
+      gradient: "from-amber-500/10 via-slate-900 to-slate-950",
+      borderColor: "border-amber-500/40",
+      glowColor: "shadow-amber-500/20",
     },
     {
       id: "club_organizer",
-      nameEn: "Club & Turf Owner",
-      nameAr: "منظم النادي وصاحب الملعب",
-      badgeEn: "ENTERPRISE",
-      badgeAr: "للمنظمين والملاعب",
-      priceMonthlyEGP: 449,
-      priceAnnualEGP: 359,
-      descEn: "Complete manager portal for turf field booking, automated split-bill & revenue reports.",
-      descAr: "بوابة شاملة لإدارة حجز الملعب، التقاسم التلقائي للمصروفات، وتقارير الإيرادات.",
+      nameEn: "Club & Turf Organizer",
+      nameAr: "منظم الأندية والملاعب",
+      badgeEn: "ORGANIZER",
+      badgeAr: "للمنظمين والملاعب 🏟️",
+      priceMonthlyEGP: 179,
+      priceAnnualEGP: 149,
+      descEn: "Complete manager portal for turf rent collection, live 2D pitch broadcast & derbies.",
+      descAr: "بوابة متكاملة لإدارة حجز الملعب، تقاسم الحساب، البث المباشر، والديربيات.",
       featuresEn: [
         "All PRO Captain features included",
-        "🏟️ Turf Pitch Booking & Slot Schedule Manager",
-        "💸 Automated Split-Bill & WhatsApp Payment Triggers",
-        "📈 Revenue, Attendance & Financial Analytics",
-        "📢 Broadcast Announcements & Sponsored Banners",
-        "🛡️ Dedicated 24/7 Priority Support Desk",
+        "Turf Rent Split-Bill Calculator & WhatsApp Links",
+        "Live Spectator Broadcaster (2D pitch & voice commentary)",
+        "Derby & H2H Captain Rivalry Engine",
+        "Community Broadcast Announcements with 11AI Enhancer",
+        "Pitch Booking & Slot Schedule Manager",
+        "Dedicated 24/7 Organizer Support Desk",
       ],
       featuresAr: [
-        "يشمل جميع مميزات PRO الكابتن",
-        "🏟️ مدير حجز ملاعب النجيل وجدول المواعيد",
-        "💸 الحساب التلقائي لتقاسم الحجز وتذكيرات الواتساب",
-        "📈 تحليلات الإيرادات ونسب حضور اللاعبين",
-        "📢 بث الإعلانات والبنرات الرعاية للمجتمع",
-        "🛡️ مكتب دعم فني مخصص على مدار 24/7",
+        "يشمل جميع مميزات اشتراك كابتن النخبة",
+        "حاسبة تقاسم حجز الملعب وتذكيرات الدفع بالواتساب",
+        "البث المباشر للمباراة مع التعليق الصوتي ومؤشر الزخم",
+        "محرك الديربيات والمواجهات التاريخية المباشرة (H2H)",
+        "بث إعلانات المجتمع مع محسّن النصوص بالذكاء الاصطناعي",
+        "مدير مواعيد وحجوزات ملاعب النجيل",
+        "مكتب دعم فني ذو أولوية للمنظمين 24/7",
       ],
-      buttonTextEn: "Get Club Organizer Pass",
-      buttonTextAr: "احصل على اشتراك المنظم",
-      gradient: "from-purple-600 via-violet-500 to-indigo-500",
-      borderColor: "border-purple-400",
-      glowColor: "shadow-purple-500/25",
+      gradient: "from-emerald-500/10 via-slate-900 to-slate-950",
+      borderColor: "border-emerald-500/40",
+      glowColor: "shadow-emerald-500/20",
     },
   ];
 
   const faqs = [
     {
-      qEn: "How does the PRO Pass upgrade work?",
-      qAr: "كيف يعمل اشتراك PRO Pass؟",
-      aEn: "Upon activating your PRO Pass, all premium features—including AI Match Scout reports, 3D Kit Builder customization, and the Golden Card Badge—are instantly unlocked across your profile and all your joined communities.",
-      aAr: "بمجرد تفعيل اشتراك PRO Pass، سيتم فتح جميع الميزات الممتازة فوراً — بما في ذلك تقارير الذكاء الاصطناعي، مصمم الأطقم 3D، والشارة الذهبية عبر ملفك الشخصي وجميع مجتمعاتك.",
+      qEn: "What currency are the plans billed in?",
+      qAr: "بأي عملة يتم احتساب الاشتراكات؟",
+      aEn: "All plans are billed in Egyptian Pounds (EGP). We tailored the pricing specifically to be affordable for amateur football players and community organizers across Egypt.",
+      aAr: "جميع الاشتراكات تُحسب بالجنيه المصري (EGP). تم تسعير الباقات بعناية لتكون مناسبة وفي متناول جميع لاعبي ومحبي كرة القدم ومنظمي الملاعب في مصر.",
     },
     {
-      qEn: "Which payment methods are supported?",
-      qAr: "ما هي وسائل الدفع المدعومة؟",
-      aEn: "We support Visa & Mastercard credit/debit cards, Fawry pay codes, Vodafone Cash, and PayPal Express. Official electronic gateway integrations are launching soon.",
-      aAr: "ندعم بطاقات الفيزا والماستركارد، كود فوري، فودافون كاش، وحسابات PayPal. جاري ربط بوابات الدفع الإلكترونية الرسمية.",
+      qEn: "Which Egyptian payment methods will be available?",
+      qAr: "ما هي وسائل الدفع المصرية التي ستتوفر؟",
+      aEn: "We are currently completing the integration for InstaPay (IPN), Vodafone Cash / Mobile Wallets (Orange, Etisalat, WE), Fawry pay codes, and Visa / Mastercard debit & credit cards.",
+      aAr: "نقوم حالياً باستكمال الربط التقني لتوفير الدفع عبر إنستاباي (InstaPay IPN)، محافظ فودافون كاش والمحافظ الإلكترونية (أورنج، اتصالات، وي)، كود فوري، وبطاقات الفيزا والماستركارد البنكية.",
     },
     {
-      qEn: "Can I switch between monthly and annual billing?",
+      qEn: "Can admins or the owner grant subscriptions directly?",
+      qAr: "هل يمكن للآدمن أو مالك المنصة تفعيل الاشتراك للاعبين مباشرة؟",
+      aEn: "Yes! The platform owner and verified administrators have administrative authority in the Admin Panel to grant free PRO Captain or Club Organizer access to any player instantly.",
+      aAr: "نعم! يمتلك مالك المنصة والمسؤولون صلاحية إدارية في لوحة التحكم لتفعيل اشتراك كابتن النخبة أو منظم الملاعب لأي لاعب مباشرة وبشكل فوري.",
+    },
+    {
+      qEn: "Can I cancel or switch billing cycles anytime?",
       qAr: "هل يمكنني التبديل بين الدفع الشهري والسنوي؟",
-      aEn: "Yes! You can upgrade to annual billing anytime to lock in a 25% discount, or manage your subscription directly from your account settings.",
-      aAr: "نعم! يمكنك الترقية إلى الاشتراك السنوي في أي وقت للاستفادة من خصم 25%، أو إدارة اشتراكك مباشرة من إعدادات حسابك.",
-    },
-    {
-      qEn: "Can admins or owners grant subscriptions to friends?",
-      qAr: "هل يمكن للآدمن أو المالك منح اشتراكات مجانية للأصدقاء؟",
-      aEn: "Yes! The platform owner and admins can grant free PRO access to any player or friend directly from the Admin Panel.",
-      aAr: "نعم! يمكن لمالك المنصة والآدمن منح اشتراك PRO مجاني لأي لاعب أو صديق مباشرة من لوحة التحكم.",
+      aEn: "Yes! You can switch from monthly to annual billing to enjoy a 25% discount, and subscriptions comply with Egyptian Consumer Protection Law (Law 181/2018).",
+      aAr: "نعم! يمكنك التبديل إلى الاشتراك السنوي للاستفادة من خصم يصل إلى 25%، مع خضوع الاشتراكات لقانون حماية المستهلك المصري رقم 181 لسنة 2018.",
     },
   ];
-
-  const handleSelectPlan = (plan: PlanTier) => {
-    if (plan.id === "free") {
-      toast.success(isAr ? "أنت حالياً على الخطة المجانية" : "You are currently on the Free plan");
-      return;
-    }
-    setSelectedPlan(plan);
-    setIsPaymentModalOpen(true);
-  };
 
   return (
     <ProtectedRoute>
       <div
-        className="min-h-screen bg-slate-950 text-white selection:bg-amber-500 selection:text-slate-950"
+        className="min-h-screen bg-slate-950 text-white selection:bg-emerald-500 selection:text-slate-950"
         dir={isAr ? "rtl" : "ltr"}
       >
-        {/* ── Background Aura ───────────────────────────────────────────────── */}
+        {/* Background Ambience */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-amber-500/10 via-purple-500/5 to-transparent blur-3xl opacity-60" />
-          <div className="absolute top-1/3 left-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-amber-500/5 rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-gradient-to-b from-emerald-500/10 via-amber-500/5 to-transparent blur-3xl opacity-50" />
+          <div className="absolute top-1/3 left-10 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-10 right-10 w-80 h-80 bg-amber-500/5 rounded-full blur-3xl" />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 py-12 relative z-10 space-y-12">
-          {/* ── Hero Header ───────────────────────────────────────────────────── */}
+          {/* Header */}
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-black tracking-wider uppercase shadow-lg shadow-amber-500/10"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-black tracking-wider uppercase shadow-lg shadow-emerald-950/40"
             >
-              <Crown className="w-4 h-4 text-amber-400" />
-              {isAr ? "عضوية 11Players PRO Pass الممتازة" : "11Players PRO Pass Membership"}
+              <Crown className="w-4 h-4 text-emerald-400" />
+              <span>{isAr ? "باقات اشتراك 11Players PRO Pass" : "11Players PRO Pass Memberships"}</span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-4xl md:text-6xl font-black tracking-tight leading-tight"
+              transition={{ delay: 0.05 }}
+              className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight text-white"
             >
               {isAr ? (
                 <>
-                  ارتقِ بتجربتك الكروية إلى{" "}
-                  <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-                    مستوى المحترفين
+                  اختر الباقة المناسبة{" "}
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                    لطموحك الكروي
                   </span>
                 </>
               ) : (
                 <>
-                  Elevate Your Football Experience to{" "}
-                  <span className="bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-500 bg-clip-text text-transparent">
-                    Pro Level
+                  Choose the Plan Built for{" "}
+                  <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
+                    Your Football Ambition
                   </span>
                 </>
               )}
@@ -241,20 +253,20 @@ export default function ProPassPage() {
             <motion.p
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="text-slate-400 text-base md:text-lg font-medium"
+              transition={{ delay: 0.1 }}
+              className="text-slate-400 text-sm sm:text-base font-medium max-w-2xl mx-auto leading-relaxed"
             >
               {isAr
-                ? "احصل على تحليلات الذكاء الاصطناعي للمباريات، تصميم الأطقم 3D، الشارة الذهبية، والمجتمعات المفتوحة."
-                : "Unlock AI match scout reports, 3D kit builder customization, golden verified badge, and unlimited community access."}
+                ? "باقات مميزة بالجنيه المصري (EGP) صُممت لخدمة اللاعبين التنافسيين، الكباتن، ومديري الملاعب، مع الحفاظ على متعة اللعب الأساسي مجاناً للجميع."
+                : "Tailored memberships priced in Egyptian Pounds (EGP) for competitive players, captains, and turf managers, while preserving core matchmaking free for all."}
             </motion.p>
 
-            {/* Billing Switcher (EGP Currency) */}
+            {/* Monthly / Annual Billing Toggle */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="pt-6 flex items-center justify-center gap-4"
+              transition={{ delay: 0.15 }}
+              className="pt-4 flex items-center justify-center gap-4"
             >
               <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1 shadow-inner">
                 <button
@@ -263,18 +275,18 @@ export default function ProPassPage() {
                     !isAnnual ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {isAr ? "اشتراك شهري (EGP)" : "Monthly Billing (EGP)"}
+                  {isAr ? "دفع شهري (EGP)" : "Monthly Billing (EGP)"}
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
                   className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
                     isAnnual
-                      ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 shadow-md shadow-amber-500/20"
+                      ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  <span>{isAr ? "اشتراك سنوي" : "Annual Billing"}</span>
-                  <span className="text-[10px] bg-slate-950 text-amber-300 px-2 py-0.5 rounded-full font-extrabold border border-amber-500/30">
+                  <span>{isAr ? "دفع سنوي" : "Annual Billing"}</span>
+                  <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full font-extrabold border border-emerald-500/30">
                     -25%
                   </span>
                 </button>
@@ -282,170 +294,244 @@ export default function ProPassPage() {
             </motion.div>
           </div>
 
-          {/* ── Pricing Cards Grid ────────────────────────────────────────────── */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-stretch max-w-6xl mx-auto">
+          {/* Pricing Cards Grid (4 Tiers) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-7xl mx-auto">
             {plans.map((plan, idx) => {
-              const price = isAnnual ? plan.priceAnnualEGP : plan.priceMonthlyEGP;
-              const activeTierId = isOwner ? "club_organizer" : ((user as any)?.proPassTier || (isAdmin ? "pro_captain" : "free"));
-              const isCurrent = plan.id === activeTierId;
+              const price = plan.isOneTime
+                ? plan.priceMonthlyEGP
+                : isAnnual && plan.priceAnnualEGP
+                ? plan.priceAnnualEGP
+                : plan.priceMonthlyEGP;
+
+              const isUserOwner = isOwner;
+              const isCurrent =
+                (plan.id === "club_organizer" && (isUserOwner || hasClubOrganizerAccess)) ||
+                (plan.id === "pro_captain" && !isUserOwner && !hasClubOrganizerAccess && hasProAccess) ||
+                (plan.id === "free" && !hasProAccess && !hasClubOrganizerAccess && !isUserOwner);
 
               return (
                 <motion.div
                   key={plan.id}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 24 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 * idx, duration: 0.5 }}
-                  className={`relative glass-card p-6 sm:p-8 rounded-3xl border bg-slate-900/90 flex flex-col justify-between shadow-2xl transition-all hover:border-slate-600 overflow-hidden ${
+                  transition={{ delay: 0.08 * idx, duration: 0.4 }}
+                  className={`relative p-6 sm:p-7 rounded-3xl border bg-slate-900/90 flex flex-col justify-between shadow-2xl transition-all overflow-hidden ${
                     isCurrent
-                      ? "border-emerald-500/80 ring-2 ring-emerald-500/40"
+                      ? "border-emerald-500/90 ring-2 ring-emerald-500/30"
                       : plan.popular
-                      ? "border-amber-400/80 ring-2 ring-amber-400/30"
+                      ? "border-amber-400/80 ring-2 ring-amber-400/20"
                       : plan.borderColor
                   }`}
                 >
-                  {/* Badge banner for popular / active */}
+                  {/* Badge */}
                   {isCurrent ? (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-b-2xl bg-emerald-500 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-emerald-500/20 whitespace-nowrap z-10">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 rounded-b-xl bg-emerald-500 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-lg shadow-emerald-500/20 whitespace-nowrap z-10">
                       {isAr ? "خطتك الحالية (مفعّلة 👑)" : "ACTIVE PLAN (GRANTED 👑)"}
                     </div>
                   ) : plan.badgeEn ? (
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-b-2xl bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs tracking-wider uppercase shadow-lg shadow-amber-500/20 whitespace-nowrap z-10">
+                    <div
+                      className={`absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 rounded-b-xl font-black text-[11px] tracking-wider uppercase whitespace-nowrap z-10 ${
+                        plan.popular
+                          ? "bg-amber-400 text-slate-950 shadow-md shadow-amber-400/20"
+                          : "bg-slate-800 text-slate-300 border-x border-b border-slate-700"
+                      }`}
+                    >
                       {isAr ? plan.badgeAr : plan.badgeEn}
                     </div>
                   ) : null}
 
-                  <div className="space-y-6 pt-2">
-                    {/* Header */}
+                  <div className="space-y-6 pt-3">
                     <div>
-                      <h3 className="text-xl sm:text-2xl font-black text-white break-words tracking-tight">
+                      <h3 className="text-xl font-black text-white tracking-tight">
                         {isAr ? plan.nameAr : plan.nameEn}
                       </h3>
-                      <p className="text-slate-400 text-xs sm:text-sm mt-2 font-medium leading-relaxed">
+                      <p className="text-slate-400 text-xs mt-2 font-medium leading-relaxed min-h-[36px]">
                         {isAr ? plan.descAr : plan.descEn}
                       </p>
                     </div>
 
-                    {/* Price tag */}
+                    {/* Price */}
                     <div className="py-4 border-y border-slate-800/80">
-                      {price === 0 ? (
-                        <div className="text-3xl sm:text-4xl font-black text-white font-mono">
-                          {isAr ? "مجاناً" : "Free"}
+                      {plan.id === "free" ? (
+                        <div className="text-3xl font-black text-white font-mono">
+                          {isAr ? "0 ج.م" : "0 EGP"}
+                          <span className="text-xs text-slate-400 font-sans font-bold ms-2">
+                            {isAr ? "/ مجاناً دائماً" : "/ Free forever"}
+                          </span>
                         </div>
-                      ) : (
+                      ) : plan.isOneTime ? (
                         <div className="flex items-baseline gap-1.5 flex-wrap">
-                          <span className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight">
+                          <span className="text-3xl font-black font-mono text-white tracking-tight">
                             {price} EGP
                           </span>
                           <span className="text-xs text-slate-400 font-bold">
-                            / {isAr ? (isAnnual ? "شهر (يُدفع سنوياً)" : "شهر") : (isAnnual ? "mo (billed yearly)" : "month")}
+                            / {isAr ? "مباراة واحدة" : "single match"}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-3xl font-black font-mono text-white tracking-tight">
+                            {price} EGP
+                          </span>
+                          <span className="text-xs text-slate-400 font-bold">
+                            / {isAr ? (isAnnual ? "شهر (يُدفع سنوياً)" : "شهر") : isAnnual ? "mo (billed yearly)" : "month"}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    {/* Features list */}
+                    {/* Features List */}
                     <div className="space-y-3">
-                      <p className="text-xs font-black uppercase text-slate-400 tracking-wider">
+                      <p className="text-[10px] font-black uppercase text-slate-500 tracking-wider">
                         {isAr ? "المميزات المتضمنة:" : "INCLUDED FEATURES:"}
                       </p>
-                      <ul className="space-y-2.5">
+                      <ul className="space-y-2">
                         {(isAr ? plan.featuresAr : plan.featuresEn).map((ft, i) => (
-                          <li key={i} className="flex items-start gap-2.5 text-xs text-slate-200 font-semibold leading-relaxed">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                            <span className="break-words">{ft}</span>
+                          <li key={i} className="flex items-start gap-2 text-xs text-slate-300 font-medium leading-relaxed">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                            <span>{ft}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
                   </div>
 
-                  {/* CTA button */}
-                  <div className="pt-6 sm:pt-8">
-                    <button
-                      onClick={() => !isCurrent && handleSelectPlan(plan)}
-                      disabled={isCurrent}
-                      className={`w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer ${
-                        isCurrent
-                          ? "bg-emerald-600 text-white cursor-default opacity-90 shadow-emerald-600/30"
-                          : plan.popular
-                          ? "bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 shadow-amber-500/20"
-                          : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-                      }`}
-                    >
-                      <span>
-                        {isCurrent
-                          ? (isAr ? "الخطة الحالية المفعّلة" : "Current Active Plan")
-                          : (isAr ? plan.buttonTextAr : plan.buttonTextEn)}
-                      </span>
-                    </button>
+                  {/* Action Button (Unclickable / Coming Soon per user prompt) */}
+                  <div className="pt-6">
+                    {isCurrent ? (
+                      <button
+                        disabled
+                        className="w-full py-3 px-4 rounded-xl font-black text-xs bg-emerald-600/90 text-white cursor-default shadow-md shadow-emerald-600/20"
+                      >
+                        {isAr ? "خطتك الحالية (مفعّلة 👑)" : "Current Active Plan"}
+                      </button>
+                    ) : plan.id === "free" ? (
+                      <button
+                        disabled
+                        className="w-full py-3 px-4 rounded-xl font-bold text-xs bg-slate-800 text-slate-400 cursor-default border border-slate-700/60"
+                      >
+                        {isAr ? "الخطة القياسية متضمنة" : "Default Included Plan"}
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        aria-disabled="true"
+                        className="w-full py-3 px-4 rounded-xl font-black text-xs bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-80 flex items-center justify-center gap-2 select-none shadow-sm"
+                        title={
+                          isAr
+                            ? "بوابات الدفع الإلكتروني بالجنيه المصري (إنستاباي، فودافون كاش، فيزا) قادمة قريباً!"
+                            : "Online payment gateways in EGP are launching soon!"
+                        }
+                      >
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{isAr ? "قريباً — متاح قريباً" : "Coming Soon"}</span>
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               );
             })}
           </div>
 
-          {/* ── Feature Highlights Grid ────────────────────────────────────────── */}
-          <div className="space-y-8 pt-8">
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl md:text-3xl font-black text-white">
-                {isAr ? "لماذا تختار عضوية PRO Pass؟" : "Why Upgrade to PRO Pass?"}
-              </h2>
-              <p className="text-slate-400 text-xs md:text-sm font-medium">
+          {/* Official Egyptian Gateway Status Notice */}
+          <div className="max-w-4xl mx-auto p-6 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <Wallet className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white">
+                  {isAr
+                    ? "بوابات الدفع الإلكتروني بالجنيه المصري قيد الربط الفني"
+                    : "Egyptian Payment Gateways Under Technical Integration"}
+                </h3>
+                <p className="text-xs text-slate-400">
+                  {isAr
+                    ? "جاري ربط وسائل الدفع الإلكترونية الرسمية (إنستاباي InstaPay، فودافون كاش، فوري، وبطاقات فيزا وماستركارد)."
+                    : "Connecting official payment gateways (InstaPay, Vodafone Cash, Fawry, Visa & Mastercard)."}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <span className="text-slate-300 font-medium">
                 {isAr
-                  ? "أقوى حزمة مميزات مصممة للاعبي كرة القدم التنافسية ومنظمي اللقاءات"
-                  : "Powerful features built specifically for competitive players and match managers"}
+                  ? "💡 يمكن لمالك المنصة ومسؤولي النظام تفعيل اشتراك PRO مباشرة لأي لاعب أو صديق عبر لوحة التحكم."
+                  : "💡 Platform Owner & Admins can grant free PRO access to any player directly from the Admin Panel."}
+              </span>
+              {isOwner || isAdmin ? (
+                <Link
+                  href="/admin"
+                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors shrink-0 shadow-sm"
+                >
+                  {isAr ? "لوحة الإدارة" : "Admin Panel"}
+                </Link>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Feature Highlights Grid */}
+          <div className="space-y-6 pt-6 max-w-6xl mx-auto">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {isAr ? "لماذا يختار اللاعبون باقات PRO Pass؟" : "Why Players Choose PRO Pass?"}
+              </h2>
+              <p className="text-slate-400 text-xs sm:text-sm font-medium">
+                {isAr
+                  ? "أدوات احترافية صُممت لرفع جودة المباريات والتنظيم لجميع لاعبي كرة القدم التنافسية"
+                  : "Professional tools engineered to elevate match quality and organization"}
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
                 {
-                  icon: <Bot className="w-6 h-6 text-amber-400" />,
-                  titleEn: "AI Match Analyst",
-                  titleAr: "محلل الذكاء الاصطناعي",
-                  descEn: "Get post-match tactical breakdown, player heatmaps, and OVR growth tips.",
-                  descAr: "احصل على تحليل تكتيكي بعد المباراة، خرائط الحرارة، ونصائح تحسين الطاقات.",
+                  icon: <Bot className="w-5 h-5 text-emerald-400" />,
+                  titleEn: "11AI Tactical Scout",
+                  titleAr: "استكشاف تكتيكي بالذكاء الاصطناعي",
+                  descEn: "Pre-match opposition threat index, key danger players, and recommended counter-tactics.",
+                  descAr: "مؤشر خطورة الخصم، أخطر اللاعبين، والتكتيكات الدفاعية والهجومية المضادة المقترحة.",
                 },
                 {
-                  icon: <Shirt className="w-6 h-6 text-emerald-400" />,
-                  titleEn: "3D Kit & Crest Designer",
-                  titleAr: "مصمم الأطقم 3D",
-                  descEn: "Design custom jersey patterns, metallic badges, and squad colorways.",
-                  descAr: "صمّم أطقم ومجسمات قمصان وشعارات مخصصة بألوان فريقك.",
+                  icon: <Shirt className="w-5 h-5 text-amber-400" />,
+                  titleEn: "3D Kit & Crest Studio",
+                  titleAr: "استوديو الأطقم والشعارات 3D",
+                  descEn: "Design custom jersey patterns, metallic emblems, and download high-resolution PNG assets.",
+                  descAr: "صمّم قمصان فريقك وشعارات الملاعب بجودة عالية مع تصدير صور PNG بدقة فائقة.",
                 },
                 {
-                  icon: <Crown className="w-6 h-6 text-yellow-400" />,
-                  titleEn: "Golden PRO Card Badge",
-                  titleAr: "الشارة الذهبية الموثقة",
-                  descEn: "Stand out with a glowing golden badge on leaderboards, lineups, and chat.",
-                  descAr: "تميز بشارة ذهبية متوهجة على بطاقة اللاعب وقوائم المتصدرين والمحادثات.",
+                  icon: <Crown className="w-5 h-5 text-yellow-400" />,
+                  titleEn: "Golden PRO Badge",
+                  titleAr: "شارة PRO الذهبية",
+                  descEn: "Verified glowing golden badge across all community lineups, leaderboards, and chats.",
+                  descAr: "شارة ذهبية موثقة تبرز في تشكيلات المباريات، قوائم الصدارة، وغرف المحادثة.",
                 },
                 {
-                  icon: <Receipt className="w-6 h-6 text-purple-400" />,
-                  titleEn: "Automated Split-Bill",
-                  titleAr: "تقاسم الحجز الأوتوماتيكي",
-                  descEn: "Instantly split field rental costs per player with WhatsApp reminders.",
-                  descAr: "احسب تكلفة حجز الملعب وقسمها بين اللاعبين تلقائياً مع تذكيرات الواتساب.",
+                  icon: <Receipt className="w-5 h-5 text-teal-400" />,
+                  titleEn: "Turf Split-Bill Calculator",
+                  titleAr: "تقاسم حجز الملعب والمصروفات",
+                  descEn: "Calculate rental shares per player, generate WhatsApp payment reminder links, and track collection.",
+                  descAr: "احسب نصيب كل لاعب في حجز الملعب تلقائياً، مع روابط تذكير واتساب ومتابعة الدفع.",
                 },
               ].map((ft, i) => (
                 <div
                   key={i}
-                  className="bg-slate-900/80 p-6 rounded-3xl border border-slate-800/80 shadow-xl space-y-3"
+                  className="bg-slate-900/80 p-5 rounded-2xl border border-slate-800 shadow-xl space-y-2.5"
                 >
-                  <div className="p-3 bg-slate-950 rounded-2xl w-fit border border-slate-800">{ft.icon}</div>
-                  <h4 className="font-extrabold text-base text-white">{isAr ? ft.titleAr : ft.titleEn}</h4>
+                  <div className="p-2.5 bg-slate-950 rounded-xl w-fit border border-slate-800">{ft.icon}</div>
+                  <h4 className="font-black text-sm text-white">{isAr ? ft.titleAr : ft.titleEn}</h4>
                   <p className="text-slate-400 text-xs leading-relaxed">{isAr ? ft.descAr : ft.descEn}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* ── FAQ Accordion Section ─────────────────────────────────────────── */}
+          {/* FAQ Accordion Section */}
           <div className="max-w-3xl mx-auto space-y-6 pt-6">
             <div className="flex items-center gap-2 justify-center">
-              <HelpCircle className="w-5 h-5 text-amber-400" />
+              <HelpCircle className="w-5 h-5 text-emerald-400" />
               <h2 className="text-2xl font-black text-white">
-                {isAr ? "الأسئلة الشائعة" : "Frequently Asked Questions"}
+                {isAr ? "الأسئلة الشائعة حول الاشتراكات" : "Frequently Asked Questions"}
               </h2>
             </div>
 
@@ -456,17 +542,19 @@ export default function ProPassPage() {
                   <div
                     key={index}
                     className={`rounded-2xl border transition-all duration-300 overflow-hidden ${
-                      isOpen ? "bg-slate-900 border-amber-500/40 shadow-lg shadow-amber-500/5" : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
+                      isOpen
+                        ? "bg-slate-900 border-emerald-500/40 shadow-lg shadow-emerald-500/5"
+                        : "bg-slate-900/80 border-slate-800 hover:border-slate-700"
                     }`}
                   >
                     <button
                       onClick={() => setOpenFaqIndex(isOpen ? null : index)}
-                      className="w-full p-5 text-left flex items-center justify-between font-bold text-sm text-white hover:text-amber-300 transition-colors cursor-pointer"
+                      className="w-full p-5 text-left flex items-center justify-between font-bold text-sm text-white hover:text-emerald-300 transition-colors cursor-pointer"
                     >
                       <span className="rtl:text-right ltr:text-left">{isAr ? faq.qAr : faq.qEn}</span>
                       <ChevronDown
                         className={`w-4 h-4 text-slate-400 shrink-0 transition-transform duration-300 ease-out ${
-                          isOpen ? "rotate-180 text-amber-400" : ""
+                          isOpen ? "rotate-180 text-emerald-400" : ""
                         }`}
                       />
                     </button>
@@ -505,84 +593,6 @@ export default function ProPassPage() {
             </div>
           </div>
         </div>
-
-        {/* ── Payment Gateway Integration Coming Soon Modal ──────────────────── */}
-        <AnimatePresence>
-          {isPaymentModalOpen && selectedPlan && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="w-full max-w-md glass-card p-6 md:p-8 rounded-3xl border border-amber-500/30 bg-slate-900 text-white shadow-2xl space-y-6 text-center"
-              >
-                {/* Lock Icon */}
-                <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/10 border border-amber-500/40 flex items-center justify-center text-3xl shadow-inner">
-                    🚀
-                  </div>
-                </div>
-
-                {/* Title & Plan Info */}
-                <div className="space-y-2">
-                  <h3 className="text-xl font-black text-amber-300">
-                    {isAr ? "بوابة الدفع الإلكتروني قريباً 🚀" : "Payment Gateway Integration Coming Soon 🚀"}
-                  </h3>
-                  <p className="text-xs text-slate-300 font-bold">
-                    {isAr ? `الخطة المختارة: ${selectedPlan.nameAr}` : `Selected Plan: ${selectedPlan.nameEn}`}
-                  </p>
-                  <p className="text-sm font-black font-mono text-emerald-400">
-                    {isAnnual ? selectedPlan.priceAnnualEGP : selectedPlan.priceMonthlyEGP} EGP / {isAr ? "شهر" : "month"}
-                  </p>
-                </div>
-
-                {/* Description */}
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-xs text-slate-400 leading-relaxed space-y-2 text-right rtl:text-right ltr:text-left">
-                  <p className="font-medium">
-                    {isAr
-                      ? "🔒 نعمل حالياً على ربط بوابات الدفع الإلكترونية الرسمية (PayMob، فوري، فودافون كاش، فيزا). لم تكتمل عملية الربط بعد ولن يتم خصم أي أموال."
-                      : "🔒 We are currently integrating official payment gateways (PayMob, Fawry, Vodafone Cash, Visa). Integration is in progress and no charges can be made."}
-                  </p>
-                  <p className="font-bold text-amber-300">
-                    {isAr
-                      ? "💡 يمكن لمالك المنصة والآدمن تفعيل اشتراك PRO مجاني لك ولأي لاعب عبر لوحة التحكم."
-                      : "💡 Platform Owner & Admins can grant free PRO subscriptions to any player via the Admin Panel."}
-                  </p>
-                </div>
-
-                {/* Payment Methods Disabled Preview */}
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-                    {isAr ? "وسائل الدفع الجاري ربطها:" : "Gateways Under Integration:"}
-                  </span>
-                  <div className="grid grid-cols-2 gap-2 opacity-75 pointer-events-none select-none">
-                    {[
-                      { label: "💳 Visa / Mastercard" },
-                      { label: "📱 Vodafone Cash" },
-                      { label: "🏪 Fawry Pay" },
-                      { label: "🌐 PayPal Express" },
-                    ].map((pm, i) => (
-                      <div key={i} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-xs font-bold text-slate-400 flex items-center justify-between">
-                        <span>{pm.label}</span>
-                        <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-extrabold">
-                          {isAr ? "قريباً" : "Soon"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Close Button */}
-                <button
-                  onClick={() => setIsPaymentModalOpen(false)}
-                  className="w-full py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-black text-xs transition-colors shadow-lg"
-                >
-                  {isAr ? "حسناً، فهمت ذلك" : "Got it, thanks!"}
-                </button>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );
