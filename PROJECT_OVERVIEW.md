@@ -607,6 +607,16 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - **Quality Assurance**:
   - Vitest test suite: 106/106 tests passing.
   - Static compilation: All 63 routes compiled to `out/` with zero TypeScript or Webpack errors.
+- **High-Yield Safe Disk Cleanup & Workspace Reclamation (Drive D:)**:
+  - Investigated critically exhausted drive space on Drive D: (free space was at 0.66 GB / 675 MB).
+  - Safely purged 100% ephemeral caches: Next.js dev/build cache (`.next`, ~4.79 GB), Firebase hosting staging (`.firebase`, ~0.97 GB), legacy scratch scripts (`scratch/`), and session cache (`.zcode/`).
+  - Added `.idea/` to `.gitignore` to prevent IDE churn.
+  - Reclaimed massive disk capacity: Drive D: free space jumped from **0.66 GB to over 22 GB free**.
+  - Developed and verified standardized reusable cleanup script [scripts/cleanup-disk.ps1](file:///d:/Projects/11Players/scripts/cleanup-disk.ps1) with automated safety checks, reporting, and cross-project support for other Drive D projects.
+  - Verified project integrity post-cleanup:
+    - Vitest unit tests: **106/106 passing**.
+    - TypeScript strict typecheck: **0 errors**.
+    - ESLint lint check: **0 errors, 0 warnings**.
 
 
 

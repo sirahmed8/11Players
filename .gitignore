@@ -10,6 +10,7 @@ out/
 .zcode/
 scratch/
 tsconfig.tsbuildinfo
+.idea/
 
 # Firebase Admin SDK Private Service Account Keys & Services Config
 *-firebase-adminsdk-*.json
