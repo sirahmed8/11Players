@@ -37,12 +37,6 @@ export default function InstallPWA() {
     // Wait for the user to respond to the prompt
     const { outcome } = await deferredPrompt.userChoice;
     
-    if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
-    } else {
-      console.log('User dismissed the install prompt');
-    }
-    
     // Clear the deferredPrompt so it can only be used once.
     setDeferredPrompt(null);
     setShowPrompt(false);

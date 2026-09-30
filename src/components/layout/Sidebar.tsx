@@ -20,7 +20,7 @@ import CommandPaletteModal from "@/components/ui/CommandPaletteModal";
 
 import { Suspense } from "react";
 
-const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/cookie"];
+const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/terms", "/cookie", "/cookies", "/refund", "/refunds", "/pro-pass"];
 
 function SidebarContent() {
   const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
@@ -364,11 +364,13 @@ function SidebarContent() {
           { href: `/split-bill`, labelEn: "Turf Split Bill", labelAr: "حاسبة تقاسم الحجز", icon: <Receipt className="w-5 h-5" /> },
           { href: `/leaderboard`, labelEn: "Leaderboard & Awards", labelAr: "المتصدريين والجوائز", icon: <BarChart3 className="w-5 h-5" /> },
           { href: `/derby`, labelEn: "Derby Rivalries H2H", labelAr: "الديربي والمواجهات", icon: <Flame className="w-5 h-5" /> },
+          { href: `/scouting`, labelEn: "11AI Scouting", labelAr: "كشافة 11AI الذكية", icon: <ShieldAlert className="w-5 h-5 text-emerald-400" /> },
         ] : [
           { href: `/kit-builder`, labelEn: "Kit & Crest Builder", labelAr: "مصمم الأطقم والشعار", icon: <Shirt className="w-5 h-5" /> },
           { href: `/newspaper`, labelEn: "Post-Match Newspaper", labelAr: "جريدة الهجوزات", icon: <Newspaper className="w-5 h-5" /> },
           { href: `/split-bill`, labelEn: "Turf Split Bill", labelAr: "حاسبة تقاسم الحجز", icon: <Receipt className="w-5 h-5" /> },
           { href: `/derby`, labelEn: "Derby Rivalries H2H", labelAr: "الديربي والمواجهات", icon: <Flame className="w-5 h-5" /> },
+          { href: `/scouting`, labelEn: "11AI Scouting", labelAr: "كشافة 11AI الذكية", icon: <ShieldAlert className="w-5 h-5 text-emerald-400" /> },
         ]),
       ]
     },
@@ -405,6 +407,8 @@ function SidebarContent() {
       titleAr: "المساعدة والقوانين",
       items: [
         { href: "/guide", labelEn: "Guide & Rules", labelAr: "الدليل والقوانين", icon: <BookOpen className="w-5 h-5" /> },
+        { href: "/terms", labelEn: "Terms of Service", labelAr: "الشروط والأحكام", icon: <BookOpen className="w-5 h-5 text-slate-400" /> },
+        { href: "/privacy", labelEn: "Privacy Policy", labelAr: "سياسة الخصوصية", icon: <ShieldAlert className="w-5 h-5 text-slate-400" /> },
       ]
     }
   ];

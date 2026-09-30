@@ -1,12 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const ttsRequestSchema = z.object({
+  text: z.string().min(1).max(2000),
+  lang: z.enum(["ar", "en"]).optional().default("ar"),
+});
 
 export async function POST(req: Request) {
   try {
-    const { text, lang = "ar" } = await req.json();
-
-    if (!text || typeof text !== "string") {
-      return NextResponse.json({ error: "Text parameter is required." }, { status: 400 });
+    const json = await req.json();
+    const parsed = ttsRequestSchema.safeParse(json);
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid text parameter." }, { status: 400 });
     }
+    const { text, lang } = parsed.data;
 
     // Clean markdown symbols for natural speech readout
     const cleanText = text.replace(/[*_#\-•]/g, " ").replace(/\s+/g, " ").trim();

@@ -571,6 +571,40 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Vitest test suite: All 106 tests passing across 10 test suites.
   - Static compilation: All 61 routes compiled to `out/` with zero TypeScript or Webpack errors.
 
+## 23. Milestone M3.6 — Full Codebase Hardening, 5-State Ergonomics, Zero-Console Protocol & Technical SEO
+
+- **Opposition Scouting Engine Wiring (`/match/scouting` & `/scouting`)**:
+  - Implemented [src/app/match/scouting/page.tsx](file:///d:/Projects/11Players/src/app/match/scouting/page.tsx) and canonical alias [src/app/scouting/page.tsx](file:///d:/Projects/11Players/src/app/scouting/page.tsx) wiring `OppositionScoutingReport` to live community players from `usePlayers()`.
+  - Protected with `<ProGate requiredPlan="pro_captain">` ensuring PRO Captain tier access.
+  - Integrated into [src/components/match/MatchActionHubBar.tsx](file:///d:/Projects/11Players/src/components/match/MatchActionHubBar.tsx) and [src/components/layout/Sidebar.tsx](file:///d:/Projects/11Players/src/components/layout/Sidebar.tsx).
+- **Mandatory 5-State UI Completeness (Loading Skeletons)**:
+  - Created dedicated `loading.tsx` skeletons using `SiteSkeletonLoader` across all previously un-skeletonized routes:
+    - [src/app/terms/loading.tsx](file:///d:/Projects/11Players/src/app/terms/loading.tsx)
+    - [src/app/refund/loading.tsx](file:///d:/Projects/11Players/src/app/refund/loading.tsx)
+    - [src/app/refunds/loading.tsx](file:///d:/Projects/11Players/src/app/refunds/loading.tsx)
+    - [src/app/cookies/loading.tsx](file:///d:/Projects/11Players/src/app/cookies/loading.tsx)
+    - [src/app/match/scouting/loading.tsx](file:///d:/Projects/11Players/src/app/match/scouting/loading.tsx)
+    - [src/app/scouting/loading.tsx](file:///d:/Projects/11Players/src/app/scouting/loading.tsx)
+- **Zero-Console Policy Verification**:
+  - Sanitized and removed all active `console.log` statements in [src/components/layout/InstallPWA.tsx](file:///d:/Projects/11Players/src/components/layout/InstallPWA.tsx), [src/components/onboarding/OnboardingWizard.tsx](file:///d:/Projects/11Players/src/components/onboarding/OnboardingWizard.tsx), and [src/lib/pdf.ts](file:///d:/Projects/11Players/src/lib/pdf.ts).
+- **Aesthetic Refinement & Anti-Vibe Iconography**:
+  - Removed decorative raw emojis from buttons and banners, substituting Lucide React icons:
+    - [src/app/announcements/page.tsx](file:///d:/Projects/11Players/src/app/announcements/page.tsx) (`<Sparkles />` icon in 11AI studio box, clean broadcast button label).
+    - [src/app/season-ceremony/page.tsx](file:///d:/Projects/11Players/src/app/season-ceremony/page.tsx) (Clean archive reset button label).
+    - [src/components/match/TurfMatchDisplay.tsx](file:///d:/Projects/11Players/src/components/match/TurfMatchDisplay.tsx) (Clean penalty shootout button label).
+- **Server API Route Hardening & Zod Schema Validation**:
+  - Added strict Zod schemas to [src/app/api/ai/notifications/route.ts](file:///d:/Projects/11Players/src/app/api/ai/notifications/route.ts) and [src/app/api/ai/tts/route.ts](file:///d:/Projects/11Players/src/app/api/ai/tts/route.ts).
+- **Database Index Optimization (`firestore.indexes.json`)**:
+  - Created [firestore.indexes.json](file:///d:/Projects/11Players/firestore.indexes.json) with composite indexing configurations for `support_threads`, `matches`, `notifications`, and `players`. Linked under `"firestore"` in [firebase.json](file:///d:/Projects/11Players/firebase.json).
+- **Social Media Preview Engine & OpenGraph / Twitter Cards**:
+  - Created 1200x630 high-resolution branded OpenGraph social image [public/og-image.png](file:///d:/Projects/11Players/public/og-image.png) featuring official metallic shield crest and dark stadium atmosphere.
+  - Linked `og-image.png` in [src/app/layout.tsx](file:///d:/Projects/11Players/src/app/layout.tsx) `openGraph` and `twitter` card configurations.
+  - Added `/pro-pass` to `PUBLIC_ROUTES` in `RouteGuard.tsx` and `Sidebar.tsx`, and canonical `sitemap.ts`.
+- **Quality Assurance**:
+  - Vitest test suite: 106/106 tests passing.
+  - Static compilation: All 63 routes compiled to `out/` with zero TypeScript or Webpack errors.
+
+
 
 
 

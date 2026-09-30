@@ -1,9 +1,22 @@
 import { NextResponse } from "next/server";
 import { generate11AIResponse } from "@/lib/aiService";
+import { z } from "zod";
+
+const notificationRequestSchema = z.object({
+  playerContext: z.object({
+    fullName: z.string().max(100).optional(),
+    primaryPosition: z.string().max(10).optional(),
+    overall: z.number().min(0).max(100).optional(),
+    goals: z.number().optional(),
+    playStyle: z.string().max(50).optional(),
+  }).optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    const { playerContext } = await req.json();
+    const json = await req.json();
+    const parsed = notificationRequestSchema.safeParse(json);
+    const playerContext = parsed.success ? parsed.data.playerContext : undefined;
 
     const systemPrompt = `You are "11AI Tactical Alert Engine". Generate ONE short, high-impact, personalized tactical career alert notification (1 sentence) for this player in Arabic:
 Player: ${playerContext?.fullName || "Captain"}

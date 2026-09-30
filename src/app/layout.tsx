@@ -54,11 +54,20 @@ export const metadata: Metadata = {
     title:       "11Players — Football Matchmaking & Community",
     description: "Organize matches, rate players, and compete in your community league.",
     siteName:    "11Players",
+    images: [
+      {
+        url: "https://an-11-players.web.app/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "11Players Elite Football Platform",
+      },
+    ],
   },
   twitter: {
     card:        "summary_large_image",
-    title:       "11Players",
+    title:       "11Players — Football Matchmaking & Community",
     description: "Gamified football matchmaking and community management.",
+    images: ["https://an-11-players.web.app/og-image.png"],
   },
   robots: {
     index:  true,

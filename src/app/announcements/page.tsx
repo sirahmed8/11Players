@@ -107,7 +107,7 @@ export default function AnnouncementsPage() {
       setBodyEn(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.bodyEn, 'en')));
       setBodyAr(stripMarkdownAsterisks(cleanSingleLanguageText(enhanced.bodyAr, 'ar')));
 
-      toast.success(isAr ? "✨ 11AI قام بصياغة الإعلان بالأسلوب المحدد!" : "✨ 11AI polished your announcement in requested style!");
+      toast.success(isAr ? "11AI: تم صياغة الإعلان بالأسلوب المحدد بنجاح!" : "11AI: Announcement polished in requested style!");
     } catch (err) {
       toast.error(isAr ? "فشل توليد الذكاء الاصطناعي" : "AI generation failed");
     } finally {
@@ -348,8 +348,8 @@ export default function AnnouncementsPage() {
           <div className="bg-slate-900/90 rounded-3xl p-5 sm:p-6 border border-emerald-500/30 shadow-xl space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 font-black text-sm shrink-0">
-                  ✨
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-black text-white">
@@ -632,7 +632,7 @@ export default function AnnouncementsPage() {
                     className="px-5 py-3 rounded-2xl font-black text-xs shadow-lg bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-500 hover:from-emerald-500 hover:to-teal-500 text-white transition-all duration-200 active:scale-95 flex items-center gap-2 disabled:opacity-50 shadow-emerald-600/30 shrink-0"
                   >
                     {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 text-amber-300" />}
-                    <span>{broadcasting ? (isAr ? "جاري البث..." : "Broadcasting...") : (isAr ? "🚀 بث الكلية (إشعار + محادثة)" : "📢 Broadcast Both (Push & Chat)")}</span>
+                    <span>{broadcasting ? (isAr ? "جاري البث..." : "Broadcasting...") : (isAr ? "بث كامل (إشعار + محادثة)" : "Broadcast Both (Push & Chat)")}</span>
                   </motion.button>
                 </div>
               </div>

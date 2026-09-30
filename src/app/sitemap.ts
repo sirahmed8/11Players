@@ -21,6 +21,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "/refunds", priority: 0.5, changeFrequency: "monthly" as const },
     { path: "/cookie", priority: 0.5, changeFrequency: "monthly" as const },
     { path: "/cookies", priority: 0.5, changeFrequency: "monthly" as const },
+    { path: "/pro-pass", priority: 0.8, changeFrequency: "weekly" as const },
   ];
 
   return routes.map((r) => ({

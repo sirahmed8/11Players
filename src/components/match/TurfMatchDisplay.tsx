@@ -529,7 +529,7 @@ const WinnerStaysOnTracker = ({ teams, isAr }: { teams: TurfTeam[], isAr: boolea
                 disabled={!penalty.kingKeeper || !penalty.challengerKeeper}
                 className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-black rounded-xl disabled:opacity-40 disabled:cursor-not-allowed hover:shadow-lg transition-all"
               >
-                {isAr ? '🚀 ابدأ ركلات الترجيح' : '🚀 Start Penalty Shootout'}
+                {isAr ? 'ابدأ ركلات الترجيح' : 'Start Penalty Shootout'}
               </button>
             </div>
           </motion.div>

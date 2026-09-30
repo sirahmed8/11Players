@@ -6,7 +6,6 @@ import { getPlayerOverall } from '@/lib/playerUtils';
 
 export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 'ar' = 'en'): Promise<void> {
   if (typeof window === "undefined") {
-    console.log("PDF generation skipped on server-side execution");
     return;
   }
 
@@ -90,7 +89,6 @@ export async function generateProfilePDF(profile: PlayerProfile, locale: 'en' | 
 
 export async function generateMasterBulkPDF(profiles: PlayerProfile[], locale: 'en' | 'ar' = 'en'): Promise<void> {
   if (typeof window === "undefined") {
-    console.log("PDF generation skipped on server-side execution");
     return;
   }
 

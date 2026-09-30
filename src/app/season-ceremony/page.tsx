@@ -205,7 +205,7 @@ export default function SeasonCeremonyPage() {
                     className="px-5 py-3 rounded-2xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-black text-xs shadow-lg shadow-amber-600/30 transition-all flex items-center justify-center gap-2"
                   >
                     <Crown className="w-4 h-4 fill-slate-950" />
-                    <span>{isAr ? "تصفير الموسم وحفظ الأرشيف 🚀" : "Archive & Reset Season 🚀"}</span>
+                    <span>{isAr ? "تصفير الموسم وحفظ الأرشيف" : "Archive & Reset Season"}</span>
                   </button>
                 )}
               </div>

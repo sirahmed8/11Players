@@ -353,7 +353,6 @@ export default function OnboardingWizard() {
           throw err;
         }
         // If it's just a timeout, we ignore it and proceed optimistically.
-        console.log('Submission taking longer than expected, proceeding optimistically...');
       }
 
       localStorage.removeItem('11players_wizard_draft'); // Clear draft on success

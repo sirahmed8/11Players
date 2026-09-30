@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { useLocale } from "@/components/ui/ThemeProvider";
-import { Shield, Sparkles, Users, Tv, Newspaper, Receipt, Swords, SlidersHorizontal } from "lucide-react";
+import { Shield, Sparkles, Users, Tv, Newspaper, Receipt, Swords, SlidersHorizontal, ShieldAlert } from "lucide-react";
 
 import ScrollableTabContainer from "@/components/ui/ScrollableTabContainer";
 
@@ -68,6 +68,16 @@ export default function MatchActionHubBar({ className = "" }: Props) {
       icon: Swords,
       badgeEn: "H2H",
       badgeAr: "مواجهات",
+    },
+    {
+      id: "scouting",
+      href: "/match/scouting",
+      activeCheck: (path: string) => path.includes("/scouting"),
+      labelEn: "11AI Scouting",
+      labelAr: "كشافة 11AI",
+      icon: ShieldAlert,
+      badgeEn: "PRO",
+      badgeAr: "برو",
     },
   ];
 
