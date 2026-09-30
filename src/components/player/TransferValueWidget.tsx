@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { TrendingUp, TrendingDown, DollarSign, Activity } from "lucide-react";
 import { PlayerProfile } from "@/types";
@@ -50,7 +50,7 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
   const controls = useAnimation();
 
   // Advanced algorithm for realistic "Market Value"
-  const calculateValue = () => {
+  const calculateValue = useCallback(() => {
     const ovr = getPlayerOverall(player);
     const matches = player.stats?.matchesPlayed || 0;
     const goals = player.stats?.goals || 0;
@@ -123,7 +123,7 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
     if (finalValue < 150000) finalValue = 150000 + (Math.random() * 50000);
     
     return finalValue;
-  };
+  }, [player]);
 
   useEffect(() => {
     const targetValue = calculateValue();
@@ -155,7 +155,7 @@ export default function TransferValueWidget({ player, isAr }: TransferValueWidge
     });
 
     return () => clearInterval(interval);
-  }, [player, controls]);
+  }, [calculateValue, controls]);
 
   const formatValue = (val: number) => {
     if (val >= 1000000) {

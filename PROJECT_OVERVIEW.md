@@ -600,6 +600,10 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Created 1200x630 high-resolution branded OpenGraph social image [public/og-image.png](file:///d:/Projects/11Players/public/og-image.png) featuring official metallic shield crest and dark stadium atmosphere.
   - Linked `og-image.png` in [src/app/layout.tsx](file:///d:/Projects/11Players/src/app/layout.tsx) `openGraph` and `twitter` card configurations.
   - Added `/pro-pass` to `PUBLIC_ROUTES` in `RouteGuard.tsx` and `Sidebar.tsx`, and canonical `sitemap.ts`.
+- **Production Workspace Organization & Zero-Warning Linting**:
+  - Removed temporary legacy scratch file (`task.md`) and untracked churn cache (`tsconfig.tsbuildinfo`) from git tracking.
+  - Resolved all React hook dependency warnings in [src/components/gamification/XpSkillTree.tsx](file:///d:/Projects/11Players/src/components/gamification/XpSkillTree.tsx) and [src/components/player/TransferValueWidget.tsx](file:///d:/Projects/11Players/src/components/player/TransferValueWidget.tsx).
+  - ESLint (`npm run check-lint`) passing with **0 errors and 0 warnings**.
 - **Quality Assurance**:
   - Vitest test suite: 106/106 tests passing.
   - Static compilation: All 63 routes compiled to `out/` with zero TypeScript or Webpack errors.

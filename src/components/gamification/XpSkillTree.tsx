@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { Award, Zap, Shield, Target, Activity, Flame, Lock, CheckCircle2, ChevronRight, Sparkles, Star } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
@@ -369,7 +369,7 @@ export default function XpSkillTree() {
   const { locale } = useLocale();
   const isAr = locale === "ar";
 
-  const playerStats: PlayerStatsAndAttributes = {
+  const playerStats: PlayerStatsAndAttributes = useMemo(() => ({
     matchesPlayed: profile?.stats?.matchesPlayed || profile?.stats?.matchesCount || 0,
     goals: profile?.stats?.goals || 0,
     assists: profile?.stats?.assists || 0,
@@ -382,7 +382,7 @@ export default function XpSkillTree() {
       speed: profile?.attributes?.speed || 70,
       gkReflexes: profile?.attributes?.gkReflexes || 70,
     },
-  };
+  }), [profile]);
 
   const totalXp = calculateTotalPlayerXp(
     playerStats.matchesPlayed,
@@ -397,14 +397,14 @@ export default function XpSkillTree() {
   const selectedNode = DEFAULT_SKILL_NODES.find((n) => n.id === selectedNodeId) || DEFAULT_SKILL_NODES[0];
   const selectedEval = evaluateBadgeUnlockStatus(selectedNode.id, playerStats, totalXp);
 
-  const handleNodeClick = (nodeId: string) => {
+  const handleNodeClick = useCallback((nodeId: string) => {
     setSelectedNodeId(nodeId);
     const ev = evaluateBadgeUnlockStatus(nodeId, playerStats, totalXp);
     if (ev.unlocked) {
       setUnlockedEffect(nodeId);
       setTimeout(() => setUnlockedEffect(null), 1200);
     }
-  };
+  }, [playerStats, totalXp]);
 
   const renderIcon = (name: string) => {
     switch (name) {
@@ -548,7 +548,7 @@ export default function XpSkillTree() {
                   renderIcon={renderIcon}
                 />
               );
-            }), [playerStats, totalXp, selectedNodeId, unlockedEffect])}
+            }), [playerStats, totalXp, selectedNodeId, unlockedEffect, handleNodeClick, isAr])}
           </div>
         </div>
 
