@@ -20,6 +20,10 @@ export default function CookieConsentBanner() {
     } catch {
       // Ignore storage errors in private browsing
     }
+
+    const handleOpenBanner = () => setShowBanner(true);
+    window.addEventListener("open-cookie-banner", handleOpenBanner);
+    return () => window.removeEventListener("open-cookie-banner", handleOpenBanner);
   }, []);
 
   const handleAcceptAll = () => {

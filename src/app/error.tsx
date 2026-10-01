@@ -34,7 +34,7 @@ export default function GlobalErrorPage({ error, reset }: ErrorProps) {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-bold uppercase tracking-wider"
         >
           <AlertTriangle className="w-4 h-4 text-rose-400" />
-          <span>{isAr ? "خطأ تقني في النظام — استئناف اللعب" : "System Error — Tactical Halt"}</span>
+          <span>{isAr ? "خطأ تقني في النظام: استئناف اللعب" : "System Error: Tactical Halt"}</span>
         </motion.div>
 
         {/* Headline */}

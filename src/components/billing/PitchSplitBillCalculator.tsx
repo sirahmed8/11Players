@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
-import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check } from "lucide-react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { DollarSign, CheckCircle2, Clock, AlertTriangle, Share2, Plus, Trash2, Users, RefreshCw, Copy, Check, Save, FolderOpen, Loader2 } from "lucide-react";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCommunity } from "@/contexts/CommunityContext";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { motion, AnimatePresence } from "framer-motion";
 import { microSpringProps } from "@/lib/animations";
+import { collection, doc, setDoc, getDocs, deleteDoc, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export type PaymentStatus = "Paid" | "Pending" | "Overdue";
 export type CurrencyCode = "SAR" | "USD" | "EUR" | "EGP";
@@ -20,6 +23,19 @@ export interface SplitBillPlayer {
   name: string;
   amount: number;
   status: PaymentStatus;
+}
+
+export interface SavedSplitBill {
+  id: string;
+  uid: string;
+  communityId?: string;
+  matchName: string;
+  totalCost: number;
+  currency: CurrencyCode;
+  splitMode: SplitMode;
+  players: SplitBillPlayer[];
+  idempotencyKey: string;
+  updatedAt: string;
 }
 
 export const CURRENCY_RATES: Record<CurrencyCode, { rate: number; symbol: string; label: string }> = {
@@ -146,8 +162,99 @@ export default function PitchSplitBillCalculator() {
   const [copiedShareLink, setCopiedShareLink] = useState(false);
 
   const { players: communityPlayers } = usePlayers();
+  const { user } = useAuth();
+  const { activeCommunityId } = useCommunity();
   const [players, setPlayers] = useState<SplitBillPlayer[]>([]);
   const [selectedCommunityPlayerUid, setSelectedCommunityPlayerUid] = useState<string>('');
+
+  const [savedBills, setSavedBills] = useState<SavedSplitBill[]>([]);
+  const [loadingSavedBills, setLoadingSavedBills] = useState(false);
+  const [isSavingBill, setIsSavingBill] = useState(false);
+  const [showSavedBillsDrawer, setShowSavedBillsDrawer] = useState(false);
+
+  // Fetch saved split bills from Firestore
+  const fetchSavedBills = useCallback(async () => {
+    if (!user?.uid) return;
+    setLoadingSavedBills(true);
+    try {
+      const q = query(collection(db, "split_bills"), where("uid", "==", user.uid));
+      const snap = await getDocs(q);
+      const bills: SavedSplitBill[] = [];
+      snap.forEach((docSnap) => {
+        bills.push(docSnap.data() as SavedSplitBill);
+      });
+      bills.sort((a, b) => new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+      setSavedBills(bills);
+    } catch (err) {
+      console.error("Failed to load saved split bills:", err);
+    } finally {
+      setLoadingSavedBills(false);
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    fetchSavedBills();
+  }, [fetchSavedBills]);
+
+  const handleSaveBill = async () => {
+    if (!user?.uid) {
+      toast.error(isAr ? "يرجى تسجيل الدخول لحفظ الفاتورة" : "Please log in to save this bill");
+      return;
+    }
+    if (players.length === 0) {
+      toast.error(isAr ? "يرجى إضافة لاعبين إلى الفاتورة أولاً" : "Please add players before saving");
+      return;
+    }
+
+    setIsSavingBill(true);
+    const billId = `sb_${user.uid.slice(0, 6)}_${Date.now()}`;
+    const idempotencyKey = `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+
+    const billData: SavedSplitBill = {
+      id: billId,
+      uid: user.uid,
+      communityId: activeCommunityId || "personal",
+      matchName,
+      totalCost,
+      currency,
+      splitMode,
+      players,
+      idempotencyKey,
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      await setDoc(doc(db, "split_bills", billId), billData);
+      toast.success(isAr ? "تم حفظ الفاتورة بنجاح في السحابة" : "Split bill saved to cloud successfully");
+      await fetchSavedBills();
+    } catch (err) {
+      console.error("Error saving split bill:", err);
+      toast.error(isAr ? "تعذر حفظ الفاتورة" : "Failed to save bill");
+    } finally {
+      setIsSavingBill(false);
+    }
+  };
+
+  const handleDeleteBill = async (billId: string) => {
+    try {
+      await deleteDoc(doc(db, "split_bills", billId));
+      setSavedBills((prev) => prev.filter((b) => b.id !== billId));
+      toast.success(isAr ? "تم حذف الفاتورة المحفوظة" : "Saved bill deleted");
+    } catch (err) {
+      console.error("Failed to delete bill:", err);
+      toast.error(isAr ? "تعذر حذف الفاتورة" : "Failed to delete bill");
+    }
+  };
+
+  const handleLoadBill = (b: SavedSplitBill) => {
+    setMatchName(b.matchName);
+    setTotalCost(b.totalCost);
+    setCurrency(b.currency);
+    setSplitMode(b.splitMode);
+    setPlayers(b.players);
+    toast.success(isAr ? `تم استرجاع "${b.matchName}"` : `Loaded "${b.matchName}"`);
+    setShowSavedBillsDrawer(false);
+  };
 
   // Recalculate amounts if equal mode is active
   const handleTotalCostChange = (newCost: number) => {
@@ -273,7 +380,34 @@ export default function PitchSplitBillCalculator() {
           </p>
         </div>
 
-        <div className="pt-3 border-t border-slate-800/60 w-full flex justify-start">
+        <div className="pt-3 border-t border-slate-800/60 w-full flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              onClick={handleSaveBill}
+              disabled={isSavingBill}
+              className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 disabled:opacity-50 cursor-pointer"
+            >
+              {isSavingBill ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              <span>{isAr ? "حفظ الفاتورة سحابياً" : "Save to Cloud"}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                fetchSavedBills();
+                setShowSavedBillsDrawer(true);
+              }}
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all active:scale-98 cursor-pointer"
+            >
+              <FolderOpen className="w-4 h-4 text-amber-400" />
+              <span>{isAr ? "الفواتير المحفوظة" : "Saved Bills"}</span>
+              {savedBills.length > 0 && (
+                <span className="px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono">
+                  {savedBills.length}
+                </span>
+              )}
+            </button>
+          </div>
+
           <button
             onClick={copyShareLink}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer"
@@ -283,6 +417,90 @@ export default function PitchSplitBillCalculator() {
           </button>
         </div>
       </div>
+
+      {/* Saved Bills Modal / Drawer */}
+      <AnimatePresence>
+        {showSavedBillsDrawer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[85vh] flex flex-col"
+              dir={isAr ? "rtl" : "ltr"}
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-amber-400" />
+                  <h3 className="font-bold text-base text-white">
+                    {isAr ? "سجل فواتير الملعب المحفوظة" : "Saved Pitch Split Bills"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowSavedBillsDrawer(false)}
+                  className="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="overflow-y-auto space-y-3 flex-1 pe-1">
+                {loadingSavedBills ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-2 text-slate-400">
+                    <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+                    <span className="text-xs">{isAr ? "جاري تحميل الفواتير..." : "Loading saved bills..."}</span>
+                  </div>
+                ) : savedBills.length === 0 ? (
+                  <div className="py-12 text-center space-y-2 text-slate-400">
+                    <AlertTriangle className="w-8 h-8 mx-auto text-slate-500 opacity-60" />
+                    <p className="text-sm font-bold text-slate-300">
+                      {isAr ? "لا توجد فواتير محفوظة بعد" : "No saved split bills found"}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {isAr ? "احسب تكلفة الملعب واضغط 'حفظ الفاتورة سحابياً'." : "Calculate a split and click 'Save to Cloud'."}
+                    </p>
+                  </div>
+                ) : (
+                  savedBills.map((b) => (
+                    <div
+                      key={b.id}
+                      className="p-3.5 bg-slate-950/70 border border-slate-800/80 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-700 transition-colors"
+                    >
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold text-white truncate">{b.matchName}</div>
+                        <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-emerald-400 font-bold">{b.totalCost} {CURRENCY_RATES[b.currency]?.symbol || b.currency}</span>
+                          <span>•</span>
+                          <span>{b.players?.length || 0} {isAr ? "لاعب" : "players"}</span>
+                          <span>•</span>
+                          <span className="text-[10px] text-slate-500">{new Date(b.updatedAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() => handleLoadBill(b)}
+                          className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 text-xs font-bold rounded-xl transition-all"
+                        >
+                          {isAr ? "تحميل" : "Load"}
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBill(b.id)}
+                          className="p-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 border border-red-500/30 rounded-xl transition-all"
+                          title={isAr ? "حذف الفاتورة" : "Delete bill"}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
 
       {/* Overview Summary Cards & Progress Meter */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -45,7 +45,7 @@ export default function NotFound() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-bold uppercase tracking-wider"
         >
           <ShieldAlert className="w-4 h-4 text-emerald-400" />
-          <span>{isAr ? "خطأ 404 — خارج خطوط الملعب" : "Error 404 — Offside / Out of Bounds"}</span>
+          <span>{isAr ? "خطأ 404: خارج خطوط الملعب" : "Error 404: Offside / Out of Bounds"}</span>
         </motion.div>
 
         {/* Headline */}

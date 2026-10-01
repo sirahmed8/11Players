@@ -213,6 +213,14 @@ service cloud.firestore {
       }
     }
 
+    // ── Pitch Split Bills (Persistent Expenses & Idempotency) ──
+
+    match /split_bills/{billId} {
+      allow read: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
     // ── Default Deny ──
 
     match /{document=**} {

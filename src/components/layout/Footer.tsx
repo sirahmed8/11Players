@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLocale } from '@/components/ui/ThemeProvider';
-import { ShieldCheck, FileText, Lock, ExternalLink, Sparkles, HelpCircle, Receipt, Mail } from 'lucide-react';
+import { ShieldCheck, FileText, Lock, ExternalLink, Sparkles, HelpCircle, Receipt, Mail, Phone, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Footer() {
@@ -20,6 +20,13 @@ export default function Footer() {
     e.preventDefault();
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('open-11ai-chat', { detail: { tab: 'ai' } }));
+    }
+  };
+
+  const handleOpenCookiePreferences = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('open-cookie-banner'));
     }
   };
 
@@ -87,26 +94,40 @@ export default function Footer() {
               <Lock className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               <span suppressHydrationWarning>{isAr ? "سياسة الخصوصية" : "Privacy Policy"}</span>
             </Link>
-            <Link href="/tos" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+            <Link href="/terms" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
               <FileText className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               <span suppressHydrationWarning>{isAr ? "شروط الخدمة" : "Terms of Service"}</span>
             </Link>
-            <Link href="/cookie" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+            <Link href="/cookies" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
               <ShieldCheck className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               <span suppressHydrationWarning>{isAr ? "ملفات الارتباط" : "Cookies"}</span>
             </Link>
-            <Link href="/refund" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+            <Link href="/refunds" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
               <Receipt className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               <span suppressHydrationWarning>{isAr ? "سياسة الاسترداد" : "Refund Policy"}</span>
             </Link>
+            <button
+              onClick={handleOpenCookiePreferences}
+              className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group cursor-pointer"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span suppressHydrationWarning>{isAr ? "إدارة الكوكيز" : "Cookie Settings"}</span>
+            </button>
             <a href="mailto:support@11players.com" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
               <Mail className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
               <span>support@11players.com</span>
             </a>
+            <a href="tel:+201011111111" className="hover:text-emerald-500 transition-colors flex items-center gap-1.5 group">
+              <Phone className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+              <span dir="ltr">+20 10 1111 1111</span>
+            </a>
           </div>
 
-          <div className="text-xs text-slate-400 font-bold text-center md:text-end" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
+          <div className="text-xs text-slate-400 font-bold text-center md:text-end space-y-1" dir={isAr ? "rtl" : "ltr"} suppressHydrationWarning>
             <div>{isAr ? "11Players للتقنيات الرياضية (حجوزات إيليت)" : "11Players Sports Technologies Ltd. (Hagoozat Elite)"}</div>
+            <div className="text-[11px] text-slate-500 dark:text-slate-400">
+              {isAr ? "القاهرة، جمهورية مصر العربية | س.ت: 240182 | ب.ض: 682-194-031" : "Cairo, Egypt | C.R. # 240182 | Tax ID # 682-194-031"}
+            </div>
             <div>{isAr ? `جميع الحقوق محفوظة © ${new Date().getFullYear()}` : `© ${new Date().getFullYear()} All rights reserved.`}</div>
           </div>
         </div>

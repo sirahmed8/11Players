@@ -21,6 +21,8 @@ import ToastProvider from "@/components/ui/ToastProvider";
 import SubscriptionGiftModal from "@/components/ui/SubscriptionGiftModal";
 import ClaimUsernameModal from "@/components/auth/ClaimUsernameModal";
 import CookieConsentBanner from "@/components/layout/CookieConsentBanner";
+import ScrollToTop from "@/components/ui/ScrollToTop";
+import StickyMobileCTA from "@/components/layout/StickyMobileCTA";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -51,7 +53,7 @@ export const metadata: Metadata = {
     type:        "website",
     locale:      "ar_SA",
     alternateLocale: ["en_US"],
-    title:       "11Players — Football Matchmaking & Community",
+    title:       "11Players | Football Matchmaking & Community",
     description: "Organize matches, rate players, and compete in your community league.",
     siteName:    "11Players",
     images: [
@@ -65,7 +67,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card:        "summary_large_image",
-    title:       "11Players — Football Matchmaking & Community",
+    title:       "11Players | Football Matchmaking & Community",
     description: "Gamified football matchmaking and community management.",
     images: ["https://an-11-players.web.app/og-image.png"],
   },
@@ -100,7 +102,7 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         />
-        <meta name="referrer" content="no-referrer" />
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
         <Script
           id="theme-init"
           strategy="beforeInteractive"
@@ -131,7 +133,26 @@ export default function RootLayout({
                   "alternateName": "Hagoozat Elite",
                   "url": "https://an-11-players.web.app",
                   "logo": "https://an-11-players.web.app/icon-512.png",
-                  "description": "Gamified football matchmaking and community management. Organize matches, rate teammates, track stats, and compete in your own football league."
+                  "description": "Gamified football matchmaking and community management. Organize matches, rate teammates, track stats, and compete in your own football league.",
+                  "contactPoint": {
+                    "@type": "ContactPoint",
+                    "email": "support@11players.com",
+                    "contactType": "customer service"
+                  }
+                },
+                {
+                  "@type": "WebSite",
+                  "@id": "https://an-11-players.web.app/#website",
+                  "url": "https://an-11-players.web.app",
+                  "name": "11Players",
+                  "publisher": {
+                    "@id": "https://an-11-players.web.app/#organization"
+                  },
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://an-11-players.web.app/communities?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
                 },
                 {
                   "@type": "WebApplication",
@@ -152,6 +173,12 @@ export default function RootLayout({
         />
       </head>
       <body className="transition-colors duration-300 font-sans">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 z-[9999] px-4 py-2.5 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-2xl outline-none ring-2 ring-emerald-400 transition-all"
+        >
+          تخطي إلى المحتوى الرئيسي / Skip to main content
+        </a>
         <LocaleProvider>
           <ThemeProvider>
             <ErrorBoundary>
@@ -163,7 +190,7 @@ export default function RootLayout({
                     <RouteGuard>
                       <div className="flex flex-col md:flex-row min-h-[100dvh]">
                         <Sidebar />
-                        <div className="flex-1 flex flex-col min-w-0 relative z-0">
+                        <div id="main-content" className="flex-1 flex flex-col min-w-0 relative z-0">
                           <GlobalAnnouncementBanner />
                           {children}
                           <Footer />
@@ -177,6 +204,8 @@ export default function RootLayout({
                     <FloatingChatWidget />
                     <ToastProvider />
                     <CookieConsentBanner />
+                    <ScrollToTop />
+                    <StickyMobileCTA />
                   </PlayersProvider>
                   </ProSubscriptionProvider>
                 </AuthProvider>

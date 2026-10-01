@@ -617,6 +617,36 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
     - Vitest unit tests: **106/106 passing**.
     - TypeScript strict typecheck: **0 errors**.
     - ESLint lint check: **0 errors, 0 warnings**.
+- **Enterprise Full-Stack Skill Hardening & Production Orchestration**:
+  - **Legal Compliance & GDPR Engine**:
+    - Built comprehensive [src/app/settings/page.tsx](file:///d:/Projects/11Players/src/app/settings/page.tsx) featuring GDPR Art. 15/20 Personal Data Portability (JSON export), GDPR Art. 17 Self-Serve Account & Data Erasure with typed confirmation modal, and CAN-SPAM notification preferences.
+    - Updated [src/components/layout/Footer.tsx](file:///d:/Projects/11Players/src/components/layout/Footer.tsx) with persistent Cookie Preferences trigger, interactive phone link (`tel:+201011111111`), Cairo headquarters address, Commercial Registry # 240182, and Tax Registration # 682-194-031.
+    - Connected `open-cookie-banner` window event in [src/components/layout/CookieConsentBanner.tsx](file:///d:/Projects/11Players/src/components/layout/CookieConsentBanner.tsx).
+  - **Commercial Architecture & AI Discoverability**:
+    - Created [public/llms.txt](file:///d:/Projects/11Players/public/llms.txt) for machine readability across AI answer engines (Perplexity, SearchGPT, Claude, Gemini).
+    - Added dedicated confirmation route [src/app/thank-you/page.tsx](file:///d:/Projects/11Players/src/app/thank-you/page.tsx) and [src/app/thank-you/loading.tsx](file:///d:/Projects/11Players/src/app/thank-you/loading.tsx) with a 2-hour response-time promise and public route guard access.
+    - Added structured Accordion FAQ section [src/components/landing/LandingFaqSection.tsx](file:///d:/Projects/11Players/src/components/landing/LandingFaqSection.tsx) with embedded `FAQPage` JSON-LD schema on [src/app/page.tsx](file:///d:/Projects/11Players/src/app/page.tsx).
+    - Enriched JSON-LD in [src/app/layout.tsx](file:///d:/Projects/11Players/src/app/layout.tsx) with `WebSite` and `potentialAction` (SearchAction).
+  - **Essential Interactive UX Utilities & Mobile Ergonomics**:
+    - Added accessible keyboard `a.skip-link` targeting `<main id="main-content">` in [src/app/layout.tsx](file:///d:/Projects/11Players/src/app/layout.tsx).
+    - Created [src/components/ui/ScrollToTop.tsx](file:///d:/Projects/11Players/src/components/ui/ScrollToTop.tsx) smooth return button appearing after 400px scroll.
+    - Created [src/components/layout/StickyMobileCTA.tsx](file:///d:/Projects/11Players/src/components/layout/StickyMobileCTA.tsx) docked mobile conversion action bar.
+    - Added `@media print` stylesheet rules to [src/app/globals.css](file:///d:/Projects/11Players/src/app/globals.css).
+    - Added interactive password visibility eye toggles (`Eye` / `EyeOff`) to [src/components/community/CreateCommunityModal.tsx](file:///d:/Projects/11Players/src/components/community/CreateCommunityModal.tsx) and [src/app/communities/page.tsx](file:///d:/Projects/11Players/src/app/communities/page.tsx).
+    - Replaced raw emojis with referee football cards and typed Lucide icons in [src/components/profile/PlayerProfileContent.tsx](file:///d:/Projects/11Players/src/components/profile/PlayerProfileContent.tsx).
+    - Removed informal em-dashes across [src/app/error.tsx](file:///d:/Projects/11Players/src/app/error.tsx), [src/app/not-found.tsx](file:///d:/Projects/11Players/src/app/not-found.tsx), and metadata.
+  - **Database Durability & Cloud Persistence**:
+    - Integrated cloud persistence in [src/components/billing/PitchSplitBillCalculator.tsx](file:///d:/Projects/11Players/src/components/billing/PitchSplitBillCalculator.tsx) to save, list, load, and delete split bills in Firestore `split_bills` with client idempotency keys and debounced CTAs.
+    - Added RLS security rules for `/split_bills/{billId}` in [firestore.rules](file:///d:/Projects/11Players/firestore.rules).
+  - **Zero-Trust Hardening & Build Optimization**:
+    - Set `productionBrowserSourceMaps: false` in [next.config.mjs](file:///d:/Projects/11Players/next.config.mjs).
+    - Set `overflow-x: clip;` on `html, body` in [src/app/globals.css](file:///d:/Projects/11Players/src/app/globals.css).
+    - Strict referrer policy `strict-origin-when-cross-origin` in [src/app/layout.tsx](file:///d:/Projects/11Players/src/app/layout.tsx).
+  - **Quality Verification**:
+    - Vitest: 106/106 tests passing.
+    - TypeScript strict typecheck: 0 errors.
+    - ESLint lint check: 0 errors, 0 warnings.
+    - Next.js static build: All 64 routes compiled cleanly to `out/`.
 
 
 

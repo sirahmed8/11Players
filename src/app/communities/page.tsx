@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Loader2, Users, Lock, Globe, Swords, MessageCircle,
   ChevronRight, Sparkles, CheckCircle2, Clock, Plus,
-  Search, Share2
+  Search, Share2, Eye, EyeOff
 } from "lucide-react";
 import CommunityChallengeModal, { CommunityChallenge } from "@/components/community/CommunityChallengeModal";
 import CreateCommunityModal from "@/components/community/CreateCommunityModal";
@@ -78,6 +78,7 @@ function CommunityCard({
   const isAr = locale === "ar";
   const isPrivate = Boolean(c.isPrivate);
   const loading = actionLoading === c.id;
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <motion.div
@@ -151,14 +152,24 @@ function CommunityCard({
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.2 }}
             >
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 placeholder={isAr ? "كلمة المرور للدخول" : "Enter password to join"}
-                className="w-full px-3.5 py-2.5 bg-slate-800/80 border border-slate-700 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-300"
+                className="w-full px-3.5 py-2.5 pe-10 bg-slate-800/80 border border-slate-700 focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 rounded-xl text-sm text-white placeholder-slate-500 outline-none transition-all duration-300"
                 value={passwordInput[c.id] || ""}
                 onChange={(e) => setPasswordInput(prev => ({ ...prev, [c.id]: e.target.value }))}
               />
-            </motion.div>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute top-1/2 -translate-y-1/2 end-2.5 p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+          </motion.div>
           )}
         </AnimatePresence>
 

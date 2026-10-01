@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Globe, Lock, Sparkles, Loader2, Check, Plus } from "lucide-react";
+import { X, Globe, Lock, Sparkles, Loader2, Check, Plus, Eye, EyeOff } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +24,7 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
   const [description, setDescription] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -222,16 +223,26 @@ export default function CreateCommunityModal({ isOpen, onClose, onSuccess }: Cre
                       <label className="block text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5">
                         {isAr ? "كلمة مرور المجتمع *" : "Community Password *"}
                       </label>
-                      <motion.input
-                        whileFocus={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.8)" }}
-                        transition={{ duration: 0.2 }}
-                        type="password"
-                        required
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full px-4 py-3 bg-slate-950 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
-                      />
+                      <div className="relative">
+                        <motion.input
+                          whileFocus={{ scale: 1.01, borderColor: "rgba(245, 158, 11, 0.8)" }}
+                          transition={{ duration: 0.2 }}
+                          type={showPassword ? "text" : "password"}
+                          required
+                          placeholder="••••••••"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full px-4 py-3 pe-12 bg-slate-950 border border-amber-500/40 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl text-sm text-white placeholder-slate-500 outline-none transition-all shadow-inner"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute top-1/2 -translate-y-1/2 end-3 p-1.5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                          aria-label={showPassword ? "Hide password" : "Show password"}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 )}

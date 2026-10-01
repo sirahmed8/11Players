@@ -1,0 +1,32 @@
+# 11Players (Hagoozat Elite)
+> The premier amateur football matchmaking, turf pitch management, and real-life player rating platform.
+
+## Overview
+11Players (Hagoozat Elite) transforms local football matches into a competitive, statistics-driven sports experience. Captains and community organizers create communities, schedule turf matches, balance teams using a proprietary Positional Suitability Index (PSI) algorithm, and track real-time player ratings, goals, assists, and awards.
+
+## Core Capabilities
+- **Proprietary Positional Suitability Index (PSI)**: Balances 5v5, 7v7, 8v8, and 11v11 matches objectively based on verified real-world physical and technical attributes.
+- **Turf Pitch Split-Bill Calculator**: Automated expense allocation supporting EGP, SAR, USD, and EUR with real-time payment collection status tracking.
+- **Verified Player Cards & XP Skill Trees**: Dynamic FIFA-style player cards featuring overall ratings (OVR), peer reviews, MVP badges, and disciplinary records.
+- **Community Management & Real-Time Chat**: Dedicated community silos with chat slow-mode moderation, live match broadcasts, and automated season ceremonies.
+- **Pro Pass Subscription Tiers**: Pro Captain and Club Organizer tiers offering priority scouting, advanced tactical AI assistance, and squad analytics.
+
+## Documentation & Feature Silos
+- [Matches & Pitch Booking](https://an-11-players.web.app/matches)
+- [Communities & Hubs](https://an-11-players.web.app/communities)
+- [Player Leaderboard & Awards](https://an-11-players.web.app/leaderboard)
+- [Comprehensive Rules & Guides](https://an-11-players.web.app/guide)
+- [Pro Pass Subscription](https://an-11-players.web.app/pro-pass)
+- [Pitch Rent Split-Bill](https://an-11-players.web.app/split-bill)
+
+## Legal & Compliance Silos
+- [Privacy Policy (GDPR / Egyptian Law 151/2020)](https://an-11-players.web.app/privacy)
+- [Terms of Service & Sports Injury Waiver](https://an-11-players.web.app/terms)
+- [Refund & Cancellation Policy (7-Day Guarantee)](https://an-11-players.web.app/refunds)
+- [Cookie Policy & Preferences](https://an-11-players.web.app/cookies)
+
+## Developer & API Support
+- Website: https://an-11-players.web.app
+- Technical Inquiries & Data Privacy Officer: privacy@11players.com
+- Support Hotline: support@11players.com
+- Headquartered in Cairo, Egypt. Commercial Registry # 240182.

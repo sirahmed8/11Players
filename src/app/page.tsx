@@ -16,6 +16,7 @@ import {
   TrendingUp, BarChart3
 } from "lucide-react";
 import SettingsMenu from "@/components/layout/SettingsMenu";
+import LandingFaqSection from "@/components/landing/LandingFaqSection";
 
 
 // ── Stat Card (Clean Authentic Metrics) ───────────────────────────────────────
@@ -484,6 +485,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* ── FAQ & GEO SECTION ────────────────────────────────────────────── */}
+      <LandingFaqSection />
 
       {/* ── BOTTOM CTA ──────────────────────────────────────────────────── */}
       <section className="relative py-28 px-5 overflow-hidden bg-slate-50 dark:bg-slate-950">

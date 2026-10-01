@@ -11,6 +11,7 @@ const withPWA = withPWAInit({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  productionBrowserSourceMaps: false,
   trailingSlash: false,
   // Static export only for Firebase hosting (non-Vercel, non-dev builds).
   // Skipped in local dev (NODE_ENV=development) to avoid the Middleware+export conflict warning.

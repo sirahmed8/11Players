@@ -16,7 +16,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { SKILLS } from "@/components/player/SkillsChecklist";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, Share2 } from "lucide-react";
+import { Target, Handshake, Trophy, Swords, HelpCircle, Sparkles, FileText, Edit, ShieldAlert, Share2, Star, Search } from "lucide-react";
 import toast from "react-hot-toast";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import OvrExplanationModal from "@/components/player/OvrExplanationModal";
@@ -100,8 +100,8 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
   if (!player) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white gap-6 px-4">
-        <div className="w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center text-4xl shadow-inner">
-          🔍
+        <div className="w-20 h-20 rounded-3xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-inner">
+          <Search className="w-9 h-9 text-slate-500" />
         </div>
         <h2 className="text-2xl font-black text-white">
           {isAr ? "اللاعب غير موجود" : "Player Not Found"}
@@ -147,18 +147,18 @@ export function PlayerProfileContent({ directUsername }: { directUsername?: stri
       value: player.stats?.matchesPlayed || 0,
     },
     {
-      icon: <span className="text-lg">🟨</span>,
+      icon: <span className="w-4 h-5 rounded-[2px] bg-amber-400 inline-block shadow-sm ring-1 ring-amber-300/50" aria-label="Yellow Card" />,
       label: isAr ? "الإنذارات (صفراء)" : "Yellow Cards",
       value: player.stats?.yellowCards || 0,
     },
     {
-      icon: <span className="text-lg">🟥</span>,
+      icon: <span className="w-4 h-5 rounded-[2px] bg-rose-600 inline-block shadow-sm ring-1 ring-rose-500/50" aria-label="Red Card" />,
       label: isAr ? "الكروت الحمراء" : "Red Cards",
       value: player.stats?.redCards || 0,
     },
     ...(player.matchStarRatingAvg
       ? [{
-          icon: <span className="text-amber-400 text-lg">⭐</span>,
+          icon: <Star className="w-5 h-5 text-amber-400 fill-amber-400" />,
           label: isAr ? "تقييم الأداء" : "Match Perf.",
           value: `${player.matchStarRatingAvg.toFixed(1)}/5${player.matchStarRatingCount ? ` (${player.matchStarRatingCount})` : ''}`,
         }]
