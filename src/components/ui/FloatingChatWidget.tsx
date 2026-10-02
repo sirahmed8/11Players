@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,7 +9,7 @@ import { useLocale } from "@/components/ui/ThemeProvider";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, setDoc, limitToLast, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ChatMessage } from "@/types";
-import { Send, Loader2, Sparkles, MessageSquare, Headphones, X, Bot, Search, LogIn, Image as ImageIcon, SmilePlus, Reply, Trash2, ShieldCheck, Volume2, VolumeX, Mic, MicOff, Camera } from "lucide-react";
+import { Send, Loader2, Sparkles, MessageSquare, Headphones, X, Bot, Search, LogIn, Image as ImageIcon, SmilePlus, Reply, Trash2, ShieldCheck, Volume2, VolumeX, Mic, MicOff, Camera, Crown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
@@ -18,6 +18,7 @@ import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { getPlayerOverall } from "@/lib/playerUtils";
 import { usePlayers } from "@/contexts/PlayersContext";
 import { call11AIChat, recordRealAiUsage } from "@/lib/aiService";
+import { useProSubscription } from "@/contexts/ProSubscriptionContext";
 
 interface AIChatMsg {
   id: string;
@@ -94,11 +95,46 @@ export default function FloatingChatWidget() {
   const { activeCommunityId, activeCommunity, communitySettings } = useCommunity();
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  const { hasProAccess, hasClubOrganizerAccess } = useProSubscription();
 
   const { players = [] } = usePlayers();
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"ai" | "community" | "support">("ai");
   const [dynamicPrompts, setDynamicPrompts] = useState<string[]>([]);
+
+  // Free Tier Daily AI Limit (10 messages per 24 hours)
+  const FREE_DAILY_AI_LIMIT = 10;
+  const [remainingAiQuota, setRemainingAiQuota] = useState<number>(10);
+
+  const refreshAiQuotaState = useCallback(() => {
+    if (isOwner || hasProAccess || hasClubOrganizerAccess) {
+      setRemainingAiQuota(Infinity);
+      return;
+    }
+    try {
+      const now = Date.now();
+      const raw = localStorage.getItem("11players_ai_chat_quota");
+      if (!raw) {
+        setRemainingAiQuota(FREE_DAILY_AI_LIMIT);
+        return;
+      }
+      const data = JSON.parse(raw);
+      if (now > data.resetAt) {
+        setRemainingAiQuota(FREE_DAILY_AI_LIMIT);
+      } else {
+        setRemainingAiQuota(Math.max(0, FREE_DAILY_AI_LIMIT - (data.count || 0)));
+      }
+    } catch {
+      setRemainingAiQuota(FREE_DAILY_AI_LIMIT);
+    }
+  }, [isOwner, hasProAccess, hasClubOrganizerAccess]);
+
+  useEffect(() => {
+    refreshAiQuotaState();
+    const handleReset = () => refreshAiQuotaState();
+    window.addEventListener("11players_ai_quota_reset", handleReset);
+    return () => window.removeEventListener("11players_ai_quota_reset", handleReset);
+  }, [refreshAiQuotaState]);
 
   useEffect(() => {
     setMounted(true);
@@ -546,6 +582,42 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
     setAiImageFile(null);
     setAiImagePreview(null);
     setAiImageInlineData(null);
+
+    // Free Tier Quota Guard (Owner & PRO users have infinite unmetered access)
+    if (!isOwner && !hasProAccess && !hasClubOrganizerAccess) {
+      const now = Date.now();
+      let quotaData = { count: 0, resetAt: now + 24 * 60 * 60 * 1000 };
+      try {
+        const raw = localStorage.getItem("11players_ai_chat_quota");
+        if (raw) quotaData = JSON.parse(raw);
+        if (now > quotaData.resetAt) {
+          quotaData = { count: 0, resetAt: now + 24 * 60 * 60 * 1000 };
+        }
+      } catch {}
+
+      if (quotaData.count >= FREE_DAILY_AI_LIMIT) {
+        setAiMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            sender: "ai",
+            text: isAr
+              ? "⚠️ لقد استنفدت الحد اليومي المجاني لمساعد 11AI (10 رسائل / 24 ساعة).\n\n🚀 يمكنك الترقية إلى **PRO Captain** أو **Club Organizer** للحصول على وصول غير محدود 24/7 مع استكشاف تكتيكي وتحليلات كاملة!\n\n[PRO_UPGRADE_CTA]"
+              : "⚠️ You have reached today's free limit for 11AI Assistant (10 messages / 24 hours).\n\n🚀 Upgrade to **PRO Captain** or **Club Organizer** for unlimited 24/7 tactical coaching and deep match scouting!\n\n[PRO_UPGRADE_CTA]",
+            timestamp: Date.now(),
+          },
+        ]);
+        refreshAiQuotaState();
+        return;
+      }
+
+      quotaData.count += 1;
+      try {
+        localStorage.setItem("11players_ai_chat_quota", JSON.stringify(quotaData));
+      } catch {}
+      refreshAiQuotaState();
+    }
+
     setAiLoading(true);
 
     try {
@@ -882,6 +954,28 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
               {/* ── TAB 1: 11AI Assistant ──────────────────────────────────── */}
               {activeTab === "ai" && (
                 <>
+                  {/* Daily Quota Indicator */}
+                  <div className="flex items-center justify-between px-2 pb-2 text-[10px] text-slate-400 border-b border-slate-800/80 mb-2">
+                    <span className="flex items-center gap-1.5 font-bold">
+                      <Sparkles className="w-3 h-3 text-emerald-400" />
+                      <span>11AI Coach</span>
+                    </span>
+                    <span className="font-mono">
+                      {remainingAiQuota === Infinity ? (
+                        <span className="text-amber-400 font-bold flex items-center gap-1">
+                          <Crown className="w-3 h-3 text-amber-400" />
+                          <span>PRO / OP Active</span>
+                        </span>
+                      ) : (
+                        <span className={remainingAiQuota > 0 ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                          {isAr
+                            ? `المتبقي اليوم: ${remainingAiQuota}/${FREE_DAILY_AI_LIMIT}`
+                            : `Remaining today: ${remainingAiQuota}/${FREE_DAILY_AI_LIMIT}`}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+
                   {aiWelcomeLoading ? (
                     <div className="space-y-3 animate-pulse">
                       <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-3">
@@ -924,7 +1018,29 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                           </div>
                         )}
 
-                        {msg.text && <FormattedText content={msg.text} />}
+                        {msg.text && (
+                          msg.text.includes("[PRO_UPGRADE_CTA]") ? (
+                            <div className="space-y-3">
+                              <FormattedText content={msg.text.replace("[PRO_UPGRADE_CTA]", "").trim()} />
+                              <div className="p-3.5 rounded-2xl bg-slate-900 border border-amber-500/40 text-center space-y-2.5 mt-2 shadow-lg shadow-amber-950/20">
+                                <div className="flex items-center justify-center gap-1.5 text-amber-400 text-xs font-black">
+                                  <Crown className="w-4 h-4" />
+                                  <span>{isAr ? "الترقية إلى باقات PRO" : "Upgrade to PRO Pass"}</span>
+                                </div>
+                                <Link
+                                  href="/pro-pass"
+                                  onClick={() => setIsOpen(false)}
+                                  className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs shadow-md transition-all active:scale-95"
+                                >
+                                  <Sparkles className="w-3.5 h-3.5" />
+                                  <span>{isAr ? "عرض باقات PRO (ابتداءً من 25 ج.م)" : "View PRO Plans (From 25 EGP)"}</span>
+                                </Link>
+                              </div>
+                            </div>
+                          ) : (
+                            <FormattedText content={msg.text} />
+                          )
+                        )}
 
                         {msg.sender === "ai" && (
                           <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-800/80 text-[10px] text-slate-400">

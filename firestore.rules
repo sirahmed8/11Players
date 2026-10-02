@@ -221,6 +221,15 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
+    // ── Pre-Launch Subscription Leads & Priority Access ──
+
+    match /subscription_leads/{leadId} {
+      allow read: if isAdmin();
+      allow create: if request.resource.data.email is string &&
+                    request.resource.data.email.size() > 3;
+      allow update, delete: if isAdmin();
+    }
+
     // ── Default Deny ──
 
     match /{document=**} {

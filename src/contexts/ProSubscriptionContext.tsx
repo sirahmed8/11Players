@@ -26,10 +26,15 @@ import React, {
   useState,
   useEffect,
   useMemo,
+  useCallback,
 } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "./AuthContext";
+
+import { FeatureKey, canAccessFeature } from "@/lib/proSubscription";
+
+export type SimulatedRole = "none" | "free" | "pro_captain" | "club_organizer";
 
 export interface SubscriptionState {
   plan: "free" | "pro_captain" | "club_organizer";
@@ -45,7 +50,13 @@ export interface SubscriptionState {
   loading: boolean;
 }
 
-interface ProSubscriptionContextProps extends SubscriptionState {}
+export interface ProSubscriptionContextProps extends SubscriptionState {
+  /** Simulated plan for Owner testing paywalls */
+  simulatedRole: SimulatedRole;
+  setSimulatedRole: (role: SimulatedRole) => void;
+  /** Centralized feature gate checker */
+  canAccess: (feature: FeatureKey) => boolean;
+}
 
 const ProSubscriptionContext = createContext<
   ProSubscriptionContextProps | undefined
@@ -177,15 +188,66 @@ export const ProSubscriptionProvider: React.FC<{
     return () => unsubscribe();
   }, [user, isOwner, authLoading]);
 
+  const [simulatedRole, setSimulatedRole] = useState<SimulatedRole>("none");
+
+  const realIsOwner =
+    isOwner ||
+    (user?.email && user.email.toLowerCase() === OWNER_EMAIL) ||
+    user?.uid === OWNER_UID;
+
+  const effectiveState = useMemo(() => {
+    if (realIsOwner && simulatedRole !== "none") {
+      if (simulatedRole === "free") {
+        return {
+          plan: "free" as const,
+          status: "none" as const,
+          hasProAccess: false,
+          hasClubOrganizerAccess: false,
+          isOwner: false,
+          loading: false,
+        };
+      }
+      if (simulatedRole === "pro_captain") {
+        return {
+          plan: "pro_captain" as const,
+          status: "active" as const,
+          hasProAccess: true,
+          hasClubOrganizerAccess: false,
+          isOwner: false,
+          loading: false,
+        };
+      }
+      if (simulatedRole === "club_organizer") {
+        return {
+          plan: "club_organizer" as const,
+          status: "active" as const,
+          hasProAccess: true,
+          hasClubOrganizerAccess: true,
+          isOwner: false,
+          loading: false,
+        };
+      }
+    }
+
+    return {
+      ...subState,
+      isOwner: realIsOwner,
+    };
+  }, [realIsOwner, simulatedRole, subState]);
+
+  const canAccess = useCallback(
+    (feature: FeatureKey) => canAccessFeature(user, feature, effectiveState),
+    [user, effectiveState]
+  );
+
   const value = useMemo<ProSubscriptionContextProps>(
     () => ({
-      ...subState,
-      isOwner:
-        isOwner ||
-        user?.email?.toLowerCase() === OWNER_EMAIL ||
-        user?.uid === OWNER_UID,
+      ...effectiveState,
+      simulatedRole,
+      setSimulatedRole,
+      canAccess,
     }),
-    [subState, isOwner, user]
+    [effectiveState, simulatedRole, canAccess]
   );
 
   return (

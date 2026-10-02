@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md — Architectural & Technical Specification
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
-> **Last Updated**: September 27, 2026
-> **Status**: Production Full-Stack Next.js 16 Web Application (FIREBASE HOSTING RECOVERED, ENTERPRISE SECURITY HARDENED, EGP SUBSCRIPTION TIERS HARMONIZED, FIRESTORE SECURITY RULES PROTECTED, TECHNICAL SEO & SITEMAP DEPLOYED, 106/106 TESTS PASSING)  
+> **Last Updated**: October 2, 2026  
+> **Status**: Production Full-Stack Next.js 16 Web Application (SILICON VALLEY MONETIZATION & PRIORITY ACCESS LIVE, SECRET OWNER BAR OP MODE, KNOWLEDGE-GROUNDED 11AI WITH QUOTA GUARD, CANONICAL /pricing ROUTE, 65 STATIC ROUTES, 106/106 TESTS PASSING, 0 LINT/TS WARNINGS)  
 ---
 
 ## 1. Tech Stack Overview
@@ -87,7 +87,10 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - `/profile/skill-tree` (XP Playstyle Skill Tree): Gamification & XP skill tree component with unlockable playstyle badges ("Sniper", "The Engine", "Brick Wall", "Playmaker", "Speed Demon", "Safe Hands"), XP progress bars, unlock requirement evaluators, multi-tier badge ranks (Bronze, Silver, Gold, Diamond), and Framer Motion node unlock effects.
 - `/achievements` (Trophy Cabinet): Unlockable trophies, Ballon d'Or podium awards, Golden Boot, and confetti celebrations.
 - `/notifications` (Notifications Center): Real-time system notifications, match alerts, and community announcements.
-- `/admin` (Admin Control Hub): Roster management, peer rating aggregator, captain vote reset, and join request approval queue.
+- `/pricing` & `/pro-pass` (Subscription Tiers & Priority Access): Full monetization suite in EGP & USD featuring Monthly vs Annual toggle (-25% discount), canonical 10-feature comparison matrix, dual-mode payment fallback, interactive "Join Priority Access (20% Off)" VIP lead capture modal saving to Firestore `/subscription_leads`, and centralized `canAccessFeature()` gating.
+- `/admin` & Secret Floating Owner Bar (`SecretOwnerBar.tsx`): Restricted floating OP mode dock exclusively visible to the platform owner (`a7medorabe7@gmail.com`) featuring real-time Paywall Simulator (simulating Free, PRO Captain, and Club Organizer tiers in session memory) and instantaneous 11AI quota reset.
+- `/settings` (GDPR Data Portability & Erasure): Self-serve GDPR Art. 15/20 JSON export and Art. 17 data erasure with typed confirmation.
+- `/thank-you` (Confirmation & VIP Handshake): High-converting conversion confirmation page with SLA promise and direct links.
 - `/season-ceremony` (Seasonal Awards): End-of-season awards presentation, Ballon d'Or ceremony, and Team of the Season XI.
 - `/announcements` (Broadcast Center): Real-time announcements feed with 11AI Gemini text enhancer integration.
 - `/support` & `/inbox` (Support Hub): Help desk tickets, FAQ accordions, and automated AI assistance.

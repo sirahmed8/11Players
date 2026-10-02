@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,8 +23,13 @@ import {
   Clock,
   Wallet,
   Lock,
+  Globe,
+  Send,
+  XCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatCurrencyEGP, formatCurrencyUSD } from "@/lib/proSubscription";
+import PriorityAccessModal from "@/components/subscription/PriorityAccessModal";
 
 interface PlanTier {
   id: string;
@@ -35,6 +40,8 @@ interface PlanTier {
   popular?: boolean;
   priceMonthlyEGP: number;
   priceAnnualEGP?: number;
+  priceMonthlyUSD: number;
+  priceAnnualUSD?: number;
   isOneTime?: boolean;
   descEn: string;
   descAr: string;
@@ -52,7 +59,23 @@ export default function ProPassPage() {
   const isAr = locale === "ar";
 
   const [isAnnual, setIsAnnual] = useState(false);
+  const [currency, setCurrency] = useState<"EGP" | "USD">("EGP");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
+  const [selectedWaitlistPlan, setSelectedWaitlistPlan] = useState<"match_pass" | "pro_captain" | "club_organizer">("pro_captain");
+  const [registeredPlans, setRegisteredPlans] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const registered: Record<string, boolean> = {};
+    (["match_pass", "pro_captain", "club_organizer"] as const).forEach((p) => {
+      try {
+        if (localStorage.getItem(`11players_priority_${p}`)) {
+          registered[p] = true;
+        }
+      } catch {}
+    });
+    setRegisteredPlans(registered);
+  }, [isWaitlistOpen]);
 
   const plans: PlanTier[] = [
     {
@@ -60,6 +83,7 @@ export default function ProPassPage() {
       nameEn: "Grassroots (Free)",
       nameAr: "الهواة (مجاني)",
       priceMonthlyEGP: 0,
+      priceMonthlyUSD: 0,
       descEn: "Essential tools for casual weekly pickup games and friendly squad matches.",
       descAr: "الأدوات الأساسية لمباريات كرة القدم الودية الأسبوعية والمجموعات المحلية.",
       featuresEn: [
@@ -90,6 +114,7 @@ export default function ProPassPage() {
       badgeAr: "تذكرة سريعة",
       isOneTime: true,
       priceMonthlyEGP: 25,
+      priceMonthlyUSD: 0.99,
       descEn: "Single-match tournament boost for tactical scouting and post-match media.",
       descAr: "تذكرة سريعة لمباراة واحدة تشمل الاستكشاف التكتيكي وتصدير ميديا المباراة.",
       featuresEn: [
@@ -117,6 +142,8 @@ export default function ProPassPage() {
       popular: true,
       priceMonthlyEGP: 59,
       priceAnnualEGP: 49,
+      priceMonthlyUSD: 1.49,
+      priceAnnualUSD: 0.99,
       descEn: "Full tactical analytics, 3D kit studio, golden verified badge & unlimited communities.",
       descAr: "تحليلات تكتيكية كاملة، استوديو أطقم 3D، شارة الكابتن الذهبية، ومجتمعات مفتوحة.",
       featuresEn: [
@@ -149,6 +176,8 @@ export default function ProPassPage() {
       badgeAr: "للمنظمين والملاعب 🏟️",
       priceMonthlyEGP: 179,
       priceAnnualEGP: 149,
+      priceMonthlyUSD: 3.99,
+      priceAnnualUSD: 2.99,
       descEn: "Complete manager portal for turf rent collection, live 2D pitch broadcast & derbies.",
       descAr: "بوابة متكاملة لإدارة حجز الملعب، تقاسم الحساب، البث المباشر، والديربيات.",
       featuresEn: [
@@ -261,25 +290,26 @@ export default function ProPassPage() {
                 : "Tailored memberships priced in Egyptian Pounds (EGP) for competitive players, captains, and turf managers, while preserving core matchmaking free for all."}
             </motion.p>
 
-            {/* Monthly / Annual Billing Toggle */}
+            {/* Currency & Billing Cycle Toggles */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="pt-4 flex items-center justify-center gap-4"
+              className="pt-4 flex flex-wrap items-center justify-center gap-3 sm:gap-4"
             >
+              {/* Monthly / Annual Billing Toggle */}
               <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1 shadow-inner">
                 <button
                   onClick={() => setIsAnnual(false)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                     !isAnnual ? "bg-slate-800 text-white shadow" : "text-slate-400 hover:text-white"
                   }`}
                 >
-                  {isAr ? "دفع شهري (EGP)" : "Monthly Billing (EGP)"}
+                  {isAr ? "دفع شهري" : "Monthly Billing"}
                 </button>
                 <button
                   onClick={() => setIsAnnual(true)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+                  className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 cursor-pointer ${
                     isAnnual
                       ? "bg-emerald-600 text-white shadow-md shadow-emerald-600/30"
                       : "text-slate-400 hover:text-white"
@@ -287,8 +317,33 @@ export default function ProPassPage() {
                 >
                   <span>{isAr ? "دفع سنوي" : "Annual Billing"}</span>
                   <span className="text-[10px] bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full font-extrabold border border-emerald-500/30">
-                    -25%
+                    {isAr ? "خصم 25% (شهران مجاناً)" : "2 Months Free (-25%)"}
                   </span>
+                </button>
+              </div>
+
+              {/* Currency Selector (EGP / USD) */}
+              <div className="bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 flex items-center gap-1 shadow-inner">
+                <button
+                  onClick={() => setCurrency("EGP")}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                    currency === "EGP"
+                      ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <span>{isAr ? "ج.م (EGP)" : "EGP (ج.م)"}</span>
+                </button>
+                <button
+                  onClick={() => setCurrency("USD")}
+                  className={`px-3 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1 cursor-pointer ${
+                    currency === "USD"
+                      ? "bg-amber-500/20 border border-amber-500/40 text-amber-300 shadow-sm"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Globe className="w-3 h-3" />
+                  <span>USD ($)</span>
                 </button>
               </div>
             </motion.div>
@@ -297,17 +352,29 @@ export default function ProPassPage() {
           {/* Pricing Cards Grid (4 Tiers) */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch max-w-7xl mx-auto">
             {plans.map((plan, idx) => {
-              const price = plan.isOneTime
+              const priceEgp = plan.isOneTime
                 ? plan.priceMonthlyEGP
                 : isAnnual && plan.priceAnnualEGP
                 ? plan.priceAnnualEGP
                 : plan.priceMonthlyEGP;
+
+              const priceUsd = plan.isOneTime
+                ? plan.priceMonthlyUSD
+                : isAnnual && plan.priceAnnualUSD
+                ? plan.priceAnnualUSD
+                : plan.priceMonthlyUSD;
+
+              const displayPrice = currency === "EGP"
+                ? formatCurrencyEGP(priceEgp, isAr)
+                : formatCurrencyUSD(priceUsd, isAr);
 
               const isUserOwner = isOwner;
               const isCurrent =
                 (plan.id === "club_organizer" && (isUserOwner || hasClubOrganizerAccess)) ||
                 (plan.id === "pro_captain" && !isUserOwner && !hasClubOrganizerAccess && hasProAccess) ||
                 (plan.id === "free" && !hasProAccess && !hasClubOrganizerAccess && !isUserOwner);
+
+              const isRegistered = !!registeredPlans[plan.id];
 
               return (
                 <motion.div
@@ -327,6 +394,10 @@ export default function ProPassPage() {
                   {isCurrent ? (
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 rounded-b-xl bg-emerald-500 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-lg shadow-emerald-500/20 whitespace-nowrap z-10">
                       {isAr ? "خطتك الحالية (مفعّلة 👑)" : "ACTIVE PLAN (GRANTED 👑)"}
+                    </div>
+                  ) : isRegistered ? (
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 px-4 py-1 rounded-b-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-black text-[11px] tracking-wider uppercase shadow-md shadow-emerald-500/20 whitespace-nowrap z-10">
+                      {isAr ? "قائمة الأولوية ✨" : "PRIORITY LIST ✨"}
                     </div>
                   ) : plan.badgeEn ? (
                     <div
@@ -354,7 +425,7 @@ export default function ProPassPage() {
                     <div className="py-4 border-y border-slate-800/80">
                       {plan.id === "free" ? (
                         <div className="text-3xl font-black text-white font-mono">
-                          {isAr ? "0 ج.م" : "0 EGP"}
+                          {currency === "EGP" ? (isAr ? "0 ج.م" : "0 EGP") : "$0"}
                           <span className="text-xs text-slate-400 font-sans font-bold ms-2">
                             {isAr ? "/ مجاناً دائماً" : "/ Free forever"}
                           </span>
@@ -362,7 +433,7 @@ export default function ProPassPage() {
                       ) : plan.isOneTime ? (
                         <div className="flex items-baseline gap-1.5 flex-wrap">
                           <span className="text-3xl font-black font-mono text-white tracking-tight">
-                            {price} EGP
+                            {displayPrice}
                           </span>
                           <span className="text-xs text-slate-400 font-bold">
                             / {isAr ? "مباراة واحدة" : "single match"}
@@ -371,7 +442,7 @@ export default function ProPassPage() {
                       ) : (
                         <div className="flex items-baseline gap-1.5 flex-wrap">
                           <span className="text-3xl font-black font-mono text-white tracking-tight">
-                            {price} EGP
+                            {displayPrice}
                           </span>
                           <span className="text-xs text-slate-400 font-bold">
                             / {isAr ? (isAnnual ? "شهر (يُدفع سنوياً)" : "شهر") : isAnnual ? "mo (billed yearly)" : "month"}
@@ -396,7 +467,7 @@ export default function ProPassPage() {
                     </div>
                   </div>
 
-                  {/* Action Button (Unclickable / Coming Soon per user prompt) */}
+                  {/* Action Button: Current, Free, or Clickable Priority Access */}
                   <div className="pt-6">
                     {isCurrent ? (
                       <button
@@ -412,19 +483,30 @@ export default function ProPassPage() {
                       >
                         {isAr ? "الخطة القياسية متضمنة" : "Default Included Plan"}
                       </button>
+                    ) : isRegistered ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedWaitlistPlan(plan.id as any);
+                          setIsWaitlistOpen(true);
+                        }}
+                        className="w-full py-3 px-4 rounded-xl font-black text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-95"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>{isAr ? "أنت في قائمة الأولوية ✨ (20% خصم)" : "On Priority List ✨ (20% Off)"}</span>
+                      </button>
                     ) : (
                       <button
-                        disabled
-                        aria-disabled="true"
-                        className="w-full py-3 px-4 rounded-xl font-black text-xs bg-slate-800 text-slate-400 border border-slate-700 cursor-not-allowed opacity-80 flex items-center justify-center gap-2 select-none shadow-sm"
-                        title={
-                          isAr
-                            ? "بوابات الدفع الإلكتروني بالجنيه المصري (إنستاباي، فودافون كاش، فيزا) قادمة قريباً!"
-                            : "Online payment gateways in EGP are launching soon!"
-                        }
+                        type="button"
+                        onClick={() => {
+                          setSelectedWaitlistPlan(plan.id as any);
+                          setIsWaitlistOpen(true);
+                        }}
+                        className="w-full py-3 px-4 rounded-xl font-black text-xs bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 flex items-center justify-center gap-2 transition-all shadow-md shadow-amber-500/20 active:scale-95 cursor-pointer font-bold"
                       >
-                        <Clock className="w-3.5 h-3.5 text-amber-400" />
-                        <span>{isAr ? "قريباً — متاح قريباً" : "Coming Soon"}</span>
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>{isAr ? "انضم لقائمة الأولوية (خصم 20%)" : "Join Priority Access (20% Off)"}</span>
+                        <Send className="w-3 h-3 rtl:-scale-x-100" />
                       </button>
                     )}
                   </div>
@@ -526,6 +608,56 @@ export default function ProPassPage() {
             </div>
           </div>
 
+          {/* Full Feature Comparison Matrix */}
+          <div className="space-y-6 pt-8 max-w-5xl mx-auto">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                {isAr ? "جدول المقارنة الشامل بين الباقات" : "Full Feature Comparison Matrix"}
+              </h2>
+              <p className="text-slate-400 text-xs sm:text-sm font-medium">
+                {isAr ? "تعرف بالتفصيل على ما تقدمه كل باقة لاحتياجاتك الكروية والتنظيمية" : "Detailed breakdown of capabilities across all membership tiers"}
+              </p>
+            </div>
+
+            <div className="overflow-x-auto rounded-3xl border border-slate-800 bg-slate-900/80 shadow-2xl">
+              <table className="w-full text-start text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 bg-slate-950/60 text-slate-300">
+                    <th className="py-4 px-5 text-start font-black">{isAr ? "الميزة / القدرة" : "Feature / Capability"}</th>
+                    <th className="py-4 px-3 text-center font-bold text-slate-400">{isAr ? "الهواة (مجاني)" : "Free"}</th>
+                    <th className="py-4 px-3 text-center font-bold text-slate-300">{isAr ? "تذكرة المباراة" : "Match Pass"}</th>
+                    <th className="py-4 px-3 text-center font-black text-amber-400">{isAr ? "كابتن PRO" : "PRO Captain"}</th>
+                    <th className="py-4 px-3 text-center font-black text-emerald-400">{isAr ? "منظم الملاعب" : "Club Org"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300 font-medium">
+                  {[
+                    { nameEn: "13-Position PES Squad Balancer", nameAr: "موازن الفرق الذكي بـ 13 مركزاً", free: "✓", match: "✓", pro: "✓", club: "✓" },
+                    { nameEn: "Player Card & OVR History", nameAr: "بطاقة اللاعب وتاريخ طاقات OVR", free: "✓", match: "✓", pro: "✓", club: "✓" },
+                    { nameEn: "Community Chat & Matches", nameAr: "محادثة المجتمع وسجل المباريات", free: "✓", match: "✓", pro: "✓", club: "✓" },
+                    { nameEn: "Max Active Communities", nameAr: "الحد الأقصى للمجتمعات", free: isAr ? "2 مجتمع" : "2", match: isAr ? "2 مجتمع" : "2", pro: isAr ? "غير محدود" : "Unlimited", club: isAr ? "غير محدود" : "Unlimited" },
+                    { nameEn: "11AI Tactical Pre-Match Scout", nameAr: "تقارير استكشاف 11AI التكتيكية", free: "—", match: isAr ? "1 مباراة" : "1 Match", pro: isAr ? "غير محدود" : "Unlimited", club: isAr ? "غير محدود" : "Unlimited" },
+                    { nameEn: "3D Kit & Crest Builder Studio", nameAr: "استوديو الأطقم والشعارات 3D", free: "—", match: isAr ? "تصدير 1" : "1 Export", pro: isAr ? "تصدير مفتوح" : "Unlimited", club: isAr ? "تصدير مفتوح" : "Unlimited" },
+                    { nameEn: "Match Newspaper ('HAGOOZAT DAILY')", nameAr: "جريدة المباراة التاريخية", free: "—", match: isAr ? "1 جريدة" : "1 Edition", pro: isAr ? "غير محدود" : "Unlimited", club: isAr ? "غير محدود" : "Unlimited" },
+                    { nameEn: "Golden Verified Badge", nameAr: "شارة PRO الذهبية الموثقة", free: "—", match: "—", pro: "✓", club: "✓" },
+                    { nameEn: "Turf Split-Bill Calculator & WhatsApp", nameAr: "حاسبة تقاسم الحجز وروابط واتساب", free: "—", match: "—", pro: "—", club: "✓" },
+                    { nameEn: "Live 2D Pitch Broadcaster", nameAr: "بث المباريات المباشر 2D مع تعليق", free: "—", match: "—", pro: "—", club: "✓" },
+                    { nameEn: "Derby & H2H Captain Rivalry Engine", nameAr: "محرك الديربيات والمواجهات المباشرة", free: "—", match: "—", pro: "—", club: "✓" },
+                    { nameEn: "Priority 24/7 Organizer Support", nameAr: "دعم فني ذو أولوية 24/7", free: "—", match: "—", pro: "—", club: "✓" },
+                  ].map((row, idx) => (
+                    <tr key={idx} className="hover:bg-slate-800/30 transition-colors">
+                      <td className="py-3.5 px-5 font-bold text-white text-xs">{isAr ? row.nameAr : row.nameEn}</td>
+                      <td className="py-3.5 px-3 text-center text-slate-400">{row.free}</td>
+                      <td className="py-3.5 px-3 text-center text-slate-300">{row.match}</td>
+                      <td className="py-3.5 px-3 text-center font-bold text-amber-300">{row.pro}</td>
+                      <td className="py-3.5 px-3 text-center font-bold text-emerald-300">{row.club}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* FAQ Accordion Section */}
           <div className="max-w-3xl mx-auto space-y-6 pt-6">
             <div className="flex items-center gap-2 justify-center">
@@ -593,6 +725,13 @@ export default function ProPassPage() {
             </div>
           </div>
         </div>
+
+        {/* Priority Access Modal */}
+        <PriorityAccessModal
+          isOpen={isWaitlistOpen}
+          onClose={() => setIsWaitlistOpen(false)}
+          defaultPlanId={selectedWaitlistPlan}
+        />
       </div>
     </ProtectedRoute>
   );

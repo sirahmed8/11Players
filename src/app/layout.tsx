@@ -23,6 +23,8 @@ import ClaimUsernameModal from "@/components/auth/ClaimUsernameModal";
 import CookieConsentBanner from "@/components/layout/CookieConsentBanner";
 import ScrollToTop from "@/components/ui/ScrollToTop";
 import StickyMobileCTA from "@/components/layout/StickyMobileCTA";
+import ReadingProgressBar from "@/components/ui/ReadingProgressBar";
+import SecretOwnerBar from "@/components/layout/SecretOwnerBar";
 import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
@@ -201,7 +203,9 @@ export default function RootLayout({
                       <SubscriptionGiftModal />
                       <ClaimUsernameModal />
                     </RouteGuard>
+                    <ReadingProgressBar />
                     <FloatingChatWidget />
+                    <SecretOwnerBar />
                     <ToastProvider />
                     <CookieConsentBanner />
                     <ScrollToTop />

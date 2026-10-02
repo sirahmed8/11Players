@@ -12,15 +12,18 @@
  *   "club_organizer"  → needs Club Organizer only
  */
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { Crown, Lock, ArrowRight, Sparkles, Bot, Shirt, BarChart3, Receipt } from "lucide-react";
+import { Crown, Lock, ArrowRight, Sparkles, Bot, Shirt, BarChart3, Receipt, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { useProSubscription } from "@/contexts/ProSubscriptionContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
+import { FeatureKey } from "@/lib/proSubscription";
+import PriorityAccessModal from "@/components/subscription/PriorityAccessModal";
 
 interface ProGateProps {
   requiredPlan?: "pro_captain" | "club_organizer";
+  featureKey?: FeatureKey;
   children: React.ReactNode;
   /** Custom heading override */
   featureNameEn?: string;
@@ -36,19 +39,28 @@ const PLAN_LABELS = {
 
 export default function ProGate({
   requiredPlan = "pro_captain",
+  featureKey,
   children,
   featureNameEn = "Premium Feature",
   featureNameAr = "ميزة مميزة",
   showBlurred = true,
 }: ProGateProps) {
-  const { hasProAccess, hasClubOrganizerAccess, loading } = useProSubscription();
+  const { hasProAccess, hasClubOrganizerAccess, isOwner, canAccess, loading } = useProSubscription();
   const { locale } = useLocale();
   const isAr = locale === "ar";
+  const [isWaitlistOpen, setIsWaitlistOpen] = useState(false);
 
   // Determine access
   let hasAccess = false;
-  if (requiredPlan === "pro_captain") hasAccess = hasProAccess;
-  if (requiredPlan === "club_organizer") hasAccess = hasClubOrganizerAccess;
+  if (isOwner) {
+    hasAccess = true;
+  } else if (featureKey) {
+    hasAccess = canAccess(featureKey);
+  } else if (requiredPlan === "pro_captain") {
+    hasAccess = hasProAccess;
+  } else if (requiredPlan === "club_organizer") {
+    hasAccess = hasClubOrganizerAccess;
+  }
 
   if (loading) {
     return (
@@ -137,15 +149,30 @@ export default function ProGate({
             })}
           </div>
 
-          {/* Upgrade CTA */}
-          <Link
-            href="/pro-pass"
-            className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all active:scale-95"
-          >
-            <Sparkles className="w-4 h-4" />
-            <span>{isAr ? "عرض باقات PRO (ابتداءً من 25 ج.م)" : "View PRO Plans (From 25 EGP)"}</span>
-            <ArrowRight className="w-4 h-4 rtl:rotate-180" />
-          </Link>
+          {/* Upgrade CTAs */}
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={() => setIsWaitlistOpen(true)}
+              className="flex items-center justify-center gap-2 w-full py-3.5 px-5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/25 transition-all active:scale-95 cursor-pointer"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>
+                {isAr
+                  ? "انضم لقائمة الأولوية (خصم 20%)"
+                  : "Join Priority Access (20% Off)"}
+              </span>
+              <Send className="w-3.5 h-3.5 rtl:-scale-x-100" />
+            </button>
+
+            <Link
+              href="/pro-pass"
+              className="flex items-center justify-center gap-1.5 w-full py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white font-bold text-xs transition-colors"
+            >
+              <span>{isAr ? "مقارنة جميع الباقات والأسعار" : "Compare All Plans & Features"}</span>
+              <ArrowRight className="w-3.5 h-3.5 rtl:rotate-180" />
+            </Link>
+          </div>
 
           <p className="text-[10px] text-slate-500 font-medium">
             {isAr
@@ -154,6 +181,12 @@ export default function ProGate({
           </p>
         </motion.div>
       </div>
+
+      <PriorityAccessModal
+        isOpen={isWaitlistOpen}
+        onClose={() => setIsWaitlistOpen(false)}
+        defaultPlanId={requiredPlan === "club_organizer" ? "club_organizer" : "pro_captain"}
+      />
     </div>
   );
 }
