@@ -1236,7 +1236,7 @@ I am **11AI** — your Elite Tactical Analyst & Personal Career Coach on **11Pla
                               </div>
                             )}
 
-                            <p className="whitespace-pre-wrap font-medium">{msg.text}</p>
+                            <FormattedText content={msg.text} />
 
                             {/* Sent time inside bubble */}
                             {formatMessageTime(msg.timestamp, isAr) && (

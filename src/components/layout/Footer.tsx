@@ -42,7 +42,7 @@ export default function Footer() {
               <span className="font-black text-emerald-600 dark:text-emerald-400 text-xl tracking-tight">11Players</span>
             </Link>
             <p className="text-sm font-bold text-slate-500 dark:text-slate-400 max-w-xs leading-relaxed">
-              {isAr ? "المنصة الأولى لإدارة مباريات كرة القدم وحجز الملاعب، وتقييم اللاعبين الحقيقي." : "The ultimate platform for football match management, turf booking, and real-life player ratings."}
+              {isAr ? "منصة إدارة مجتمعات كرة القدم وحجز الملاعب، وتقييم قدرات اللاعبين بموازنة تكتيكية دقيقة." : "Platform for organizing amateur football communities, turf reservations, and skill-balanced squad matchmaking."}
             </p>
           </div>
 

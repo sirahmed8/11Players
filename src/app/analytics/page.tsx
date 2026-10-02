@@ -39,6 +39,8 @@ import {
   Square,
   Check,
   X,
+  Mail,
+  Phone,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, getDocs, doc, setDoc, updateDoc, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
@@ -46,6 +48,7 @@ import { db } from "@/lib/firebase";
 import { PlayerProfile, Community } from "@/types";
 import toast from "react-hot-toast";
 import CustomDropdown from "@/components/ui/CustomDropdown";
+import { SUBSCRIPTION_PRICING } from "@/lib/proSubscription";
 
 function getPlayerDisplayName(p: PlayerProfile): string {
   return (p as any).name || p.fullName || p.cardName || (p as any).userName || "Player";
@@ -66,6 +69,7 @@ export default function AnalyticsPage() {
 
   // Multi-Player Selection State for Bulk Operations
   const [selectedUids, setSelectedUids] = useState<string[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
 
   // ─── REAL-TIME AI SCOUT TOKENS & USAGE LISTENER ──────────────────────────
   const [realAiStats, setRealAiStats] = useState<{
@@ -197,6 +201,18 @@ export default function AnalyticsPage() {
       } catch (e) {
         console.warn("Error fetching ai_logs collection:", e);
       }
+
+      // 4. Fetch subscription leads for VIP waitlist pipeline
+      try {
+        const leadsSnap = await getDocs(collection(db, "subscription_leads"));
+        const loadedLeads: any[] = [];
+        leadsSnap.forEach((d) => {
+          loadedLeads.push({ id: d.id, ...d.data() });
+        });
+        setLeads(loadedLeads);
+      } catch (e) {
+        console.warn("Error fetching subscription_leads:", e);
+      }
     } catch (err) {
       console.error("Error fetching analytics data:", err);
       toast.error(isAr ? "فشل تحميل التحليلات" : "Failed to load analytics data");
@@ -258,13 +274,21 @@ export default function AnalyticsPage() {
     const totalPaidCount = paidProCaptainCount + paidClubOrganizerCount;
 
     // Financial calculations (Monthly Recurring Revenue vs Opportunity Cost Given Free)
-    const proCaptainPriceEgp = 149;
-    const clubOrganizerPriceEgp = 449;
+    const proCaptainPriceEgp = SUBSCRIPTION_PRICING.pro_captain.egpMonthly;
+    const clubOrganizerPriceEgp = SUBSCRIPTION_PRICING.club_organizer.egpMonthly;
 
     const estimatedMrrEgp = paidProCaptainCount * proCaptainPriceEgp + paidClubOrganizerCount * clubOrganizerPriceEgp;
     const grantedOpportunityCostEgp =
       grantedProCaptainCount * proCaptainPriceEgp + grantedClubOrganizerCount * clubOrganizerPriceEgp;
     const grossPotentialMrrEgp = estimatedMrrEgp + grantedOpportunityCostEgp;
+
+    // Leads Pipeline Metrics
+    const totalLeadsCount = leads.length;
+    const matchPassLeadsCount = leads.filter((l) => l.plan === "match_pass").length;
+    const proCaptainLeadsCount = leads.filter((l) => l.plan === "pro_captain").length;
+    const clubOrganizerLeadsCount = leads.filter((l) => l.plan === "club_organizer").length;
+    const pipelinePotentialMrrEgp =
+      proCaptainLeadsCount * proCaptainPriceEgp + clubOrganizerLeadsCount * clubOrganizerPriceEgp;
 
     // Real AI Scout Reports & Tokens Usage Metrics (STRICTLY PURE REAL: ZERO BASELINE)
     const totalAiScoutReports = (realAiStats.totalRequests || 0) + (localAiStats.requests || 0);
@@ -322,6 +346,13 @@ export default function AnalyticsPage() {
       estimatedMrrEgp,
       grantedOpportunityCostEgp,
       grossPotentialMrrEgp,
+      proCaptainPriceEgp,
+      clubOrganizerPriceEgp,
+      totalLeadsCount,
+      matchPassLeadsCount,
+      proCaptainLeadsCount,
+      clubOrganizerLeadsCount,
+      pipelinePotentialMrrEgp,
       totalAiScoutReports,
       totalTokensUsed,
       estimatedAiCostUsd: Math.round(estimatedAiCostUsd * 1000) / 1000,
@@ -337,8 +368,7 @@ export default function AnalyticsPage() {
       avgOvr,
       topPlayers,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [players]);
+  }, [players, leads, realAiStats, localAiStats]);
 
   // ─── ADMIN AI STATS RESET HANDLER ────────────────────────────
   const handleResetAiStats = async () => {
@@ -589,7 +619,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* ── 1. Top Executive KPI Cards ─────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           {[
             {
               titleEn: "Total Registered Players",
@@ -632,14 +662,24 @@ export default function AnalyticsPage() {
               glow: "shadow-yellow-500/10",
             },
             {
+              titleEn: "VIP Priority Leads",
+              titleAr: "قائمة الأولوية VIP",
+              value: metrics.totalLeadsCount,
+              subEn: `~${metrics.pipelinePotentialMrrEgp} EGP Pipeline MRR`,
+              subAr: `~${metrics.pipelinePotentialMrrEgp} ج.م دخل متوقع`,
+              icon: <CreditCard className="w-5 h-5 text-emerald-400" />,
+              border: "border-emerald-500/30",
+              glow: "shadow-emerald-500/10",
+            },
+            {
               titleEn: "Complimentary Value Granted",
               titleAr: "قيمة الاشتراكات الممنوحة مجاناً",
               value: `${metrics.grantedOpportunityCostEgp} EGP`,
               subEn: `${metrics.totalGrantedCount} Users gifted free PRO`,
-              subAr: `تكلفة ${metrics.totalGrantedCount} اشتراك مجاني منحته`,
-              icon: <Gift className="w-5 h-5 text-purple-400" />,
-              border: "border-purple-500/30",
-              glow: "shadow-purple-500/10",
+              subAr: `تكلفة ${metrics.totalGrantedCount} اشتراك مجاني`,
+              icon: <Gift className="w-5 h-5 text-indigo-400" />,
+              border: "border-indigo-500/30",
+              glow: "shadow-indigo-500/10",
             },
           ].map((card, i) => (
             <motion.div
@@ -671,13 +711,13 @@ export default function AnalyticsPage() {
         {/* ── 2. Financial & VIP Grants Breakdown ───────────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Complimentary VIP Subscriptions Audit */}
-          <div className="bg-gradient-to-br from-purple-950/40 via-slate-900/90 to-slate-900 p-6 rounded-3xl border border-purple-500/30 shadow-2xl space-y-4">
+          <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="font-extrabold text-base text-white flex items-center gap-2">
-                <Gift className="w-5 h-5 text-purple-400" />
+                <Gift className="w-5 h-5 text-indigo-400" />
                 <span>{isAr ? "تقرير اشتراكات الهدايا وتكلفة الاستثناءات" : "Complimentary VIP Grants & Cost Impact"}</span>
               </h3>
-              <span className="px-2.5 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[11px] font-mono font-black">
+              <span className="px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-mono font-black">
                 {metrics.totalGrantedCount} VIP Users
               </span>
             </div>
@@ -691,7 +731,7 @@ export default function AnalyticsPage() {
             <div className="grid grid-cols-2 gap-3 pt-2">
               <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1">
                 <div className="text-[11px] font-bold text-slate-400">{isAr ? "قيمة الهدايا الممنوحة (EGP)" : "Total Gifted Value"}</div>
-                <div className="text-xl font-black font-mono text-purple-400">{metrics.grantedOpportunityCostEgp} EGP</div>
+                <div className="text-xl font-black font-mono text-indigo-400">{metrics.grantedOpportunityCostEgp} EGP</div>
                 <div className="text-[10px] text-slate-500 font-semibold">{isAr ? "تكلفة فرصة مفقودة" : "Opportunity Cost"}</div>
               </div>
 
@@ -705,11 +745,17 @@ export default function AnalyticsPage() {
             <div className="space-y-2 pt-2 border-t border-slate-800/80">
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-300">{isAr ? "اشتراكات PRO الكابتن الممنوحة" : "PRO Captain Gifts"}</span>
-                <span className="text-amber-400 font-mono">{metrics.grantedProCaptainCount} × 149 = {metrics.grantedProCaptainCount * 149} EGP</span>
+                <span className="text-amber-400 font-mono">
+                  {metrics.grantedProCaptainCount} × {metrics.proCaptainPriceEgp} ={" "}
+                  {metrics.grantedProCaptainCount * metrics.proCaptainPriceEgp} EGP
+                </span>
               </div>
               <div className="flex items-center justify-between text-xs font-bold">
                 <span className="text-slate-300">{isAr ? "اشتراكات منظم النادي الممنوحة" : "Club Organizer Gifts"}</span>
-                <span className="text-purple-400 font-mono">{metrics.grantedClubOrganizerCount} × 449 = {metrics.grantedClubOrganizerCount * 449} EGP</span>
+                <span className="text-indigo-400 font-mono">
+                  {metrics.grantedClubOrganizerCount} × {metrics.clubOrganizerPriceEgp} ={" "}
+                  {metrics.grantedClubOrganizerCount * metrics.clubOrganizerPriceEgp} EGP
+                </span>
               </div>
             </div>
           </div>
@@ -775,6 +821,119 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
+        {/* ── 2.5 VIP Priority Access Leads Pipeline (Real Data) ──────────────── */}
+        <div className="bg-slate-900/90 p-6 rounded-3xl border border-slate-800 shadow-2xl space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-extrabold text-base text-white">
+                  {isAr ? "قائمة الأولوية ومبيعات الاشتراكات (VIP Priority Pipeline)" : "VIP Priority Leads & Monetization Pipeline"}
+                </h3>
+                <p className="text-xs text-slate-400 font-medium">
+                  {isAr
+                    ? "الطلبات الحقيقية المسجلة من المستخدمين للانضمام للباقات بخصم 20% قبل إطلاق بوابات الدفع الرسمية"
+                    : "Real user leads registered for 20% priority discount ahead of live gateway activation"}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-mono font-black">
+                {leads.length} {isAr ? "طلب مسجل" : "Registered Leads"}
+              </span>
+            </div>
+          </div>
+
+          {/* Sub-KPIs for Leads */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="text-[10px] font-bold text-slate-400">{isAr ? "باقة الكابتن PRO" : "PRO Captain Leads"}</div>
+              <div className="text-lg font-black font-mono text-amber-400">{metrics.proCaptainLeadsCount}</div>
+              <div className="text-[9px] text-slate-500">~{metrics.proCaptainLeadsCount * metrics.proCaptainPriceEgp} EGP/mo</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="text-[10px] font-bold text-slate-400">{isAr ? "باقة منظم النادي" : "Club Organizer Leads"}</div>
+              <div className="text-lg font-black font-mono text-teal-400">{metrics.clubOrganizerLeadsCount}</div>
+              <div className="text-[9px] text-slate-500">~{metrics.clubOrganizerLeadsCount * metrics.clubOrganizerPriceEgp} EGP/mo</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="text-[10px] font-bold text-slate-400">{isAr ? "تذكرة المباراة Match Pass" : "Match Pass Leads"}</div>
+              <div className="text-lg font-black font-mono text-cyan-400">{metrics.matchPassLeadsCount}</div>
+              <div className="text-[9px] text-slate-500">15 EGP / match</div>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-slate-950 border border-slate-800">
+              <div className="text-[10px] font-bold text-slate-400">{isAr ? "إجمالي الدخل المتوقع" : "Pipeline MRR Potential"}</div>
+              <div className="text-lg font-black font-mono text-emerald-400">~{metrics.pipelinePotentialMrrEgp} EGP</div>
+              <div className="text-[9px] text-slate-500">{isAr ? "شهرياً من الباقات" : "Monthly recurring"}</div>
+            </div>
+          </div>
+
+          {/* Leads Table */}
+          {leads.length === 0 ? (
+            <div className="p-8 text-center rounded-2xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+              <CreditCard className="w-8 h-8 text-slate-600 mx-auto" />
+              <p className="text-xs font-bold text-slate-400">
+                {isAr ? "لم يتم تسجيل أي طلبات في قائمة الأولوية حتى الآن." : "No VIP priority leads registered yet."}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                {isAr ? "تظهر هنا بيانات المستخدمين فور تسجيلهم عبر نافذة الخصم 20% في صفحة الأسعار." : "New leads captured via the 20% discount modal on the pricing page will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-2xl border border-slate-800">
+              <table className="w-full text-xs text-start">
+                <thead className="bg-slate-950 text-slate-400 text-[11px] font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 py-3 text-start">{isAr ? "المستخدم" : "Subscriber"}</th>
+                    <th className="px-4 py-3 text-start">{isAr ? "الباقة المطلوبة" : "Requested Plan"}</th>
+                    <th className="px-4 py-3 text-start">{isAr ? "طريقة الدفع المفضلة" : "Payment Method"}</th>
+                    <th className="px-4 py-3 text-start">{isAr ? "الهاتف / واتساب" : "Phone / WhatsApp"}</th>
+                    <th className="px-4 py-3 text-start">{isAr ? "التاريخ" : "Date"}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 bg-slate-950/40">
+                  {leads.slice(0, 15).map((lead, idx) => (
+                    <tr key={lead.id || idx} className="hover:bg-slate-800/40 transition-colors">
+                      <td className="px-4 py-3 font-bold text-white">
+                        <div>{lead.name || "VIP User"}</div>
+                        <div className="text-[10px] text-slate-400 font-mono font-normal">{lead.email}</div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-block px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                          lead.plan === "club_organizer"
+                            ? "bg-teal-500/20 text-teal-300 border-teal-500/40"
+                            : lead.plan === "pro_captain"
+                            ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
+                            : "bg-cyan-500/20 text-cyan-300 border-cyan-500/40"
+                        }`}>
+                          {lead.plan?.replace("_", " ")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-semibold text-slate-300 uppercase">
+                        {lead.paymentMethod || "InstaPay"}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-slate-300">
+                        {lead.phone ? (
+                          <a href={`tel:${lead.phone}`} className="hover:text-emerald-400 hover:underline">
+                            {lead.phone}
+                          </a>
+                        ) : (
+                          <span className="text-slate-600">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-slate-400 text-[10px]">
+                        {lead.createdAt?.toDate ? lead.createdAt.toDate().toLocaleDateString(isAr ? "ar-EG" : "en-US") : "Recent"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* ── 3. Player Breakdown & Division Analytics ──────────────────────── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Position Distribution */}
@@ -791,7 +950,7 @@ export default function AnalyticsPage() {
                 { nameEn: "Midfielders (MF)", nameAr: "خط الوسط (MF)", count: metrics.mfCount, color: "bg-emerald-500", text: "text-emerald-400" },
                 { nameEn: "Forwards / Strikers (FW)", nameAr: "الهجوم (FW)", count: metrics.fwCount, color: "bg-amber-500", text: "text-amber-400" },
                 { nameEn: "Defenders (DF)", nameAr: "الدفاع (DF)", count: metrics.dfCount, color: "bg-cyan-500", text: "text-cyan-400" },
-                { nameEn: "Goalkeepers (GK)", nameAr: "حراس المرمى (GK)", count: metrics.gkCount, color: "bg-purple-500", text: "text-purple-400" },
+                { nameEn: "Goalkeepers (GK)", nameAr: "حراس المرمى (GK)", count: metrics.gkCount, color: "bg-indigo-500", text: "text-indigo-400" },
               ].map((pos, idx) => {
                 const pct = metrics.totalPlayers > 0 ? Math.round((pos.count / metrics.totalPlayers) * 100) : 0;
                 return (
@@ -910,7 +1069,7 @@ export default function AnalyticsPage() {
                   </button>
                   <button
                     onClick={() => handleBulkSetSubscription("club_organizer")}
-                    className="px-3.5 py-1.5 rounded-xl bg-purple-950 text-purple-300 hover:bg-purple-900 border border-purple-800 text-xs font-black transition-all flex items-center gap-1 shadow-md"
+                    className="px-3.5 py-1.5 rounded-xl bg-teal-950 text-teal-300 hover:bg-teal-900 border border-teal-800 text-xs font-black transition-all flex items-center gap-1 shadow-md"
                   >
                     🏟️ {isAr ? "منح منظم النادي" : "Grant Club Organizer"}
                   </button>
@@ -1117,8 +1276,8 @@ export default function AnalyticsPage() {
                                   <span>{planType === "club_organizer" ? (isAr ? "منظم النادي" : "Club Organizer") : (isAr ? "PRO الكابتن" : "PRO Captain")}</span>
                                 </span>
                                 {isGranted && (
-                                  <span className="text-[10px] text-purple-300 bg-purple-950 border border-purple-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1">
-                                    <Gift className="w-3 h-3 text-purple-400" />
+                                  <span className="text-[10px] text-indigo-300 bg-indigo-950 border border-indigo-500/30 px-2 py-0.5 rounded-lg font-bold flex items-center gap-1">
+                                    <Gift className="w-3 h-3 text-indigo-400" />
                                     <span>{isAr ? "هدية مجانية من المالك" : "Complimentary VIP Gift"}</span>
                                   </span>
                                 )}
@@ -1140,7 +1299,7 @@ export default function AnalyticsPage() {
                               </button>
                               <button
                                 onClick={() => handleSetSubscription(p.uid, getPlayerDisplayName(p), "club_organizer")}
-                                className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40 text-[11px] font-bold transition-all active:scale-95 shadow-sm"
+                                className="px-3 py-1.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-[11px] font-bold transition-all active:scale-95 shadow-sm"
                               >
                                 🏟️ {isAr ? "منح منظم النادي" : "Grant Club Organizer"}
                               </button>

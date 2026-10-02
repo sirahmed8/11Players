@@ -110,8 +110,8 @@ export default function GuidePage() {
                     </h1>
                     <p className="text-slate-400 text-xs sm:text-sm leading-relaxed mt-2 font-medium">
                       {isAr 
-                        ? "المنصة الأولى لإدارة مجتمعات كرة القدم. قم بإنشاء مجتمعك الخاص، أضف اللاعبين، ونظم المباريات بتقييمات واقعية وصناعة مباريات عادلة بالذكاء الاصطناعي."
-                        : "The premier platform for managing football communities. Create your community, add players, and organize matches with true-to-life ratings and AI matchmaking."}
+                        ? "منصة مخصصة لتنظيم مجتمعات ومباريات كرة القدم. أنشئ مجتمعك، أضف اللاعبين، ونظم المباريات بمصفوفات مراكز تكتيكية دقيقة وموازنة فرق متكافئة."
+                        : "A dedicated platform for organizing amateur football communities. Build your community roster, log match records, and balance squads with 13-position tactical matrices."}
                     </p>
                   </div>
 

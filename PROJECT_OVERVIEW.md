@@ -1,8 +1,8 @@
 # PROJECT_OVERVIEW.md — Architectural & Technical Specification
 
 > **System Name**: 11Players (Hagoozat Elite Web Platform)  
-> **Last Updated**: October 2, 2026  
-> **Status**: Production Full-Stack Next.js 16 Web Application (SILICON VALLEY MONETIZATION & PRIORITY ACCESS LIVE, SECRET OWNER BAR OP MODE, KNOWLEDGE-GROUNDED 11AI WITH QUOTA GUARD, CANONICAL /pricing ROUTE, 65 STATIC ROUTES, 106/106 TESTS PASSING, 0 LINT/TS WARNINGS)  
+> **Last Updated**: October 3, 2026  
+> **Status**: Production Full-Stack Next.js 16 Web Application (HUMAN CRAFTSPERSON POLISH, VOICE DE-SYNTHESIZATION, FULL SPOTLIGHT COMMAND PALETTE, EXECUTIVE VIP LEADS ANALYTICS, ZERO RAW MARKDOWN ASTERISKS, 65 STATIC ROUTES, 106/106 TESTS PASSING, 0 LINT/TS WARNINGS)  
 ---
 
 ## 1. Tech Stack Overview
@@ -88,7 +88,9 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - `/achievements` (Trophy Cabinet): Unlockable trophies, Ballon d'Or podium awards, Golden Boot, and confetti celebrations.
 - `/notifications` (Notifications Center): Real-time system notifications, match alerts, and community announcements.
 - `/pricing` & `/pro-pass` (Subscription Tiers & Priority Access): Full monetization suite in EGP & USD featuring Monthly vs Annual toggle (-25% discount), canonical 10-feature comparison matrix, dual-mode payment fallback, interactive "Join Priority Access (20% Off)" VIP lead capture modal saving to Firestore `/subscription_leads`, and centralized `canAccessFeature()` gating.
-- `/admin` & Secret Floating Owner Bar (`SecretOwnerBar.tsx`): Restricted floating OP mode dock exclusively visible to the platform owner (`a7medorabe7@gmail.com`) featuring real-time Paywall Simulator (simulating Free, PRO Captain, and Club Organizer tiers in session memory) and instantaneous 11AI quota reset.
+- `/admin` & `/analytics` (Executive Intelligence, VIP Leads Pipeline & OP Mode): Real database metrics tracker querying live `players`, `communities`, `matches`, `ai_logs`, and `/subscription_leads`. Features real-time calculation of MRR in EGP using `SUBSCRIPTION_PRICING`, leads conversion pipeline, AI token cost accounting, and bulk subscription granting with zero purple aesthetic violations.
+- Secret Floating Owner Bar (`SecretOwnerBar.tsx`): Restricted floating OP mode dock exclusively visible to the platform owner (`a7medorabe7@gmail.com`) featuring real-time Paywall Simulator (simulating Free, PRO Captain, and Club Organizer tiers in session memory) and instantaneous 11AI quota reset.
+- Spotlight Command Palette (`CommandPaletteModal.tsx` & `Ctrl+K`): Full-site spotlight modal with keyboard arrow/enter navigation, theme support, instant routing to all 65 modules, player username search, and dedicated desktop & mobile trigger buttons.
 - `/settings` (GDPR Data Portability & Erasure): Self-serve GDPR Art. 15/20 JSON export and Art. 17 data erasure with typed confirmation.
 - `/thank-you` (Confirmation & VIP Handshake): High-converting conversion confirmation page with SLA promise and direct links.
 - `/season-ceremony` (Seasonal Awards): End-of-season awards presentation, Ballon d'Or ceremony, and Team of the Season XI.

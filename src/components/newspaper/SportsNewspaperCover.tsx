@@ -283,7 +283,7 @@ export const SportsNewspaperCover: React.FC<SportsNewspaperCoverProps> = ({
             {lang === 'ar' ? 'صحيفة الحجوزات اليومية' : 'HAGOOZAT DAILY'}
           </h1>
           <p className="text-xs uppercase tracking-widest mt-1 opacity-80 font-bold">
-            {lang === 'ar' ? 'الصحيفة الرياضية الرقمية الأولى لكرة القدم' : 'THE PREMIER FOOTBALL POST-MATCH JOURNAL'}
+            {lang === 'ar' ? 'الجريدة الرياضية الرسمية لتوثيق نتائج المباريات' : 'THE OFFICIAL POST-MATCH FOOTBALL JOURNAL'}
           </p>
         </div>
 

@@ -560,8 +560,8 @@ export default function ProPassPage() {
               </h2>
               <p className="text-slate-400 text-xs sm:text-sm font-medium">
                 {isAr
-                  ? "أدوات احترافية صُممت لرفع جودة المباريات والتنظيم لجميع لاعبي كرة القدم التنافسية"
-                  : "Professional tools engineered to elevate match quality and organization"}
+                  ? "أدوات متخصصة لتنظيم المباريات، موازنة الفرق، ومتابعة الإحصائيات بدقة للاعبين والمنظمين"
+                  : "Targeted tools engineered for match scheduling, squad balancing, and performance tracking"}
               </p>
             </div>
 

@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthProfile } from "@/hooks/useAuthProfile";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import SettingsMenu from "@/components/layout/SettingsMenu";
-import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap, Crown } from "lucide-react";
+import { ShieldAlert, Menu, X, Users, Globe, User, BookOpen, BarChart3, Swords, Home, MessageCircle, MessagesSquare, HeadphonesIcon, InboxIcon, Settings2, Bell, Trophy, Sparkles, Edit3, Shirt, Activity, Newspaper, Receipt, Flame, Zap, Crown, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCommunity } from "@/contexts/CommunityContext";
 import { collection, query, orderBy, limit, onSnapshot, doc, where } from "firebase/firestore";
@@ -20,7 +20,7 @@ import CommandPaletteModal from "@/components/ui/CommandPaletteModal";
 
 import { Suspense } from "react";
 
-const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/terms", "/cookie", "/cookies", "/refund", "/refunds", "/pro-pass"];
+const PUBLIC_ROUTES = ["/", "/guide", "/privacy", "/tos", "/terms", "/cookie", "/cookies", "/refund", "/refunds", "/pro-pass", "/pricing", "/thank-you"];
 
 function SidebarContent() {
   const { user, isAdmin, isOwner, isGlobalModerator, loading: authLoading, hasInitialCommunityLoad } = useAuth();
@@ -477,7 +477,17 @@ function SidebarContent() {
             <span className="font-black text-emerald-400 text-xl tracking-tight">11Players</span>
           </Link>
         </div>
-        <SettingsMenu direction="down" />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
+            aria-label={isAr ? "البحث السريع (Ctrl+K)" : "Quick Search (Ctrl+K)"}
+          >
+            <Search className="w-5 h-5" />
+          </button>
+          <SettingsMenu direction="down" />
+        </div>
       </div>
 
       {/* Spacer for Fixed Mobile Top Bar */}
@@ -517,8 +527,25 @@ function SidebarContent() {
             </button>
           </div>
 
+          {/* Quick Spotlight Search Bar */}
+          <div className="px-3 pt-3 pb-1 flex-shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-100/90 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:border-emerald-500/40 transition-all text-xs font-semibold group cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <Search className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                <span>{isAr ? "بحث سريع..." : "Quick Search..."}</span>
+              </div>
+              <kbd className="px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400">
+                Ctrl+K
+              </kbd>
+            </button>
+          </div>
+
           {/* Categorized Links */}
-          <div ref={scrollContainerRef} className="relative py-5 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
+          <div ref={scrollContainerRef} className="relative py-3 px-3 flex flex-col gap-5 flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar">
             {linkGroups.map((group, gIdx) => {
               if (group.items.length === 0) return null;
               return (
