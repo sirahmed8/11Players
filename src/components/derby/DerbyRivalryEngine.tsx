@@ -110,7 +110,9 @@ export const SAMPLE_DERBY_MATCHES: MatchRecord[] = [
 export function aggregateHeadToHeadStats(
   matches: MatchRecord[],
   captainAUid: string = "capt_ahmed",
-  captainBUid: string = "capt_tariq"
+  captainBUid: string = "capt_tariq",
+  captainAName: string = "Capt. Ahmed",
+  captainBName: string = "Capt. Tariq"
 ): HeadToHeadStats {
   const filtered = matches.filter(
     (m) =>
@@ -144,8 +146,8 @@ export function aggregateHeadToHeadStats(
   const winRateB = totalMatches > 0 ? Number(((winsB / totalMatches) * 100).toFixed(1)) : 0;
 
   return {
-    captainAName: "Capt. Ahmed",
-    captainBName: "Capt. Tariq",
+    captainAName,
+    captainBName,
     totalMatches,
     winsA,
     winsB,
@@ -165,7 +167,9 @@ export function aggregateHeadToHeadStats(
  */
 export function calculateCurrentStreak(
   matches: MatchRecord[],
-  captainAUid: string = "capt_ahmed"
+  captainAUid: string = "capt_ahmed",
+  captainAName: string = "Capt. Ahmed",
+  captainBName: string = "Capt. Tariq"
 ): { winner: "A" | "B" | "DRAW"; count: number; streakText: string } {
   if (!matches || matches.length === 0) {
     return { winner: "DRAW", count: 0, streakText: "No matches recorded" };
@@ -200,7 +204,7 @@ export function calculateCurrentStreak(
     }
   }
 
-  const name = currentWinner === "A" ? "Capt. Ahmed" : currentWinner === "B" ? "Capt. Tariq" : "Draw";
+  const name = currentWinner === "A" ? captainAName : currentWinner === "B" ? captainBName : "Draw";
   const streakText = currentWinner === "DRAW" ? "Undecided / Draw" : `${name} (${streak} W Streak)`;
 
   return { winner: currentWinner, count: streak, streakText };
@@ -302,8 +306,8 @@ export default function DerbyRivalryEngine({
     );
   }
 
-  const stats = aggregateHeadToHeadStats(matches, captainAUid, captainBUid);
-  const streak = calculateCurrentStreak(matches, captainAUid);
+  const stats = aggregateHeadToHeadStats(matches, captainAUid, captainBUid, captainAName, captainBName);
+  const streak = calculateCurrentStreak(matches, captainAUid, captainAName, captainBName);
   const intensity = calculateRivalryIntensityScore(stats);
 
   const getIntensityColor = (level: string) => {
@@ -318,6 +322,9 @@ export default function DerbyRivalryEngine({
         return "from-slate-700 to-slate-800 text-slate-300 border-slate-700";
     }
   };
+
+  const teamALabel = captainAName ? (isAr ? `فريق ${captainAName}` : `${captainAName}'s Team`) : (isAr ? "الفريق (أ)" : "Team A");
+  const teamBLabel = captainBName ? (isAr ? `فريق ${captainBName}` : `${captainBName}'s Team`) : (isAr ? "الفريق (ب)" : "Team B");
 
   return (
     <div className="w-full max-w-6xl mx-auto p-4 md:p-6 space-y-6 select-none">
@@ -355,7 +362,7 @@ export default function DerbyRivalryEngine({
             </div>
             <h2 className="text-xl font-extrabold text-white">{stats.captainAName}</h2>
             <span className="text-xs text-rose-400 font-semibold bg-rose-950/60 px-3 py-1 rounded-full border border-rose-500/30">
-              Red Lions FC
+              {teamALabel}
             </span>
 
             <div className="pt-3 w-full grid grid-cols-3 gap-2 text-center border-t border-slate-800">
@@ -392,7 +399,7 @@ export default function DerbyRivalryEngine({
             </div>
             <h2 className="text-xl font-extrabold text-white">{stats.captainBName}</h2>
             <span className="text-xs text-cyan-400 font-semibold bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-500/30">
-              Blue Falcons FC
+              {teamBLabel}
             </span>
 
             <div className="pt-3 w-full grid grid-cols-3 gap-2 text-center border-t border-slate-800">

@@ -192,11 +192,11 @@ export default function RootLayout({
                     <RouteGuard>
                       <div className="flex flex-col md:flex-row min-h-[100dvh]">
                         <Sidebar />
-                        <div id="main-content" className="flex-1 flex flex-col min-w-0 relative z-0">
+                        <main id="main-content" tabIndex={-1} className="flex-1 flex flex-col min-w-0 relative z-0 outline-none">
                           <GlobalAnnouncementBanner />
                           {children}
                           <Footer />
-                        </div>
+                        </main>
                       </div>
                       <UpdateNotification />
                       <SiteRatingModal />

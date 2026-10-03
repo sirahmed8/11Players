@@ -10,9 +10,12 @@ import CustomDropdown from '@/components/ui/CustomDropdown';
 import ProGate from '@/components/ui/ProGate';
 import { Flame, Swords, Shield } from 'lucide-react';
 
+import { useLocale } from '@/components/ui/ThemeProvider';
 import MatchActionHubBar from '@/components/match/MatchActionHubBar';
 
 function DerbyContent() {
+  const { locale } = useLocale();
+  const isAr = locale === 'ar';
   const { activeCommunityId, activeCommunity } = useCommunity();
   const { historyMatches } = useMatchData(activeCommunityId);
   const { players } = usePlayers();
@@ -89,7 +92,7 @@ function DerbyContent() {
   }, [sortedCaptains]);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6">
+    <main className="min-h-screen bg-slate-950 text-slate-100 py-8 px-4 sm:px-6" dir={isAr ? 'rtl' : 'ltr'}>
       <div className="max-w-5xl mx-auto space-y-6">
         <MatchActionHubBar />
 
@@ -101,9 +104,13 @@ function DerbyContent() {
               <Flame className="w-6 h-6 text-amber-400" />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">Select Real Captain Rivalry</h1>
+              <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                {isAr ? "اختيار مواجهة الكباتن المباشرة" : "Select Real Captain Rivalry"}
+              </h1>
               <p className="text-xs sm:text-sm text-slate-400 font-medium leading-relaxed">
-                Compute head-to-head stats & rivalry intensity from real community matches
+                {isAr
+                  ? "احسب إحصائيات وجهاً لوجه ومؤشر حدة التنافس المستخرج من مباريات المجتمع الفعلية"
+                  : "Compute head-to-head stats & rivalry intensity from real community matches"}
               </p>
             </div>
           </div>
@@ -112,25 +119,25 @@ function DerbyContent() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 w-full pt-3 border-t border-slate-800/60">
             <div>
               <label className="text-[10px] font-extrabold uppercase tracking-widest text-rose-400 block mb-1">
-                Captain 1
+                {isAr ? "الكابتن الأول (أ)" : "Captain 1 (A)"}
               </label>
               <CustomDropdown
                 value={captainA}
                 onChange={setCaptainA}
                 options={playerOptions}
-                placeholder="Select Captain 1"
+                placeholder={isAr ? "اختر الكابتن الأول" : "Select Captain 1"}
               />
             </div>
 
             <div>
               <label className="text-[10px] font-extrabold uppercase tracking-widest text-blue-400 block mb-1">
-                Captain 2
+                {isAr ? "الكابتن الثاني (ب)" : "Captain 2 (B)"}
               </label>
               <CustomDropdown
                 value={captainB}
                 onChange={setCaptainB}
                 options={playerOptions}
-                placeholder="Select Captain 2"
+                placeholder={isAr ? "اختر الكابتن الثاني" : "Select Captain 2"}
               />
             </div>
           </div>

@@ -90,7 +90,22 @@ export default function GlobalUsersTable() {
 
       await Promise.all(communityRosterPromises);
 
-      const combinedUsersList = Object.values(allUsersMap);
+      const ownerEmail = "a7medorabe7@gmail.com";
+      const ownerUid = "G8vV7jTvd0VUeRlohrGFyARhiiw1";
+
+      const combinedUsersList = Object.values(allUsersMap).map((u) => {
+        const isOwner = u.email?.toLowerCase() === ownerEmail || u.uid === ownerUid || !!(u as any).isOwner;
+        const isAdmin = isOwner || Object.keys(uCommMap).includes(u.uid) || !!(u as any).isAdmin || commsSnap.docs.some(c => {
+          const d = c.data();
+          return d.adminUid === u.uid || d.ownerUid === u.uid;
+        });
+        return {
+          ...u,
+          isOwner,
+          isAdmin,
+        };
+      });
+
       setCommunitiesMap(commMap);
       setUserCommMap(uCommMap);
       setUsers(combinedUsersList);
@@ -467,7 +482,15 @@ export default function GlobalUsersTable() {
                   <ArrowUpDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400" />
                 </div>
               </th>
-              <th className="px-6 py-4 min-w-[200px]">{isAr ? "المركز والأسلوب" : "Position & Style"}</th>
+              <th 
+                className="px-6 py-4 cursor-pointer hover:bg-slate-900 transition-colors group min-w-[200px]"
+                onClick={() => handleSort('primaryPosition')}
+              >
+                <div className="flex items-center gap-2">
+                  <span>{isAr ? "المركز والأسلوب" : "Position & Style"}</span>
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400" />
+                </div>
+              </th>
               <th className="px-6 py-4 min-w-[180px]">{isAr ? "المجتمعات والنشاط" : "Communities & Activity"}</th>
               <th className="px-6 py-4 text-right rtl:text-left min-w-[190px]">{isAr ? "إجراءات" : "Actions"}</th>
             </tr>

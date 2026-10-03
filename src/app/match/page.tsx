@@ -489,7 +489,7 @@ function MatchContent() {
             </div>
 
             {/* Action buttons for Admin */}
-            {isOwner && (
+            {(isAdmin || isOwner) && (
               <button
                 type="button"
                 onClick={() => setIsConfigModalOpen(true)}

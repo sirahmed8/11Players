@@ -95,8 +95,8 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 - `/thank-you` (Confirmation & VIP Handshake): High-converting conversion confirmation page with SLA promise and direct links.
 - `/season-ceremony` (Seasonal Awards): End-of-season awards presentation, Ballon d'Or ceremony, and Team of the Season XI.
 - `/announcements` (Broadcast Center): Real-time announcements feed with 11AI Gemini text enhancer integration.
-- `/support` & `/inbox` (Support Hub): Help desk tickets, FAQ accordions, and automated AI assistance.
-- `/users` (User Roster): Platform user management directory with role filtering (Owner, Admin, Member).
+- `/support` & `/inbox` (Support Hub): Dedicated Help & Support Hub featuring official support ticket submissions to Firestore `/support_threads`, 11AI Technical & Tactical Assistant one-click launcher, direct founder WhatsApp and email contact lines, and expandable troubleshooting FAQ accordion covering 13-position balancing, peer ratings, turf split-bill, and PRO Pass policies.
+- `/users` (User Roster): Platform user management directory with computed `isOwner` and `isAdmin` flags, interactive role filtering (Owner, Admin, Member), sortable position columns, and bulk AI actions.
 - `/guide`, `/tos`, `/privacy`, `/cookie`, `/refund` (Tactical Guide, Legal & Compliance): PES positional suitability index guide, Egyptian Personal Data Protection Law (Law 151/2020) & GDPR-compliant Privacy Policy, Amateur Sports Physical Injury Disclaimer Terms of Service (exclusive Cairo jurisdiction), global accessible CookieConsentBanner with granular essential/all consent, and Consumer Protection Law (Law 181/2018) compliant Refund & Cancellation Policy.
 
 ---

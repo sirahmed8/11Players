@@ -39,4 +39,25 @@
   - `https://an-11-players.web.app/pricing` -> 200 OK
   - `https://an-11-players.web.app/analytics` -> 200 OK
 
-## 4. Status: All Systems Operational & Production-Ready
+## 4. Forensic Bug Hunt & UI/UX Remediation
+1. **Accessibility & Skip Link (`src/app/layout.tsx`)**:
+   - Converted `#main-content` container into a semantic `<main id="main-content" tabIndex={-1}>` element, enabling browser keyboard focus shifting when activating the skip-to-content banner.
+2. **Community Admin Scheduling Permissions (`src/app/match/page.tsx`)**:
+   - Unlocked "Create Match / Booking" action button for community admins (`isAdmin || isOwner`), eliminating an administrative dead-end.
+3. **User Management Roles & Sorting (`src/components/admin/GlobalUsersTable.tsx`)**:
+   - Resolved missing `isOwner` and `isAdmin` computation across the user directory, restoring the Crown Owner badge, Admin shield badge, and accurate role dropdown filtering ("Owners Only", "Admins & Owners", "Players Only").
+   - Added interactive sort trigger to "Position & Style" column header.
+4. **Derby Rivalry Engine Dynamic Names & Localization (`src/components/derby/DerbyRivalryEngine.tsx` & `src/app/stats/derby/page.tsx`)**:
+   - Made head-to-head aggregation and win-streak calculations dynamically adopt selected captain names instead of static placeholders.
+   - Added full Arabic & English translation to the Captain Rivalry picker and page headers with RTL alignment.
+5. **Help & Support Hub Transformation (`src/app/support/page.tsx`)**:
+   - Transformed the dead-end redirect into an authoritative Support Hub featuring official support ticket submissions to Firestore `/support_threads`, 11AI Technical & Tactical Assistant one-click launcher, verified founder WhatsApp & email channels, and an interactive 5-item troubleshooting FAQ accordion.
+6. **Modal Polish (`src/components/community/CommunityChallengeModal.tsx`)**:
+   - Upgraded close trigger to an accessible `type="button"` with `X` icon, aria-label, and tactile spring feedback.
+
+## 5. Verification Status
+- TypeScript: 0 errors (`npx tsc --noEmit`)
+- ESLint: 0 errors, 0 warnings (`npm run check-lint`)
+- Vitest: 106/106 unit tests passed (`npm run test`)
+- Next.js: 65/65 static routes compiled (`npm run build`)
+- Working tree ready for commit and release.

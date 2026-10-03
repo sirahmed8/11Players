@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocale } from "@/components/ui/ThemeProvider";
 import toast from "react-hot-toast";
 import { PlayerProfile, Community } from "@/types";
-import { Loader2, Send, CheckCircle2, Users, Shield, Calendar, MapPin, Clock } from "lucide-react";
+import { Loader2, Send, CheckCircle2, Users, Shield, Calendar, MapPin, Clock, X } from "lucide-react";
 import CustomDropdown from "@/components/ui/CustomDropdown";
 
 export interface CommunityChallenge {
@@ -280,8 +280,13 @@ export default function CommunityChallengeModal({
                 </h3>
               </div>
             </div>
-            <button onClick={onClose} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300">
-              ✕
+            <button 
+              type="button"
+              onClick={onClose} 
+              aria-label={isAr ? "إغلاق" : "Close"}
+              className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white transition-all active:scale-95 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
             </button>
           </div>
 
