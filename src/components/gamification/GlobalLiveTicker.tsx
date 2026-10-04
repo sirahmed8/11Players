@@ -63,27 +63,27 @@ export default function GlobalLiveTicker() {
   }, [messages.length]);
 
   return (
-    <div className="w-full bg-slate-950/60 backdrop-blur-xl border-b border-white/5 overflow-hidden relative h-10 flex items-center shadow-2xl z-20">
-      <div className="absolute top-0 bottom-0 left-0 w-24 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
-      <div className="absolute top-0 bottom-0 right-0 w-24 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
+    <div className="w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 rounded-2xl overflow-hidden relative h-11 flex items-center shadow-sm z-20">
+      <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
+      <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
       
-      <div className="flex items-center px-4 w-full max-w-7xl mx-auto gap-4">
-        <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-          <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,1)]" />
+      <div className="flex items-center px-4 w-full max-w-7xl mx-auto gap-3">
+        <div className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-[10px] font-black uppercase tracking-widest shadow-sm">
+          <span className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
           {isAr ? "مباشر" : "LIVE"}
         </div>
         
-        <div className="flex-1 relative h-full flex items-center">
+        <div className="flex-1 relative h-full flex items-center min-w-0">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentIndex}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="absolute w-full flex items-center gap-2 text-xs font-bold text-slate-300"
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+              className="absolute w-full flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300 truncate"
             >
-              {messages[currentIndex].icon}
+              <span className="shrink-0">{messages[currentIndex].icon}</span>
               <span className="truncate">{messages[currentIndex].text}</span>
             </motion.div>
           </AnimatePresence>

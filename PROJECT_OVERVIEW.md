@@ -165,7 +165,7 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Dual-theme backdrop glassmorphism (`backdrop-blur-xl bg-slate-900/80 border-slate-800/80` and `backdrop-blur-xl bg-white/80 dark:bg-slate-900/80`) and emerald glowing hover borders (`hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]`) added to info cards, stat chips, OVR badges (`PlayerBadge.tsx`), dropdown overlays, tactical advice widgets, floating chat box, and mini-modals.
 - **Smooth Tooltips & Badge Pulse Animations**:
   - Live pulse tags (`animate-ping` ping ring + `animate-pulse` core dot) on broadcast status badges (`LiveMatchBroadcaster.tsx`), active notification tags (`notifications/page.tsx`), and top nav / sidebar active items.
-  - Holographic shimmer beam animation (`animate-[shimmer_2.5s_infinite]`) added across FUT card faces (`Holographic3DFutCard.tsx`, `HoloPlayerCard.tsx`).
+  - Holographic shimmer beam animation (`animate-[shimmer_2.5s_infinite]`) added across FUT card faces (`Holographic3DFutCard.tsx`).
 - **Central Reusable Animation System**:
   - Created `src/lib/animations.ts` exporting standard Framer Motion stagger container variants, item entrance variants, button micro-springs, icon micro-springs, and row micro-spring physics for project-wide consistency.
 
@@ -360,7 +360,7 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Dual-theme backdrop glassmorphism (`backdrop-blur-xl bg-slate-900/80 border-slate-800/80` and `backdrop-blur-xl bg-white/80 dark:bg-slate-900/80`) and emerald glowing hover borders (`hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)]`) added to info cards, stat chips, OVR badges (`PlayerBadge.tsx`), dropdown overlays, tactical advice widgets, floating chat box, and mini-modals.
 - **Smooth Tooltips & Badge Pulse Animations**:
   - Live pulse tags (`animate-ping` ping ring + `animate-pulse` core dot) on broadcast status badges (`LiveMatchBroadcaster.tsx`), active notification tags (`notifications/page.tsx`), and top nav / sidebar active items.
-  - Holographic shimmer beam animation (`animate-[shimmer_2.5s_infinite]`) added across FUT card faces (`Holographic3DFutCard.tsx`, `HoloPlayerCard.tsx`).
+  - Holographic shimmer beam animation (`animate-[shimmer_2.5s_infinite]`) added across FUT card faces (`Holographic3DFutCard.tsx`).
 - **Central Reusable Animation System**:
   - Created `src/lib/animations.ts` exporting standard Framer Motion stagger container variants, item entrance variants, button micro-springs, icon micro-springs, and row micro-spring physics for project-wide consistency.
 
@@ -448,7 +448,7 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
 ## 15. Milestone M2.8 — 1000x Master Site Perfection & Connected Ecosystem
 - **Framer Motion Presets Expansion (`src/lib/animations.ts`)**:
   - Implemented reusable animation presets: `cardFlipVariants`, `drawerVariants`, `badgePulseVariants`, `tabSwitchVariants`, and spring physics constants for liquid-smooth 60fps micro-interactions across light and dark themes.
-- **Universal Skeleton Loading System (`SkeletonPage.tsx` & `SiteSkeletonLoader.tsx`)**:
+- **Universal Skeleton Loading System (`SiteSkeletonLoader.tsx`)**:
   - Implemented glassmorphic shimmer skeleton components for headers, card grids, list rows, pitch formations, profile cards, and leaderboard tables across all 52 Next.js routes.
 - **Fault-Tolerant React Error Boundary (`ErrorBoundary.tsx`)**:
   - Added reusable error boundary wrapper protecting root layout and routes with bilingual Arabic/English error recovery options.
@@ -651,7 +651,24 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
     - Vitest: 106/106 tests passing.
     - TypeScript strict typecheck: 0 errors.
     - ESLint lint check: 0 errors, 0 warnings.
-    - Next.js static build: All 64 routes compiled cleanly to `out/`.
+    - Next.js static build: All 65 routes compiled cleanly to `out/`.
+
+## 19. Milestone M2.12 — Forensic Cleanup, Storage Optimization & Dormant Component Activation
+- **Dead & Redundant Code Purge**:
+  - Removed duplicate and unused components: [AttributeRadarChart.tsx](file:///d:/Projects/11Players/src/components/player/AttributeRadarChart.tsx) (consolidated into [PlayerRadarChart.tsx](file:///d:/Projects/11Players/src/components/player/PlayerRadarChart.tsx)), [HoloPlayerCard.tsx](file:///d:/Projects/11Players/src/components/player/HoloPlayerCard.tsx) (consolidated into 3D physics-based [Holographic3DFutCard.tsx](file:///d:/Projects/11Players/src/components/fut/Holographic3DFutCard.tsx)), and [SkeletonPage.tsx](file:///d:/Projects/11Players/src/components/ui/SkeletonPage.tsx) (consolidated into comprehensive [SiteSkeletonLoader.tsx](file:///d:/Projects/11Players/src/components/ui/SiteSkeletonLoader.tsx)).
+  - Purged redundant root `dns-preload.js` in favor of hardened `scripts/dns-preload.cjs`.
+  - Untracked `.idea/` XML and cache artifacts from git index and purged them locally.
+- **Dormant Component Activation & UI Polish**:
+  - Activated [PlayerOfTheWeekCard.tsx](file:///d:/Projects/11Players/src/components/player/PlayerOfTheWeekCard.tsx) on the Leaderboard page ([src/app/stats/page.tsx](file:///d:/Projects/11Players/src/app/stats/page.tsx)), dynamically highlighting the #1 Ballon d'Or contender with glassmorphic cards, OVR badge, and dual-theme styling.
+  - Integrated [GlobalLiveTicker.tsx](file:///d:/Projects/11Players/src/components/gamification/GlobalLiveTicker.tsx) within the Leaderboard Hero container with live pulse indicator and Arabic/English broadcast text.
+- **Multi-Project Disk Optimization Protocol**:
+  - Engineered standardized high-yield disk reclamation script [scripts/cleanup-disk.ps1](file:///d:/Projects/11Players/scripts/cleanup-disk.ps1) targeting build caches (`.next`, `.firebase`, `coverage`, `.turbo`, `tsconfig.tsbuildinfo`, `*.log`), reclaimable across any Node/Next.js/Vite project.
+- **Verification**:
+  - Vitest: 106/106 unit tests passing across all 10 test suites.
+  - TypeScript strict: 0 errors (`npx tsc --noEmit`).
+  - ESLint: 0 errors, 0 warnings (`npm run check-lint`).
+  - Next.js static build: All 65 routes compiled cleanly to `out/`.
+
 
 
 

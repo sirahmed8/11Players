@@ -1,17 +1,18 @@
 # ==============================================================================
 # scripts/cleanup-disk.ps1
-# Safe High-Yield Disk Cleanup & Cache Reclamation Script
-# Standardized for Next.js, Firebase, Vite, and Node.js projects on Drive D:
+# Safe High-Yield Disk Cleanup & Cache Reclamation Engine
+# Standardized for Next.js, Firebase, Vite, React, Node.js, and Multi-Project Suites
 # ==============================================================================
 
 [CmdletBinding()]
 param (
     [string]$TargetDir = (Get-Location).Path,
-    [switch]$IncludeNodeModules = $false
+    [switch]$IncludeNodeModules = $false,
+    [switch]$AllProjectsInParent = $false
 )
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "       11PLAYERS DISK CLEANUP & CACHE RECLAMATION         " -ForegroundColor Cyan
+Write-Host "       ENTERPRISE DISK CLEANUP & CACHE RECLAMATION        " -ForegroundColor Cyan
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "Target Directory : $TargetDir" -ForegroundColor Yellow
 
@@ -24,7 +25,7 @@ if ($driveLetter) {
     }
 }
 
-# Directories and files targeted for safe purging (100% rebuildable)
+# Directories and files targeted for safe purging (100% rebuildable, zero source code deleted)
 $targets = @(
     ".next",
     ".firebase",
@@ -33,7 +34,9 @@ $targets = @(
     ".parcel-cache",
     ".cache",
     "scratch",
-    ".zcode"
+    ".zcode",
+    ".idea",
+    ".eslintcache"
 )
 
 if ($IncludeNodeModules) {
@@ -45,38 +48,56 @@ $fileTargets = @(
     "*.log",
     "npm-debug.log*",
     "yarn-debug.log*",
-    "yarn-error.log*"
+    "yarn-error.log*",
+    "pnpm-debug.log*"
 )
+
+function Clean-SingleDirectory([string]$dirPath) {
+    $freedBytes = 0
+    $projName = Split-Path -Leaf $dirPath
+    Write-Host "`n>>> Processing Project: $projName ($dirPath)" -ForegroundColor Yellow
+
+    foreach ($folder in $targets) {
+        $folderPath = Join-Path $dirPath $folder
+        if (Test-Path $folderPath) {
+            Write-Host "  -> Inspecting: $folder ..." -NoNewline
+            $sizeBytes = (Get-ChildItem -Path $folderPath -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            if (-not $sizeBytes) { $sizeBytes = 0 }
+            $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
+            Write-Host " found $sizeMB MB." -ForegroundColor DarkYellow
+            
+            Remove-Item -Path $folderPath -Recurse -Force -ErrorAction SilentlyContinue
+            $freedBytes += $sizeBytes
+            Write-Host "     [PURGED] $folder" -ForegroundColor Green
+        }
+    }
+
+    foreach ($pattern in $fileTargets) {
+        $files = Get-ChildItem -Path $dirPath -Filter $pattern -File -Force -ErrorAction SilentlyContinue
+        foreach ($file in $files) {
+            $size = $file.Length
+            $freedBytes += $size
+            Remove-Item -Path $file.FullName -Force -ErrorAction SilentlyContinue
+            Write-Host ("     [PURGED FILE] {0} ({1:N2} KB)" -f $file.Name, ($size / 1KB)) -ForegroundColor Green
+        }
+    }
+
+    return $freedBytes
+}
 
 $totalFreedBytes = 0
 
-foreach ($folder in $targets) {
-    $folderPath = Join-Path $TargetDir $folder
-    if (Test-Path $folderPath) {
-        Write-Host "Inspecting folder: $folder ..." -NoNewline
-        $sizeBytes = (Get-ChildItem -Path $folderPath -Recurse -File -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
-        if (-not $sizeBytes) { $sizeBytes = 0 }
-        $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
-        Write-Host " found $sizeMB MB." -ForegroundColor Yellow
-        
-        Write-Host "  -> Purging $folder ..." -ForegroundColor DarkGray
-        Remove-Item -Path $folderPath -Recurse -Force -ErrorAction SilentlyContinue
-        $totalFreedBytes += $sizeBytes
-        Write-Host "  -> [CLEANED] $folder" -ForegroundColor Green
+if ($AllProjectsInParent) {
+    Write-Host "`n[MULTI-PROJECT MODE ACTIVE]: Scanning child projects under $TargetDir ..." -ForegroundColor Magenta
+    $childDirs = Get-ChildItem -Path $TargetDir -Directory -Force -ErrorAction SilentlyContinue
+    foreach ($child in $childDirs) {
+        $totalFreedBytes += Clean-SingleDirectory $child.FullName
     }
+} else {
+    $totalFreedBytes += Clean-SingleDirectory $TargetDir
 }
 
-foreach ($pattern in $fileTargets) {
-    $files = Get-ChildItem -Path $TargetDir -Filter $pattern -File -Force -ErrorAction SilentlyContinue
-    foreach ($file in $files) {
-        $size = $file.Length
-        $totalFreedBytes += $size
-        Remove-Item -Path $file.FullName -Force -ErrorAction SilentlyContinue
-        Write-Host ("  -> [CLEANED FILE] {0} ({1:N2} KB)" -f $file.Name, ($size / 1KB)) -ForegroundColor Green
-    }
-}
-
-Write-Host "----------------------------------------------------------" -ForegroundColor DarkGray
+Write-Host "`n----------------------------------------------------------" -ForegroundColor DarkGray
 Write-Host ("Total Space Reclaimed: {0:N2} MB ({1:N2} GB)" -f ($totalFreedBytes / 1MB), ($totalFreedBytes / 1GB)) -ForegroundColor Green
 
 if ($driveLetter) {
@@ -87,4 +108,4 @@ if ($driveLetter) {
 }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "Cleanup completed safely. All production source code preserved." -ForegroundColor Green
+Write-Host "Cleanup completed safely. All production source code and git repositories preserved." -ForegroundColor Green

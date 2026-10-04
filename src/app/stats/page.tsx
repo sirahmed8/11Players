@@ -16,6 +16,8 @@ import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
 import FormIcon from "@/components/ui/FormIcon";
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from "framer-motion";
 import { staggerContainerVariants, staggerItemVariants, microSpringProps, microSpringRowProps } from "@/lib/animations";
+import GlobalLiveTicker from "@/components/gamification/GlobalLiveTicker";
+import PlayerOfTheWeekCard from "@/components/player/PlayerOfTheWeekCard";
 import dynamic from "next/dynamic";
 const LeagueTiersWidget = dynamic(() => import("@/components/leaderboard/LeagueTiersWidget"), { 
   loading: () => <div className="h-64 rounded-3xl skeleton" />
@@ -691,7 +693,7 @@ export default function StatsDashboard() {
         dir={isAr ? "rtl" : "ltr"}
       >
         {/* ── Hero Banner ───────────────────────────────────────────────────── */}
-        <div className="max-w-7xl mx-auto px-4 pt-6">
+        <div className="max-w-7xl mx-auto px-4 pt-6 space-y-4">
           <div className="relative bg-slate-900/90 border border-slate-800 overflow-hidden rounded-3xl shadow-2xl">
             <div className="relative z-10 px-6 py-8">
               {/* Title + Refresh */}
@@ -753,9 +755,17 @@ export default function StatsDashboard() {
               </div>
             </div>
           </div>
+
+          {/* Real-time Community & Leaderboard Ticker */}
+          <GlobalLiveTicker />
         </div>
 
         <main className="max-w-7xl mx-auto px-4 py-8 space-y-10">
+          {/* Player of the Week Spotlight Card */}
+          {top1 && (
+            <PlayerOfTheWeekCard player={top1} isAr={isAr} />
+          )}
+
           {/* ── Position Filter Bar (List Button & Glass Tabs) ───────────── */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             {/* Mobile / Quick Dropdown List Button */}
