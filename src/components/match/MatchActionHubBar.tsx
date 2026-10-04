@@ -30,6 +30,16 @@ export default function MatchActionHubBar({ className = "" }: Props) {
       badgeAr: "الأساسي",
     },
     {
+      id: "draft",
+      href: "/match/draft",
+      activeCheck: (path: string) => path.includes("/draft"),
+      labelEn: "Captain Draft",
+      labelAr: "قرعة الكباتن",
+      icon: Users,
+      badgeEn: "Snake",
+      badgeAr: "قرعة",
+    },
+    {
       id: "live",
       href: "/match/live",
       activeCheck: (path: string) => path.includes("/live"),

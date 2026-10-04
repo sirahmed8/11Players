@@ -21,6 +21,7 @@ import RecordStatsModal from "@/components/match/RecordStatsModal";
 import PlayerRatingModal from "@/components/player/PlayerRatingModal";
 import EditMatchModal from "@/components/match/EditMatchModal";
 import SiteSkeletonLoader from "@/components/ui/SiteSkeletonLoader";
+import ConfirmModal from "@/components/ui/ConfirmModal";
 import TurfMatchDisplay from "@/components/match/TurfMatchDisplay";
 import LiveMatchController from "@/components/match/LiveMatchController";
 import MatchConfigModal, { MatchConfig } from "@/components/match/MatchConfigModal";
@@ -887,6 +888,34 @@ function MatchContent() {
           matchId={selectedHistoryMatch?.id || ''}
           players={[...(displayMatch?.teamA || []), ...(displayMatch?.teamB || [])]}
           isAr={isAr}
+        />
+
+        {/* Destructive / Status Confirmation Dialog */}
+        <ConfirmModal
+          isOpen={confirmAction !== null}
+          onClose={() => setConfirmAction(null)}
+          onConfirm={confirmAction === 'delete' ? confirmDeleteMatch : confirmEndBooking}
+          title={
+            confirmAction === 'delete'
+              ? (isAr ? "حذف المباراة الحالية نهائياً؟" : "Permanently Delete Match?")
+              : (isAr ? "إنهاء المباراة وحسم النتيجة؟" : "End Match & Finalize Booking?")
+          }
+          message={
+            confirmAction === 'delete'
+              ? (isAr 
+                  ? "تحذير: سيتم حذف جميع تشكيلات وبيانات هذه المباراة بالكامل ولا يمكن التراجع عن هذا الإجراء." 
+                  : "Warning: All team lineups and match records will be permanently erased. This cannot be undone.")
+              : (isAr 
+                  ? "سيتم حفظ إحصائيات المباراة وتتويج رجل المباراة (MOTM) ونقلها إلى سجل أرشيف المجتمع." 
+                  : "Match stats and Man of the Match (MOTM) will be finalized and archived into community history.")
+          }
+          confirmText={
+            confirmAction === 'delete'
+              ? (isAr ? "حذف نهائي" : "Delete Permanently")
+              : (isAr ? "نعم، إنهاء المباراة" : "Yes, End Match")
+          }
+          cancelText={isAr ? "إلغاء" : "Cancel"}
+          isDestructive={confirmAction === 'delete'}
         />
       </div>
     </ProtectedRoute>

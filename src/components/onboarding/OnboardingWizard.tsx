@@ -14,7 +14,8 @@ import Step3Attributes from './Step3Attributes';
 import Step4PhotoSubmit from './Step4PhotoSubmit';
 import OnboardingAIAdvisor from './OnboardingAIAdvisor';
 import Link from 'next/link';
-import { ChevronUp, ChevronDown, Zap, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ChevronUp, ChevronDown, Zap, CheckCircle2, AlertCircle, Lock } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { WizardState } from './types';
 import { calculateAge } from '@/lib/playerUtils';
 import { playerProfileSchema } from '@/schemas/playerSchema';
@@ -268,6 +269,21 @@ export default function OnboardingWizard() {
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   }, []);
 
+  const handleStepClick = useCallback((targetStep: number) => {
+    if (targetStep === currentStep) return;
+    if (targetStep < currentStep) {
+      setDirection(-1);
+      setCurrentStep(targetStep);
+    } else {
+      toast.error(
+        locale === 'ar'
+          ? `الخطوة ${targetStep} مغلقة. يرجى إكمال الخطوة الحالية أولاً.`
+          : `Step ${targetStep} is locked. Please complete the current step first to proceed.`,
+        { id: `locked-step-${targetStep}` }
+      );
+    }
+  }, [currentStep, locale]);
+
   /* ── Submit ── */
   const handleSubmit = useCallback(async () => {
     if (!user) return;
@@ -397,21 +413,34 @@ export default function OnboardingWizard() {
             const stepNum = idx + 1;
             const isActive = stepNum === currentStep;
             const isCompleted = stepNum < currentStep;
+            const isLocked = stepNum > currentStep;
             const isLast = idx === stepLabels.length - 1;
 
             return (
               <React.Fragment key={idx}>
                 <div className="flex flex-col items-center gap-2 shrink-0">
-                  <motion.div
+                  <motion.button
+                    type="button"
+                    onClick={() => handleStepClick(stepNum)}
+                    whileHover={isCompleted ? { scale: 1.1 } : {}}
+                    whileTap={isCompleted ? { scale: 0.95 } : {}}
                     animate={{ scale: isActive ? 1.1 : 1 }}
                     transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+                    title={
+                      isCompleted 
+                        ? (isRTL ? "مكتملة - اضغط للمراجعة والتعديل" : "Completed - click to review or edit")
+                        : isActive 
+                        ? (isRTL ? "الخطوة الحالية" : "Current Step")
+                        : (isRTL ? "مغلقة حتى اجتياز الخطوات السابقة" : "Locked until previous steps are completed")
+                    }
+                    aria-label={`${label} - ${isCompleted ? 'Completed' : isActive ? 'Current' : 'Locked'}`}
                     className={`
                       relative w-10 h-10 rounded-full flex items-center justify-center text-sm font-black transition-all duration-300
                       ${isCompleted
-                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30'
+                        ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/30 cursor-pointer hover:shadow-emerald-500/50'
                         : isActive
-                        ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/40'
-                        : 'bg-slate-800/80 border border-slate-700 text-slate-500'}
+                        ? 'bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/40 ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-slate-950 cursor-default'
+                        : 'bg-slate-800/80 border border-slate-700/80 text-slate-500 cursor-not-allowed opacity-70'}
                     `}
                   >
                     {isActive && (
@@ -425,10 +454,17 @@ export default function OnboardingWizard() {
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                       </svg>
-                    ) : stepNum}
-                  </motion.div>
-                  <span className={`text-[10px] font-bold hidden sm:block transition-colors whitespace-nowrap
-                    ${isActive ? 'text-emerald-400' : isCompleted ? 'text-emerald-600' : 'text-slate-600'}`}>
+                    ) : isLocked ? (
+                      <Lock className="w-4 h-4 text-slate-400/80" />
+                    ) : (
+                      stepNum
+                    )}
+                  </motion.button>
+                  <span
+                    onClick={() => isCompleted && handleStepClick(stepNum)}
+                    className={`text-[10px] font-bold hidden sm:block transition-colors whitespace-nowrap select-none
+                      ${isActive ? 'text-emerald-400' : isCompleted ? 'text-emerald-600 cursor-pointer hover:underline' : 'text-slate-600'}`}
+                  >
                     {label}
                   </span>
                 </div>

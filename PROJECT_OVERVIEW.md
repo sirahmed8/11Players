@@ -667,14 +667,24 @@ All web routes are 100% connected to live Firestore real-time streams via `src/l
   - Vitest: 106/106 unit tests passing across all 10 test suites.
   - TypeScript strict: 0 errors (`npx tsc --noEmit`).
   - ESLint: 0 errors, 0 warnings (`npm run check-lint`).
-  - Next.js static build: All 65 routes compiled cleanly to `out/`.
-
-
-
-
-
-
-
+  ## 24. Milestone M3.7 — Human Experience (HX) Re-Architecture, Causal Wizard Stepper & Captain Draft Room
+- **Causal Onboarding Stepper ([src/components/onboarding/OnboardingWizard.tsx](file:///d:/Projects/11Players/src/components/onboarding/OnboardingWizard.tsx))**:
+  - Future steps locked with `Lock` icons, disabled cursor, and explanatory notification toast preventing skipped validation.
+  - Completed steps interactively revisitable with checkmarks and micro-spring scale hover/tap feedback (`active:scale-95`).
+- **Match Action Confirmation Modals ([src/app/match/page.tsx](file:///d:/Projects/11Players/src/app/match/page.tsx))**:
+  - Resolved dead interaction where `confirmAction` state ('delete' and 'end') was toggled without rendering `<ConfirmModal>`. Wired destructive modal for match cancellation and confirmation dialog for match completion.
+- **Authentic Captain Draft Room Route ([src/app/match/draft/page.tsx](file:///d:/Projects/11Players/src/app/match/draft/page.tsx) & [src/components/match/MatchActionHubBar.tsx](file:///d:/Projects/11Players/src/components/match/MatchActionHubBar.tsx))**:
+  - Eradicated dead redirect dummy (`router.replace('/matches')`).
+  - Wired full interactive draft room using [CaptainDraftRoom.tsx](file:///d:/Projects/11Players/src/components/match/CaptainDraftRoom.tsx) with live community player rosters (`usePlayers()`), turn countdown timer, snake/classic mode selection, and match launch integration.
+  - Added dedicated Captain Draft navigation tab in `MatchActionHubBar.tsx`.
+- **Anti-Vibe Token Polish & Causal Stepper in [MatchConfigModal.tsx](file:///d:/Projects/11Players/src/components/match/MatchConfigModal.tsx)**:
+  - Added causally locked interactive wizard stepper (`1. Setup` -> `2. AI Lineup`).
+  - Replaced all legacy purple tokens with teal, emerald, and amber brand tokens across turf view, standard preview, bench swap, and AI manager insights gradient.
+- **Full Verification**:
+  - Vitest: 106/106 unit tests passing across all 10 test suites.
+  - TypeScript strict: 0 errors (`npx tsc --noEmit`).
+  - ESLint: 0 errors, 0 warnings (`npm run check-lint`).
+  - Next.js static build: All 65 static routes compiled cleanly to `out/`.
 
 
 
